@@ -18,6 +18,8 @@ auto solve() {
 
 // *****
 
+void prep() {}
+
 void parse_test() {}
 
 void reset_test() {}
@@ -32,6 +34,9 @@ void print_test(u64 casenum, string solution) {
 
 int main() {
   ios::sync_with_stdio(false);
+  cin.tie(nullptr);
+  cout.tie(nullptr);
+  prep();
   u64 T;
   cin >> T >> ws;
   for (u64 t = 0; t < T; ++t) {

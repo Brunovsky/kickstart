@@ -153,8 +153,16 @@ $(EXE): code.cpp
 	@$(CXX) $^ $(CXXFLAGS) -o $@
 
 test: debug
-	clear
+	@clear
 	@$(EXE) < input.txt
+
+custom: debug
+	@clear
+	@$(EXE) < custom.txt
+
+valgrind: debug
+	@clear
+	@valgrind --leak-check=full --show-leak-kinds=all $(EXE) < input.txt
 
 clean:
 	@rm -f $(EXE) core vgcore.* *.log
