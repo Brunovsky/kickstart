@@ -12,10 +12,11 @@ read -p "Problem name? " NAME
 [[ -z "$NAME" ]] && exit 0
 
 PROBLEM="$ROUND-$NAME"
+HEADER="Kickstart $YEAR - $PROBLEM"
 PROBLEM_FOLDER="problems/$COMPETITION/$PROBLEM"
 
 mkdir -p "problems/$COMPETITION"
 cp -RnT "$TEMPLATE" "$PROBLEM_FOLDER"
-echo "# $COMPETITION - $PROBLEM" > "$PROBLEM_FOLDER/README.md"
+echo "# $HEADER" > "$PROBLEM_FOLDER/README.md"
 cd "$PROBLEM_FOLDER"
 code .
