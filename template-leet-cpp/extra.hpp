@@ -66,6 +66,18 @@ void shuffle(RandomIt first, RandomIt last, URBG&& g = rng) {
   }
 }
 
+template <typename T>
+T random_int(T min = 0, T max = std::numeric_limits<T>::max()) {
+  std::uniform_int_distribution<T> dist(min, max);
+  return dist(mt);
+}
+
+template <typename T>
+T random_real(T min = 0, T max = std::numeric_limits<T>::max()) {
+  std::uniform_real_distribution<T> dist(min, max);
+  return dist(mt);
+}
+
 // * Thread pool
 // Pool  workers
 

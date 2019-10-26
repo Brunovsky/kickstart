@@ -147,6 +147,10 @@ $(EXE): code.cpp
 	@echo "Compiling... ($(COMPILER) $(MODE) $@)"
 	@$(CXX) $^ $(CXXFLAGS) -o $@
 
+run: debug
+	@clear
+	@$(EXE)
+
 test: debug
 	@clear
 	@$(EXE) < input.txt
