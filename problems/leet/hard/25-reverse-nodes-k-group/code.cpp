@@ -13,42 +13,35 @@ using i64 = int64_t;
 // *****
 
 struct ListNode {
-  int val;
+  const int val;
   ListNode* next;
   ListNode(int x) : val(x), next(NULL) {}
 };
 
-struct cmp {
-  inline bool operator()(ListNode* const lhs, const ListNode* const rhs) const {
-    return lhs->val > rhs->val;
-  }
-};
-
 class Solution {
  public:
-  ListNode* mergeKLists(const vector<ListNode*>& lists) {
-    priority_queue<ListNode*, deque<ListNode*>, cmp> lists_queue;
-    ListNode* head;
-    ListNode* tail;
+  ListNode* reverseKGroup(ListNode* head, int k) {
+    if (head == nullptr || k <= 1) return head;
 
-    for (ListNode* headn : lists) {
-      if (headn != nullptr) lists_queue.push(headn);
-    }
-    if (lists_queue.empty()) return nullptr;
+    ListNode *front = head->next, *tail = head;
 
-    head = tail = lists_queue.top();
-    lists_queue.pop();
+    int c = 0;
 
-    while (!lists_queue.empty()) {
-      if (tail->next != nullptr) {
-        lists_queue.push(tail->next);
-      }
-      tail->next = lists_queue.top();
-      lists_queue.pop();
-      tail = tail->next;
+    while (++c < k && front != nullptr) {
+      ListNode* tmp = front->next;
+      front->next = tail;
+      tail = front;
+      front = tmp;
     }
 
-    return head;
+    if (c == k) {
+      head->next = reverseKGroup(front, k);
+      return tail;
+    } else {
+      head->next = nullptr;
+      reverseKGroup(tail, c);
+      return head;
+    }
   }
 };
 
@@ -69,16 +62,21 @@ void print(ListNode* head) {
 
 void test() {
   ListNode *list, *l;
-  list = l = new ListNode(1);
+  list = l = new ListNode(0);
+  l = l->next = new ListNode(1);
   l = l->next = new ListNode(2);
   l = l->next = new ListNode(3);
   l = l->next = new ListNode(4);
   l = l->next = new ListNode(5);
+  l = l->next = new ListNode(6);
+  l = l->next = new ListNode(7);
+  l = l->next = new ListNode(8);
+  l = l->next = new ListNode(9);
 
   print(list);
 
   Solution S;
-  ListNode* head = S.mergeKLists(list);
+  ListNode* head = S.reverseKGroup(list, 4);
 
   print(head);
 }

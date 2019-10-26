@@ -34,3 +34,7 @@ hack
 
 # Hidden files
 *.h.*
+
+# Dumps
+core
+vgcore*
