@@ -8,11 +8,11 @@ COMPETITION="hashcode/$YEAR"
 read -p "Round? " ROUND
 [[ -z "$ROUND" ]] && exit 0
 
-read -p "Problem name? " NAME
+read -p "Problem name? (verbose) " NAME
 [[ -z "$NAME" ]] && exit 0
 
 HEADER="Hashcode $YEAR - $ROUND - $NAME"
-PROBLEM="$ROUND-$NAME"
+PROBLEM="$ROUND"
 PROBLEM_FOLDER="problems/$COMPETITION/$PROBLEM"
 
 mkdir -p "$PROBLEM_FOLDER"
