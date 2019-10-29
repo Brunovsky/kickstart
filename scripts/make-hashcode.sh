@@ -1,15 +1,18 @@
 #!/bin/bash
 
-read -p "Difficulty? " DIFFICULTY
-[[ -z "$DIFFICULTY" ]] && exit 0
+read -p "Year? " YEAR
+[[ -z "$YEAR" ]] && exit 0
 
-COMPETITION="leet/$DIFFICULTY"
+COMPETITION="hashcode/$YEAR"
+
+read -p "Round? " ROUND
+[[ -z "$ROUND" ]] && exit 0
 
 read -p "Problem name? " NAME
 [[ -z "$NAME" ]] && exit 0
 
-HEADER="LeetCode - $DIFFICULTY - $NAME"
-PROBLEM="$NAME"
+HEADER="Hashcode $YEAR - $ROUND - $NAME"
+PROBLEM="$ROUND-$NAME"
 PROBLEM_FOLDER="problems/$COMPETITION/$PROBLEM"
 
 mkdir -p "$PROBLEM_FOLDER"

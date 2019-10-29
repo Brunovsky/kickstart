@@ -1,0 +1,3 @@
+[submodule "hacktools"]
+	path = hacktools
+	url = git@github.com:Brunovsky/hacktools

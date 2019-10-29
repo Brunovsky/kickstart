@@ -11,12 +11,15 @@ read -p "Round? " ROUND
 read -p "Problem name? " NAME
 [[ -z "$NAME" ]] && exit 0
 
-PROBLEM="$ROUND-$NAME"
 HEADER="Kickstart $YEAR - $PROBLEM"
+PROBLEM="$ROUND-$NAME"
 PROBLEM_FOLDER="problems/$COMPETITION/$PROBLEM"
 
 mkdir -p "problems/$COMPETITION"
 cp -RnT "$TEMPLATE" "$PROBLEM_FOLDER"
+
 echo "# $HEADER" > "$PROBLEM_FOLDER/README.md"
+ln -s -T "$PWD/hacktools" "$PWD/$PROBLEM_FOLDER/lib"
+
 cd "$PROBLEM_FOLDER"
 code .

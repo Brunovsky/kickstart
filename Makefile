@@ -1,21 +1,12 @@
 # * General Makefile
 
-.PHONY: kickstart-cpp kickstart-java kickstart-python
+.PHONY: kickstart leet hashcode
 
-kickstart-cpp:
+kickstart:
 	@TEMPLATE=template-kickstart-cpp ./scripts/make-kickstart.sh
 
-kickstart-java:
-	@TEMPLATE=template-kickstart-java ./scripts/make-kickstart.sh
-
-kickstart-python:
-	@TEMPLATE=template-kickstart-python ./scripts/make-kickstart.sh
-
-leet-cpp:
+leet:
 	@TEMPLATE=template-leet-cpp ./scripts/make-leet.sh
 
-leet-java:
-	@TEMPLATE=template-leet-java ./scripts/make-leet.sh
-
-leet-python:
-	@TEMPLATE=template-leet-python ./scripts/make-leet.sh
+hashcode:
+	@TEMPLATE=template-hashcode-cpp ./scripts/make-hashcode.sh
