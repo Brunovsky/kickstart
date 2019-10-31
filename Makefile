@@ -10,3 +10,6 @@ leet:
 
 hashcode:
 	@TEMPLATE=template-hashcode-cpp ./scripts/make-hashcode.sh
+
+example:
+	@TEMPLATE=template-hashcode-cpp ./scripts/make-example.sh
