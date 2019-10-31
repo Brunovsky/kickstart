@@ -11,7 +11,7 @@ read -p "Round? " ROUND
 read -p "Problem name? " NAME
 [[ -z "$NAME" ]] && exit 0
 
-HEADER="Kickstart $YEAR - $PROBLEM"
+HEADER="Kickstart $YEAR - $ROUND-$NAME"
 PROBLEM="$ROUND-$NAME"
 PROBLEM_FOLDER="problems/$COMPETITION/$PROBLEM"
 
