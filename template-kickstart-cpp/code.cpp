@@ -18,17 +18,9 @@ auto solve() {
 
 // *****
 
-void prep() {}
-
 void parse_test() {}
 
 void reset_test() {}
-
-void print_test(u64 casenum, string solution) {
-  cout << "Case #" << casenum << ": ";
-  cout << solution;
-  cout << '\n';
-}
 
 // *****
 
@@ -36,12 +28,11 @@ int main() {
   ios::sync_with_stdio(false);
   cin.tie(nullptr);
   cout.tie(nullptr);
-  prep();
   u64 T;
   cin >> T >> ws;
   for (u64 t = 0; t < T; ++t) {
     parse_test();
-    print_test(t + 1, solve());
+    cout << "Case #" << (t + 1) << ": " << solve() << '\n';
     reset_test();
   }
   return 0;
