@@ -4,7 +4,7 @@ using namespace std;
 
 using i64 = int64_t;
 
-// ***** ***** ***** ***** ***** Boyer Moore (from library)
+// ***** ***** ***** ***** ***** Knuth Morris Pratt (from library)
 
 namespace {
 
