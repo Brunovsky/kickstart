@@ -74,22 +74,11 @@ void populate_tree(u32 i) {
   }
 }
 
-// increment the book count on every leaf below i.
-void add_book_count(u32 i) {
-  if (i < I) {
-    add_book_count(i << 1);
-    add_book_count(i << 1 | 1);
-  } else {
-    ++tree[i].count;
-  }
-}
-
 // insert book into the subtree below i, or on i.
 void insert_book(Book* book, u32 i) {
   if (overlap(book->range, tree[i].range)) {
     if (book->range.contains(tree[i].range)) {
       tree[i].books.insert(book);
-      add_book_count(i);
     } else {
       assert(i < I);
       insert_book(book, i << 1);
@@ -98,7 +87,16 @@ void insert_book(Book* book, u32 i) {
   }
 }
 
-// found a leaf with just one overlap. Find the culprit book and propagate its
+// fix book counts
+void fix_counts(u32 i) {
+  tree[i].count = tree[i >> 1].count + tree[i].books.size();
+  if (i < I) {
+    fix_counts(i << 1);
+    fix_counts(i << 1 | 1);
+  }
+}
+
+// found a leaf with just one book. Find the culprit book and propagate its
 // best value up the tree while nullptrs are found.
 void pushup(u32 i) {
   u32 j = i;
@@ -115,7 +113,7 @@ void pushup(u32 i) {
   }
 }
 
-// decrement the book count on every leaf below i. Pushup new best contenders.
+// decrement the book count on every leaf below i. Pushup new best books.
 void rem_book_count(u32 i) {
   if (i < I) {
     rem_book_count(i << 1);
@@ -126,6 +124,35 @@ void rem_book_count(u32 i) {
   }
 }
 
+// decrement the book count on every leaf below i. Pushup new best books.
+void search_open(u32 i) {
+  if (i >= I) {
+    if (tree[i].count == 1) {
+      pushup(i);
+    }
+  } else {
+    if (tree[i].count == 1) {
+      // left
+      if (tree[i << 1].books.empty()) {
+        tree[i << 1].count = 1;
+        search_open(i << 1);
+      }
+      // right
+      if (tree[i << 1 | 1].books.empty()) {
+        tree[i << 1 | 1].count = 1;
+        search_open(i << 1 | 1);
+      }
+    } else if (tree[i].count == 0) {
+      // left
+      tree[i << 1].count = tree[i << 1].books.size();
+      search_open(i << 1);
+      // right
+      tree[i << 1 | 1].count = tree[i << 1 | 1].books.size();
+      search_open(i << 1 | 1);
+    }
+  }
+}
+
 // delete book from the subtree i.
 void delete_book(Book* book, u32 i) {
   if (overlap(book->range, tree[i].range)) {
@@ -133,7 +160,9 @@ void delete_book(Book* book, u32 i) {
 
     if (book->range.contains(tree[i].range)) {
       tree[i].books.erase(book);
-      rem_book_count(i);
+      --tree[i].count;
+      search_open(i);
+      // rem_book_count(i);
     } else {
       assert(i < I);
       delete_book(book, i << 1);
@@ -159,6 +188,7 @@ void stab_tree(u32 i) {
 
 void prepare_tree() {
   for (auto& book : bookings) insert_book(&book, 1);
+  fix_counts(1);
   for (u32 i = I; i < 2 * I; ++i) {
     if (tree[i].count == 1) pushup(i);
   }
