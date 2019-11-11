@@ -1,5 +1,5 @@
-# kickstart-2018 - C-fairies-witches
+# Kickstart 2018 - C-fairies-witches
 
 Solved
 
-Time: 1:29:00
+Time: 90 minutes

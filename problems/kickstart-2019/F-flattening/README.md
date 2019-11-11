@@ -1,4 +1,4 @@
-# kickstart-2019 - F-flattening
+# Kickstart 2019 - F-flattening
 
-Time: 1:10:00
+Time: 70 minutes
 Complexity: O(NK)

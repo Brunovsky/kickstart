@@ -61,33 +61,24 @@ auto solve() {
 
 // *****
 
-void parse_test() {
-  cin >> N >> K;
-  P.resize(N);
-  A.resize(N);
+void reparse_test() {
+  cin >> N >> K >> ws;
+  S.clear();
+  P.assign(N, 0);
+  A.assign(N, 0);
   for (int i = 0; i < N; ++i) cin >> P[i];
   for (int i = 0; i < N; ++i) cin >> A[i];
-}
-
-void reset_test() {
-  P.clear();
-  A.clear();
-  B.clear();
-  S.clear();
 }
 
 // *****
 
 int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr);
-  cout.tie(nullptr);
   unsigned T;
   cin >> T >> ws;
-  for (unsigned t = 0; t < T; ++t) {
-    parse_test();
-    cout << "Case #" << (t + 1) << ": " << solve() << '\n';
-    reset_test();
+  for (unsigned t = 1; t <= T; ++t) {
+    reparse_test();
+    auto solution = solve();
+    cout << "Case #" << t << ": " << solution << '\n';
   }
   return 0;
 }

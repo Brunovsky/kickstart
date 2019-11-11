@@ -1,4 +1,4 @@
-# kickstart-2018 - A-lucky-dip
+# Kickstart 2018 - A-lucky-dip
 
 Unsolved
 

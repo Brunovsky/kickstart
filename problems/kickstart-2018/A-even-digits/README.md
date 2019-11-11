@@ -1,4 +1,4 @@
-# kickstart-2018 - A-even-digits
+# Kickstart 2018 - A-even-digits
 
 Unfinished
 

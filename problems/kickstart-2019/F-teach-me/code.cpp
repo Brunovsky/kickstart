@@ -1,14 +1,9 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-using u8 = uint8_t;
 using u16 = uint16_t;
 using u32 = uint32_t;
 using u64 = uint64_t;
-using i8 = int8_t;
-using i16 = int16_t;
-using i32 = int32_t;
-using i64 = int64_t;
 
 // *****
 
@@ -93,8 +88,10 @@ u32 add_skillset(SkillSet& skillset) {
 
 // *****
 
-void parse_test() {
+void reparse_test() {
   cin >> N >> S;
+  infos.clear();
+  finger.clear();
   infos.resize(1);
 
   for (u64 n = 0; n < N; ++n) {
@@ -118,27 +115,15 @@ void parse_test() {
   }
 }
 
-void reset_test() {
-  infos.clear();
-  finger.clear();
-}
-
-void print_test(u64 casenum, u64 solution) {
-  cout << "Case #" << casenum << ": ";
-  cout << solution;
-  cout << '\n';
-}
-
 // *****
 
 int main() {
-  ios::sync_with_stdio(false);
-  u64 T;
+  unsigned T;
   cin >> T >> ws;
-  for (u64 t = 0; t < T; ++t) {
-    parse_test();
-    print_test(t + 1, solve());
-    reset_test();
+  for (unsigned t = 1; t <= T; ++t) {
+    reparse_test();
+    auto solution = solve();
+    cout << "Case #" << t << ": " << solution << '\n';
   }
   return 0;
 }

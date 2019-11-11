@@ -142,14 +142,12 @@ void reparse_test() {
 // *****
 
 int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr);
-  cout.tie(nullptr);
   unsigned T;
   cin >> T >> ws;
-  for (unsigned t = 0; t < T; ++t) {
+  for (unsigned t = 1; t <= T; ++t) {
     reparse_test();
-    cout << "Case #" << (t + 1) << ": " << solve() << '\n';
+    auto solution = solve();
+    cout << "Case #" << t << ": " << solution << '\n';
   }
   return 0;
 }

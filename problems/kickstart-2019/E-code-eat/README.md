@@ -1,9 +1,9 @@
-# kickstart-2019 - E-code-eat
+# Kickstart 2019 - E-code-eat
 
 Solved
 
-Time: 37:49 + ~20:00 solving
+Time: 1 hour
 
 Could have been better.
 
-Complexity: O(D logD + S log S)
+Time complexity: O(D logD + S log S)

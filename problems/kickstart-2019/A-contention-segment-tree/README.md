@@ -1,8 +1,7 @@
 # Kickstart 2019 - A-contention
 
-0    10    20    30    40    50    60    70    80    90
-|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+Solved, but has bugs
 
-               |                       |
-      |              |           |                |
-         |           |           |           |
+Time: 5 hours
+Time complexity: O(Q log(Q))
+Memory: O(Q)

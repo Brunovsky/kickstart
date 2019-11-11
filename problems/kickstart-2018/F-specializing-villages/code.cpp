@@ -31,7 +31,7 @@ auto solve() {
 
 // *****
 
-void parse_test() {
+void reparse_test() {
   cin >> V >> E >> ws;
   adj.assign(V + 1, INT_MAX);
   len.assign(V + 1, INT_MAX);
@@ -58,14 +58,12 @@ void parse_test() {
 // *****
 
 int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr);
-  cout.tie(nullptr);
   unsigned T;
   cin >> T >> ws;
-  for (unsigned t = 0; t < T; ++t) {
-    parse_test();
-    cout << "Case #" << (t + 1) << ": " << solve() << '\n';
+  for (unsigned t = 1; t <= T; ++t) {
+    reparse_test();
+    auto solution = solve();
+    cout << "Case #" << t << ": " << solution << '\n';
   }
   return 0;
 }

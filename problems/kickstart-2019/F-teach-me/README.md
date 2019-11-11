@@ -1,6 +1,6 @@
-# kickstart-2019 - F-teach-me
+# Kickstart 2019 - F-teach-me
 
 Solved
 
-Time: 1:11:47
+Time: 70 minutes
 Complexity: O(2^5 N)

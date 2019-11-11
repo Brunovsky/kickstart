@@ -199,11 +199,11 @@ auto solve() {
 
 // *****
 
-void parse_test() {
+void reparse_test() {
   int W;
   cin >> R >> C >> W >> ws;
-  text_rows.resize(R);
-  text_cols.resize(C);
+  text_rows.assign(R, {});
+  text_cols.assign(C, {});
   for (int r = 0; r < R; ++r) {
     string text;
     cin >> text >> ws;
@@ -216,6 +216,7 @@ void parse_test() {
       text_cols[c][r] = text_rows[r][c];
     }
   }
+  words.clear();
   for (int w = 0; w < W; ++w) {
     string word;
     cin >> word;
@@ -225,24 +226,15 @@ void parse_test() {
   }
 }
 
-void reset_test() {
-  text_rows.clear();
-  text_cols.clear();
-  words.clear();
-}
-
 // *****
 
 int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr);
-  cout.tie(nullptr);
   unsigned T;
   cin >> T >> ws;
-  for (unsigned t = 0; t < T; ++t) {
-    parse_test();
-    cout << "Case #" << (t + 1) << ": " << solve() << '\n';
-    reset_test();
+  for (unsigned t = 1; t <= T; ++t) {
+    reparse_test();
+    auto solution = solve();
+    cout << "Case #" << t << ": " << solution << '\n';
   }
   return 0;
 }

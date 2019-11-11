@@ -1,8 +1,8 @@
-# kickstart-2019 - E-cherries-mesh
+# Kickstart 2019 - E-cherries-mesh
 
 Solved
 
-Time: 40:15
+Time: 40 minutes
 Complexity: O(N + M)
 
 I severely misread the problem

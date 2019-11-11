@@ -1,5 +1,5 @@
-# kickstart-2018 - C-planet
+# Kickstart 2018 - C-planet
 
 Solved
 
-Time: approx. 01:00:00
+Time: 1 hour

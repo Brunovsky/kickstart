@@ -1,3 +1,3 @@
-# kickstart-2018 - B-no-nine
+# Kickstart 2018 - B-no-nine
 
 Unsolved
