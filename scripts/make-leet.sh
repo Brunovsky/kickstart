@@ -1,22 +1,22 @@
 #!/bin/bash
 
-read -p "Difficulty? " DIFFICULTY
-[[ -z "$DIFFICULTY" ]] && exit 0
-
-COMPETITION="leet/$DIFFICULTY"
+read -p "Difficulty? " DIFFICULT
+[[ -z $DIFFICULTY ]] && exit 0
+[[ $DIFFICULTY =~ '[a-z]+' ]] || echo 'Bad difficulty' && exit 1
 
 read -p "Problem name? " NAME
-[[ -z "$NAME" ]] && exit 0
+[[ -z $NAME ]] && exit 0
+[[ $NAME =~ '[a-zA-Z0-9-]+' ]] || echo 'Bad problem name' && exit 1
 
+COMPETITION="leet/$DIFFICULTY"
 HEADER="LeetCode - $DIFFICULTY - $NAME"
 PROBLEM="$NAME"
-PROBLEM_FOLDER="problems/$COMPETITION/$PROBLEM"
+FOLDER="problems/$COMPETITION/$PROBLEM"
 
-mkdir -p "$PROBLEM_FOLDER"
-cp -RnT "$TEMPLATE" "$PROBLEM_FOLDER"
+mkdir -p "$FOLDER"
+cp -RnT "$TEMPLATE" "$FOLDER"
 
-echo "# $HEADER" > "$PROBLEM_FOLDER/README.md"
-ln -s -T "$PWD/hacktools" "$PWD/$PROBLEM_FOLDER/lib"
+echo "# $HEADER" > "$FOLDER/README.md"
 
-cd "$PROBLEM_FOLDER"
-code .
+cd "$FOLDER"
+${EDITOR:-code} .
