@@ -37,10 +37,6 @@ endif
 
 INCLUDES := -isystem lib/src/ -isystem ~/include
 
-# Need sdsl vector access to run as fast as possible, so link statically
-LIBS := -Wl,-Bstatic -lfmt -lsdsl
-LIBS += -Wl,-Bdynamic -lgtest -lboost_program_options-mt-x64
-
 # * Warnings
 
 WARNS := -Wall -Wextra -Wpedantic -Werror -pedantic-errors
