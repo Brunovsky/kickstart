@@ -1,15 +1,13 @@
-# * General Makefile
+# Generate a new problem folder under problems/ with 'make FORMAT'
 
-.PHONY: kickstart leet hashcode
+.PHONY: kickstart kickstart-cpp
+.PHONY: leet leet-cpp
 
-kickstart:
-	@TEMPLATE=template-kickstart-cpp ./scripts/make-kickstart.sh
+kickstart: kickstart-cpp
+leet: leet-cpp
 
-leet:
-	@TEMPLATE=template-leet-cpp ./scripts/make-leet.sh
+kickstart-cpp:
+	@./scripts/kickstart.py kickstart-cpp
 
-hashcode:
-	@TEMPLATE=template-hashcode-cpp ./scripts/make-hashcode.sh
-
-example:
-	@TEMPLATE=template-hashcode-cpp ./scripts/make-example.sh
+leet-cpp:
+	@./scripts/leet.py leet-cpp
