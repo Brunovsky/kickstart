@@ -1,1 +1,1 @@
-# LeetCode - hard - 37-sudoku-solver
+# LeetCode - hard - 37 Sudoku Solver

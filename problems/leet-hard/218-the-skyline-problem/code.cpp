@@ -23,13 +23,15 @@ class Solution {
   }
 
   void insert(int i, range build) {
-    if (tree[i].y >= build.y) return;
+    if (tree[i].y >= build.y)
+      return;
 
     // overlap
     if (build.L < tree[i].R && tree[i].L < build.R) {
       // contain
       if (build.L <= tree[i].L && tree[i].R <= build.R) {
-        if (tree[i].y < build.y) tree[i].y = build.y;
+        if (tree[i].y < build.y)
+          tree[i].y = build.y;
       } else {
         assert(i < O);
         insert(i << 1, build);
@@ -46,13 +48,14 @@ class Solution {
     }
   }
 
- public:
-  vector<vector<int>> getSkyline(const vector<vector<int>>& buildings) {
-    if (buildings.empty()) return {};
+public:
+  vector<vector<int>> getSkyline(const vector<vector<int>> &buildings) {
+    if (buildings.empty())
+      return {};
 
     vector<int> endp;
 
-    for (const auto& building : buildings) {
+    for (const auto &building : buildings) {
       endp.push_back(building[0]);
       endp.push_back(building[1]);
     }
@@ -60,7 +63,8 @@ class Solution {
     endp.erase(unique(endp.begin(), endp.end()), endp.end());
     O = endp.size() - 1;
     P = 1;
-    while (P < O) P <<= 1;
+    while (P < O)
+      P <<= 1;
 
     tree.assign(2 * O, {});
     obegin = tree.begin() + O;
@@ -71,13 +75,13 @@ class Solution {
       tree[i + O].R = endp[i + 1];
     }
 
-    rotate(obegin, obegin + (2 * O - P), oend);  // align tree
+    rotate(obegin, obegin + (2 * O - P), oend); // align tree
     pushup(1);
-    for (const auto& building : buildings) {
+    for (const auto &building : buildings) {
       insert(1, {building[0], building[1], building[2]});
     }
     pushdown(1);
-    rotate(obegin, obegin + (P - O), oend);  // align array
+    rotate(obegin, obegin + (P - O), oend); // align array
 
     vector<vector<int>> skyline;
     auto left = obegin;
@@ -103,7 +107,7 @@ void test() {
   Solution S;
 
   vector<vector<int>> buildings = {
-    {2, 9, 10}, {3, 7, 15}, {5, 12, 12}, {15, 20, 10}, {19, 24, 8},
+      {2, 9, 10}, {3, 7, 15}, {5, 12, 12}, {15, 20, 10}, {19, 24, 8},
   };
 
   auto skyline = S.getSkyline(buildings);

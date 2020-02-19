@@ -1,40 +1,34 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-using u8 = uint8_t;
-using u16 = uint16_t;
-using u32 = uint32_t;
-using u64 = uint64_t;
-using i8 = int8_t;
-using i16 = int16_t;
-using i32 = int32_t;
-using i64 = int64_t;
 
 // *****
 
 struct ListNode {
   int val;
-  ListNode* next;
+  ListNode *next;
   ListNode(int x) : val(x), next(NULL) {}
 };
 
 struct cmp {
-  inline bool operator()(ListNode* const lhs, const ListNode* const rhs) const {
+  inline bool operator()(ListNode *const lhs, const ListNode *const rhs) const {
     return lhs->val > rhs->val;
   }
 };
 
 class Solution {
- public:
-  ListNode* mergeKLists(const vector<ListNode*>& lists) {
-    priority_queue<ListNode*, deque<ListNode*>, cmp> lists_queue;
-    ListNode* head;
-    ListNode* tail;
+public:
+  ListNode *mergeKLists(const vector<ListNode *> &lists) {
+    priority_queue<ListNode *, deque<ListNode *>, cmp> lists_queue;
+    ListNode *head;
+    ListNode *tail;
 
-    for (ListNode* headn : lists) {
-      if (headn != nullptr) lists_queue.push(headn);
+    for (ListNode *headn : lists) {
+      if (headn != nullptr)
+        lists_queue.push(headn);
     }
-    if (lists_queue.empty()) return nullptr;
+    if (lists_queue.empty())
+      return nullptr;
 
     head = tail = lists_queue.top();
     lists_queue.pop();
@@ -54,7 +48,7 @@ class Solution {
 
 // *****
 
-void print(ListNode* head) {
+void print(ListNode *head) {
   cout << "List: ";
   if (head != nullptr) {
     cout << head->val;
@@ -68,27 +62,34 @@ void print(ListNode* head) {
 }
 
 void test() {
-  ListNode *list, *l;
-  list = l = new ListNode(1);
-  l = l->next = new ListNode(2);
+  ListNode *list1, *list2, *list3, *l;
+  list1 = l = new ListNode(1);
   l = l->next = new ListNode(3);
-  l = l->next = new ListNode(4);
+  l = l->next = new ListNode(7);
+  l = l->next = new ListNode(8);
+  l = l->next = new ListNode(10);
+  list2 = l = new ListNode(4);
+  l = l->next = new ListNode(6);
+  l = l->next = new ListNode(9);
+  l = l->next = new ListNode(12);
+  list3 = l = new ListNode(2);
   l = l->next = new ListNode(5);
+  l = l->next = new ListNode(11);
 
-  print(list);
+  print(list1);
+  print(list2);
+  print(list3);
 
   Solution S;
-  ListNode* head = S.mergeKLists(list);
+  ListNode *head = S.mergeKLists({list1, list2, list3});
 
   print(head);
+  cout << "The above should look like 1->2->...->11->12.\n";
 }
 
 // *****
 
 int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr);
-  cout.tie(nullptr);
   test();
   return 0;
 }

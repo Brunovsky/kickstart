@@ -1,1 +1,1 @@
-# LeetCode - hard - 72-edit-distance
+# LeetCode - hard - 72 Edit Distance

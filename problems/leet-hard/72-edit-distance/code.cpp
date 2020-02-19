@@ -1,28 +1,22 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-using u8 = uint8_t;
-using u16 = uint16_t;
-using u32 = uint32_t;
-using u64 = uint64_t;
-using i8 = int8_t;
-using i16 = int16_t;
-using i32 = int32_t;
-using i64 = int64_t;
 
 // *****
 
 class Solution {
- public:
+public:
   // levenshtein distance
-  int minDistance(const string& a, const string& b) {
-    if (a.size() < b.size()) return minDistance(b, a);
+  int minDistance(const string &a, const string &b) {
+    if (a.size() < b.size())
+      return minDistance(b, a);
 
     size_t A = a.size(), B = b.size();
 
     vector<size_t> cur_row(B + 1), old_row(B + 1);
 
-    for (size_t j = 0; j <= B; ++j) old_row[j] = j;
+    for (size_t j = 0; j <= B; ++j)
+      old_row[j] = j;
 
     for (size_t i = 1; i <= A; ++i) {
       cur_row[0] = i;
@@ -56,9 +50,6 @@ void test() {
 // *****
 
 int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr);
-  cout.tie(nullptr);
   test();
   return 0;
 }

@@ -1,14 +1,6 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-using u8 = uint8_t;
-using u16 = uint16_t;
-using u32 = uint32_t;
-using u64 = uint64_t;
-using i8 = int8_t;
-using i16 = int16_t;
-using i32 = int32_t;
-using i64 = int64_t;
 
 // *****
 
@@ -22,13 +14,13 @@ T random_int(T min = 0, T max = std::numeric_limits<T>::max()) {
 }
 
 class Solution {
- public:
+public:
   // find index i in [b..e) such that:
   // if n is in nums[b..e) then
   //   nums[i] == n and i is the largest possible
   // else
   //   nums[i] > n and i is the smallest possible
-  size_t latest(const vector<int>& nums, int n, size_t b, size_t e) const {
+  size_t latest(const vector<int> &nums, int n, size_t b, size_t e) const {
     auto begin = nums.begin() + b, end = nums.begin() + e;
     auto bound = upper_bound(begin, end, n);
     if (bound - begin > 0 && *(bound - 1) == n)
@@ -37,19 +29,19 @@ class Solution {
       return bound - nums.begin();
   }
 
-  double findMedianSortedArrays(const vector<int>& nums1,
-                                const vector<int>& nums2) const {
+  double findMedianSortedArrays(const vector<int> &nums1,
+                                const vector<int> &nums2) const {
     const size_t S1 = nums1.size(), S2 = nums2.size();
     const bool odd = (S1 + S2) & 1;
     const size_t S = (S1 + S2 - 1) / 2;
 
-    size_t l1 = 0, r1 = S1;  // nums1 window
-    size_t l2 = 0, r2 = S2;  // nums2 window
+    size_t l1 = 0, r1 = S1; // nums1 window
+    size_t l2 = 0, r2 = S2; // nums2 window
     bool nums1_turn = true;
 
-    // Goal: find index l and array N such that numsN[l] is the lowest component of the
-    // mean. That means the two arrays can be merged and sorted such that numsN[l] ends
-    // up in the (S+1)th position.
+    // Goal: find index l and array N such that numsN[l] is the lowest component
+    // of the mean. That means the two arrays can be merged and sorted such that
+    // numsN[l] ends up in the (S+1)th position.
 
     // ends when either window has size 0 or l1 + l2 is near the maximum S.
     while (l1 < r1 && l2 < r2 && l1 + l2 + 1 < S) {
@@ -82,7 +74,8 @@ class Solution {
       nums1[l1] < nums2[l2] ? ++l1 : ++l2;
     }
 
-    // Wrap things up. care for edge cases where l1 or l2 are at the end of the array.
+    // Wrap things up. care for edge cases where l1 or l2 are at the end of the
+    // array.
     if (l2 == S2) {
       return odd ? nums1[l1] : double(nums1[l1] + nums1[l1 + 1]) / 2.0;
     } else if (l1 == S1) {
@@ -90,7 +83,8 @@ class Solution {
     }
 
     // Odd case is simple
-    if (odd) return min(nums1[l1], nums2[l2]);
+    if (odd)
+      return min(nums1[l1], nums2[l2]);
 
     // Even case is minimum of 3 values but some may be out of bounds.
     int k11 = INT_MAX, k22 = INT_MAX, k12 = INT_MAX;
@@ -190,6 +184,10 @@ Test gen2(int t, int k) {
 void test() {
   Solution S;
 
+  cout << "I will generate several random problems,\n"
+          "and test the solver against each of them.\n"
+          "It shouldn't take more than a few seconds.\n";
+
   for (int t = 1; t <= 1000; ++t) {
     Test test = gen(t);
     double result = S.findMedianSortedArrays(test.nums1, test.nums2);
@@ -220,21 +218,24 @@ void test() {
     }
   }
 
-  cout << '\n';
-  cout << S.findMedianSortedArrays({1, 1, 1, 9, 9, 9}, {3, 4, 5, 6, 7, 8}) << '\n';
-  cout << S.findMedianSortedArrays({1, 1, 1, 3, 5, 9}, {3, 4, 6, 6, 7, 8}) << '\n';
-  cout << S.findMedianSortedArrays({2, 3, 3, 3, 7, 7, 10}, {4, 4, 5, 5, 5, 5, 6}) << '\n';
-  cout << S.findMedianSortedArrays({1, 2, 3, 7, 10}, {4, 5, 6, 8, 9}) << '\n';
+  cout << '\n'
+       << S.findMedianSortedArrays({1, 1, 1, 9, 9, 9}, {3, 4, 5, 6, 7, 8})
+       << '\n'
+       << S.findMedianSortedArrays({1, 1, 1, 3, 5, 9}, {3, 4, 6, 6, 7, 8})
+       << '\n'
+       << S.findMedianSortedArrays({2, 3, 3, 3, 7, 7, 10},
+                                   {4, 4, 5, 5, 5, 5, 6})
+       << '\n'
+       << S.findMedianSortedArrays({1, 2, 3, 7, 10}, {4, 5, 6, 8, 9}) << '\n';
 
   // 5.5, 4.5, 5, 5.5
 
-  cout << "All good!\n";
+  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
 }
 
 // *****
 
 int main() {
-  ios::sync_with_stdio(false);
   test();
   return 0;
 }

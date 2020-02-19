@@ -1,34 +1,27 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-using u8 = uint8_t;
-using u16 = uint16_t;
-using u32 = uint32_t;
-using u64 = uint64_t;
-using i8 = int8_t;
-using i16 = int16_t;
-using i32 = int32_t;
-using i64 = int64_t;
 
 // *****
 
 struct ListNode {
   const int val;
-  ListNode* next;
+  ListNode *next;
   ListNode(int x) : val(x), next(NULL) {}
 };
 
 class Solution {
- public:
-  ListNode* reverseKGroup(ListNode* head, int k) {
-    if (head == nullptr || k <= 1) return head;
+public:
+  ListNode *reverseKGroup(ListNode *head, int k) {
+    if (head == nullptr || k <= 1)
+      return head;
 
     ListNode *front = head->next, *tail = head;
 
     int c = 0;
 
     while (++c < k && front != nullptr) {
-      ListNode* tmp = front->next;
+      ListNode *tmp = front->next;
       front->next = tail;
       tail = front;
       front = tmp;
@@ -47,7 +40,7 @@ class Solution {
 
 // *****
 
-void print(ListNode* head) {
+void print(ListNode *head) {
   cout << "List: ";
   if (head != nullptr) {
     cout << head->val;
@@ -76,17 +69,15 @@ void test() {
   print(list);
 
   Solution S;
-  ListNode* head = S.reverseKGroup(list, 4);
+  ListNode *head = S.reverseKGroup(list, 4);
 
   print(head);
+  cout << "The above should have a period of 4: 3->2->1->0->7->...->4->8->9.\n";
 }
 
 // *****
 
 int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr);
-  cout.tie(nullptr);
   test();
   return 0;
 }

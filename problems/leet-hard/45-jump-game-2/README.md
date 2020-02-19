@@ -1,1 +1,1 @@
-# LeetCode - hard - jump-game-2
+# LeetCode - hard - 45 Jump Game 2
