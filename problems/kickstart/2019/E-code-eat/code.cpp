@@ -27,11 +27,12 @@ vector<Day> days;
 auto solve() {
   // Sort the days by coding requirement, increasing.
   sort(days.begin(), days.end(),
-       [](const Day& d1, const Day& d2) { return d1.coding < d2.coding; });
+       [](const Day &d1, const Day &d2) { return d1.coding < d2.coding; });
 
   // Sort the slots in such a way that the ratio cod/eat is decreasing.
-  sort(slots.begin(), slots.end(),
-       [](const Slot& s1, const Slot& s2) { return s1.cod * s2.eat > s1.eat * s2.cod; });
+  sort(slots.begin(), slots.end(), [](const Slot &s1, const Slot &s2) {
+    return s1.cod * s2.eat > s1.eat * s2.cod;
+  });
 
   u64 cod = 0, eat = 0;
 
@@ -47,34 +48,38 @@ auto solve() {
     }
 
     if (s == S) {
-      if (cod < days[d].coding) break;
+      if (cod < days[d].coding)
+        break;
       days[d].verdict = eat >= days[d].eating;
       continue;
     }
 
     // invariant: cod <= days[d].coding < cod + slots[s].cod
 
-    if (eat < days[d].eating) continue;  // exit early if impossible
+    if (eat < days[d].eating)
+      continue; // exit early if impossible
     u64 codlo = days[d].coding - cod, codrange = slots[s].cod;
 
     // f = codlo / slots[s].cod
-    // decrease in day.eating: f * slots[s].eat = codlo / slots[s].cod * slots[s].eat
-    // we must have:
+    // decrease in day.eating: f * slots[s].eat = codlo / slots[s].cod *
+    // slots[s].eat we must have:
 
     // day.eating <= eat - f * slots[s].eat
     // f * slots[s].eat <= eat - day.eating
     // codlo * slots[s].eat <= (eat - day.eating) * slots[s].cod
 
-    days[d].verdict = codlo * slots[s].eat <= (eat - days[d].eating) * slots[s].cod;
+    days[d].verdict =
+        codlo * slots[s].eat <= (eat - days[d].eating) * slots[s].cod;
   }
 
   // this could be O(D) but I'm lazy
   sort(days.begin(), days.end(),
-       [](const Day& d1, const Day& d2) { return d1.i < d2.i; });
+       [](const Day &d1, const Day &d2) { return d1.i < d2.i; });
 
   std::string text;
   text.resize(D);
-  for (u32 d = 0; d < D; ++d) text[d] = days[d].verdict ? 'Y' : 'N';
+  for (u32 d = 0; d < D; ++d)
+    text[d] = days[d].verdict ? 'Y' : 'N';
 
   return text;
 }

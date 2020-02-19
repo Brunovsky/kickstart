@@ -15,11 +15,11 @@ struct Query {
   int xmin, xmax, ymin, ymax;
 };
 
-inline bool cafe_x_sort(const Cafe& lhs, const Cafe& rhs) {
+inline bool cafe_x_sort(const Cafe &lhs, const Cafe &rhs) {
   return lhs.x < rhs.x || (lhs.x == rhs.x && lhs.y < rhs.y);
 }
 
-inline bool cafe_y_sort(const Cafe& lhs, const Cafe& rhs) {
+inline bool cafe_y_sort(const Cafe &lhs, const Cafe &rhs) {
   return lhs.y < rhs.y || (lhs.y == rhs.y && lhs.x < rhs.x);
 }
 
@@ -33,7 +33,7 @@ inline bool ordered(int a, int b, int c) {
 struct yNode {
   int y, y_right;
   int O;
-  Cafe* cafe;
+  Cafe *cafe;
 };
 
 struct xNode {
@@ -42,7 +42,7 @@ struct xNode {
   vector<yNode> y;
 };
 
-inline bool operator<(const yNode& lhs, const yNode& rhs) {
+inline bool operator<(const yNode &lhs, const yNode &rhs) {
   assert(lhs.cafe != nullptr && rhs.cafe != nullptr);
   return cafe_y_sort(*lhs.cafe, *rhs.cafe);
 }
@@ -55,7 +55,8 @@ vector<Cafe> cafes;
 vector<xNode> tree;
 
 void pushup(int i, int j) {
-  if (j >= tree[i].O) return;
+  if (j >= tree[i].O)
+    return;
   pushup(i, j << 1);
   pushup(i, j << 1 | 1);
 
@@ -70,7 +71,8 @@ void pushup(int i, int j) {
 }
 
 void pushup(int i) {
-  if (i >= N) return;
+  if (i >= N)
+    return;
   pushup(i << 1);
   pushup(i << 1 | 1);
 
@@ -84,7 +86,8 @@ void pushup(int i) {
   xnode.y.assign(2 * xnode.O, {});
 
   xnode.P = 1;
-  while (xnode.P < xnode.O) xnode.P <<= 1;
+  while (xnode.P < xnode.O)
+    xnode.P <<= 1;
 
   auto lbegin = tree[i << 1].y.begin() + lO;
   auto lend = tree[i << 1].y.end();
@@ -149,7 +152,8 @@ u64 count_query_top(int i, int j, Query box) {
   }
   // found y_split
   else {
-    return count_query_left(i, j << 1, box) + count_query_right(i, j << 1 | 1, box);
+    return count_query_left(i, j << 1, box) +
+           count_query_right(i, j << 1 | 1, box);
   }
 }
 
@@ -180,7 +184,7 @@ u64 count_query_right(int i, int j, Query box) {
 u64 count_query_top(int i, Query box) {
   if (i >= N) {
     return ordered(box.xmin, tree[i].x, box.xmax) &&
-      ordered(box.ymin, tree[i].y[1].y, box.ymax);
+           ordered(box.ymin, tree[i].y[1].y, box.ymax);
   }
   // ===
   // go left
@@ -200,7 +204,7 @@ u64 count_query_top(int i, Query box) {
 u64 count_query_left(int i, Query box) {
   if (i >= N) {
     return ordered(box.xmin, tree[i].x, box.xmax) &&
-      ordered(box.ymin, tree[i].y[1].y, box.ymax);
+           ordered(box.ymin, tree[i].y[1].y, box.ymax);
   }
   // on the left branch of x_split's subtree
   if (box.xmin <= tree[i].x) {
@@ -213,7 +217,7 @@ u64 count_query_left(int i, Query box) {
 u64 count_query_right(int i, Query box) {
   if (i >= N) {
     return ordered(box.xmin, tree[i].x, box.xmax) &&
-      ordered(box.ymin, tree[i].y[1].y, box.ymax);
+           ordered(box.ymin, tree[i].y[1].y, box.ymax);
   }
   // on the right branch of x_split's subtree
   if (box.xmax >= tree[i].x) {
@@ -241,12 +245,12 @@ u64 count_query_right(int i, Query box) {
 //  - - - -1 - - - -
 
 u64 compute(int cafe) {
-  Cafe& C = cafes[cafe];
+  Cafe &C = cafes[cafe];
 
-  Query box1 {C.x + 1, M, C.y + 1, M};
-  Query box2 {-1, C.x - 1, C.y + 1, M};
-  Query box3 {-1, C.x - 1, -1, C.y - 1};
-  Query box4 {C.x + 1, M, -1, C.y - 1};
+  Query box1{C.x + 1, M, C.y + 1, M};
+  Query box2{-1, C.x - 1, C.y + 1, M};
+  Query box3{-1, C.x - 1, -1, C.y - 1};
+  Query box4{C.x + 1, M, -1, C.y - 1};
 
   u64 Q1 = count_query_top(1, box1);
   u64 Q2 = count_query_top(1, box2);
@@ -262,7 +266,8 @@ auto solve() {
   prepare();
 
   u64 exceptions = 0, V = u64(N);
-  for (int i = 0; i < N; ++i) exceptions += compute(i);
+  for (int i = 0; i < N; ++i)
+    exceptions += compute(i);
 
   return (V * (V - 1) * (V - 2) / 6) - exceptions;
 }
@@ -282,7 +287,8 @@ void reparse_test() {
     H = y;
   }
   P = 1;
-  while (P < N) P <<= 1;
+  while (P < N)
+    P <<= 1;
 }
 
 // *****

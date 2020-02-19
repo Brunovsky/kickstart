@@ -48,21 +48,24 @@ void pushdown_classes(int i) {
   }
 }
 
-bool node_cmp(const node_t& node, u64 k) {
+bool node_cmp(const node_t &node, u64 k) {
   return node.prefix < k;
 }
 
 auto solve() {
   endp.clear();
-  for (u64 l : Hi) endp.push_back(l);
-  for (u64 r : Lo) endp.push_back(r);
-  sort(endp.begin(), endp.end(), greater<u64> {});
+  for (u64 l : Hi)
+    endp.push_back(l);
+  for (u64 r : Lo)
+    endp.push_back(r);
+  sort(endp.begin(), endp.end(), greater<u64>{});
   endp.erase(unique(endp.begin(), endp.end()), endp.end());
   O = endp.size() - 1;
 
   tree.assign(2 * O, {});
   P = 1;
-  while (P < O) P <<= 1;
+  while (P < O)
+    P <<= 1;
 
   auto obegin = tree.begin() + O;
   auto oend = tree.begin() + (2 * O);
@@ -72,11 +75,12 @@ auto solve() {
     tree[i].lo = endp[j + 1];
   }
 
-  rotate(obegin, obegin + (2 * O - P), oend);  // rotate right P - O
+  rotate(obegin, obegin + (2 * O - P), oend); // rotate right P - O
   tree_lr(1);
-  for (u64 n = 0; n < N; ++n) add_class(Hi[n], Lo[n], 1);
+  for (u64 n = 0; n < N; ++n)
+    add_class(Hi[n], Lo[n], 1);
   pushdown_classes(1);
-  rotate(obegin, obegin + (P - O), oend);  // rotate left P - O
+  rotate(obegin, obegin + (P - O), oend); // rotate left P - O
 
   for (int i = O; i < 2 * O; ++i) {
     u64 hi = tree[i].hi, lo = tree[i].lo, c = tree[i].classes;
@@ -88,7 +92,8 @@ auto solve() {
   for (u64 q = 1; q <= Q; ++q) {
     u64 k = K[q - 1];
     int i = lower_bound(obegin, oend, k, node_cmp) - tree.begin();
-    if (i == 2 * O) continue;
+    if (i == 2 * O)
+      continue;
 
     u64 a = tree[i - 1].prefix, c = tree[i].classes, hi = tree[i].hi;
     u64 S = hi - (k - a - 1) / c;

@@ -5,13 +5,13 @@ using u32 = uint32_t;
 
 // *****
 
-constexpr u32 MAX_HEIGHT = 1010;  // problem was here
+constexpr u32 MAX_HEIGHT = 1010; // problem was here
 
 u32 N, K;
 vector<u32> A;
-vector<u32> R;  // region lengths
-vector<u32> P;  // backtrack pair map
-vector<u32> S;  // region lengths partial sums
+vector<u32> R; // region lengths
+vector<u32> P; // backtrack pair map
+vector<u32> S; // region lengths partial sums
 
 void fill_aux() {
   R.clear();
@@ -81,7 +81,8 @@ auto solve() {
 void reparse_test() {
   cin >> N >> K;
   A.assign(N, 0);
-  for (u32 i = 0; i < N; ++i) cin >> A[i];
+  for (u32 i = 0; i < N; ++i)
+    cin >> A[i];
 }
 
 // *****

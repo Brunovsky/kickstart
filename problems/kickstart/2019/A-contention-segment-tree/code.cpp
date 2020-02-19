@@ -28,29 +28,33 @@ bool overlap(Range r1, Range r2) {
   return r1.R > r2.L && r2.R > r1.L;
 }
 
-Book* best_bookp(Book* lhs, Book* rhs) {
-  if (lhs == rhs) return lhs;
-  if (lhs == nullptr) return rhs;
-  if (rhs == nullptr) return lhs;
+Book *best_bookp(Book *lhs, Book *rhs) {
+  if (lhs == rhs)
+    return lhs;
+  if (lhs == nullptr)
+    return rhs;
+  if (rhs == nullptr)
+    return lhs;
   return lhs->value < rhs->value ? rhs : lhs;
 }
 
-Book* best_bookp(Book* cur, Book* lhs, Book* rhs) {
-  if (lhs == nullptr && rhs == nullptr) return cur;
+Book *best_bookp(Book *cur, Book *lhs, Book *rhs) {
+  if (lhs == nullptr && rhs == nullptr)
+    return cur;
   return best_bookp(cur, best_bookp(lhs, rhs));
 }
 
 struct Node {
   Range range;
-  Book* best = nullptr;
+  Book *best = nullptr;
   u32 count = 0;
-  set<Book*> books;
+  set<Book *> books;
 };
 
 u32 N, Q, I, LR;
-vector<Book> bookings;  // bookings list
-vector<Node> tree;      // ranges tree
-vector<u32> endp;       // endpoints
+vector<Book> bookings; // bookings list
+vector<Node> tree;     // ranges tree
+vector<u32> endp;      // endpoints
 
 // populate the tree with the ranges
 void populate_tree(u32 i) {
@@ -68,7 +72,7 @@ void populate_tree(u32 i) {
 }
 
 // insert book into the subtree below i, or on i.
-void insert_book(Book* book, u32 i) {
+void insert_book(Book *book, u32 i) {
   if (overlap(book->range, tree[i].range)) {
     if (book->range.contains(tree[i].range)) {
       tree[i].books.insert(book);
@@ -93,10 +97,11 @@ void fix_counts(u32 i) {
 // best value up the tree while nullptrs are found.
 void pushup(u32 i) {
   u32 j = i;
-  while (j > 0 && tree[j].books.empty()) j >>= 1;
+  while (j > 0 && tree[j].books.empty())
+    j >>= 1;
   assert(j > 0 && tree[j].books.size() == 1);
 
-  Book* book = *tree[j].books.begin();
+  Book *book = *tree[j].books.begin();
   book->value += tree[i].range.R - tree[i].range.L;
 
   tree[j].best = book;
@@ -113,7 +118,8 @@ void rem_book_count(u32 i) {
     rem_book_count(i << 1 | 1);
   } else {
     --tree[i].count;
-    if (tree[i].count == 1) pushup(i);
+    if (tree[i].count == 1)
+      pushup(i);
   }
 }
 
@@ -147,9 +153,10 @@ void search_open(u32 i) {
 }
 
 // delete book from the subtree i.
-void delete_book(Book* book, u32 i) {
+void delete_book(Book *book, u32 i) {
   if (overlap(book->range, tree[i].range)) {
-    if (tree[i].best == book) tree[i].best = nullptr;
+    if (tree[i].best == book)
+      tree[i].best = nullptr;
 
     if (book->range.contains(tree[i].range)) {
       tree[i].books.erase(book);
@@ -163,7 +170,8 @@ void delete_book(Book* book, u32 i) {
     }
 
     if (i < I) {
-      tree[i].best = best_bookp(tree[i].best, tree[i << 1].best, tree[i << 1 | 1].best);
+      tree[i].best =
+          best_bookp(tree[i].best, tree[i << 1].best, tree[i << 1 | 1].best);
     }
   }
 }
@@ -172,18 +180,22 @@ void delete_book(Book* book, u32 i) {
 // count 1 and stabilizing the best fields on every node.
 void stab_tree(u32 i) {
   if (i < I) {
-    if (tree[i].best == nullptr) return;
+    if (tree[i].best == nullptr)
+      return;
     stab_tree(i << 1);
     stab_tree(i << 1 | 1);
-    tree[i].best = best_bookp(tree[i].best, tree[i << 1].best, tree[i << 1 | 1].best);
+    tree[i].best =
+        best_bookp(tree[i].best, tree[i << 1].best, tree[i << 1 | 1].best);
   }
 }
 
 void prepare_tree() {
-  for (auto& book : bookings) insert_book(&book, 1);
+  for (auto &book : bookings)
+    insert_book(&book, 1);
   fix_counts(1);
   for (u32 i = I; i < 2 * I; ++i) {
-    if (tree[i].count == 1) pushup(i);
+    if (tree[i].count == 1)
+      pushup(i);
   }
   stab_tree(1);
 }
@@ -195,7 +207,8 @@ void prepare_endp() {
   tree.resize(2 * I);
 
   LR = I << 1;
-  while ((LR & (LR - 1)) != 0) LR &= LR - 1;
+  while ((LR & (LR - 1)) != 0)
+    LR &= LR - 1;
 }
 
 u32 solve() {
@@ -206,8 +219,9 @@ u32 solve() {
   u32 best_value = UINT32_MAX, count = 0;
 
   while (tree[1].best != nullptr) {
-    Book* best = tree[1].best;
-    if (best->value < best_value) best_value = best->value;
+    Book *best = tree[1].best;
+    if (best->value < best_value)
+      best_value = best->value;
     ++count;
 
     tree[1].best = nullptr;
@@ -230,7 +244,7 @@ void reparse_test() {
     ++R;
     endp.push_back(L);
     endp.push_back(R);
-    bookings.push_back(Book {L, R, 0});
+    bookings.push_back(Book{L, R, 0});
   }
 }
 

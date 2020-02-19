@@ -41,12 +41,6 @@ ifeq ($(COMPILER),clang)
 #	CXX += $(CLANG_LIBCPP)
 endif
 
-INCLUDES := -isystem lib/src/ -isystem ~/include
-
-# Need sdsl vector access to run as fast as possible, so link statically
-LIBS := -Wl,-Bstatic -lfmt -lsdsl
-LIBS += -Wl,-Bdynamic -lgtest -lboost_program_options-mt-x64
-
 # * Warnings
 
 WARNS := -Wall -Wextra -Wpedantic
@@ -134,7 +128,7 @@ ifeq ($(COMPILER),gcc)
 	DEBUG += -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
 endif
 
-CXXFLAGS := $(WARNS) $(INCLUDES) $(LIBS)
+CXXFLAGS := $(WARNS)
 
 # * Modes
 

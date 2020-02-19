@@ -17,19 +17,21 @@ static bool ordered(u64 a, u64 b, u64 c) noexcept {
 void small_odd_sieve() {
   assert(small_primes.empty());
   small_primes.reserve(30'000);
-  N |= 1;  // make N odd.
+  N |= 1; // make N odd.
 
   vector<i8> is_composite(N / 2, 0);
 
   for (u64 n = 3, i = 0; n <= N; ++i, n += 2) {
-    if (is_composite[i]) continue;
+    if (is_composite[i])
+      continue;
     for (u64 j = n * n; j <= N; j += 2 * n) {
       is_composite[(j - 3) / 2] = 1;
     }
   }
 
   for (u64 i = 0, n = 3; n <= N; ++i, n += 2) {
-    if (!is_composite[i]) small_primes.push_back(n);
+    if (!is_composite[i])
+      small_primes.push_back(n);
   }
 }
 
@@ -37,16 +39,19 @@ void small_odd_sieve() {
 u64 sieve(u64 L, u64 R) {
   assert(R <= N * N);
 
-  if (R < L || R == 0) return 0;
+  if (R < L || R == 0)
+    return 0;
   L = L | 1;
   R = (R - 1) | 1;
-  if (R < L) return 0;
+  if (R < L)
+    return 0;
 
   vector<i8> is_composite((R - L + 2) / 2, 0);
   u64 count = 0;
 
   for (const u64 p : small_primes) {
-    if (p * p > R) break;
+    if (p * p > R)
+      break;
 
     // (k-1)p < L <= kp
     // (k-1) < L/p <= k
@@ -60,7 +65,8 @@ u64 sieve(u64 L, u64 R) {
     }
   }
 
-  for (u64 comp : is_composite) count += !comp;
+  for (u64 comp : is_composite)
+    count += !comp;
 
   return count;
 }
@@ -72,7 +78,8 @@ u64 count_k1(u64 L, u64 R) {
   u64 Lhi = L + (R - L) % 4;
 
   for (u64 n = L; n <= Lhi; ++n) {
-    if ((n % 4) == 2) ++count;
+    if ((n % 4) == 2)
+      ++count;
   }
 
   return count;
@@ -96,10 +103,10 @@ u64 count_k1(u64 L, u64 R) {
 auto solve() {
   u64 L = testL, R = testR;
 
-  u64 A8 = ordered(L, 8, R);
-  u64 B1 = sieve(L, R);
-  u64 B2 = sieve((L + 3) / 4, R / 4);
-  u64 C = count_k1(L, R);
+  u64 A8 = ordered(L, 8, R);          // O(1)
+  u64 B1 = sieve(L, R);               // O((R - L) sqrt R)
+  u64 B2 = sieve((L + 3) / 4, R / 4); // O((R - L) sqrt R)
+  u64 C = count_k1(L, R);             // O(1)
   u64 total = A8 + B1 + B2 + C;
 
   return total;
@@ -114,7 +121,7 @@ void reparse_test() {
 // *****
 
 int main() {
-  N = 31623UL;  // sqrt(1'000'000'000) rounded up
+  N = 31623UL; // sqrt(1'000'000'000) rounded up
   small_odd_sieve();
 
   unsigned T;

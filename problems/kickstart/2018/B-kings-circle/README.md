@@ -1,6 +1,9 @@
-# Kickstart 2018 - B-kings-circle
+# Kickstart 2018 - B Kings Circle
 
-Solved (3 hours)
+## [Kings Circle (16pts, 27pts)](https://codingcompetitions.withgoogle.com/kickstart/round/0000000000050ff4/00000000000510ee)
 
-Time complexity: O(N log^2(N)), which is not enough for the large dataset.
-Memory: O(N)
+Solved (weakly)
+
+* Time: 3 hours
+* Complexity: O(N log^2(N)), which is not enough for the large dataset.
+* Memory: O(N)

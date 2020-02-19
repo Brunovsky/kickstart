@@ -21,13 +21,15 @@ auto solve() {
   }
   int count = 0;
   for (int q = 0; q < Q; ++q) {
-    const auto& right = prefix[R[q]];
-    const auto& left = prefix[L[q] - 1];
+    const auto &right = prefix[R[q]];
+    const auto &left = prefix[L[q] - 1];
     int odd = 0;
     for (int i = 0; i < ASCII; ++i) {
-      if ((right[i] - left[i]) & 1) ++odd;
+      if ((right[i] - left[i]) & 1)
+        ++odd;
     }
-    if (odd <= 1) ++count;
+    if (odd <= 1)
+      ++count;
   }
   return count;
 }
@@ -40,7 +42,8 @@ void reparse_test() {
   assert(text.size() == size_t(N));
   L.assign(Q, 0);
   R.assign(Q, 0);
-  for (int i = 0; i < Q; ++i) cin >> L[i] >> R[i] >> ws;
+  for (int i = 0; i < Q; ++i)
+    cin >> L[i] >> R[i] >> ws;
 }
 
 // *****

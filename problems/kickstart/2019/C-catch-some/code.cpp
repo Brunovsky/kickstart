@@ -17,8 +17,10 @@ struct Node {
 
 auto solve() {
   B.assign(100'001, {});
-  for (int i = 0; i < N; ++i) B[A[i]].push_back(P[i]);
-  for (int i = 0; i < N; ++i) S.insert(A[i]);
+  for (int i = 0; i < N; ++i)
+    B[A[i]].push_back(P[i]);
+  for (int i = 0; i < N; ++i)
+    S.insert(A[i]);
 
   const int C = S.size();
 
@@ -36,7 +38,7 @@ auto solve() {
     const int dogs = B[c].size();
     seen += dogs;
     dyn[a][0] = {0, 0};
-    sort(B[c].begin(), B[c].end());  // this is necessary, really Google?
+    sort(B[c].begin(), B[c].end()); // this is necessary, really Google?
 
     partial.push_back(seen);
 
@@ -45,10 +47,10 @@ auto solve() {
       dyn[a][k].T = dyn[a - 1][k].T;
 
       for (int l = 1, maxl = min(dogs, k); l <= maxl; ++l) {
-        dyn[a][k].H = min(dyn[a][k].H,  //
+        dyn[a][k].H = min(dyn[a][k].H, //
                           dyn[a - 1][k - l].H + 2 * B[c][l - 1]);
-        dyn[a][k].T = min(dyn[a][k].T,                                //
-                          min(dyn[a - 1][k - l].T + 2 * B[c][l - 1],  //
+        dyn[a][k].T = min(dyn[a][k].T,                               //
+                          min(dyn[a - 1][k - l].T + 2 * B[c][l - 1], //
                               dyn[a - 1][k - l].H + 1 * B[c][l - 1]));
       }
     }
@@ -66,8 +68,10 @@ void reparse_test() {
   S.clear();
   P.assign(N, 0);
   A.assign(N, 0);
-  for (int i = 0; i < N; ++i) cin >> P[i];
-  for (int i = 0; i < N; ++i) cin >> A[i];
+  for (int i = 0; i < N; ++i)
+    cin >> P[i];
+  for (int i = 0; i < N; ++i)
+    cin >> A[i];
 }
 
 // *****

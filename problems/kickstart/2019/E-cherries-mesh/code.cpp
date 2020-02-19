@@ -13,7 +13,8 @@ vector<i8> tag;
 void dfs(u32 i) {
   tag[i] = 1;
   for (u32 j : adj[i]) {
-    if (!tag[j]) dfs(j);
+    if (!tag[j])
+      dfs(j);
   }
 }
 

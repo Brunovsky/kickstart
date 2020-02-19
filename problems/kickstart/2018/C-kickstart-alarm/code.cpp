@@ -14,7 +14,8 @@ vector<u64> A;
 u64 expo(u64 n, u64 k) {
   u64 b = n, power = 1;
   while (k > 0) {
-    if (k & 1) power = (power * b) % MOD;
+    if (k & 1)
+      power = (power * b) % MOD;
     k >>= 1;
     b = (b * b) % MOD;
   }
@@ -24,7 +25,8 @@ u64 expo(u64 n, u64 k) {
 // compute (n^(K + 1) - 1) / (n - 1) - 1 modulo MOD
 // c = (n^(K + 1) - 1) * (n - 1)^-1 - 1 modulo MOD
 u64 power(u64 n) {
-  if (n == 1) return K;
+  if (n == 1)
+    return K;
 
   u64 a = expo(n, K + 1);
   u64 b = expo(n - 1, MOD - 2);

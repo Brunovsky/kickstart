@@ -43,7 +43,8 @@ vector<cell_t> traps;
 set<cell_t> make_ok_traps(int mask) {
   set<cell_t> ok_traps;
   for (size_t i = 0; i < traps.size(); ++i, mask >>= 1) {
-    if (mask & 1) ok_traps.insert(traps[i]);
+    if (mask & 1)
+      ok_traps.insert(traps[i]);
   }
   return ok_traps;
 }
@@ -82,7 +83,8 @@ void reparse_test() {
   for (int n = 1; n <= N; ++n) {
     for (int m = 1; n <= M; ++m) {
       cin >> cave[n][m] >> ws;
-      if (is_trap(cave[n][m])) traps.push_back({n, m});
+      if (is_trap(cave[n][m]))
+        traps.push_back({n, m});
     }
   }
 }

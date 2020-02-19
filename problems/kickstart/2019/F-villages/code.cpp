@@ -13,13 +13,14 @@ struct Score {
 };
 
 u32 V;
-vector<i64> B;           // beauty
-vector<vector<u32>> nb;  // neighbours
-vector<Score> S;         // scores
+vector<i64> B;          // beauty
+vector<vector<u32>> nb; // neighbours
+vector<Score> S;        // scores
 
 void visit(u32 i, u32 parent) {
   for (u32 j : nb[i]) {
-    if (j == parent) continue;
+    if (j == parent)
+      continue;
     visit(j, i);
   }
 
@@ -31,7 +32,8 @@ void visit(u32 i, u32 parent) {
   bool first = true;
 
   for (u32 j : nb[i]) {
-    if (j == parent) continue;
+    if (j == parent)
+      continue;
 
     S[i].R += S[j].P;
     S[i].P += max(S[j].N, S[j].R);
@@ -46,7 +48,8 @@ void visit(u32 i, u32 parent) {
     }
   }
 
-  if (!first) S[i].N = max(nop, yes + B[i]);
+  if (!first)
+    S[i].N = max(nop, yes + B[i]);
 }
 
 auto solve() {
@@ -61,7 +64,8 @@ void reparse_test() {
   B.assign(V, 0);
   nb.assign(V, {});
   S.assign(V, {});
-  for (u32 i = 0; i < V; ++i) cin >> B[i];
+  for (u32 i = 0; i < V; ++i)
+    cin >> B[i];
   for (u32 i = 0; i < V - 1; ++i) {
     u32 Xi, Yi;
     cin >> Xi >> Yi >> ws;

@@ -11,52 +11,55 @@ vector<vector<u32>> adj;
 
 constexpr i8 CLEAN = 0, ENTER = 1, EXIT = 2, CYCLE = 3;
 
-vector<i8> visit;
+vector<i8> visited;
 vector<u32> dist;
 u32 cycle_root;
 
 i8 enter_cycle(u32 i, u32 p) {
   // Detected a cycle?
-  if (visit[i] == ENTER) {
+  if (visited[i] == ENTER) {
     cycle_root = i;
     return CYCLE;
   }
 
-  assert(visit[i] == CLEAN);
-  visit[i] = ENTER;
+  assert(visited[i] == CLEAN);
+  visited[i] = ENTER;
 
   for (u32 j : adj[i]) {
-    if (j == p) continue;
+    if (j == p)
+      continue;
     i8 command = enter_cycle(j, i);
     if (command == CYCLE) {
-      visit[i] = CLEAN;
+      visited[i] = CLEAN;
       dist[i] = 0;
       return (i == cycle_root) ? EXIT : CYCLE;
     } else if (command == EXIT) {
-      visit[i] = CLEAN;
+      visited[i] = CLEAN;
       return EXIT;
     }
   }
 
-  visit[i] = CLEAN;
+  visited[i] = CLEAN;
   return CLEAN;
 }
 
 void enter_dist(u32 i, u32 p) {
-  if (visit[i] != CLEAN) return;
-  visit[i] = ENTER;
+  if (visited[i] != CLEAN)
+    return;
+  visited[i] = ENTER;
 
   for (u32 j : adj[i]) {
-    if (j == p) continue;
-    if (visit[j] == CLEAN) {
+    if (j == p)
+      continue;
+    if (visited[j] == CLEAN) {
       dist[j] = min(dist[i] + 1, dist[j]);
       enter_dist(j, i);
     }
   }
 }
 
-const vector<u32>& solve() {
-  visit = vector<i8>(N, CLEAN);
+const vector<u32> &solve() {
+  visited = vector<i8>(N, CLEAN);
   dist = vector<u32>(N, N);
 
   enter_cycle(0, 0);
@@ -85,10 +88,6 @@ void reparse_test() {
   }
 }
 
-void print_test(const vector<u32>& solution) {
-  for (u32 d : solution) cout << ' ' << d;
-}
-
 // *****
 
 int main() {
@@ -98,7 +97,8 @@ int main() {
     reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": ";
-    print_test(solution);
+    for (u32 d : solution)
+      cout << ' ' << d;
     cout << '\n';
   }
   return 0;

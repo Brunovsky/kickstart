@@ -8,8 +8,9 @@ int R, C, K;
 vector<vector<int>> V;
 vector<vector<int>> range;
 
-inline bool out_of_bounds(const multiset<int>& span, int num) {
-  if (span.empty()) return false;
+inline bool out_of_bounds(const multiset<int> &span, int num) {
+  if (span.empty())
+    return false;
   return num - *span.begin() > K || *span.rbegin() - num > K;
 }
 

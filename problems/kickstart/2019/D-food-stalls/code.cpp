@@ -9,11 +9,11 @@ struct Post {
   i64 C, D;
 };
 
-inline bool operator==(const Post& lhs, const Post& rhs) {
+inline bool operator==(const Post &lhs, const Post &rhs) {
   return lhs.D == rhs.D;
 }
 
-inline bool operator<(const Post& lhs, const Post& rhs) {
+inline bool operator<(const Post &lhs, const Post &rhs) {
   return lhs.D < rhs.D;
 }
 
@@ -57,7 +57,8 @@ auto solve() {
   set<Post, bool (*)(Post, Post)> pending_right(less_right);
   set<Post, bool (*)(Post, Post)> working_left(greater_left);
   set<Post, bool (*)(Post, Post)> working_right(greater_right);
-  for (int i = 1; i < N; ++i) pending_right.insert(posts[i]);
+  for (int i = 1; i < N; ++i)
+    pending_right.insert(posts[i]);
 
   i64 sum_left = 0, sum_right = 0;
 
@@ -152,16 +153,15 @@ auto solve() {
 
     i64 shift = i64(working_left.size()) - i64(working_right.size());
     i64 cost = sum_left + sum_right + shift * warehouse.D + warehouse.C;
-    if (minimum > cost) minimum = cost;
+    if (minimum > cost)
+      minimum = cost;
 
     // cout << "=== WAREHOUSE " << w << " | cost: " << cost << endl;
-    // for (Post post : pending_left) cout << '[' << post.C << ' ' << post.D << "] ";
-    // cout << endl;
-    // for (Post post : working_left) cout << '[' << post.C << ' ' << post.D << "] ";
-    // cout << endl;
-    // for (Post post : pending_right) cout << '[' << post.C << ' ' << post.D << "] ";
-    // cout << endl;
-    // for (Post post : working_right) cout << '[' << post.C << ' ' << post.D << "] ";
+    // for (Post post : pending_left) cout << '[' << post.C << ' ' << post.D <<
+    // "] "; cout << endl; for (Post post : working_left) cout << '[' << post.C
+    // << ' ' << post.D << "] "; cout << endl; for (Post post : pending_right)
+    // cout << '[' << post.C << ' ' << post.D << "] "; cout << endl; for (Post
+    // post : working_right) cout << '[' << post.C << ' ' << post.D << "] ";
     // cout << endl << "=== === === === ===\n";
   }
 
@@ -173,8 +173,10 @@ auto solve() {
 void reparse_test() {
   cin >> K >> N >> ws;
   posts.assign(N, {});
-  for (int i = 0; i < N; ++i) cin >> posts[i].D;
-  for (int i = 0; i < N; ++i) cin >> posts[i].C;
+  for (int i = 0; i < N; ++i)
+    cin >> posts[i].D;
+  for (int i = 0; i < N; ++i)
+    cin >> posts[i].C;
 }
 
 // *****

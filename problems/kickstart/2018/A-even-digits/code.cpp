@@ -8,7 +8,8 @@ using u64 = uint64_t;
 u64 N;
 
 u64 solve() {
-  if (N < 10) return (N % 2) == 1;
+  if (N < 10)
+    return (N % 2) == 1;
 
   u64 m = 0, pow10 = 1;
 
@@ -25,7 +26,8 @@ u64 solve() {
     U = B / pow10;
     B = B % pow10;
 
-    if (m == 0) return (U % 2) == 1;
+    if (m == 0)
+      return (U % 2) == 1;
 
     if (U % 2 == 1) {
       u64 up = pow10 - B;

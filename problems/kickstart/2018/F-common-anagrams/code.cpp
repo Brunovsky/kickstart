@@ -8,9 +8,10 @@ using namespace std;
 
 using alph = array<int, ASCII>;
 
-alph sub(const alph& lhs, const alph& rhs) {
+alph sub(const alph &lhs, const alph &rhs) {
   alph res;
-  for (int i = 0; i < ASCII; ++i) res[i] = lhs[i] - rhs[i];
+  for (int i = 0; i < ASCII; ++i)
+    res[i] = lhs[i] - rhs[i];
   return res;
 }
 

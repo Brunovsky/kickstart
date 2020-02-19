@@ -13,7 +13,7 @@ namespace std {
 
 template <>
 struct hash<vector<u16>> {
-  inline size_t operator()(const SkillSet& vec) const noexcept {
+  inline size_t operator()(const SkillSet &vec) const noexcept {
     size_t seed = vec.size();
     for (auto i : vec) {
       seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
@@ -22,11 +22,12 @@ struct hash<vector<u16>> {
   }
 };
 
-}  // namespace std
+} // namespace std
 
-inline ostream& operator<<(ostream& out, const SkillSet& skillset) {
+inline ostream &operator<<(ostream &out, const SkillSet &skillset) {
   out << "[" << skillset[0];
-  for (size_t i = 1; i < skillset.size(); ++i) out << ", " << skillset[i];
+  for (size_t i = 1; i < skillset.size(); ++i)
+    out << ", " << skillset[i];
   out << "]";
   return out;
 }
@@ -34,7 +35,7 @@ inline ostream& operator<<(ostream& out, const SkillSet& skillset) {
 struct Info {
   SkillSet skillset;
   u32 employees = 0;
-  vector<u32> subsets {};
+  vector<u32> subsets{};
 };
 
 vector<Info> infos;
@@ -45,11 +46,13 @@ u64 solve() {
   u64 exceptions = 0;
 
   for (u32 i = 1; i < infos.size(); ++i) {
-    const auto& info = infos[i];
-    if (info.employees == 0) continue;
+    const auto &info = infos[i];
+    if (info.employees == 0)
+      continue;
 
     u32 underlyings = 0;
-    for (u32 index : info.subsets) underlyings += infos[index].employees;
+    for (u32 index : info.subsets)
+      underlyings += infos[index].employees;
 
     exceptions += info.employees * (info.employees - 1 + underlyings);
   }
@@ -57,8 +60,8 @@ u64 solve() {
   return N * (N - 1) - exceptions;
 }
 
-u32 add_skillset(SkillSet& skillset) {
-  Info info {skillset, 0};
+u32 add_skillset(SkillSet &skillset) {
+  Info info{skillset, 0};
   info.subsets.reserve(1 << skillset.size());
 
   if (skillset.size() > 1) {
@@ -70,7 +73,8 @@ u32 add_skillset(SkillSet& skillset) {
         subset_index = add_skillset(subset);
       }
       info.subsets.push_back(subset_index);
-      info.subsets.insert(info.subsets.end(), infos[subset_index].subsets.begin(),
+      info.subsets.insert(info.subsets.end(),
+                          infos[subset_index].subsets.begin(),
                           infos[subset_index].subsets.end());
     }
 

@@ -14,14 +14,16 @@ auto solve() {
   uint32_t sets = 0;
 
   for (int i = 1; i <= V; ++i) {
-    if (i == adj[adj[i]]) ++sets;
+    if (i == adj[adj[i]])
+      ++sets;
   }
 
   sets /= 2;
 
   if (A0 > 0) {
     for (int i = 1; i <= V; ++i) {
-      if (adj[i] == A0 || adj[i] == B0) ++sets;
+      if (adj[i] == A0 || adj[i] == B0)
+        ++sets;
     }
     sets -= 2;
   }

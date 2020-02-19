@@ -13,7 +13,8 @@ auto solve() {
 
   u32 l = 0, r = P - 1;
   u32 training = 0, min_training = 0;
-  for (u32 i = 0; i < P; ++i) training += S[r] - S[i];
+  for (u32 i = 0; i < P; ++i)
+    training += S[r] - S[i];
 
   min_training = training;
 
@@ -24,7 +25,8 @@ auto solve() {
 
     u32 increment = (P - 1) * (S[r] - S[r - 1]);
     training = training + increment - (S[r - 1] - S[l - 1]);
-    if (training < min_training) min_training = training;
+    if (training < min_training)
+      min_training = training;
     ++l, ++r;
   }
 
@@ -36,7 +38,8 @@ auto solve() {
 void reparse_test() {
   cin >> N >> P >> ws;
   S.assign(N, 0);
-  for (u32 i = 0; i < N; ++i) cin >> S[i] >> ws;
+  for (u32 i = 0; i < N; ++i)
+    cin >> S[i] >> ws;
 }
 
 // *****

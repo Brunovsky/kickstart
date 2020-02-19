@@ -1,7 +1,9 @@
-# Kickstart 2019 - A-contention
+# Kickstart 2019 - A Contention
+
+## [Contention (18pts, 27pts)](https://codingcompetitions.withgoogle.com/kickstart/round/0000000000050e01/0000000000069881)
 
 Solved, but has bugs
 
-Time: 5 hours
-Time complexity: O(Q log(Q))
-Memory: O(Q)
+* Time: 5 hours
+* Complexity: O(Q log(Q))
+* Memory: O(Q)

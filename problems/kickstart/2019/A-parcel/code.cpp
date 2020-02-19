@@ -8,7 +8,7 @@ int R, C;
 vector<vector<bool>> towers;
 vector<vector<int>> main_grid;
 
-int flood_fill(vector<vector<int>>& grid) {
+int flood_fill(vector<vector<int>> &grid) {
   int dist = 0;
   vector<pair<int, int>> cur_frontier, next_frontier;
 
@@ -70,13 +70,18 @@ bool can(int maxray) {
         const int dif_min_cell = dif_cell - maxray;
         const int dif_max_cell = dif_cell + maxray;
 
-        if (sum_min < sum_min_cell) sum_min = sum_min_cell;
-        if (sum_max > sum_max_cell) sum_max = sum_max_cell;
-        if (dif_min < dif_min_cell) dif_min = dif_min_cell;
-        if (dif_max > dif_max_cell) dif_max = dif_max_cell;
+        if (sum_min < sum_min_cell)
+          sum_min = sum_min_cell;
+        if (sum_max > sum_max_cell)
+          sum_max = sum_max_cell;
+        if (dif_min < dif_min_cell)
+          dif_min = dif_min_cell;
+        if (dif_max > dif_max_cell)
+          dif_max = dif_max_cell;
       }
     }
-    if (sum_min > sum_max || dif_min > dif_max) return false;
+    if (sum_min > sum_max || dif_min > dif_max)
+      return false;
   }
 
   //  X <= r + c <= Y        X, Y = sum_min, sum_max
@@ -91,10 +96,14 @@ bool can(int maxray) {
   const int cmin = sum_min - dif_max, cmax = sum_max - dif_min;
   const int RMAX = 2 * R - 2, CMAX = 2 * C - 2;
 
-  if (!(0 <= rmax && rmin <= rmax && rmin <= RMAX)) return false;
-  if (!(0 <= cmax && cmin <= cmax && cmin <= CMAX)) return false;
-  if (rmin == rmax && (rmin & 1)) return false;
-  if (cmin == cmax && (cmin & 1)) return false;
+  if (!(0 <= rmax && rmin <= rmax && rmin <= RMAX))
+    return false;
+  if (!(0 <= cmax && cmin <= cmax && cmin <= CMAX))
+    return false;
+  if (rmin == rmax && (rmin & 1))
+    return false;
+  if (cmin == cmax && (cmin & 1))
+    return false;
   return true;
 }
 
@@ -102,7 +111,8 @@ auto solve() {
   main_grid.assign(R, vector<int>(C, INT32_MAX));
   const int max_dist = flood_fill(main_grid);
 
-  if (max_dist == 0) return 0;
+  if (max_dist == 0)
+    return 0;
   int min = 0, max = max_dist, best = max_dist;
 
   while (min <= max) {
@@ -128,7 +138,8 @@ void reparse_test() {
     string text;
     cin >> text;
     text.resize(C);
-    for (int c = 0; c < C; ++c) towers[r][c] = text[c] == '1';
+    for (int c = 0; c < C; ++c)
+      towers[r][c] = text[c] == '1';
   }
 }
 

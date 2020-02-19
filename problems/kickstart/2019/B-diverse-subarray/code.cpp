@@ -22,15 +22,16 @@ int tree_index(int i) {
 
 void populate() {
   P = ((N & (N - 1)) == 0) ? N : N << 1;
-  while ((P & (P - 1)) != 0) P &= P - 1;
+  while ((P & (P - 1)) != 0)
+    P &= P - 1;
 
   finger_1.assign(N + 1, N);
   finger_S.assign(N + 1, N);
   sum.assign(2 * N, 0);
   pre.assign(2 * N, 0);
 
-  int count[MAX_A + 1] {};
-  list<int> previous[MAX_A + 1] {};
+  int count[MAX_A + 1]{};
+  list<int> previous[MAX_A + 1]{};
 
   for (int i = 0; i < N; ++i) {
     int c = ++count[A[i]];
@@ -70,10 +71,12 @@ void dive(int i) {
 }
 
 void pushup(int i) {
-  if (i >= N) return;
+  if (i >= N)
+    return;
   sum[i] = sum[i << 1] + sum[i << 1 | 1];
   pre[i] = max(pre[i << 1], sum[i << 1] + pre[i << 1 | 1]);
-  if (i > 1) pushup(i >> 1);
+  if (i > 1)
+    pushup(i >> 1);
 }
 
 auto solve() {
@@ -102,7 +105,8 @@ auto solve() {
       pushup(tk >> 1);
     }
 
-    if (pre[1] > max) max = pre[1];
+    if (pre[1] > max)
+      max = pre[1];
   }
 
   return max;
@@ -113,7 +117,8 @@ auto solve() {
 void reparse_test() {
   cin >> N >> S >> ws;
   A.assign(N, 0);
-  for (int i = 0; i < N; ++i) cin >> A[i] >> ws;
+  for (int i = 0; i < N; ++i)
+    cin >> A[i] >> ws;
 }
 
 // *****

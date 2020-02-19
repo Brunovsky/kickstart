@@ -16,7 +16,8 @@ auto solve() {
   ui pos = 0;
 
   // deal with 0s with basic combinatorics
-  while (pos < N && A[pos] == 0) ++pos;
+  while (pos < N && A[pos] == 0)
+    ++pos;
   if (pos > 1) {
     count = (N - pos) * pos * (pos - 1) / 2;
     if (pos > 2) {
@@ -43,7 +44,8 @@ auto solve() {
 void reparse_test() {
   cin >> N >> ws;
   A.assign(N, 0);
-  for (ui i = 0; i < N; ++i) cin >> A[i] >> ws;
+  for (ui i = 0; i < N; ++i)
+    cin >> A[i] >> ws;
 }
 
 // *****

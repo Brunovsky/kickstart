@@ -30,7 +30,8 @@ u64 visit(vector<edge_t> edges, edge_t e0, u64 minsum) {
     edges.pop_back();
 
     bool sufficient = M[e.i][e.j] >= minsum;
-    if (sufficient) ++solutions;
+    if (sufficient)
+      ++solutions;
 
     u64 newminsum = sufficient ? 0 : minsum - M[e.i][e.j];
     solutions += visit(edges, e, newminsum);
@@ -44,7 +45,8 @@ auto solve() {
 
   for (u32 i = 0; i < N; ++i) {
     for (u32 j = i + 1; j < N; ++j) {
-      if (M[i][j] > 0) edges.push_back({i, j});
+      if (M[i][j] > 0)
+        edges.push_back({i, j});
     }
   }
 
