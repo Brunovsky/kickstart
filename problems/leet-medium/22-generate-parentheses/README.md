@@ -1,1 +1,1 @@
-# LeetCode - medium - 22-generate-parentheses
+# LeetCode - medium - 22 Generate Parentheses

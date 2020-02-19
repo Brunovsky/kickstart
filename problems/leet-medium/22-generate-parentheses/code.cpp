@@ -1,19 +1,11 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-using u8 = uint8_t;
-using u16 = uint16_t;
-using u32 = uint32_t;
-using u64 = uint64_t;
-using i8 = int8_t;
-using i16 = int16_t;
-using i32 = int32_t;
-using i64 = int64_t;
 
 // *****
 
 class Solution {
-  void dive(int n, int l, int r, string& text, vector<string>& sol) const {
+  void dive(int n, int l, int r, string &text, vector<string> &sol) const {
     if (l < n) {
       text.push_back('(');
       dive(n, l + 1, r, text, sol);
@@ -29,7 +21,7 @@ class Solution {
     }
   }
 
- public:
+public:
   vector<string> generateParenthesis(int n) {
     vector<string> sol;
     string text;
@@ -49,9 +41,6 @@ void test() {}
 // *****
 
 int main() {
-  ios::sync_with_stdio(false);
-  cin.tie(nullptr);
-  cout.tie(nullptr);
   test();
   return 0;
 }
