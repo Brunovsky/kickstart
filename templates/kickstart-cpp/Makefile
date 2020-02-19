@@ -1,10 +1,16 @@
 # * Kickstart Problem Makefile
 
+.PHONY: debug perfm
+
+# Default mode
 DEFAULT_MODE := debug
 
+# Compiler, gcc or clang
 COMPILER := gcc
-CC := g++
 CPP_STANDARD := c++14
+
+# Compiler command
+CC := g++
 
 EXE := ./hack
 
@@ -43,14 +49,13 @@ LIBS += -Wl,-Bdynamic -lgtest -lboost_program_options-mt-x64
 
 # * Warnings
 
-WARNS := -Wall -Wextra -Wpedantic -Werror -pedantic-errors
+WARNS := -Wall -Wextra -Wpedantic
 
 WARNS += -Wunused -Wno-unused-function
 WARNS += -Wredundant-decls -Wmissing-declarations
 WARNS += -Wuninitialized
 WARNS += -Wextra-semi
 
-WARNS += -Winline
 WARNS += -Wcast-align -Wcast-qual -Wold-style-cast
 WARNS += -Wsign-compare -Wfloat-equal -Wdouble-promotion
 
@@ -107,10 +112,7 @@ ifeq ($(COMPILER),clang)
 endif
 
 # Not errors
-WARNS += -Wno-error=inline
 WARNS += -Wno-unused-function
-
-# Only for kickstart/codejam:
 WARNS += -Wno-unused-variable
 WARNS += -Wno-missing-declarations
 
@@ -161,9 +163,19 @@ custom: debug
 	@clear
 	@$(EXE) < custom.txt
 
-valgrind: debug
+valgrind: valgrind-run
+
+valgrind-run: debug
+	@clear
+	@valgrind --leak-check=full --show-leak-kinds=all $(EXE)
+
+valgrind-test: debug
 	@clear
 	@valgrind --leak-check=full --show-leak-kinds=all $(EXE) < input.txt
+
+valgrind-custom: debug
+	@clear
+	@valgrind --leak-check=full --show-leak-kinds=all $(EXE) < custom.txt
 
 clean:
 	@rm -f $(EXE) core vgcore.* *.log
