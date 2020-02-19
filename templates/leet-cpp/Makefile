@@ -150,15 +150,12 @@ $(EXE): code.cpp
 	@$(CXX) $^ $(CXXFLAGS) -o $@
 
 run: debug
-	@clear
 	@$(EXE)
 
 test: debug
-	@clear
 	@$(EXE) < input.txt
 
 custom: debug
-	@clear
 	@$(EXE) < custom.txt
 
 valgrind: valgrind-run
