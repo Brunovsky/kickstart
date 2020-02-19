@@ -35,16 +35,18 @@ def read_friendly():
 difficulty = read_difficulty()
 name = read_name()
 friendly = read_friendly()
-competition = f"leet-{difficulty}"
+competition = f"leet/{difficulty}"
 problem = f"{name}"
 header = f"LeetCode - {difficulty} - {friendly}"
 folder = f"problems/{competition}/{problem}"
 
 os.makedirs(folder, exist_ok=True)
-shutil.copytree(f"templates/{template}", folder, dirs_exist_ok=True)
 
 readme = open(f"{folder}/README.md", "w")
 readme.write(f"# {header}")
 readme.close()
 
-os.chdir(folder)
+# Copy template
+if template == "leet-cpp":
+    shutil.copy("templates/leet-cpp/code.cpp", folder)
+    os.symlink("../../../../templates/leet-cpp/Makefile", f"{folder}/Makefile")
