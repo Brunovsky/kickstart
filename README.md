@@ -1,4 +1,4 @@
-# kickstart
+# competitive
 
 Solutions for competitive programming problems from the following sources:
 
