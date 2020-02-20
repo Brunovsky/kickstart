@@ -36,6 +36,7 @@ bool assign(State &state,
     if (++state.count == 81)
       return true;
 
+    // iterate the row r
     for (uint16_t i = 0; i < 9; ++i) {
       if (!state.set[r][i]) {
         uint16_t k = state.free[r][i] & ~(1 << n);
@@ -50,6 +51,7 @@ bool assign(State &state,
       }
     }
 
+    // iterate the column c
     for (uint16_t i = 0; i < 9; ++i) {
       if (!state.set[i][c]) {
         uint16_t k = state.free[i][c] & ~(1 << n);
@@ -64,6 +66,7 @@ bool assign(State &state,
       }
     }
 
+    // iterate the square containing (r,c)
     for (uint16_t i = 0, rs = (r / 3) * 3; i < 3; ++i) {
       for (uint16_t j = 0, cs = (c / 3) * 3; j < 3; ++j) {
         if (!state.set[rs + i][cs + j]) {

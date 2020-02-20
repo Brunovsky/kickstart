@@ -39,7 +39,9 @@ public:
     size_t l2 = 0, r2 = S2; // nums2 window
     bool nums1_turn = true;
 
-    // Goal: find index l and array N such that numsN[l] is the lowest component
+    // sliding and shrinking window pattern, alternating between nums1 and nums2
+
+    // goal: find index l and array N such that numsN[l] is the lowest component
     // of the mean. That means the two arrays can be merged and sorted such that
     // numsN[l] ends up in the (S+1)th position.
 
@@ -65,7 +67,7 @@ public:
       }
     }
 
-    // Align l1 and l2.
+    // align l1 and l2.
     if (l1 == r1) {
       l2 = S - l1;
     } else if (l2 == r2) {
@@ -74,19 +76,17 @@ public:
       nums1[l1] < nums2[l2] ? ++l1 : ++l2;
     }
 
-    // Wrap things up. care for edge cases where l1 or l2 are at the end of the
-    // array.
+    // care for edge cases where l1 or l2 are at the end of the array.
     if (l2 == S2) {
       return odd ? nums1[l1] : double(nums1[l1] + nums1[l1 + 1]) / 2.0;
     } else if (l1 == S1) {
       return odd ? nums2[l2] : double(nums2[l2] + nums2[l2 + 1]) / 2.0;
     }
 
-    // Odd case is simple
     if (odd)
       return min(nums1[l1], nums2[l2]);
 
-    // Even case is minimum of 3 values but some may be out of bounds.
+    // even case is minimum of 3 values but some may be out of bounds.
     int k11 = INT_MAX, k22 = INT_MAX, k12 = INT_MAX;
     if (l1 < S1 - 1) {
       k11 = nums1[l1] + nums1[l1 + 1];
@@ -99,6 +99,10 @@ public:
     }
 
     return double(min(k12, min(k11, k22))) / 2.0;
+  }
+
+  double test(const vector<int> &nums1, const vector<int> &nums2) const {
+    return findMedianSortedArrays(nums1, nums2);
   }
 };
 
@@ -190,7 +194,7 @@ void test() {
 
   for (int t = 1; t <= 1000; ++t) {
     Test test = gen(t);
-    double result = S.findMedianSortedArrays(test.nums1, test.nums2);
+    double result = S.test(test.nums1, test.nums2);
 
     if (result != test.expected) {
       cout << "Failed test " << t << "\n";
@@ -206,7 +210,7 @@ void test() {
   for (int t = 1; t <= 90; ++t) {
     for (int k = 5; k < 30; ++k) {
       Test test = gen2(t, k);
-      double result = S.findMedianSortedArrays(test.nums1, test.nums2);
+      double result = S.test(test.nums1, test.nums2);
 
       if (result != test.expected) {
         cout << "Failed test " << t << "\n";
@@ -219,14 +223,10 @@ void test() {
   }
 
   cout << '\n'
-       << S.findMedianSortedArrays({1, 1, 1, 9, 9, 9}, {3, 4, 5, 6, 7, 8})
-       << '\n'
-       << S.findMedianSortedArrays({1, 1, 1, 3, 5, 9}, {3, 4, 6, 6, 7, 8})
-       << '\n'
-       << S.findMedianSortedArrays({2, 3, 3, 3, 7, 7, 10},
-                                   {4, 4, 5, 5, 5, 5, 6})
-       << '\n'
-       << S.findMedianSortedArrays({1, 2, 3, 7, 10}, {4, 5, 6, 8, 9}) << '\n';
+       << S.test({1, 1, 1, 9, 9, 9}, {3, 4, 5, 6, 7, 8}) << '\n'
+       << S.test({1, 1, 1, 3, 5, 9}, {3, 4, 6, 6, 7, 8}) << '\n'
+       << S.test({2, 3, 3, 3, 7, 7, 10}, {4, 4, 5, 5, 5, 5, 6}) << '\n'
+       << S.test({1, 2, 3, 7, 10}, {4, 5, 6, 8, 9}) << '\n';
 
   // 5.5, 4.5, 5, 5.5
 
