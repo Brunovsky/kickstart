@@ -49,6 +49,8 @@ problem = f"{rnd}-{name}"
 header = f"# Kickstart {year} - {friendly}\n\n## [{rnd} {friendly}]"
 folder = f"problems/{competition}/{problem}"
 
+print(f"Problem folder: {folder}")
+
 os.makedirs(folder, exist_ok=True)
 
 readme = open(f"{folder}/README.md", "w")
