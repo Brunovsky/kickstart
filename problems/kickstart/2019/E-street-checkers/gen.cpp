@@ -10,7 +10,7 @@ std::mt19937 rng(default_random_device());
 
 // shuffle C++17 polyfill
 template <class RandomIt, class URBG>
-void shuffle(RandomIt first, RandomIt last, URBG&& g = rng) {
+void shuffle(RandomIt first, RandomIt last, URBG &&g = rng) {
   typedef typename std::iterator_traits<RandomIt>::difference_type diff_t;
   typedef std::uniform_int_distribution<diff_t> distr_t;
   typedef typename distr_t::param_type param_t;

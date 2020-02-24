@@ -11,3 +11,6 @@ kickstart-cpp:
 
 leet-cpp:
 	@./scripts/leet.py leet-cpp
+
+formatall:
+	@clang-format --fallback-style=none -i $(shell find . -name '*.cpp' -type f)
