@@ -40,22 +40,47 @@ def read_friendly():
     return friendly
 
 
+def read_points(index):
+    pts = input(f"Problem points #{index}?  ex: 10  (as in 10pts)\n> ")
+    if not re.match("[0-9]{1,2}", pts):
+        print("Bad input points: %s", pts)
+        return read_points()
+    return pts
+
+
+def read_link():
+    link = input("Problem URL?  (warning: not sanitized)\n> ")
+    return link
+
+
 year = read_year()
 rnd = read_round()
 name = read_name()
 friendly = read_friendly()
+pts1 = read_points(1)
+pts2 = read_points(2)
+link = read_link()
 competition = f"kickstart/{year}"
 problem = f"{rnd}-{name}"
-header = f"# Kickstart {year} - {friendly}\n\n## [{rnd} {friendly}]\n"
+readme = f"""# Kickstart {year} - {friendly}
+
+## [{friendly} ({pts1}pts, {pts2}pts)]({link})
+
+Unattempted
+
+* Time: 0 hours
+* Complexity: -
+* Memory: -
+"""
 folder = f"problems/{competition}/{problem}"
 
 print(f"Problem folder: {folder}")
 
 os.makedirs(folder, exist_ok=True)
 
-readme = open(f"{folder}/README.md", "w")
-readme.write(header)
-readme.close()
+readmefile = open(f"{folder}/README.md", "w")
+readmefile.write(readme)
+readmefile.close()
 
 # Copy template
 if template == "kickstart-cpp":
