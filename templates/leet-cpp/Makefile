@@ -1,7 +1,5 @@
 # * Leet Problem Makefile
 
-.PHONY: debug perfm
-
 # Default mode
 DEFAULT_MODE := debug
 
@@ -132,7 +130,7 @@ CXXFLAGS := $(WARNS) $(INCLUDES)
 
 # * Modes
 
-.PHONY: perfm debug test clean
+.PHONY: perfm debug
 
 perfm: MODE := performance
 perfm: CXXFLAGS += $(OPTIM)
@@ -144,9 +142,12 @@ debug: $(EXE)
 
 # * Rules
 
+.PHONY: run test custom clean
+.PHONY: valgrind valgrind-run valgrind-test valgrind-custom
+
 # Compilation rule
 $(EXE): code.cpp
-	@echo "Compiling... ($(COMPILER) $(MODE) $@)"
+	@echo "CC (${COMPILER} $(MODE))  $@"
 	@$(CXX) $^ $(CXXFLAGS) -o $@
 
 run: debug

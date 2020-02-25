@@ -1,7 +1,5 @@
 # * Kickstart Problem Makefile
 
-.PHONY: debug perfm
-
 # Default mode
 DEFAULT_MODE := debug
 
@@ -132,7 +130,7 @@ CXXFLAGS := $(WARNS)
 
 # * Modes
 
-.PHONY: perfm debug test clean
+.PHONY: perfm debug
 
 perfm: MODE := performance
 perfm: CXXFLAGS += $(OPTIM)
@@ -144,29 +142,40 @@ debug: $(EXE)
 
 # * Rules
 
+.PHONY: run test custom clean
+.PHONY: valgrind valgrind-run valgrind-test valgrind-custom
+
 # Compilation rule
 $(EXE): code.cpp
-	@echo "Compiling... ($(COMPILER) $(MODE) $@)"
+	@echo "CC (${COMPILER} $(MODE))  $@"
 	@$(CXX) $^ $(CXXFLAGS) -o $@
 
+run: test
+
 test: debug
+	@test -f input.txt -a -s input.txt || \
+		(echo "ERROR  invalid input.txt" && false)
 	@$(EXE) < input.txt
 
 custom: debug
+	@test -f custom.txt -a -s custom.txt || \
+		(echo "ERROR  invalid custom.txt" && false)
 	@$(EXE) < custom.txt
 
 valgrind: valgrind-run
 
-valgrind-run: debug
-	@clear
-	@valgrind --leak-check=full --show-leak-kinds=all $(EXE)
+valgrind-run: valgrind-test
 
 valgrind-test: debug
 	@clear
+	@test -f input.txt -a -s input.txt || \
+		(echo "ERROR  invalid input.txt" && false)
 	@valgrind --leak-check=full --show-leak-kinds=all $(EXE) < input.txt
 
 valgrind-custom: debug
 	@clear
+	@test -f custom.txt -a -s custom.txt || \
+		(echo "ERROR  invalid custom.txt" && false)
 	@valgrind --leak-check=full --show-leak-kinds=all $(EXE) < custom.txt
 
 clean:
