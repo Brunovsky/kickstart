@@ -86,7 +86,7 @@ u32 add_skillset(SkillSet &skillset) {
 
   u32 index = infos.size();
   finger[skillset] = index;
-  infos.push_back(std::move(info));
+  infos.push_back(move(info));
   return index;
 }
 

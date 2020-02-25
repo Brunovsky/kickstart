@@ -9,25 +9,25 @@ using i64 = int64_t;
 namespace {
 
 class knuth_morris_pratt {
-  std::vector<int> lookup_;
-  std::string pattern;
+  vector<int> lookup_;
+  string pattern;
 
 public:
-  knuth_morris_pratt(std::string pattern);
-  int lookup(std::size_t index) const;
-  std::size_t shift(std::size_t index) const;
-  const std::string &get_pattern() const;
+  knuth_morris_pratt(string pattern);
+  int lookup(size_t index) const;
+  size_t shift(size_t index) const;
+  const string &get_pattern() const;
 };
 
-knuth_morris_pratt::knuth_morris_pratt(std::string pattern) : pattern(pattern) {
-  std::size_t P = pattern.size();
+knuth_morris_pratt::knuth_morris_pratt(string pattern) : pattern(pattern) {
+  size_t P = pattern.size();
 
   lookup_.resize(P + 1);
 
   lookup_[0] = -1;
   long border = 0; // need to compare against 0
 
-  for (std::size_t index = 1; index < P; ++index, ++border) {
+  for (size_t index = 1; index < P; ++index, ++border) {
     if (pattern[index] == pattern[border]) {
       lookup_[index] = lookup_[border];
     } else {
@@ -42,25 +42,24 @@ knuth_morris_pratt::knuth_morris_pratt(std::string pattern) : pattern(pattern) {
   lookup_[P] = border;
 }
 
-int knuth_morris_pratt::lookup(std::size_t index) const {
+int knuth_morris_pratt::lookup(size_t index) const {
   return lookup_[index];
 }
 
-std::size_t knuth_morris_pratt::shift(std::size_t index) const {
+size_t knuth_morris_pratt::shift(size_t index) const {
   return index - lookup_[index];
 }
 
-const std::string &knuth_morris_pratt::get_pattern() const {
+const string &knuth_morris_pratt::get_pattern() const {
   return pattern;
 }
 
-std::vector<std::size_t>
-knuth_morris_pratt_search(const std::string &text,
-                          const knuth_morris_pratt &kmp) {
-  const std::string &pattern = kmp.get_pattern();
+vector<size_t> knuth_morris_pratt_search(const string &text,
+                                         const knuth_morris_pratt &kmp) {
+  const string &pattern = kmp.get_pattern();
   long P = pattern.size(), T = text.size();
 
-  std::vector<std::size_t> match;
+  vector<size_t> match;
   if (P == 0)
     return match;
 

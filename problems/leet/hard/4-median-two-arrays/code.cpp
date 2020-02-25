@@ -188,11 +188,7 @@ Test gen2(int t, int k) {
 void test() {
   Solution S;
 
-  cout << "I will generate several random problems,\n"
-          "and test the solver against each of them.\n"
-          "It shouldn't take more than a few seconds.\n";
-
-  for (int t = 1; t <= 1000; ++t) {
+  for (int t = 1; t <= 50; ++t) {
     Test test = gen(t);
     double result = S.test(test.nums1, test.nums2);
 
@@ -207,8 +203,8 @@ void test() {
 
   cout << '\n';
 
-  for (int t = 1; t <= 90; ++t) {
-    for (int k = 5; k < 30; ++k) {
+  for (int t = 1; t <= 20; ++t) {
+    for (int k = 4; k < 10; ++k) {
       Test test = gen2(t, k);
       double result = S.test(test.nums1, test.nums2);
 

@@ -76,7 +76,7 @@ auto solve() {
   sort(days.begin(), days.end(),
        [](const Day &d1, const Day &d2) { return d1.i < d2.i; });
 
-  std::string text;
+  string text;
   text.resize(D);
   for (u32 d = 0; d < D; ++d)
     text[d] = days[d].verdict ? 'Y' : 'N';

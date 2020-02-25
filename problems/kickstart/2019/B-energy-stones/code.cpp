@@ -13,14 +13,14 @@ constexpr inline N abs(N num) noexcept {
 }
 
 template <typename Mn, typename Nn>
-constexpr std::common_type_t<Mn, Nn> gcd(Mn m, Nn n) {
+constexpr common_type_t<Mn, Nn> gcd(Mn m, Nn n) {
   return m == 0 ? abs(n) : n == 0 ? abs(m) : detail::gcd(n, m % n);
 }
 
 } // namespace detail
 
 template <typename Mn, typename Nn>
-constexpr std::common_type_t<Mn, Nn> gcd(Mn m, Nn n) {
+constexpr common_type_t<Mn, Nn> gcd(Mn m, Nn n) {
   return detail::gcd(m, n);
 }
 

@@ -32,7 +32,7 @@ auto solve() {
   if (M == 0)
     return i64(A.front());
 
-  std::vector<u64> A_set_count(70, 0);
+  vector<u64> A_set_count(70, 0);
   u64 pow = M_power_two;
   u64 l = M_exponent_two;
   u64 min_sum = 0;
