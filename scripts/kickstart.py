@@ -46,7 +46,7 @@ name = read_name()
 friendly = read_friendly()
 competition = f"kickstart/{year}"
 problem = f"{rnd}-{name}"
-header = f"# Kickstart {year} - {friendly}\n\n## [{rnd} {friendly}]"
+header = f"# Kickstart {year} - {friendly}\n\n## [{rnd} {friendly}]\n"
 folder = f"problems/{competition}/{problem}"
 
 print(f"Problem folder: {folder}")

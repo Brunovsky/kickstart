@@ -51,7 +51,7 @@ friendly = read_friendly()
 link = read_link()
 competition = f"leet/{difficulty}"
 problem = f"{number}-{name}"
-header = f"# LeetCode - {difficulty}\n\n## [{number}. {friendly}]({link})"
+header = f"# LeetCode - {difficulty}\n\n## [{number}. {friendly}]({link})\n"
 folder = f"problems/{competition}/{problem}"
 
 print(f"Problem folder: {folder}")
