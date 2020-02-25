@@ -5,4 +5,4 @@
 Solved
 
 * Complexity: O(n^2)
-* Memory: ...
+* Memory: -

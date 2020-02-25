@@ -51,16 +51,24 @@ friendly = read_friendly()
 link = read_link()
 competition = f"leet/{difficulty}"
 problem = f"{number}-{name}"
-header = f"# LeetCode - {difficulty}\n\n## [{number}. {friendly}]({link})\n"
+readme = f"""# LeetCode - {difficulty}
+
+## [{number}. {friendly}]({link})
+
+Unattempted
+
+* Complexity: -
+* Memory: -
+"""
 folder = f"problems/{competition}/{problem}"
 
 print(f"Problem folder: {folder}")
 
 os.makedirs(folder, exist_ok=True)
 
-readme = open(f"{folder}/README.md", "w")
-readme.write(header)
-readme.close()
+readmefile = open(f"{folder}/README.md", "w")
+readmefile.write(readme)
+readmefile.close()
 
 # Copy template
 if template == "leet-cpp":

@@ -5,4 +5,4 @@
 Solved
 
 * Complexity: O(catalan(n))
-* Memory: ...
+* Memory: -
