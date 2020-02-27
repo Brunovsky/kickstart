@@ -49,7 +49,7 @@ number = read_number()
 name = read_name()
 friendly = read_friendly()
 link = read_link()
-competition = f"leet/{difficulty}"
+competition = "leet"
 problem = f"{number}-{name}"
 readme = f"""# LeetCode - {difficulty}
 
@@ -71,10 +71,10 @@ readmefile.write(readme)
 readmefile.close()
 
 # Copy template
-if template == "leet-cpp":
+if template == "cpp":
     shutil.copy("templates/leet-cpp/code.cpp", folder)
     os.symlink("../../../../templates/leet-cpp/Makefile", f"{folder}/Makefile")
 
-if template == "leet-shell":
+if template == "shell":
     shutil.copy("templates/leet-shell/code.sh", folder)
     os.symlink("../../../../templates/leet-shell/Makefile", f"{folder}/Makefile")

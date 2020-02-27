@@ -83,7 +83,7 @@ readmefile.write(readme)
 readmefile.close()
 
 # Copy template
-if template == "kickstart-cpp":
+if template == "cpp":
     shutil.copy("templates/kickstart-cpp/code.cpp", folder)
     shutil.copy("templates/kickstart-cpp/input.txt", folder)
     os.symlink("../../../../templates/kickstart-cpp/Makefile",

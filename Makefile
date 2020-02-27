@@ -7,13 +7,13 @@ kickstart: kickstart-cpp
 leet: leet-cpp
 
 kickstart-cpp:
-	@./scripts/kickstart.py kickstart-cpp
+	@./scripts/kickstart.py cpp
 
 leet-cpp:
-	@./scripts/leet.py leet-cpp
+	@./scripts/leet.py cpp
 
 leet-shell:
-	@./scripts/leet.py leet-shell
+	@./scripts/leet.py shell
 
 formatall:
 	@clang-format --fallback-style=none -i $(shell find . -name '*.cpp' -type f)

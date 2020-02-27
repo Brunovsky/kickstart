@@ -5,8 +5,8 @@
 CMD="$1"
 shift
 
-for makefile in **/*/Makefile; do
-	folder=$(dirname "$makefile")
+for folder in */; do
+	folder="${folder%/}"
 	echo "$CMD  $folder"
 	make -s -C "$folder" "$@" | sed 's/^/  /'
 done

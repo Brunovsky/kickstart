@@ -142,41 +142,26 @@ debug: $(EXE)
 
 # * Rules
 
-.PHONY: run test custom clean
+.PHONY: run clean
 .PHONY: valgrind valgrind-run valgrind-test valgrind-custom
 
 # Compilation rule
+all: $(EXE)
+
 $(EXE): code.cpp
 	@echo "CC (${COMPILER} $(MODE))  $@"
 	@$(CXX) $^ $(CXXFLAGS) -o $@
 
-run: test
-
-test: debug
+run: debug
 	@test -f input.txt -a -s input.txt || \
 		(echo "ERROR  invalid input.txt" && false)
 	@$(EXE) < input.txt
 
-custom: debug
-	@test -f custom.txt -a -s custom.txt || \
-		(echo "ERROR  invalid custom.txt" && false)
-	@$(EXE) < custom.txt
-
-valgrind: valgrind-run
-
-valgrind-run: valgrind-test
-
-valgrind-test: debug
+valgrind: debug
 	@clear
 	@test -f input.txt -a -s input.txt || \
 		(echo "ERROR  invalid input.txt" && false)
 	@valgrind --leak-check=full --show-leak-kinds=all $(EXE) < input.txt
-
-valgrind-custom: debug
-	@clear
-	@test -f custom.txt -a -s custom.txt || \
-		(echo "ERROR  invalid custom.txt" && false)
-	@valgrind --leak-check=full --show-leak-kinds=all $(EXE) < custom.txt
 
 clean:
 	@rm -f $(EXE) core vgcore.* *.log
