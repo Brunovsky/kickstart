@@ -74,3 +74,7 @@ readmefile.close()
 if template == "leet-cpp":
     shutil.copy("templates/leet-cpp/code.cpp", folder)
     os.symlink("../../../../templates/leet-cpp/Makefile", f"{folder}/Makefile")
+
+if template == "leet-shell":
+    shutil.copy("templates/leet-shell/code.sh", folder)
+    os.symlink("../../../../templates/leet-shell/Makefile", f"{folder}/Makefile")
