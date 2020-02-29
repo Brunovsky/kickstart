@@ -73,8 +73,8 @@ readmefile.close()
 # Copy template
 if template == "cpp":
     shutil.copy("templates/leet-cpp/code.cpp", folder)
-    os.symlink("../../../../templates/leet-cpp/Makefile", f"{folder}/Makefile")
+    os.symlink("../../../templates/leet-cpp/Makefile", f"{folder}/Makefile")
 
 if template == "shell":
     shutil.copy("templates/leet-shell/code.sh", folder)
-    os.symlink("../../../../templates/leet-shell/Makefile", f"{folder}/Makefile")
+    os.symlink("../../../templates/leet-shell/Makefile", f"{folder}/Makefile")
