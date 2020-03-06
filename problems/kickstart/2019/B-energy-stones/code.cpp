@@ -3,27 +3,6 @@
 using namespace std;
 using u32 = uint32_t;
 
-// std::gcd polyfill
-
-namespace detail {
-
-template <typename N>
-constexpr inline N abs(N num) noexcept {
-  return num > N(0) ? num : -num;
-}
-
-template <typename Mn, typename Nn>
-constexpr common_type_t<Mn, Nn> gcd(Mn m, Nn n) {
-  return m == 0 ? abs(n) : n == 0 ? abs(m) : detail::gcd(n, m % n);
-}
-
-} // namespace detail
-
-template <typename Mn, typename Nn>
-constexpr common_type_t<Mn, Nn> gcd(Mn m, Nn n) {
-  return detail::gcd(m, n);
-}
-
 // *****
 
 struct Stone {
