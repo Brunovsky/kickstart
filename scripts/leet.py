@@ -5,8 +5,17 @@ import sys
 import os
 import shutil
 import subprocess
+import signal
 
 template = sys.argv[1]
+
+
+def signal_handler(sig, frame):
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 
 def read_difficulty():

@@ -27,7 +27,7 @@ def read_year():
 
 
 def read_round():
-    rnd = input("Problem Round?  ex: B\n> ")
+    rnd = input("Problem Round?  ex: QR\n> ")
     if not re.match("[A-Z]", rnd):
         print("Bad input round: {rnd}")
         return read_round()
@@ -50,8 +50,8 @@ def read_friendly():
     return friendly
 
 
-def read_points(index):
-    pts = input(f"Problem points #{index}?  ex: 10  (as in 10pts)\n> ")
+def read_points():
+    pts = input(f"Problem points?  ex: 10pts, 12pts\n> ")
     if not re.match("[0-9]{1,2}", pts):
         print("Bad input points: {pts}")
         return read_points()
@@ -67,14 +67,13 @@ year = read_year()
 rnd = read_round()
 name = read_name()
 friendly = read_friendly()
-pts1 = read_points(1)
-pts2 = read_points(2)
+pts = read_points()
 link = read_link()
-competition = f"kickstart/{year}"
+competition = f"codejam/{year}"
 problem = f"{rnd}-{name}"
-readme = f"""# Kickstart {year} - {friendly}
+readme = f"""# CodeJam {year} - {friendly}
 
-## [{friendly} ({pts1}pts, {pts2}pts)]({link})
+## [{friendly} ({pts})]({link})
 
 Unattempted
 
@@ -94,9 +93,9 @@ readmefile.close()
 
 # Copy template
 if template == "cpp":
-    shutil.copy("templates/kickstart-cpp/code.cpp", folder)
-    shutil.copy("templates/kickstart-cpp/input.txt", folder)
-    os.symlink("../../../../templates/kickstart-cpp/Makefile",
+    shutil.copy("templates/codejam-cpp/code.cpp", folder)
+    shutil.copy("templates/codejam-cpp/input.txt", folder)
+    os.symlink("../../../../templates/codejam-cpp/Makefile",
                f"{folder}/Makefile")
 
 subprocess.call(["code", "--reuse-window", folder])
