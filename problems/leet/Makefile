@@ -1,6 +1,6 @@
-.PHONY: all clean run formatall
+.PHONY: build clean run formatall
 
-all:
+build:
 	@+./all.sh BUILD
 
 clean:

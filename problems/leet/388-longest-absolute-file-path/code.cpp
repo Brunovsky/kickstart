@@ -21,7 +21,7 @@ public:
           dot = true;
         ++namelen, ++i;
       }
-      if (lengths.size() < tabs + 1)
+      if (lengths.size() < size_t(tabs + 1))
         lengths.resize(tabs + 1, 0);
       lengths[tabs] = namelen;
       if (tabs > 0)

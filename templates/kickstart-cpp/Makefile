@@ -1,8 +1,5 @@
 # * Kickstart Problem Makefile
 
-# Default mode
-DEFAULT_MODE := debug
-
 # Compiler, gcc or clang
 COMPILER := gcc
 CPP_STANDARD := c++14
@@ -11,20 +8,6 @@ CPP_STANDARD := c++14
 CC := g++
 
 EXE := ./hack
-
-# * Targets
-
-.PHONY: default-target
-
-ifeq ($(DEFAULT_MODE),performance)
-default-target: perfm
-else ifeq ($(DEFAULT_MODE),perfm)
-default-target: perfm
-else ifeq ($(DEFAULT_MODE),release)
-default-target: perfm
-else ifeq ($(DEFAULT_MODE),debug)
-default-target: debug
-endif
 
 # * Dialect
 
@@ -130,7 +113,9 @@ CXXFLAGS := $(WARNS)
 
 # * Modes
 
-.PHONY: perfm debug
+.PHONY: perfm debug build run valgrind clean
+
+build: debug
 
 perfm: MODE := performance
 perfm: CXXFLAGS += $(OPTIM)
@@ -140,27 +125,16 @@ debug: MODE := debug
 debug: CXXFLAGS += $(DEBUG)
 debug: $(EXE)
 
-# * Rules
-
-.PHONY: run clean
-.PHONY: valgrind valgrind-run valgrind-test valgrind-custom
-
 # Compilation rule
-all: $(EXE)
-
 $(EXE): code.cpp
 	@echo "CC (${COMPILER} $(MODE))  $@"
 	@$(CXX) $^ $(CXXFLAGS) -o $@
 
-run: debug
-	@test -f input.txt -a -s input.txt || \
-		(echo "ERROR  invalid input.txt" && false)
+run: build
 	@$(EXE) < input.txt
 
-valgrind: debug
+valgrind: build
 	@clear
-	@test -f input.txt -a -s input.txt || \
-		(echo "ERROR  invalid input.txt" && false)
 	@valgrind --leak-check=full --show-leak-kinds=all $(EXE) < input.txt
 
 clean:

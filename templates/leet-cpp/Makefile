@@ -1,8 +1,5 @@
 # * Leet Problem Makefile
 
-# Default mode
-DEFAULT_MODE := debug
-
 # Compiler, gcc or clang
 COMPILER := gcc
 CPP_STANDARD := c++17
@@ -11,20 +8,6 @@ CPP_STANDARD := c++17
 CC := g++
 
 EXE := ./hack
-
-# * Targets
-
-.PHONY: default-target
-
-ifeq ($(DEFAULT_MODE),performance)
-default-target: perfm
-else ifeq ($(DEFAULT_MODE),perfm)
-default-target: perfm
-else ifeq ($(DEFAULT_MODE),release)
-default-target: perfm
-else ifeq ($(DEFAULT_MODE),debug)
-default-target: debug
-endif
 
 # * Dialect
 
@@ -126,11 +109,13 @@ ifeq ($(COMPILER),gcc)
 	DEBUG += -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
 endif
 
-CXXFLAGS := $(WARNS) $(INCLUDES)
+CXXFLAGS := $(WARNS)
 
 # * Modes
 
-.PHONY: perfm debug
+.PHONY: perfm debug build run valgrind clean
+
+build: debug
 
 perfm: MODE := performance
 perfm: CXXFLAGS += $(OPTIM)
@@ -140,38 +125,17 @@ debug: MODE := debug
 debug: CXXFLAGS += $(DEBUG)
 debug: $(EXE)
 
-# * Rules
-
-.PHONY: run test custom clean
-.PHONY: valgrind valgrind-run valgrind-test valgrind-custom
-
 # Compilation rule
 $(EXE): code.cpp
 	@echo "CC (${COMPILER} $(MODE))  $@"
 	@$(CXX) $^ $(CXXFLAGS) -o $@
 
-run: debug
+run: build
 	@$(EXE)
 
-test: debug
-	@$(EXE) < input.txt
-
-custom: debug
-	@$(EXE) < custom.txt
-
-valgrind: valgrind-run
-
-valgrind-run: debug
+valgrind: build
 	@clear
 	@valgrind --leak-check=full --show-leak-kinds=all $(EXE)
-
-valgrind-test: debug
-	@clear
-	@valgrind --leak-check=full --show-leak-kinds=all $(EXE) < input.txt
-
-valgrind-custom: debug
-	@clear
-	@valgrind --leak-check=full --show-leak-kinds=all $(EXE) < custom.txt
 
 clean:
 	@rm -f $(EXE) core vgcore.* *.log
