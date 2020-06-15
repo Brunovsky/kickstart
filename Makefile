@@ -18,6 +18,9 @@ leet-cpp:
 leet-shell:
 	@./scripts/leet.py shell
 
+leet-js:
+	@./scripts/leet.py js
+
 codejam-cpp:
 	@./scripts/codejam.py cpp
 

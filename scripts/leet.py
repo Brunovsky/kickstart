@@ -90,4 +90,8 @@ if template == "shell":
     shutil.copy("templates/leet-shell/code.sh", folder)
     os.symlink("../../../templates/leet-shell/Makefile", f"{folder}/Makefile")
 
+if template == "js":
+    shutil.copy("templates/leet-js/code.js", folder)
+    os.symlink("../../../templates/leet-js/Makefile", f"{folder}/Makefile")
+
 subprocess.call(["code", "--reuse-window", folder])
