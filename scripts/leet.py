@@ -50,16 +50,17 @@ def read_friendly():
     return friendly
 
 
-def read_link():
-    link = input("Problem URL?  (warning: not sanitized)\n> ")
-    return link
+def read_link(name):
+    default = f"https://leetcode.com/problems/{name}"
+    link = input(f"Problem URL?  ({default})\n> ")
+    return link if link else default
 
 
 difficulty = read_difficulty()
 number = read_number()
 name = read_name()
 friendly = read_friendly()
-link = read_link()
+link = read_link(name)
 competition = "leet"
 problem = f"{number}-{name}"
 readme = f"""# LeetCode - {difficulty}
