@@ -21,7 +21,7 @@ signal.signal(signal.SIGTERM, signal_handler)
 def read_year():
     year = input("Problem Year?  ex: 2020\n> ")
     if not re.match("20[0-9]{2}", year):
-        print("Bad input year: {year}")
+        print(f"Bad input year: {year}")
         return read_year()
     return year
 
@@ -29,7 +29,7 @@ def read_year():
 def read_round():
     rnd = input("Problem Round?  ex: QR\n> ")
     if not re.match("[A-Z]", rnd):
-        print("Bad input round: {rnd}")
+        print(f"Bad input round: {rnd}")
         return read_round()
     return rnd
 
@@ -37,7 +37,7 @@ def read_round():
 def read_name():
     name = input("Problem Name?  ex: le-problemo\n> ")
     if not re.match("[a-zA-Z0-9-]+", name):
-        print("Bad input name: {name}")
+        print(f"Bad input name: {name}")
         return read_name()
     return name
 
@@ -45,7 +45,7 @@ def read_name():
 def read_friendly():
     friendly = input("Problem Friendly Name?  ex: Le Problemo\n> ")
     if not re.match("[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]", friendly):
-        print("Bad input friendly name: {friendly}")
+        print(f"Bad input friendly name: {friendly}")
         return read_friendly()
     return friendly
 
@@ -53,7 +53,7 @@ def read_friendly():
 def read_points():
     pts = input(f"Problem points?  ex: 10pts, 12pts\n> ")
     if not re.match("[0-9]{1,2}", pts):
-        print("Bad input points: {pts}")
+        print(f"Bad input points: {pts}")
         return read_points()
     return pts
 
