@@ -18,8 +18,15 @@ signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
 
+def tryinput(str):
+    try:
+        return input(str)
+    except EOFError as e:
+        sys.exit(0)
+
+
 def read_difficulty():
-    difficulty = input("Problem Difficulty?  ex: medium\n> ")
+    difficulty = tryinput("Problem Difficulty?  ex: medium\n> ")
     if not re.match("easy|medium|hard", difficulty):
         print(f"Bad input difficulty: {difficulty}")
         return read_difficulty()
@@ -27,7 +34,7 @@ def read_difficulty():
 
 
 def read_number():
-    number = input("Problem Number?  ex: 123\n> ")
+    number = tryinput("Problem Number?  ex: 123\n> ")
     if not re.match("[0-9]+", number):
         print(f"Bad input number: {number}")
         return read_number()
@@ -35,7 +42,7 @@ def read_number():
 
 
 def read_name():
-    name = input("Problem Name?  ex: le-problemo\n> ")
+    name = tryinput("Problem Name?  ex: le-problemo\n> ")
     if not re.match("[a-zA-Z0-9-]+", name):
         print(f"Bad input name: {name}")
         return read_name()
@@ -43,7 +50,7 @@ def read_name():
 
 
 def read_friendly():
-    friendly = input("Problem Friendly Name?  ex: Le Problemo\n> ")
+    friendly = tryinput("Problem Friendly Name?  ex: Le Problemo\n> ")
     if not re.match("[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]", friendly):
         print(f"Bad input friendly name: {friendly}")
         return read_friendly()
@@ -52,7 +59,7 @@ def read_friendly():
 
 def read_link(name):
     default = f"https://leetcode.com/problems/{name}"
-    link = input(f"Problem URL?  ({default})\n> ")
+    link = tryinput(f"Problem URL?  ({default})\n> ")
     return link if link else default
 
 
