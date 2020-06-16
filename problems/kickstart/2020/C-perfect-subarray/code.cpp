@@ -9,7 +9,7 @@ using namespace std;
 vector<int> squares;
 
 void populate_squares() {
-    squares.reserve(3200);
+    squares.reserve(size_t(ceil(sqrt(MAX_SQUARE) + 1)));
     for (int n = 0; n * n <= MAX_SQUARE; ++n)
         squares.push_back(n * n);
 }
@@ -19,7 +19,6 @@ inline int is_square(int n) {
 }
 
 size_t count_squares_crossing(const vector<int> &A, int l, int m, int r) {
-    assert(0 <= l && l < m && m < r);
     vector<int> sums_left;
     vector<int> sums_right;
     sums_left.reserve(m - l);
@@ -38,46 +37,55 @@ size_t count_squares_crossing(const vector<int> &A, int l, int m, int r) {
     int max_sum = sums_left.back() + sums_right.back();
     int max_L = sums_left.size(), max_R = sums_right.size();
     size_t mid_count = 0;
-    for (int i = 0; squares[i] <= max_sum; ++i) {
-        int sq = squares[i];
+
+    for (int square : squares) {
+        if (square > max_sum)
+            break;
+
+        // increasing in sums_left, decreasing in sums_right
+        // starting values could be improved with a clever binary search
         int L = 0, R = max_R - 1;
 
         while (L < max_L && R >= 0) {
             int mid_sum = sums_left[L] + sums_right[R];
-            if (mid_sum == sq) {
+            if (mid_sum == square) {
                 int LL = L + 1, RR = R - 1;
+                // count indices in sums_left after L holding the same value
                 while (LL < max_L && sums_left[L] == sums_left[LL])
                     ++LL;
+                // idem, but before R
                 while (RR >= 0 && sums_right[R] == sums_right[RR])
                     --RR;
+                // careful, potential overflow for large N
                 mid_count += size_t(LL - L) * size_t(R - RR);
                 L = LL, R = RR;
             }
-            if (mid_sum < sq)
+            if (mid_sum < square)
                 ++L;
-            if (mid_sum > sq)
+            if (mid_sum > square)
                 --R;
         }
     }
     return mid_count;
 }
 
-size_t count_squares(const vector<int> &A, int l, int r) {
-    assert(0 <= l && l < r);
-    if (r - l < 4) {
-        if (r - l == 1) {
-            return is_square(A[l]);
-        }
-        if (r - l == 2) {
-            return is_square(A[l]) + is_square(A[l + 1]) +
-                   is_square(A[l] + A[l + 1]);
-        }
-        if (r - l == 3) {
-            return is_square(A[l]) + is_square(A[l + 1]) + is_square(A[l + 2]) +
-                   is_square(A[l] + A[l + 1]) + is_square(A[l + 1] + A[l + 2]) +
-                   is_square(A[l] + A[l + 1] + A[l + 2]);
-        }
+size_t count_squares_base(const vector<int> &A, int l, int r) {
+    assert(r - l < 4);
+    if (r - l == 1) {
+        return is_square(A[l]);
     }
+    if (r - l == 2) {
+        return is_square(A[l]) + is_square(A[l + 1]) +
+               is_square(A[l] + A[l + 1]);
+    }
+    return is_square(A[l]) + is_square(A[l + 1]) + is_square(A[l + 2]) +
+           is_square(A[l] + A[l + 1]) + is_square(A[l + 1] + A[l + 2]) +
+           is_square(A[l] + A[l + 1] + A[l + 2]);
+}
+
+size_t count_squares(const vector<int> &A, int l, int r) {
+    if (r - l < 4)
+        return count_squares_base(A, l, r);
     int m = (l + r) / 2;
     size_t left_count = count_squares(A, l, m);
     size_t right_count = count_squares(A, m, r);
