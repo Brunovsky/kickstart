@@ -7,22 +7,21 @@ using namespace std;
 class Solution {
 public:
   void doit(const vector<int> &candidates, vector<vector<int>> &answers,
-            vector<int> &included, int target, size_t s) const {
+            vector<int> &included, int target, size_t i) const {
     assert(target >= 0);
     if (target == 0) {
       answers.push_back(included);
       return;
     }
-    for (size_t i = s; i < candidates.size(); ++i) {
-      int count = 0, candidate = candidates[i];
-      while ((count + 1) * candidate <= target) {
-        included.push_back(candidate);
-        doit(candidates, answers, included, target - ++count * candidate,
-             i + 1);
-      }
-      while (count-- > 0)
-        included.pop_back();
+    if (i >= candidates.size())
+      return;
+    int count = 1, candidate = candidates[i];
+    while (count * candidate <= target) {
+      included.push_back(candidate);
+      doit(candidates, answers, included, target - count++ * candidate, i + 1);
     }
+    included.resize(included.size() - (count - 1));
+    doit(candidates, answers, included, target, i + 1);
   }
 
   vector<vector<int>> combinationSum(vector<int> &candidates, int target) {
