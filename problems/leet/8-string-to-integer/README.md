@@ -2,7 +2,7 @@
 
 ## [8. String to Integer (atoi)](https://leetcode.com/problems/string-to-integer-atoi/)
 
-Unattempted
+Solved
 
-* Complexity: -
-* Memory: -
+* Complexity: O(N)
+* Memory: O(1)

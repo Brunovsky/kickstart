@@ -2,7 +2,7 @@
 
 ## [71. Simplify Path](https://leetcode.com/problems/simplify-path)
 
-Unattempted
+Solved
 
-* Complexity: -
-* Memory: -
+* Complexity: O(len)
+* Memory: O(len), but could be O(1)
