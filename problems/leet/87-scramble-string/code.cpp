@@ -66,26 +66,19 @@ public:
 
 // *****
 
-void test() {
-  Solution solver;
-  {
-    const string s1 = "great", s2 = "rgate";
-    bool is = solver.isScramble(s1, s2);
-    if (!is)
-      cout << "great test failed";
-  }
-  {
-    const string s1 = "abcde", s2 = "caebd";
-    bool is = solver.isScramble(s1, s2);
-    if (is)
-      cout << "abcde test failed";
-  }
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
+  vector<string> s1 = {"great", "abcde"};
+  vector<string> s2 = {"rgate", "caebd"};
+  vector<bool> expected = {true, false};
+
+  for (size_t i = 0; i < s1.size(); ++i) {
+    auto actual = Solution{}.isScramble(s1[i], s2[i]);
+    if (actual == expected[i])
+      continue;
+    printf("Test #%lu failed\n", i);
+    printf("> Expected: %s\n", expected[i] ? "true" : "false");
+    printf("> Actual:   %s\n", actual ? "true" : "false");
+  }
+
   return 0;
 }

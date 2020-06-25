@@ -76,19 +76,14 @@ public:
 
 // *****
 
-void test() {
+int main() {
   vector<int> example1 = {100, 4, 200, 1, 3, 2};
   auto n = Solution{}.longestConsecutive(example1);
   if (n != 4) {
-    printf("Failed: expected 4, but got %d", n);
-    return;
+    printf("Failed test\n");
+    printf("> Expected: 4\n");
+    printf("> Actual:   %d\n", n);
   }
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
 
-// *****
-
-int main() {
-  test();
   return 0;
 }

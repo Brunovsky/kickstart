@@ -38,17 +38,6 @@ public:
 
 // *****
 
-void test() {
-  cout << Solution{}.intToRoman(50) << '\n';
-  cout << Solution{}.intToRoman(55) << '\n';
-  cout << Solution{}.intToRoman(56) << '\n';
-  cout << Solution{}.intToRoman(58) << '\n';
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

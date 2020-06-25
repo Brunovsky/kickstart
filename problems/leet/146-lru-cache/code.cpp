@@ -7,9 +7,9 @@ using namespace std;
 using list_pt = list<int>::iterator;
 
 class LRUCache {
-  int capacity;
   list<int> keys;
   unordered_map<int, pair<list_pt, int>> cache;
+  uint capacity;
 
 public:
   LRUCache(int capacity) : capacity(capacity) {}
@@ -45,13 +45,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

@@ -91,19 +91,12 @@ public:
  * 1 0 1 1
  */
 
-void test() {
+int main() {
   const vector<Point> blocked = {
       {1, 1}, {1, 2}, {2, 1}, {3, 1}, {3, 3}, {4, 1},
       {4, 3}, {5, 0}, {5, 3}, {5, 2}, {6, 1},
   };
   bool ok = Solution{}.isEscapePossible(blocked, {0, 0}, {5, 1});
-  cout << "ok: " << boolalpha << ok << endl;
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
 
-// *****
-
-int main() {
-  test();
   return 0;
 }

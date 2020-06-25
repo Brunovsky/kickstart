@@ -24,7 +24,7 @@ void compute() {
 class Solution {
 public:
   string countAndSay(int n) {
-    if (n >= cache.size())
+    if (n >= int(cache.size()))
       for (int i = cache.size(); i <= n; ++i)
         compute();
     return cache[n];
@@ -33,13 +33,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

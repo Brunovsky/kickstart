@@ -45,21 +45,6 @@ public:
 
 // *****
 
-void test() {
-  Solution S;
-
-  vector<int> nums1{-1, 0, 1, 2, -1, -4};
-
-  auto sol = S.threeSum(nums1);
-
-  for (auto triple : sol) {
-    cout << triple[0] << ',' << triple[1] << ',' << triple[2] << endl;
-  }
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

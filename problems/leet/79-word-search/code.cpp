@@ -9,7 +9,7 @@ class Solution {
   string word;
   int W, M, N;
   bool check(int i, int j, int s) {
-    if (s == word.size())
+    if (s == int(word.size()))
       return true;
     if (i < 0 || j < 0 || i >= M || j >= N || word[s] != board[i][j])
       return false;
@@ -40,13 +40,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

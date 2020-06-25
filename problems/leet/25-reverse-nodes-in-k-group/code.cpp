@@ -53,7 +53,7 @@ void print(ListNode *head) {
   cout << '\n';
 }
 
-void test() {
+int main() {
   ListNode *list, *l;
   list = l = new ListNode(0);
   l = l->next = new ListNode(1);
@@ -68,16 +68,9 @@ void test() {
 
   print(list);
 
-  Solution S;
-  ListNode *head = S.reverseKGroup(list, 4);
-
+  ListNode *head = Solution{}.reverseKGroup(list, 4);
   print(head);
-  cout << "The above should have a period of 4: 3->2->1->0->7->...->4->8->9.\n";
-}
+  printf("The above should have a period of 4: 3->2->1->0->7->...->4->8->9.\n");
 
-// *****
-
-int main() {
-  test();
   return 0;
 }

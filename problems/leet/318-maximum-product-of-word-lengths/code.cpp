@@ -53,20 +53,6 @@ public:
 
 // *****
 
-void test() {
-  vector<string> words = {"abcw", "baz", "foo", "bar", "xtfn", "abcdef"};
-  int res = Solution{}.maxProduct(words);
-
-  for (const string &word : words)
-    cout << word << '\n';
-  cout << res << '\n';
-
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

@@ -7,19 +7,20 @@ using namespace std;
 class Solution {
   void dive(vector<string> &answers, string pprefix, string s, //
             int sets, int i) {
+    int S = s.size();
     if (sets == 4) {
-      if (i == s.size()) {
+      if (i == S) {
         answers.push_back(pprefix);
       }
       return;
     }
-    if (i >= s.size()) {
+    if (i >= S) {
       return;
     }
     string prefix = pprefix;
     if (sets)
       prefix += '.';
-    for (int j = 1; j <= 3 && i + j <= s.size(); ++j) {
+    for (int j = 1; j <= 3 && i + j <= S; ++j) {
       string part = s.substr(i, j);
       if (j == 3 && part > "255"s)
         break;
@@ -39,13 +40,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

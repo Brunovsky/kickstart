@@ -40,16 +40,6 @@ public:
 
 // *****
 
-void test() {
-  Solution S;
-
-  cout << S.minDistance("horse", "ros") << ' ' << 3 << endl;
-  cout << S.minDistance("intention", "execution") << ' ' << 5 << endl;
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

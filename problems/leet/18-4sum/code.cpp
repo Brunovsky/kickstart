@@ -37,18 +37,6 @@ public:
 
 // *****
 
-void test() {
-  vector<int> nums = {1, 0, -1, 0, -2, 2};
-  auto answer = Solution{}.fourSum(nums, 0);
-  for (const vector<int> &quad : answer)
-    cout << '[' << quad[0] << ',' << quad[1] << ',' //
-         << quad[2] << ',' << quad[3] << "]\n";
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

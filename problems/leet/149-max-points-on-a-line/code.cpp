@@ -84,7 +84,7 @@ public:
 
 // *****
 
-void test() {
+int main() {
   const vector<vector<vector<int>>> tests = {
       {{1, 1}, {2, 2}, {3, 3}},
       {{1, 1}, {3, 2}, {5, 3}, {4, 1}, {2, 3}, {1, 4}},
@@ -105,24 +105,14 @@ void test() {
 
   const vector<int> expected = {3, 4, 2, 3, 3, 10};
 
-  bool dirty = false;
   for (size_t i = 0; i < tests.size(); ++i) {
     int actual = Solution{}.maxPoints(tests[i]);
-    if (actual != expected[i]) {
-      printf("Test #%lu failed\n", i);
-      printf("> Expected: %d\n", expected[i]);
-      printf("> Actual:   %d\n", actual);
-      dirty = true;
-    }
+    if (actual == expected[i])
+      continue;
+    printf("Test #%lu failed\n", i);
+    printf("> Expected: %d\n", expected[i]);
+    printf("> Actual:   %d\n", actual);
   }
 
-  if (!dirty)
-    cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

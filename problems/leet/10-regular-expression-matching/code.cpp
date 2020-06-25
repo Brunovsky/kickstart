@@ -33,7 +33,7 @@ public:
 
 // *****
 
-void test() {
+int main() {
   const vector<string> s = {
       "aa", "aa", "ab", "aab", "mississipi", "aaa", "aaa", "a", "a", "ab",
   };
@@ -47,25 +47,15 @@ void test() {
       false, true, true, true, false, true, true, true, false, true,
   };
 
-  bool dirty = false;
   for (size_t i = 0; i < s.size(); ++i) {
     auto actual = Solution{}.isMatch(s[i], p[i]);
-    if (actual != expected[i]) {
-      printf("Test #%lu failed\n", i);
-      printf("'%s'  matches  '%s'\n", s[i].c_str(), p[i].c_str());
-      printf("> Expected: %s\n", expected[i] ? "true" : "false");
-      printf("> Actual:   %s\n", actual ? "true" : "false");
-      dirty = true;
-    }
+    if (actual == expected[i])
+      continue;
+    printf("Test #%lu failed\n", i);
+    printf("'%s'  matches  '%s'\n", s[i].c_str(), p[i].c_str());
+    printf("> Expected: %s\n", expected[i] ? "true" : "false");
+    printf("> Actual:   %s\n", actual ? "true" : "false");
   }
 
-  if (!dirty)
-    cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

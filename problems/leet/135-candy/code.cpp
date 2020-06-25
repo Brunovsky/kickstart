@@ -28,16 +28,17 @@ public:
   }
 };
 
+// *****
+
 /**
  * *   *            *              *
  *   *            *            * *
  *              *
- *
- *
+ * ----------------------------------
  * *
  *   * *          * *          * * *
  *              *
- *
+ * ----------------------------------
  * *
  *   *            *            * *
  *     *        *   *              *
@@ -57,9 +58,7 @@ public:
  * * 3: --
  */
 
-// *****
-
-void test() {
+int main() {
   const vector<vector<int>> tests = {
       {1, 0, 2},
       {1, 2, 2},
@@ -68,24 +67,14 @@ void test() {
 
   const vector<int> expected = {5, 4, 7};
 
-  bool dirty = false;
   for (size_t i = 0; i < tests.size(); ++i) {
     int actual = Solution{}.candy(tests[i]);
-    if (actual != expected[i]) {
-      printf("Test #%lu failed\n", i);
-      printf("> Expected: %d\n", expected[i]);
-      printf("> Actual:   %d\n", actual);
-      dirty = true;
-    }
+    if (actual == expected[i])
+      continue;
+    printf("Test #%lu failed\n", i);
+    printf("> Expected: %d\n", expected[i]);
+    printf("> Actual:   %d\n", actual);
   }
 
-  if (!dirty)
-    cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

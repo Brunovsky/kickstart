@@ -24,7 +24,7 @@ public:
     }
 
     int a = find(nums.begin(), nums.end(), sorted[l]) - nums.begin();
-    int b = find(nums.rbegin(), nums.rend(), sorted[r]) - nums.rbegin());
+    int b = find(nums.rbegin(), nums.rend(), sorted[r]) - nums.rbegin();
 
     return {a, b};
   }
@@ -32,13 +32,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

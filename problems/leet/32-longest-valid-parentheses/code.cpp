@@ -78,15 +78,6 @@ public:
  *                 8
  */
 
-void test() {
-  Solution S;
-  int res = S.longestValidParentheses(")(()()))(()(()()())(");
-  cout << res << endl;
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

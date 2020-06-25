@@ -103,7 +103,7 @@ void print_paths(const vector<vector<string>> &paths) {
   }
 }
 
-void test() {
+int main() {
   vector<tuple<string, string, vector<string>>> tests = {
       {
           "hit",
@@ -131,27 +131,17 @@ void test() {
       {},
   };
 
-  bool dirty = false;
   for (size_t i = 0; i < tests.size(); ++i) {
     const auto paths = Solution{}.findLadders(
         get<0>(tests[i]), get<1>(tests[i]), get<2>(tests[i]));
-    if (paths != expected[i]) {
-      printf("Test #%lu failed\n", i);
-      printf("> Expected: ... (%lu entries)\n", expected[i].size());
-      print_paths(expected[i]);
-      printf("> Actual:   ... (%lu entries)\n", paths.size());
-      print_paths(paths);
-      dirty = true;
-    }
+    if (paths == expected[i])
+      continue;
+    printf("Test #%lu failed\n", i);
+    printf("> Expected: ... (%lu entries)\n", expected[i].size());
+    print_paths(expected[i]);
+    printf("> Actual:   ... (%lu entries)\n", paths.size());
+    print_paths(paths);
   }
 
-  if (!dirty)
-    cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

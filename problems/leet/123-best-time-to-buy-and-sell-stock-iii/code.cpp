@@ -46,7 +46,7 @@ public:
 
 // *****
 
-void test() {
+int main() {
   const vector<vector<int>> tests = {
       {3, 3, 5, 0, 0, 3, 1, 4},
       {1, 2, 3, 4, 5},
@@ -56,24 +56,14 @@ void test() {
 
   vector<int> expected = {6, 4, 0, 7};
 
-  bool dirty = false;
   for (size_t i = 0; i < tests.size(); ++i) {
     int profit = Solution{}.maxProfit(tests[i]);
-    if (profit != expected[i]) {
-      printf("Test #%lu failed\n", i);
-      printf("> Expected: %d\n", expected[i]);
-      printf("> Actual:   %d\n", profit);
-      dirty = true;
-    }
+    if (profit == expected[i])
+      continue;
+    printf("Test #%lu failed\n", i);
+    printf("> Expected: %d\n", expected[i]);
+    printf("> Actual:   %d\n", profit);
   }
 
-  if (!dirty)
-    cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

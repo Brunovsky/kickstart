@@ -9,13 +9,14 @@ public:
   bool isMonotonic(vector<int> &A) {
     if (A.size() <= 1)
       return true;
+    int a = A.size();
     int direction = A.back() - A.front();
     if (direction <= 0)
-      for (int i = 0; i + 1 < A.size(); ++i)
+      for (int i = 0; i + 1 < a; ++i)
         if (A[i] < A[i + 1])
           return false;
     if (direction >= 0)
-      for (int i = 0; i + 1 < A.size(); ++i)
+      for (int i = 0; i + 1 < a; ++i)
         if (A[i] > A[i + 1])
           return false;
     return true;
@@ -24,13 +25,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

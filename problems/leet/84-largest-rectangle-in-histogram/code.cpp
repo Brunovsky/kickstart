@@ -47,15 +47,6 @@ public:
 
 // *****
 
-void test() {
-  Solution S;
-
-  cout << S.largestRectangleArea({2, 1, 5, 6, 2, 3}) << endl;
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

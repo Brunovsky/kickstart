@@ -35,28 +35,19 @@ public:
 
 // *****
 
-void test() {
+int main() {
   vector<int> dividend{12, 10, 10, INT_MIN, INT_MAX, INT_MAX, 73, 4};
   vector<int> divisor{3, 3, -3, 1, -1, 1, 4, 1};
 
   bool dirty = false;
   for (size_t i = 0; i < dividend.size(); ++i) {
     int div = Solution{}.divide(dividend[i], divisor[i]);
-    if (div != dividend[i] / divisor[i]) {
-      printf("Failed test %d/%d\n", dividend[i], divisor[i]);
-      printf("Expected: %d\n", dividend[i] / divisor[i]);
-      printf("Actual: %d\n", div);
-      dirty = true;
-    }
+    if (div == dividend[i] / divisor[i])
+      continue;
+    printf("Failed test %d/%d\n", dividend[i], divisor[i]);
+    printf("Expected: %d\n", dividend[i] / divisor[i]);
+    printf("Actual: %d\n", div);
   }
 
-  if (!dirty)
-    cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

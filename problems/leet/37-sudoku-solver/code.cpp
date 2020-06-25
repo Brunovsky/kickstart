@@ -207,7 +207,7 @@ public:
 
 // *****
 
-void test() {
+int main() {
   vector<vector<char>> board = {
       {'.', '.', '9', '7', '4', '8', '.', '.', '.'},
       {'7', '.', '.', '.', '.', '.', '.', '.', '.'},
@@ -222,21 +222,14 @@ void test() {
       {'.', '.', '.', '2', '7', '5', '9', '.', '.'},
   };
 
-  Solution S;
-
-  S.solveSudoku(board);
+  Solution{}.solveSudoku(board);
 
   for (uint16_t r = 0; r < 9; ++r) {
     for (uint16_t c = 0; c < 9; ++c) {
-      cout << board[r][c] << ' ';
+      printf("%c ", board[r][c]);
     }
-    cout << endl;
+    printf("\n");
   }
-}
 
-// *****
-
-int main() {
-  test();
   return 0;
 }

@@ -9,8 +9,8 @@ public:
   int minFlipsMonoIncr(string S) {
     if (S.empty())
       return 0;
-    int Z = 0, m = 0;
-    for (int i = 0; i < S.size(); ++i) {
+    int Z = 0, m = 0, s = S.size();
+    for (int i = 0; i < s; ++i) {
       if (S[i] == '0')
         ++Z;
       m = std::min(m, i + 1 - 2 * Z);
@@ -21,13 +21,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

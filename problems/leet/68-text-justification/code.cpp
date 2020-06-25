@@ -13,7 +13,7 @@ public:
     while (j < W) {
       w = words[j++].length();
       s = 0;
-      while (j < W && w + s + words[j].length() + 1 <= maxWidth)
+      while (j < W && w + s + int(words[j].length()) + 1 <= maxWidth)
         w += words[j++].length(), ++s;
 
       string line = words[i++];
@@ -42,13 +42,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

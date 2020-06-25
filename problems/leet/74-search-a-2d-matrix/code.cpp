@@ -9,9 +9,9 @@ public:
   bool searchMatrix(const vector<vector<int>> &matrix, int target) {
     if (matrix.empty())
       return false;
-    int m = matrix.size(), n = matrix[0].size();
+    int M = matrix.size(), n = matrix[0].size();
 
-    int l = 0, r = m * n - 1;
+    int l = 0, r = M * n - 1;
     while (l <= r) {
       int m = (l + r) / 2;
       int val = matrix[m / n][m % n];
@@ -29,13 +29,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

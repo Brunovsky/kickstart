@@ -15,7 +15,7 @@ class Solution {
   void explore(TreeNode *node, int depth, vector<int> &seen) const {
     if (node == nullptr)
       return;
-    if (depth >= seen.size())
+    if (depth >= int(seen.size()))
       seen.push_back(node->val);
     explore(node->right, depth + 1, seen);
     explore(node->left, depth + 1, seen);
@@ -31,13 +31,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

@@ -90,6 +90,7 @@ endif
 WARNS += -Wno-unused-function
 WARNS += -Wno-unused-variable
 WARNS += -Wno-missing-declarations
+WARNS += -Wno-vla
 
 # * Performance
 

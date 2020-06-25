@@ -103,23 +103,29 @@ public:
 
 // *****
 
-void test() {
-  Solution S;
-
+int main() {
   vector<vector<int>> buildings = {
       {2, 9, 10}, {3, 7, 15}, {5, 12, 12}, {15, 20, 10}, {19, 24, 8},
   };
 
-  auto skyline = S.getSkyline(buildings);
+  vector<vector<int>> expected = {
+      {2, 10}, {3, 15}, {7, 12}, {12, 0}, {15, 10}, {20, 8}, {24, 0},
+  };
 
-  for (auto range : skyline) {
-    cout << range[0] << ' ' << range[1] << endl;
+  auto actual = Solution{}.getSkyline(buildings);
+
+  if (actual != expected) {
+    printf("Test failed\n");
+    printf("> Expected: ");
+    for (auto range : expected) {
+      printf("(%02d %2d) ", range[0], range[1]);
+    }
+    printf("\n> Actual:   ");
+    for (auto range : actual) {
+      printf("(%02d %2d) ", range[0], range[1]);
+    }
+    printf("\n");
   }
-}
 
-// *****
-
-int main() {
-  test();
   return 0;
 }

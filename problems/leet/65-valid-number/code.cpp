@@ -25,7 +25,7 @@ public:
 
 // *****
 
-void test() {
+int main() {
   map<string, bool> tests = {
       {"0", true},     {" 0.1 ", true},     {"abc", false},    {"1 a", false},
       {"2e10", true},  {" -90e3   ", true}, {" 1e", false},    {"e3", false},
@@ -34,24 +34,14 @@ void test() {
       {".30e9", true}, {"3.", true},        {"25.e3", true},
   };
 
-  bool dirty = false;
   for (const auto [s, expected] : tests) {
     auto actual = Solution{}.isNumber(s);
-    if (actual != expected) {
-      printf("Test '%s' failed\n", s.c_str());
-      printf("> Expected: %s\n", expected ? "true" : "false");
-      printf("> Actual:   %s\n", actual ? "true" : "false");
-      dirty = true;
-    }
+    if (actual == expected)
+      continue;
+    printf("Test '%s' failed\n", s.c_str());
+    printf("> Expected: %s\n", expected ? "true" : "false");
+    printf("> Actual:   %s\n", actual ? "true" : "false");
   }
 
-  if (!dirty)
-    cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

@@ -28,19 +28,12 @@ public:
     }
     greater->next = nullptr;
     lesser->next = greater_prehead.next;
-    return lesser_prehead.next ?: greater_prehead.next;
+    return lesser_prehead.next ? lesser_prehead.next : greater_prehead.next;
   }
 };
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

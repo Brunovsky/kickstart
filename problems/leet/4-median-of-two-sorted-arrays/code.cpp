@@ -185,53 +185,26 @@ Test gen2(int t, int k) {
   return test;
 }
 
-void test() {
-  Solution S;
-
+int main() {
   for (int t = 1; t <= 50; ++t) {
     Test test = gen(t);
-    double result = S.test(test.nums1, test.nums2);
-
-    if (result != test.expected) {
-      cout << "Failed test " << t << "\n";
-      cout << result << " VS " << test.expected << '\n';
-      return;
-    }
-
-    cout << "\rTest " << t << flush;
+    double actual = Solution{}.test(test.nums1, test.nums2);
+    if (actual == test.expected)
+      continue;
+    printf("Failed test %d\n> Expected: %lf\n> Actual:   %lf\n", t,
+           test.expected, actual);
   }
-
-  cout << '\n';
 
   for (int t = 1; t <= 20; ++t) {
     for (int k = 4; k < 10; ++k) {
       Test test = gen2(t, k);
-      double result = S.test(test.nums1, test.nums2);
-
-      if (result != test.expected) {
-        cout << "Failed test " << t << "\n";
-        cout << result << " VS " << test.expected << '\n';
-        return;
-      }
-
-      cout << "\rTest " << t << flush;
+      double actual = Solution{}.test(test.nums1, test.nums2);
+      if (actual == test.expected)
+        continue;
+      printf("Failed test %d\n> Expected: %lf\n> Actual:   %lf\n", t,
+             test.expected, actual);
     }
   }
 
-  cout << '\n'
-       << S.test({1, 1, 1, 9, 9, 9}, {3, 4, 5, 6, 7, 8}) << '\n'
-       << S.test({1, 1, 1, 3, 5, 9}, {3, 4, 6, 6, 7, 8}) << '\n'
-       << S.test({2, 3, 3, 3, 7, 7, 10}, {4, 4, 5, 5, 5, 5, 6}) << '\n'
-       << S.test({1, 2, 3, 7, 10}, {4, 5, 6, 8, 9}) << '\n';
-
-  // 5.5, 4.5, 5, 5.5
-
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

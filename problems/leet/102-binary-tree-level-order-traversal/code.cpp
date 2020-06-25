@@ -18,7 +18,7 @@ class Solution {
   void traverse(vector<vector<int>> &levels, TreeNode *root, int depth) {
     if (!root)
       return;
-    if (depth >= levels.size())
+    if (depth >= int(levels.size()))
       levels.resize(depth + 1);
     levels[depth].push_back(root->val);
     traverse(levels, root->left, depth + 1);
@@ -35,13 +35,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

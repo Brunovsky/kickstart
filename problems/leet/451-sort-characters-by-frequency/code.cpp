@@ -22,10 +22,10 @@ public:
     vector<data_t> data(256);
 
     for (int i = 0; i < 256; ++i)
-      data[i] = {(unsigned char)(i), 0};
+      data[i] = {static_cast<unsigned char>(i), 0};
 
     for (size_t i = 0; i < s.size(); ++i)
-      data[(unsigned char)(s[i])].count++;
+      data[static_cast<unsigned char>(s[i])].count++;
 
     sort(data.begin(), data.end(), cmp_count);
 
@@ -47,13 +47,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

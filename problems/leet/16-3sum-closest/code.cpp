@@ -32,15 +32,6 @@ public:
 
 // *****
 
-void test() {
-  vector<int> nums = {-1, 2, 1, -4};
-  cout << Solution{}.threeSumClosest(nums, 1) << '\n';
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

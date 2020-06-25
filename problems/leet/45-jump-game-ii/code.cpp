@@ -30,22 +30,6 @@ public:
 
 // *****
 
-void test() {
-  Solution S;
-
-  cout << S.jump({2, 3, 1}) << endl;
-  cout << S.jump({1, 2}) << endl;
-  cout << S.jump({2, 3, 1, 1, 4}) << endl;
-  cout << S.jump({2, 3, 1, 1, 1, 4}) << endl;
-  cout << S.jump({9}) << endl;
-  cout << S.jump({2, 0, 7, 1, 2, 3, 4, 5, 6, 7}) << endl;
-  cout << S.jump({2, 0, 7, 1, 2, 3, 4, 5, 6, 7, 8}) << endl;
-  cout << S.jump({1, 1, 1, 1}) << endl;
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

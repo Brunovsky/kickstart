@@ -23,17 +23,6 @@ public:
 
 // *****
 
-void test() {
-  vector<int> gray = Solution{}.grayCode(4);
-  for (int n : gray)
-    printf("%d ", n);
-  printf("\n");
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

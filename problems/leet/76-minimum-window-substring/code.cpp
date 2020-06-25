@@ -15,7 +15,7 @@ public:
     // alphabet counts for window and t
     uint16_t window[256] = {}, target[256] = {};
     for (char c : t) {
-      ++target[c];
+      ++target[int(c)];
     }
     for (int i = 0; i < 256; ++i) {
       if (target[i]) {
@@ -68,7 +68,7 @@ public:
 
     int window[256] = {};
     for (char c : t) {
-      ++window[c];
+      ++window[int(c)];
     }
 
     int S = s.size(), T = t.size();
@@ -77,7 +77,7 @@ public:
     int best = 0, len = INT_MAX;
 
     for (int j = 0; j < S; ++j) {
-      char c = s[j];
+      int c = s[j];
       if (--window[c] >= 0) {
         ++represented;
       }
@@ -102,29 +102,19 @@ public:
 
 // *****
 
-void test() {
+int main() {
   vector<string> s = {"ADOBECODEBANC"s};
   vector<string> t = {"ABC"s};
   vector<string> expected = {"BANC"s};
 
-  bool dirty = false;
   for (size_t i = 0; i < s.size(); ++i) {
     auto actual = Solution{}.minWindow(s[i], t[i]);
-    if (actual != expected[i]) {
-      printf("Test #%lu failed\n", i);
-      printf("> Expected: %s\n", expected[i].c_str());
-      printf("> Actual:   %s\n", actual.c_str());
-      dirty = true;
-    }
+    if (actual == expected[i])
+      continue;
+    printf("Test #%lu failed\n", i);
+    printf("> Expected: %s\n", expected[i].c_str());
+    printf("> Actual:   %s\n", actual.c_str());
   }
 
-  if (!dirty)
-    cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

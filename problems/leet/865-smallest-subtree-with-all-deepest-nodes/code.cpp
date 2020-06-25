@@ -35,7 +35,7 @@ public:
 
 // *****
 
-void test() {
+int main() {
   TreeNode *root = new TreeNode(3);
   root->left = new TreeNode(5);
   root->left->left = new TreeNode(6);
@@ -47,15 +47,11 @@ void test() {
   root->right->right = new TreeNode(8);
 
   TreeNode *node = Solution{}.subtreeWithAllDeepest(root);
-  if (node && node->val == 2)
-    cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-  else
-    cout << "Test failed (expected 2)\n";
-}
+  if (!node || node->val != 2) {
+    printf("Test failed\n");
+    printf("> Expected: %d\n", 2);
+    printf("> Actual: %d\n", node ? node->val : -1);
+  }
 
-// *****
-
-int main() {
-  test();
   return 0;
 }

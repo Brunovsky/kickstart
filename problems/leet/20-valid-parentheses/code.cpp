@@ -37,29 +37,19 @@ public:
 
 // *****
 
-void test() {
+int main() {
   vector<string> tests = {"()"s, "()[]{}"s, "(]"s, "([)]"s, "{[]}"s};
   vector<bool> expected = {true, true, false, false, true};
 
-  bool dirty = false;
   for (size_t i = 0; i < tests.size(); ++i) {
     int actual = Solution{}.isValid(tests[i]);
-    if (actual != expected[i]) {
-      printf("Test #%lu failed\n", i);
-      printf("> String: '%s'\n", tests[i].c_str());
-      printf("> Expected: %s\n", expected[i] ? "true" : "false");
-      printf("> Actual:   %s\n", actual ? "true" : "false");
-      dirty = true;
-    }
+    if (actual == expected[i])
+      continue;
+    printf("Test #%lu failed\n", i);
+    printf("> String: '%s'\n", tests[i].c_str());
+    printf("> Expected: %s\n", expected[i] ? "true" : "false");
+    printf("> Actual:   %s\n", actual ? "true" : "false");
   }
 
-  if (!dirty)
-    cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

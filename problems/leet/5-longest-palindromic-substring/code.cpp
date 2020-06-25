@@ -48,11 +48,8 @@ public:
         C = i;
         R = i + P[i];
       }
-      printf("P[%d] = %d\n", i, P[i]);
-      assert(P[i] <= i);
       ++i;
     }
-    printf("====\n");
 
     i = 0;
     for (int j = 0; j < S; ++j)
@@ -65,7 +62,7 @@ public:
 
 // *****
 
-void test() {
+int main() {
   const vector<string> strings = {
       "babad", "cbbd", "abracadabra", "bananas", "abcbcacbaccbcaa", "abb",
   };
@@ -73,26 +70,14 @@ void test() {
       "bab", "bb", "aca", "anana", "bcacb", "bb",
   };
 
-  // /a/b/b/
-
-  bool dirty = false;
   for (size_t i = 0; i < strings.size(); ++i) {
     auto actual = Solution{}.longestPalindrome(strings[i]);
-    if (actual != expected[i]) {
-      printf("Error: Actual string did not match expected palindrome.\n");
-      printf("Expected: %s\n", expected[i].c_str());
-      printf("Actual: %s\n", actual.c_str());
-      dirty = true;
-    }
+    if (actual == expected[i])
+      continue;
+    printf("Error: Actual string did not match expected palindrome.\n");
+    printf("Expected: %s\n", expected[i].c_str());
+    printf("Actual: %s\n", actual.c_str());
   }
 
-  if (!dirty)
-    cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

@@ -63,7 +63,7 @@ string test_str(const vector<int> &nums) {
   return s + "]"s;
 }
 
-void test() {
+int main() {
   vector<string> strings = {
       "wordgoodgoodgoodbestword",
       "barfoothefoobarman",
@@ -78,25 +78,15 @@ void test() {
   };
   vector<vector<int>> expected = {{8}, {0, 9}, {13}, {0, 1, 2}};
 
-  bool dirty = false;
   for (size_t i = 0; i < strings.size(); ++i) {
     auto actual = Solution{}.findSubstring(strings[i], words[i]);
     sort(actual.begin(), actual.end());
-    if (actual != expected[i]) {
-      printf("Test #%lu failed\n", i);
-      printf("> Expected: %s\n", test_str(expected[i]).c_str());
-      printf("> Actual:   %s\n", test_str(actual).c_str());
-      dirty = true;
-    }
+    if (actual == expected[i])
+      continue;
+    printf("Test #%lu failed\n", i);
+    printf("> Expected: %s\n", test_str(expected[i]).c_str());
+    printf("> Actual:   %s\n", test_str(actual).c_str());
   }
 
-  if (!dirty)
-    cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

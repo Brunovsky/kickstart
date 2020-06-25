@@ -64,7 +64,7 @@ public:
 
 // *****
 
-void test() {
+int main() {
   const vector<vector<string>> expected_4 = {
       {
           ".Q..",
@@ -87,15 +87,7 @@ void test() {
     printf("Error: Actual did not match solution.\n");
     printf("Expected solutions: %lu\n", expected_4.size());
     printf("Actual   solutions: %lu\n", actual_4.size());
-    return;
   }
 
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
-int main() {
-  test();
   return 0;
 }

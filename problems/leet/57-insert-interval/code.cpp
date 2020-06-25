@@ -43,19 +43,6 @@ public:
 
 // *****
 
-void test() {
-  Solution S;
-
-  auto res = S.insert({{1, 5}}, {2, 3});
-
-  for (auto inter : res)
-    cout << "[" << inter[0] << ',' << inter[1] << "]  ";
-  cout << endl;
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

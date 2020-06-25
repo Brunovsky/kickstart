@@ -12,7 +12,7 @@ public:
     for (int n : nums) {
       if (min_prefix > sum)
         min_prefix = sum;
-      sum += nums[i];
+      sum += n;
       if (max < sum - min_prefix)
         max = sum - min_prefix;
     }
@@ -23,13 +23,6 @@ public:
 
 // *****
 
-void test() {
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }

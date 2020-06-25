@@ -61,7 +61,7 @@ void print(ListNode *head) {
   cout << '\n';
 }
 
-void test() {
+int main() {
   ListNode *list1, *list2, *list3, *l;
   list1 = l = new ListNode(1);
   l = l->next = new ListNode(3);
@@ -82,14 +82,8 @@ void test() {
 
   Solution S;
   ListNode *head = S.mergeKLists({list1, list2, list3});
-
   print(head);
-  cout << "The above should look like 1->2->...->11->12.\n";
-}
+  printf("The above should look like 1->2->...->11->12.\n");
 
-// *****
-
-int main() {
-  test();
   return 0;
 }

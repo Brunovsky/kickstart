@@ -43,15 +43,6 @@ public:
 
 // *****
 
-void test() {
-  cout << Solution{}.romanToInt("MCMXCIV") << ' ' << 1994 << '\n';
-  cout << Solution{}.romanToInt("LVIII") << ' ' << 58 << '\n';
-  cout << "All tests passed \033[1;32m" << u8"\u2713" << "\033[0m\n";
-}
-
-// *****
-
 int main() {
-  test();
   return 0;
 }
