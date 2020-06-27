@@ -2,8 +2,8 @@
 
 ## [Cards Game (15pts, 19pts)](https://codingcompetitions.withgoogle.com/kickstart/round/0000000000201b7d/0000000000201c9c)
 
-Failed (check `failed`)
+Solved with Kruskal
 
-* Time: 3 hours
-* Complexity: O(N^3)
-* Memory: go figure
+* Time: 6 hours
+* Complexity: O(N^2)
+* Memory: O(N^2)
