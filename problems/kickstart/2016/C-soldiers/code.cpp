@@ -12,20 +12,11 @@ struct soldier_t {
     }
 };
 
-namespace std {
-template <>
-struct hash<soldier_t> {
-    size_t operator()(soldier_t soldier) const {
-        return (size_t(soldier.A) << 32) | (size_t(soldier.D));
-    }
-};
-} // namespace std
-
 int N;
 vector<soldier_t> soldiers;
-list<int> As;
-list<int> Ds;
-unordered_map<soldier_t, bool> W;
+vector<int> As;
+vector<int> Ds;
+bool W[4000][4000];
 
 bool A_cmp(int i, int j) {
     int Ai = soldiers[i].A, Aj = soldiers[j].A;
@@ -37,102 +28,66 @@ bool D_cmp(int i, int j) {
     return Di < Dj || (Di == Dj && i < j);
 }
 
-bool unobtainable(soldier_t s, soldier_t bound) {
-    return s.A <= bound.A && s.D <= bound.D;
+void prepare() {
+    As.resize(N);
+    Ds.resize(N);
+    iota(As.begin(), As.end(), 0);
+    iota(Ds.begin(), Ds.end(), 0);
+    sort(As.begin(), As.end(), A_cmp);
+    sort(Ds.begin(), Ds.end(), D_cmp);
+
+    int i, k;
+    i = k = 0;
+    while (i < N) {
+        int n = soldiers[As[i]].A;
+        do {
+            soldiers[As[i++]].A = k;
+        } while (i < N && soldiers[As[i]].A == n);
+        ++k;
+    }
+    i = k = 0;
+    while (i < N) {
+        int n = soldiers[Ds[i]].D;
+        do {
+            soldiers[Ds[i++]].D = k;
+        } while (i < N && soldiers[Ds[i]].D == n);
+        ++k;
+    }
 }
 
-void splice_A(list<int> &E, soldier_t bound) {
-    auto it = As.begin();
-    while (it != As.end()) {
-        if (unobtainable(soldiers[*it], bound)) {
-            auto begin = it;
-            ++it;
-            while (it != As.end() && unobtainable(soldiers[*it], bound))
-                ++it;
-            E.splice(E.end(), As, begin, it);
-        } else {
-            if (soldiers[*it].A > bound.A)
-                return;
-            ++it;
+bool visit(int a, int d) {
+    soldier_t A = soldiers[As[a]];
+    soldier_t D = soldiers[Ds[d]];
+
+    if (A.D > D.D || A.A < D.A)
+        return false;
+
+    if (W[A.A][D.D])
+        return false;
+
+    // the current bound can be achieved from first play
+    if (A == D)
+        return true;
+
+    for (int i = 0; i < a; ++i) {
+        soldier_t u = soldiers[As[i]];
+        if (u.A >= A.A)
+            break;
+        if (u.D <= D.D) {
+            W[u.A][D.D] = true;
         }
     }
-}
 
-void splice_D(list<int> &E, soldier_t bound) {
-    auto it = Ds.begin();
-    while (it != Ds.end()) {
-        if (unobtainable(soldiers[*it], bound)) {
-            auto begin = it;
-            ++it;
-            while (it != Ds.end() && unobtainable(soldiers[*it], bound))
-                ++it;
-            E.splice(E.end(), Ds, begin, it);
-        } else {
-            if (soldiers[*it].D > bound.D)
-                return;
-            ++it;
+    for (int i = 0; i < d; ++i) {
+        soldier_t u = soldiers[Ds[i]];
+        if (u.D >= D.D)
+            break;
+        if (u.A <= A.A) {
+            W[A.A][u.D] = true;
         }
     }
-}
 
-void recover_A(list<int> &E) {
-    As.merge(E, A_cmp);
-}
-
-void recover_D(list<int> &E) {
-    Ds.merge(E, D_cmp);
-}
-
-bool check(soldier_t bound) {
-    if (W.count(bound))
-        return W.at(bound);
-
-    // final position, no moves allowed
-    if (As.empty() && Ds.empty()) {
-        return W[bound] = false;
-    }
-    // if no available soldiers may be picked through A (or D), then
-    // picking the remaining soldier with maximum D (or A) wins
-    if (As.empty() || Ds.empty()) {
-        return W[bound] = true;
-    }
-    // if there is a minimum or maximum soldier for A and D, this wins
-    if (As.front() == Ds.front() || As.back() == Ds.back()) {
-        return W[bound] = true;
-    }
-
-    // otherwise recurse
-    // pick any soldier available through A
-    for (auto rit = As.begin(); rit != As.end(); ++rit) {
-        int i = *rit;
-        soldier_t soldier = soldiers[i];
-        soldier_t rbound = {max(bound.A, soldier.A), max(bound.D, soldier.D)};
-        list<int> erased_As, erased_Ds;
-        splice_A(erased_As, rbound);
-        splice_D(erased_Ds, rbound);
-        bool is_winning = check(rbound);
-        recover_A(erased_As);
-        recover_D(erased_Ds);
-        if (!is_winning) {
-            return W[bound] = true;
-        }
-    }
-    // pick any soldier available through D
-    for (auto rit = Ds.begin(); rit != Ds.end(); ++rit) {
-        int i = *rit;
-        soldier_t soldier = soldiers[i];
-        soldier_t rbound = {max(bound.A, soldier.A), max(bound.D, soldier.D)};
-        list<int> erased_As, erased_Ds;
-        splice_A(erased_As, rbound);
-        splice_D(erased_Ds, rbound);
-        bool is_winning = check(rbound);
-        recover_A(erased_As);
-        recover_D(erased_Ds);
-        if (!is_winning) {
-            return W[bound] = true;
-        }
-    }
-    return W[bound] = false;
+    return false;
 }
 
 auto solve() {
@@ -141,15 +96,19 @@ auto solve() {
     for (int i = 0; i < N; ++i)
         cin >> soldiers[i].A >> soldiers[i].D >> ws;
 
-    As.resize(N);
-    Ds.resize(N);
-    iota(As.begin(), As.end(), 0);
-    iota(Ds.begin(), Ds.end(), 0);
-    As.sort(A_cmp);
-    Ds.sort(D_cmp);
-    W.clear();
+    prepare();
+    memset(W, 0, sizeof(W));
 
-    return check({0, 0}) ? "YES" : "NO";
+    // traverse graph in reverse topological order
+    for (int i = N - 1; i >= 0; --i) {
+        for (int j = N - 1; j >= 0; --j) {
+            if (visit(i, j)) {
+                return "YES";
+            }
+        }
+    }
+
+    return "NO";
 }
 
 // *****
