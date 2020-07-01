@@ -6,16 +6,12 @@ using namespace std;
 
 int N, P, B;
 int X[5002];
-int nchunks[5002][5002];
+int chunks[5002][5002];
 int shifts[5002][5002];
 vector<int> indices;
 
-inline int count_chunks(int L, int R, int shift) {
-    return shifts[L][R] == shift ? nchunks[L][R] : 0;
-}
-
 void compute_chunk_shifts() {
-    memset(nchunks, 0, sizeof(nchunks));
+    memset(chunks, 0, sizeof(chunks));
     memset(shifts, 0x7f, sizeof(shifts));
 
     for (int i = 1; i <= N; ++i) {
@@ -28,7 +24,7 @@ void compute_chunk_shifts() {
             min_ij = min(min_ij, X[j]);
             if (max_ij - min_ij == j - i) {
                 int shift = min_ij - i;
-                n = nchunks[i][j] = (shift == prev_shift) ? n + 1 : 1;
+                n = chunks[i][j] = (shift == prev_shift) ? n + 1 : 1;
                 prev_shift = shifts[i][j] = shift;
             }
         }
@@ -41,8 +37,8 @@ auto solve2() {
     for (int b = 0; b < B; ++b) {
         int L = indices[b] + 1;
         int R = indices[b + 1];
-        int L_chunks = b;
-        int R_chunks = B - (b + 1);
+        int L_chunks = chunks[1][L - 1]; // b
+        int R_chunks = chunks[R + 1][N]; // B - (b + 1)
 
         // nothing to swap
         if (L == R) {
@@ -52,14 +48,14 @@ auto solve2() {
         vector<int> ls;
         vector<int> rs;
 
-        for (int l = L; l + 2 <= R; ++l) {
-            if (nchunks[L][l] && shifts[L][l] == R - l) {
+        for (int l = L; l + 1 <= R; ++l) {
+            if (chunks[L][l] && shifts[L][l] == R - l) {
                 ls.push_back(l);
             }
         }
 
-        for (int r = R; r - 2 >= L; --r) {
-            if (nchunks[r][R] && shifts[r][R] == L - r) {
+        for (int r = R; r - 1 >= L; --r) {
+            if (chunks[r][R] && shifts[r][R] == L - r) {
                 rs.push_back(r);
             }
         }
@@ -73,7 +69,7 @@ auto solve2() {
                 int Sl = l - L + 1;
                 int Sr = R - r + 1;
                 int shift = Sr - Sl;
-                int M_chunks = count_chunks(l + 1, r - 1, shift);
+                int M_chunks = chunks[l + 1][r - 1];
                 int chunks = L_chunks + 1 + M_chunks + 1 + R_chunks;
                 K = max(K, chunks);
             }
@@ -91,8 +87,8 @@ auto solve3() {
     for (int b = 0; b < B; ++b) {
         int L = indices[b] + 1;
         int R = indices[b + 1];
-        int L_chunks = b;
-        int R_chunks = B - (b + 1);
+        int L_chunks = chunks[1][L - 1]; // b
+        int R_chunks = chunks[R + 1][N]; // B - (b + 1)
 
         // nothing to swap
         if (L + 1 >= R) {
@@ -103,13 +99,13 @@ auto solve3() {
         vector<int> rs;
 
         for (int l = L; l + 2 <= R; ++l) {
-            if (nchunks[L][l] && shifts[L][l] >= 0) {
+            if (chunks[L][l] && shifts[L][l] >= 0) {
                 ls.push_back(l);
             }
         }
 
         for (int r = R; r - 2 >= L; --r) {
-            if (nchunks[r][R] && shifts[r][R] <= 0) {
+            if (chunks[r][R] && shifts[r][R] <= 0) {
                 rs.push_back(r);
             }
         }
@@ -129,7 +125,7 @@ auto solve3() {
                 // swap X[L..l] and X[r..R]
                 if (L_max == R && R_min == L) {
                     int shift = Sr - Sl;
-                    int M_chunks = count_chunks(l + 1, r - 1, shift);
+                    int M_chunks = chunks[l + 1][r - 1];
                     int k = L_chunks + M_chunks + R_chunks + 2;
                     K = max(K, k);
                     continue;
@@ -165,8 +161,8 @@ auto solve3() {
                         int Sm = m2 - m1 + 1;
                         int shift_2 = Sr - Sm;
 
-                        int S1_chunks = count_chunks(l + 1, m1 - 1, shift_1);
-                        int S2_chunks = count_chunks(m2 + 1, r - 1, shift_2);
+                        int S1_chunks = chunks[l + 1][m1 - 1];
+                        int S2_chunks = chunks[m2 + 1][r - 1];
                         int k = L_chunks + R_chunks + S1_chunks + S2_chunks + 3;
                         K = max(K, k);
                     }
@@ -203,8 +199,8 @@ auto solve3() {
                         int Sm = m2 - m1 + 1;
                         int shift_1 = Sm - Sl;
 
-                        int S1_chunks = count_chunks(l + 1, m1 - 1, shift_1);
-                        int S2_chunks = count_chunks(m2 + 1, r - 1, shift_2);
+                        int S1_chunks = chunks[l + 1][m1 - 1];
+                        int S2_chunks = chunks[m2 + 1][r - 1];
                         int k = L_chunks + R_chunks + S1_chunks + S2_chunks + 3;
                         K = max(K, k);
                     }
