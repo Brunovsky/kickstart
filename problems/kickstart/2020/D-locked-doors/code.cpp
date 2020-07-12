@@ -14,12 +14,12 @@ struct Node {
     Node *left = nullptr;
     Node *right = nullptr;
     int L, R;
-    vector<Node *> finger;
+    vector<Node *> finger; // for queries
 };
 
-vector<Node *> ancestry; // for building the tree
-vector<Node *> leaves;
-vector<Node *> aggregators;
+vector<Node *> ancestry;    // for building the tree
+vector<Node *> leaves;      // for queries
+vector<Node *> aggregators; // to free without recursion
 
 Node *build_node(Node *parent, int L, int R) {
     Node *node = new Node();
@@ -79,7 +79,7 @@ void prepare_tree() {
     leaves.resize(N);
     aggregators.clear();
 
-    set<Node *, function<bool(Node *, Node *)>> built(cmp_nodes);
+    set<Node *, decltype(cmp_nodes)> built(cmp_nodes);
     Node *root = build_node(nullptr, 0, N - 1);
     built.insert(root);
     for (int door : doors) {
@@ -97,9 +97,13 @@ void prepare_tree() {
     build_finger_recursively(root);
 }
 
-Node *query(Node *node, int K) {
+int query(Node *node, int K) {
     if (RANGE(node) < K && RANGE(node->parent) >= K) {
-        return node;
+        if (node->L != node->parent->L) {
+            return node->R + 1 - K;
+        } else {
+            return node->L + 1 + K;
+        }
     }
     const auto &f = node->finger;
     int i = 0;
@@ -129,12 +133,7 @@ auto solve() {
             continue;
         }
 
-        Node *node = query(leaves[S - 1], K - 1);
-        if (node->L != node->parent->L) {
-            answers[i] = node->R + 1 - (K - 1);
-        } else {
-            answers[i] = node->L + 1 + (K - 1);
-        }
+        answers[i] = query(leaves[S - 1], K - 1);
     }
 
     free_nodes();

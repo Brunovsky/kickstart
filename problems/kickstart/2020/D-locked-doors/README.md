@@ -6,4 +6,4 @@ Solved (live), binary tree with an ancestry finger table
 
 * Time: 2 hours
 * Complexity: O((N + Q) log N)
-* Memory: O(n)
+* Memory: O(N)
