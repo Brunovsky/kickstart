@@ -7,6 +7,7 @@ CPP_STANDARD := c++14
 # Compiler command
 CC := g++
 
+CODE := code.cpp
 EXE := ./hack
 
 # * Dialect
@@ -126,9 +127,9 @@ debug: CXXFLAGS += $(DEBUG)
 debug: $(EXE)
 
 # Compilation rule
-$(EXE): code.cpp
+$(EXE): $(CODE)
 	@echo "CC (${COMPILER} $(MODE))  $@"
-	@$(CXX) $^ $(CXXFLAGS) -o $@
+	@$(CXX) $(CODE) $(CXXFLAGS) -o $@
 
 run: build
 	@$(EXE) < input.txt
