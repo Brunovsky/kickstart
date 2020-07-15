@@ -10,7 +10,9 @@ CC := g++
 FILE := code.cpp
 EXE := ./hack
 
-DEPS := hash.hpp math.hpp sieve.hpp static_fenwick.hpp static_segment_tree.hpp
+DEPS := disjoint_set.hpp fenwick.hpp segment_tree.hpp
+DEPS += hash.hpp math.hpp sieve.hpp
+DEPS += kmp.hpp
 
 # * Dialect
 

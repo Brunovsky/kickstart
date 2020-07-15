@@ -41,7 +41,7 @@ i64 power(i64 base, i64 exp) {
 }
 
 // Compute n!
-u64 facto(u64 n) {
+u64 factorial(u64 n) {
     u64 f = 1;
     while (n > 1) {
         f = f * n--;
@@ -50,7 +50,7 @@ u64 facto(u64 n) {
 }
 
 // Compute n1 (mod m)
-u64 facto(u64 n, u64 mod) {
+u64 factorial(u64 n, u64 mod) {
     u64 f = 1;
     while (n > 1) {
         f = (f * n--) % mod;
@@ -59,14 +59,45 @@ u64 facto(u64 n, u64 mod) {
 }
 
 /**
- * Compute gcd(a,b)
+ * Compute x, y such that ax + by = gcd(a,b)
  */
-u64 gcd(u64 a, u64 b) {
+i64 gcd(i64 a, i64 b, i64 &x, i64 &y) {
+    i64 xn = 1, yn = 0;
+    x = 0, y = 1;
     while (a != 0) {
-        b -= (b / a) * a;
+        i64 q = b / a;
+        b = b % a;
+        x = x - q * xn;
+        y = y - q * yn;
         swap(a, b);
+        swap(x, xn);
+        swap(y, yn);
+    }
+    if (b < 0) {
+        b = -b, x = -x, y = -y;
     }
     return b;
+}
+
+/**
+ * Compute x such that ax = 1 (mod m) (modular multiplicative inverse)
+ */
+i64 invmod(i64 a, i64 mod) {
+    i64 x, y;
+    u64 g = gcd(a, mod, x, y);
+    assert(g == 1);
+    return x < 0 ? (mod + x % mod) : (x % mod);
+}
+
+/**
+ * Compute gcd(a,b)
+ */
+i64 gcd(i64 a, i64 b) {
+    while (a != 0) {
+        b = b % a;
+        swap(a, b);
+    }
+    return abs(b);
 }
 
 /**
@@ -97,7 +128,7 @@ map<u64, int> factorize(u64 n) {
 /**
  * Compute phi(n) (totient function), naively
  */
-u64 phi(u64 n) {
+u64 totient(u64 n) {
     u64 tot = 1;
     if ((n & 1) == 0) {
         n >>= 1;
