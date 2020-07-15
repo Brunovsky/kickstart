@@ -1,5 +1,3 @@
-# * Leet Problem Makefile
-
 EXE := ./code.sh
 
 .PHONY: default-target

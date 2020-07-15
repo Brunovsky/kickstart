@@ -49,7 +49,7 @@ u64 factorial(u64 n) {
     return f;
 }
 
-// Compute n1 (mod m)
+// Compute n! (mod m)
 u64 factorial(u64 n, u64 mod) {
     u64 f = 1;
     while (n > 1) {
@@ -112,12 +112,12 @@ u64 lcm(u64 a, u64 b) {
  */
 map<u64, int> factorize(u64 n) {
     map<u64, int> primes;
-    while (n & 1) {
+    while ((n & 1) == 0) {
         primes[2]++;
         n >>= 1;
     }
     for (int p = 3; n > 1; p += 2) {
-        while (n % p == 0) {
+        while ((n % p) == 0) {
             primes[p]++;
             n = n / p;
         }

@@ -1,5 +1,3 @@
-# * Leet Problem Makefile
-
 EXE := ./code.js
 
 .PHONY: default-target

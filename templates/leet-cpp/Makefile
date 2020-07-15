@@ -1,5 +1,3 @@
-# * Leet Problem Makefile
-
 # Compiler, gcc or clang
 COMPILER := gcc
 CPP_STANDARD := c++17

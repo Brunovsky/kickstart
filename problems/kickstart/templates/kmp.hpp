@@ -17,7 +17,7 @@ public:
         lookup_.resize(P + 1);
 
         lookup_[0] = -1;
-        long border = 0; // need to compare against 0
+        int border = 0; // need to compare against 0
 
         for (size_t index = 1; index < P; ++index, ++border) {
             if (pattern[index] == pattern[border]) {
