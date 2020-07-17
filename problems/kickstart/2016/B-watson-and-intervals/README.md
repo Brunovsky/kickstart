@@ -2,7 +2,9 @@
 
 ## [Watson and Intervals (8pts, 17pts)](https://codingcompetitions.withgoogle.com/kickstart/round/0000000000201c0c/0000000000201dbd)
 
-Solved, segment tree
+Solved
+
+Segment tree solution
 
 * Time: 80 minutes
 * Complexity: O(N log N)

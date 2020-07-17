@@ -2,7 +2,9 @@
 
 ## [Perfect Subarray (10pts, 19pts)](https://codingcompetitions.withgoogle.com/kickstart/round/000000000019ff43/00000000003381cb)
 
-Solved. Implicit (recursion) prefix/suffix sum tree.
+Solved
+
+Implicit (recursion) prefix/suffix sum tree.
 Given the array A with size N, split it in half right down the middle,
 into subarrays AL and AR.
 Recurse on AL and on AR, counting the squares only on those subarrays.
