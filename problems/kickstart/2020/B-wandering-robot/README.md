@@ -2,8 +2,8 @@
 
 ## [Wandering Robot (14pts, 24pts)](https://codingcompetitions.withgoogle.com/kickstart/round/000000000019ffc8/00000000002d8565)
 
-Unsolved
+Solved
 
-* Time: 70 minutes
-* Complexity: -
-* Memory: -
+* Time: 3 hours
+* Complexity: O(N)
+* Memory: O(N)

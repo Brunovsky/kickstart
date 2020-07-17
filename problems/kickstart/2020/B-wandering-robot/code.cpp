@@ -4,53 +4,48 @@ using namespace std;
 
 // *****
 
-/**
- * Given n + k coin tosses, what is the probability that exactly k coin tosses
- * are heads?
- *
- * answer:       1      (n+k)
- *            ------- * (   )
- *            2^(n+k)   ( n )
- *
- * (0, 0) --> 1
- * (1, 1) --> 0.5
- * (2, 0) --> 0.25
- */
-double single_probability(int n, int k) {
-    double p = 1.0;
-    int s = n + k;
+#define MAX 200001
+long double fac[MAX];
 
-    k = min(n, k);
-    while (k > 0) {
-        p *= n-- + k;
-        p /= k--;
-    }
-    while (s-- > 0) {
-        p /= 2.0;
-    }
+long W, H, L, R, U, D;
 
-    return p;
+void prepare() {
+    fac[0] = fac[1] = 0;
+    for (int i = 2; i < MAX; i++) {
+        long double n = i;
+        fac[i] = fac[i - 1] + log2(n);
+    }
 }
 
-/**
- * what is the accumulated sum of the previous formula over k = 0, 1, ..., K ?
- *
- * answer:       1    (                                              )
- *              --- * ( 1 + (n+1)/2 + (n+1)(n+2)/4                   )
- *              2^n   (                                              )
- */
-double accumulated_probability(int n, int k) {}
+long double choose(int n, int k) {
+    long double e = fac[n] - fac[k] - fac[n - k] - n;
+    return exp2(e);
+}
+
+long double under(int L, int D, int H) {
+    int n = L + D;
+    if (L == 0 || D == H) {
+        return 0.0;
+    }
+    double sum = 0;
+    for (int k = 0; k < L; k++) {
+        sum += choose(n, k);
+    }
+    return sum;
+}
 
 auto solve() {
-    int n, k;
-    cin >> n >> k;
-    return single_probability(n, k);
+    cin >> W >> H >> L >> U >> R >> D >> ws;
+    --W, --H, --L, --U, --R, --D;
+    return under(L, D, H) + under(U, R, W);
 }
 
 // *****
 
 int main() {
+    prepare();
     unsigned T;
+    cout << showpoint << fixed << setprecision(8);
     cin >> T >> ws;
     for (unsigned t = 1; t <= T; ++t) {
         auto solution = solve();
@@ -58,21 +53,3 @@ int main() {
     }
     return 0;
 }
-
-/**
- * X           .  0
- *    .        .  1
- *  .          .  2
- *  .          X  3
- *             .  4
- *             .
- *             .
- *             .
- *
- *       n+1
- *
- *
- *
- * (n, i)
- * ()
- */
