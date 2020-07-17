@@ -2,10 +2,8 @@
 
 ## [Spectating Villages (13pts, 29pts)](https://codingcompetitions.withgoogle.com/kickstart/round/0000000000050edc/000000000018666b)
 
-Unsolved
+Solved
 
-Wrong answer
-
-* Time: 5 hours
-* Complexity: -
-* Memory: -
+* Time: 6 hours
+* Complexity: O(V)
+* Memory: O(V)
