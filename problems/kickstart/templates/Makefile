@@ -8,7 +8,7 @@ CC := g++
 FILE := code.cpp
 EXE := ./hack
 
-DEPS := disjoint_set.hpp fenwick.hpp segment_tree.hpp
+DEPS := disjoint_set.hpp fenwick.hpp segment_tree.hpp quad_tree.hpp
 DEPS += hash.hpp math.hpp sieve.hpp
 DEPS += kmp.hpp
 
