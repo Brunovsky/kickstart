@@ -5,6 +5,7 @@
 #include "sieve.hpp"
 #include "fenwick.hpp"
 #include "segment_tree.hpp"
+#include "quad_tree.hpp"
 
 int main() {
     assert(math::power(3, 17, 5) == 3);
