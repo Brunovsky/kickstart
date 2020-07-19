@@ -138,7 +138,7 @@ run: build
 
 valgrind: build
 	@clear
-	@valgrind --leak-check=full --show-leak-kinds=all $(EXE)
+	@valgrind $(EXE)
 
 clean:
 	@rm -f $(EXE) core vgcore.* *.log
