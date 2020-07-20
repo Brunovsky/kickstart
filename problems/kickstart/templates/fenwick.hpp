@@ -4,8 +4,10 @@ using namespace std;
 
 // *****
 
+#define MAXN 100001
+
 int N;
-vector<int> fenwick;
+int fenwick[MAXN];
 
 int prefix_sum(int i) {
     int sum = 0;
@@ -17,6 +19,7 @@ int prefix_sum(int i) {
 }
 
 void add(int i, int n) {
+    assert(i > 0);
     while (i <= N) {
         fenwick[i] += n;
         i += i & -i;
@@ -26,5 +29,5 @@ void add(int i, int n) {
 // *****
 
 void driver() {
-    fenwick.assign(N + 1, 0);
+    memset(fenwick, 0, sizeof(fenwick));
 }
