@@ -12,6 +12,9 @@ codejam: codejam-cpp
 kickstart-cpp:
 	@./scripts/kickstart.py cpp
 
+kickstart-interactive kickstart-interactive-cpp:
+	@./scripts/kickstart.py cpp-interactive
+
 leet-cpp:
 	@./scripts/leet.py cpp
 

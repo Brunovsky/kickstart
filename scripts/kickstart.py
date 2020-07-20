@@ -106,4 +106,12 @@ if template == "cpp":
     os.symlink("../../../../templates/kickstart-cpp/Makefile",
                f"{folder}/Makefile")
 
-subprocess.call(["code", "--reuse-window", folder])
+# Copy template
+if template == "cpp-interactive":
+    shutil.copy("templates/kickstart-cpp-interactive/code.cpp", folder)
+    shutil.copy("templates/kickstart-cpp-interactive/input.txt", folder)
+    os.symlink("../../../../templates/kickstart-cpp-interactive/Makefile",
+               f"{folder}/Makefile")
+    print("Don't forget to add the testing tool (testing_tool.py)")
+
+subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/input.txt"])
