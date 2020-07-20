@@ -119,6 +119,10 @@ struct quad_tree {
         nth_element(first, first + middle, last, cmp_y);
         root.y = (first + middle)->y;
 
+        if (*first == root) {
+            return;
+        }
+
         auto nth2 = partition_x(first, last, root.x);
         auto nth1 = partition_y(first, nth2, root.y);
         auto nth3 = partition_y(nth2, last, root.y);
@@ -130,7 +134,8 @@ struct quad_tree {
     }
 
     size_t count_query(Box query) const noexcept {
-        if (first == last || !intersect(query, box)) {
+        size_t size = last - first;
+        if (size == 0 || !intersect(query, box)) {
             return 0;
         }
         if (contains(query, box)) {
@@ -138,8 +143,12 @@ struct quad_tree {
         }
         size_t count = 0;
         if (!children[0]) {
-            for (auto it = first; it != last; ++it) {
-                count += bounded(query, *it);
+            if (size <= MAX_SIZE_LEAF) {
+                for (auto it = first; it != last; ++it) {
+                    count += bounded(query, *it);
+                }
+            } else {
+                count = size * bounded(query, *first);
             }
         } else {
             count += children[0]->count_query(query);
@@ -198,16 +207,21 @@ struct binary_quad_tree {
     }
 
     size_t count_query(Box query) const noexcept {
-        if (first == last || !intersect(query, box)) {
+        size_t size = last - first;
+        if (size == 0 || !intersect(query, box)) {
             return 0;
         }
         if (contains(query, box)) {
-            return last - first;
+            return size;
         }
         size_t count = 0;
         if (!children[0]) {
-            for (auto it = first; it != last; ++it) {
-                count += bounded(query, *it);
+            if (size <= MAX_SIZE_LEAF) {
+                for (auto it = first; it != last; ++it) {
+                    count += bounded(query, *it);
+                }
+            } else {
+                count = size * bounded(query, *first);
             }
         } else {
             count += children[0]->count_query(query);
