@@ -31,6 +31,8 @@
 *.out
 *.app
 hack
+generate_hack
+naive_hack
 
 # Hidden files
 *.h.*

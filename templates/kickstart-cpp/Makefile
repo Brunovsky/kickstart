@@ -6,7 +6,12 @@ CPP_STANDARD := c++14
 CC := g++
 
 CODE := code.cpp
+NAIVE := naive.cpp
+GEN := generate.cpp
+
 EXE := ./hack
+NAIVEEXE := ./hack_naive
+GENEXE := ./hack_generate
 
 # * Dialect
 
@@ -112,29 +117,62 @@ CXXFLAGS := $(WARNS)
 
 # * Modes
 
-.PHONY: perfm debug build run valgrind clean
+.PHONY: code_perfm code_debug build_naive build_generate
+.PHONY: run code debug valgrind fast test naive generate clean
 
-build: debug
+code_perfm: MODE := performance
+code_perfm: CXXFLAGS += $(OPTIM)
+code_perfm: $(EXE)
 
-perfm: MODE := performance
-perfm: CXXFLAGS += $(OPTIM)
-perfm: $(EXE)
+code_debug: MODE := debug
+code_debug: CXXFLAGS += $(DEBUG)
+code_debug: $(EXE)
 
-debug: MODE := debug
-debug: CXXFLAGS += $(DEBUG)
-debug: $(EXE)
+build_naive: MODE := performance
+build_naive: CXXFLAGS += $(OPTIM)
+build_naive: $(NAIVEEXE)
 
-# Compilation rule
+build_generate: MODE := performance
+build_generate: CXXFLAGS += $(OPTIM)
+build_generate: $(GENEXE)
+
 $(EXE): $(CODE)
 	@echo "CC (${COMPILER} $(MODE))  $@"
 	@$(CXX) $(CODE) $(CXXFLAGS) -o $@
 
-run: build
+$(NAIVEEXE): $(NAIVE)
+	@echo "CC (${COMPILER} $(MODE))  $@"
+	@$(CXX) $(NAIVE) $(CXXFLAGS) -o $@
+
+$(GENEXE): $(GEN)
+	@echo "CC (${COMPILER} $(MODE))  $@"
+	@$(CXX) $(GEN) $(CXXFLAGS) -o $@
+
+# Compile and run, build in debug mode by default
+run code: code_debug
 	@$(EXE) < input.txt
 
-valgrind: build
+# Build in debug mode and run under valgrind
+debug valgrind: code_debug
 	@clear
-	@valgrind --leak-check=full --show-leak-kinds=all $(EXE) < input.txt
+	@valgrind $(EXE) < input.txt
+
+# Compile and run in perfm mode
+fast: code_perfm
+	@$(EXE) < input.txt
+
+# Compile, run and test against the naive's version, build in perfm mode by default
+test: code_perfm
+	@$(EXE) < input.txt > program.txt
+	@cmp program.txt naive.txt && echo OK
+
+# Compile and run the naive version in 'naive.cpp', output to naive.txt
+naive: build_naive
+	@$(NAIVEEXE) < input.txt > naive.txt
+
+# Compile and run the input generator in 'generate.cpp', output directly to input.txt
+generate: build_generate
+	@$(GENEXE) > input.txt
 
 clean:
-	@rm -f $(EXE) core vgcore.* *.log
+	@rm -f $(EXE) $(NAIVEEXE) $(GENEXE) core vgcore.* *.log
