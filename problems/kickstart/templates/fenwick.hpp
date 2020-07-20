@@ -2,13 +2,7 @@
 
 using namespace std;
 
-/**
- * Static fenwick tree for prefix sums
- */
-
 // *****
-
-namespace fenwick {
 
 int N;
 vector<int> fenwick;
@@ -34,5 +28,3 @@ void add(int i, int n) {
 void driver() {
     fenwick.assign(N + 1, 0);
 }
-
-} // namespace fenwick

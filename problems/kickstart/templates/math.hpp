@@ -4,8 +4,6 @@ using namespace std;
 
 // *****
 
-namespace math {
-
 using i64 = int64_t;
 using u64 = uint64_t;
 
@@ -84,9 +82,10 @@ i64 gcd(i64 a, i64 b, i64 &x, i64 &y) {
  */
 i64 invmod(i64 a, i64 mod) {
     i64 x, y;
-    u64 g = gcd(a, mod, x, y);
+    auto g = gcd(a, mod, x, y);
     assert(g == 1);
-    return x < 0 ? (mod + x % mod) : (x % mod);
+    x = x % mod;
+    return x >= 0 ? x : x + mod;
 }
 
 /**
@@ -164,5 +163,3 @@ u64 binomial(u64 n, u64 k) {
     }
     return binom;
 }
-
-} // namespace math

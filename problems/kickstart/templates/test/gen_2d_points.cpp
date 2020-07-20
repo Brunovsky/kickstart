@@ -7,8 +7,8 @@ using namespace std;
 
 random_device rng;
 mt19937 mt(rng());
-uniform_int_distribution<int> Xdist(-15000, 15000);
-uniform_int_distribution<int> Ydist(-8000, 70000);
+uniform_int_distribution<int> Xdist(-100000, 100000);
+uniform_int_distribution<int> Ydist(-10000, 10000);
 
 int main(int argc, char **argv) {
     int N = argc >= 2 ? atoi(argv[1]) : 300;

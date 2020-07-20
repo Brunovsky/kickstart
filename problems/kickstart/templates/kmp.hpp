@@ -4,22 +4,20 @@ using namespace std;
 
 // *****
 
-namespace kmp {
-
 class KMP {
     vector<int> lookup_;
     string pattern;
 
 public:
     KMP(string pattern) : pattern(pattern) {
-        size_t P = pattern.size();
+        int P = pattern.size();
 
         lookup_.resize(P + 1);
 
         lookup_[0] = -1;
         int border = 0; // need to compare against 0
 
-        for (size_t index = 1; index < P; ++index, ++border) {
+        for (int index = 1; index < P; ++index, ++border) {
             if (pattern[index] == pattern[border]) {
                 lookup_[index] = lookup_[border];
             } else {
@@ -34,11 +32,11 @@ public:
         lookup_[P] = border;
     }
 
-    int lookup(size_t index) const {
+    int lookup(int index) const {
         return lookup_[index];
     }
 
-    size_t shift(size_t index) const {
+    int shift(int index) const {
         return index - lookup_[index];
     }
 
@@ -47,11 +45,11 @@ public:
     }
 };
 
-vector<size_t> kmp_search(const string &text, const KMP &kmp) {
+vector<int> kmp_search(const string &text, const KMP &kmp) {
     const string &pattern = kmp.get_pattern();
     long P = pattern.size(), T = text.size();
 
-    vector<size_t> match;
+    vector<int> match;
     if (P == 0) {
         return match;
     }
@@ -80,5 +78,3 @@ vector<size_t> kmp_search(const string &text, const KMP &kmp) {
 
     return match;
 }
-
-} // namespace kmp

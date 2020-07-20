@@ -4,8 +4,6 @@ using namespace std;
 
 // *****
 
-namespace sieve {
-
 using u64 = uint64_t;
 
 u64 N;
@@ -50,6 +48,7 @@ u64 count_odd_primes(u64 L, u64 R) {
         }
     }
 
+    // alternatively, gather them up in a vector
     u64 count = 0;
     for (u64 c : is_composite) {
         count += !c;
@@ -59,4 +58,7 @@ u64 count_odd_primes(u64 L, u64 R) {
 
 // *****
 
-} // namespace sieve
+void driver() {
+    N = 50000;
+    odd_sieve();
+}

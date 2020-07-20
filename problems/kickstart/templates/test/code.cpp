@@ -1,13 +1,4 @@
-#include "disjoint_set.hpp"
-#include "hash.hpp"
-#include "kmp.hpp"
-#include "math.hpp"
-#include "sieve.hpp"
-#include "fenwick.hpp"
-#include "segment_tree.hpp"
-#include "quad_tree.hpp"
-
-namespace quad_tree {
+#include "../quad_tree.hpp"
 
 using namespace chrono;
 
@@ -79,14 +70,18 @@ size_t time_tree_query(const Tree &tree, const vector<Box> &queries,
     return duration_cast<milliseconds>(steady_clock::now() - begin).count();
 }
 
-void test_quad_tree() {
+int main() {
+    Box world = {{-1000000, -100000}, {1000000, 100000}};
     auto points = read_2d_points();
-    quad_tree tree(points.begin(), points.end());
+
+    quad_tree tree(world);
+    tree.insert(begin(points), end(points));
+
     size_t N = points.size();
     double logN = log2(N);
 
-    assert(tree.size() == N);
-    assert(tree.count_query(tree.box) == tree.size());
+    assert(tree.tree_size() == N);
+    assert(tree.count_query(world) == tree.tree_size());
 
     printf("size: %lu\n", N);
     printf("log2(size): %lf\n", logN);
@@ -94,20 +89,20 @@ void test_quad_tree() {
 
     vector<size_t> correct;
     vector<size_t> answers;
-    auto queries = gen_queries(tree.box);
+    auto queries = gen_queries(world);
 
     size_t linear_time = time_vector_query(points, queries, correct);
     size_t tree_time = time_tree_query(tree, queries, answers);
 
     if (correct != answers) {
-        printf("ERROR: quad_tree incorrect answers\n");
+        printf("ERROR: quad_tree incorrect query answers\n");
         for (int i = 0; i < QUERIES; i++) {
             if (correct[i] != answers[i]) {
                 print_box(queries[i]);
                 printf(" %d:\tcorrect:%lu\tanswer:%lu\n", i, correct[i], answers[i]);
             }
         }
-        return;
+        return 1;
     }
 
     printf("%d queries\n", QUERIES);
@@ -116,50 +111,5 @@ void test_quad_tree() {
     printf("size / log2^2(size): %lf\n", N / (logN * logN));
     printf("linear / tree time:  %lf\n", linear_time / double(tree_time));
     printf("quad_tree OK\n");
-}
-
-} // namespace quad_tree
-
-int main() {
-    assert(math::power(3, 17, 5) == 3);
-    assert(math::power(3, 17) == 129140163);
-    assert(math::gcd(135, 54) == 27);
-    assert(math::gcd(135, -54) == 27);
-    assert(math::gcd(-135, -54) == 27);
-    assert(math::totient(35) == 24);
-    assert(math::totient(70) == 24);
-    assert(math::totient(97) == 96);
-    assert(math::totient(194) == 96);
-    assert(math::totient(73) == 72);
-    assert(math::totient(48) == 16);
-    assert(math::binomial(4, 2) == 6);
-    assert(math::binomial(6, 3) == 20);
-    assert(math::binomial(6, 2) == 15);
-    assert(math::binomial(2, 0) == 1);
-    assert(math::binomial(5, 2) == 10);
-    assert(math::binomial(2, 2) == 1);
-    assert(math::binomial(3, 1) == 3);
-
-    sieve::N = 40000;
-    sieve::odd_sieve();
-    assert(sieve::count_odd_primes(10, 20) == 4);
-    assert(sieve::count_odd_primes(100, 200) == 21);
-    assert(sieve::count_odd_primes(1, 9) == 3);
-
-    math::i64 x, y;
-    assert(math::gcd(54, 135, x, y) == 27);
-    assert(54 * x + 135 * y == 27);
-    assert(math::gcd(54, -135, x, y) == 27);
-    assert(54 * x + -135 * y == 27);
-    assert(math::gcd(-54, 135, x, y) == 27);
-    assert(-54 * x + 135 * y == 27);
-    assert(math::gcd(-54, -135, x, y) == 27);
-    assert(-54 * x + -135 * y == 27);
-    assert(math::gcd(13121, 17431, x, y) == 1);
-    assert(math::invmod(3, 17) == 6);
-    assert(math::invmod(4, 17) == 13);
-
-    quad_tree::test_quad_tree();
-
     return 0;
 }

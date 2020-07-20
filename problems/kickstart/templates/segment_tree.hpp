@@ -2,24 +2,17 @@
 
 using namespace std;
 
-/**
- * Static segment tree with indivisible segments in the leaves.
- * Segments are pre-populated and may be rotated to be aligned with the array
- * Ranges are inclusive
- */
-
 // *****
-
-namespace segment {
 
 struct Node {
     int L, R;
-    // TODO: data...
     int data;
 };
 
+#define MAXNODES 100000
+
 int O, Q;
-vector<Node> tree;
+Node tree[4 * MAXNODES];
 
 // populate [L,R) intervals from the leaves of the segment tree
 void tree_lr() {
@@ -126,11 +119,11 @@ inline int to_array(int i) {
 }
 
 inline void align_leaves_to_tree() {
-    rotate(tree.begin() + O, tree.begin() + (3 * O - Q), tree.end());
+    rotate(tree + O, tree + (3 * O - Q), tree);
 }
 
 inline void align_leaves_to_array() {
-    rotate(tree.begin() + O, tree.begin() + Q, tree.end());
+    rotate(tree + O, tree + Q, tree);
 }
 
 // *****
@@ -141,20 +134,20 @@ struct Data {
     bool query;
 };
 
-void driver() {
-    vector<int> endp;
-    vector<Data> range_data;
+vector<int> endp;
+vector<Data> range_data;
 
+void driver() {
     // .....
 
-    sort(endp.begin(), endp.end());
-    endp.erase(unique(endp.begin(), endp.end()), endp.end());
+    sort(begin(endp), end(endp));
+    endp.erase(unique(begin(endp), end(endp)), end(endp));
     O = endp.size() - 1;
     Q = 1;
     while (Q < O)
         Q <<= 1;
 
-    tree.assign(2 * O, {});
+    memset(tree, 0, sizeof(tree));
     for (int i = 0; i < O; ++i) {
         tree[i + O].L = endp[i];
         tree[i + O].R = endp[i + 1] - 1;
@@ -163,7 +156,9 @@ void driver() {
     align_leaves_to_tree();
     tree_lr();
     // ready
+}
 
+void driver_usage() {
     // Case 1.
     // Multiple Inserts, 0 Queries
     // We care only about the values in the leaves
@@ -175,7 +170,7 @@ void driver() {
     // now query tree[O]..tree[2O] which is ordered
 
     // Case 2.
-    // Multiple Inserts, Queries afterwards
+    // Multiple Inserts, Queries afterwards, prefix sum form exists
     for (auto entry : range_data) {
         update_range(1, entry.L, entry.R, entry.data);
     }
@@ -189,7 +184,7 @@ void driver() {
     // now query [L,R] is tree[R] - tree[L-1].
 
     // Case 3.
-    // Multiple Inserts, Multiple Queries, interleaved
+    // Multiple Inserts, Multiple Queries, interleaved or afterwards
     for (auto entry : range_data) {
         if (entry.query) {
             query_range(1, entry.L, entry.R);
@@ -199,5 +194,3 @@ void driver() {
     }
     // done
 }
-
-} // namespace segment

@@ -8,9 +8,10 @@ CC := g++
 FILE := code.cpp
 EXE := ./hack
 
-DEPS := disjoint_set.hpp fenwick.hpp segment_tree.hpp quad_tree.hpp
-DEPS += hash.hpp math.hpp sieve.hpp
-DEPS += kmp.hpp
+DEPS := ../disjoint_set.hpp ../fenwick.hpp ../quad_tree.hpp ../segment_tree.hpp
+DEPS += ../russian_segment_tree.hpp
+DEPS += ../hash.hpp ../math.hpp ../sieve.hpp
+DEPS += ../kmp.hpp
 
 # * Dialect
 
@@ -116,29 +117,31 @@ CXXFLAGS := $(WARNS)
 
 # * Modes
 
-.PHONY: perfm debug build run valgrind clean
+.PHONY: code_perfm code_debug
+.PHONY: run code debug valgrind fast clean
 
-build: debug
+code_perfm: MODE := performance
+code_perfm: CXXFLAGS += $(OPTIM)
+code_perfm: $(EXE)
 
-perfm: MODE := performance
-perfm: CXXFLAGS += $(OPTIM)
-perfm: $(EXE)
-
-debug: MODE := debug
-debug: CXXFLAGS += $(DEBUG)
-debug: $(EXE)
+code_debug: MODE := code_debug
+code_debug: CXXFLAGS += $(DEBUG)
+code_debug: $(EXE)
 
 # Compilation rule
 $(EXE): $(FILE) $(DEPS)
 	@echo "CC (${COMPILER} $(MODE))  $@"
 	@$(CXX) $(FILE) $(CXXFLAGS) -o $@
 
-run: build
+run code: code_debug
 	@$(EXE)
 
-valgrind: build
+debug valgrind: code_debug
 	@clear
 	@valgrind $(EXE)
+
+fast: code_perfm
+	@$(EXE)
 
 clean:
 	@rm -f $(EXE) core vgcore.* *.log

@@ -2,24 +2,9 @@
 
 using namespace std;
 
-//               y
-//       .   .   ↑   .   .
-//  .            |            .
-//               |
-//  .      1     |     3      .
-//               |
-//    -----------|----------→ x
-//               |
-//  .      0     |     2      .
-//               |
-//  .            |            .
-//       .   .       .   .
-
 // *****
 
-namespace quad_tree {
-
-constexpr size_t MAX_SIZE_LEAF = 4;
+constexpr size_t MAX_SZ_LEAF = 4;
 
 struct Point {
     int x, y;
@@ -41,18 +26,6 @@ inline bool operator<(Point lhs, Point rhs) {
 
 inline bool ordered(Point lo, Point hi) {
     return lo.x <= hi.x && lo.y <= hi.y;
-}
-
-inline bool bounded(Box box, Point point) {
-    return ordered(box.min, point) && ordered(point, box.max);
-}
-
-inline bool intersect(Box aa, Box bb) {
-    return ordered(aa.min, bb.max) && ordered(bb.min, aa.max);
-}
-
-inline bool contains(Box large, Box small) {
-    return ordered(large.min, small.min) && ordered(small.max, large.max);
 }
 
 bool cmp_x(Point lhs, Point rhs) {
@@ -93,121 +66,99 @@ PointIt partition_y(PointIt first, PointIt last, int y) {
     return first;
 }
 
+// 3 Query operations
+using Query = Box;
+
+inline bool intersect(Query query, Box box) {
+    return ordered(query.min, box.max) && ordered(box.min, query.max);
+}
+
+inline bool contains(Query query, Box box) {
+    return ordered(query.min, box.min) && ordered(box.max, query.max);
+}
+
+inline bool bounded(Query query, Point point) {
+    return ordered(query.min, point) && ordered(point, query.max);
+}
+
 struct quad_tree {
-    unique_ptr<quad_tree> children[4];
+    array<unique_ptr<quad_tree>, 4> children;
     Box box;
-    PointIt first, last;
+    size_t size = 0;
+    vector<Point> points;
 
-    quad_tree(PointIt first, PointIt last) : first(first), last(last) {
-        box = {{INT_MAX, INT_MAX}, {INT_MIN, INT_MIN}};
-        for (auto it = first; it != last; ++it) {
-            box.min.x = min(box.min.x, it->x);
-            box.min.y = min(box.min.y, it->y);
-            box.max.x = max(box.max.x, it->x);
-            box.max.y = max(box.max.y, it->y);
-        }
-        size_t size = last - first;
+    bool is_partitioned() const noexcept {
+        return bool(children[0]);
+    }
 
-        if (size <= MAX_SIZE_LEAF) {
-            return;
-        }
+    bool is_singular() const noexcept {
+        return box.min == box.max;
+    }
 
-        auto middle = size / 2;
-        Point root;
-        nth_element(first, first + middle, last, cmp_x);
-        root.x = (first + middle)->x;
-        nth_element(first, first + middle, last, cmp_y);
-        root.y = (first + middle)->y;
+    Point root_point() const noexcept {
+        return {(box.min.x + box.max.x + 1) >> 1, (box.min.y + box.max.y + 1) >> 1};
+    }
 
-        if (*first == root) {
-            return;
-        }
+    void partition_tree() noexcept {
+        assert(!is_partitioned() && !is_singular());
+        auto root = root_point();
+        Box box0 = {{box.min.x, box.min.y}, {root.x - 1, root.y - 1}};
+        Box box1 = {{box.min.x, root.y}, {root.x - 1, box.max.y}};
+        Box box2 = {{root.x, box.min.y}, {box.max.x, root.y - 1}};
+        Box box3 = {{root.x, root.y}, {box.max.x, box.max.y}};
+        children[0] = make_unique<quad_tree>(box0);
+        children[1] = make_unique<quad_tree>(box1);
+        children[2] = make_unique<quad_tree>(box2);
+        children[3] = make_unique<quad_tree>(box3);
 
+        partition_insert(begin(points), end(points));
+        points.clear();
+    }
+
+    void partition_insert(PointIt first, PointIt last) {
+        assert(is_partitioned());
+        auto root = root_point();
         auto nth2 = partition_x(first, last, root.x);
         auto nth1 = partition_y(first, nth2, root.y);
         auto nth3 = partition_y(nth2, last, root.y);
-
-        children[0] = make_unique<quad_tree>(first, nth1);
-        children[1] = make_unique<quad_tree>(nth1, nth2);
-        children[2] = make_unique<quad_tree>(nth2, nth3);
-        children[3] = make_unique<quad_tree>(nth3, last);
+        children[0]->insert(first, nth1);
+        children[1]->insert(nth1, nth2);
+        children[2]->insert(nth2, nth3);
+        children[3]->insert(nth3, last);
     }
 
-    size_t count_query(Box query) const noexcept {
-        size_t size = last - first;
-        if (size == 0 || !intersect(query, box)) {
-            return 0;
-        }
-        if (contains(query, box)) {
-            return last - first;
-        }
-        size_t count = 0;
-        if (!children[0]) {
-            if (size <= MAX_SIZE_LEAF) {
-                for (auto it = first; it != last; ++it) {
-                    count += bounded(query, *it);
-                }
-            } else {
-                count = size * bounded(query, *first);
-            }
-        } else {
-            count += children[0]->count_query(query);
-            count += children[1]->count_query(query);
-            count += children[2]->count_query(query);
-            count += children[3]->count_query(query);
-        }
-        return count;
+    quad_tree(Box box) : box(box), size(0) {}
+
+    void clear() noexcept {
+        children[0] = nullptr;
+        children[1] = nullptr;
+        children[2] = nullptr;
+        children[3] = nullptr;
+        size = 0;
+        points.clear();
     }
 
-    size_t depth() const noexcept {
-        if (!children[0]) {
-            return 1;
-        } else {
-            auto n0 = children[0]->depth() + 1;
-            auto n1 = children[1]->depth() + 1;
-            auto n2 = children[2]->depth() + 1;
-            auto n3 = children[3]->depth() + 1;
-            return max(max(n0, n1), max(n2, n3));
+    void insert(PointIt first, PointIt last) {
+        if (first == last) {
+            return;
         }
-    }
+        size += last - first;
 
-    size_t size() const noexcept {
-        return last - first;
-    }
-};
-
-struct binary_quad_tree {
-    unique_ptr<binary_quad_tree> children[4];
-    Box box;
-    PointIt first, last;
-
-    binary_quad_tree(PointIt first, PointIt last) : first(first), last(last) {
-        box = {{INT_MAX, INT_MAX}, {INT_MIN, INT_MIN}};
-        for (auto it = first; it != last; ++it) {
-            box.min.x = min(box.min.x, it->x);
-            box.min.y = min(box.min.y, it->y);
-            box.max.x = max(box.max.x, it->x);
-            box.max.y = max(box.max.y, it->y);
-        }
-        size_t size = last - first;
-        Point root = {(box.min.x + box.max.x) / 2, (box.min.y + box.max.y) / 2};
-
-        if (size <= MAX_SIZE_LEAF || root == box.min) {
+        if (is_singular()) {
             return;
         }
 
-        auto nth2 = partition_x(first, last, root.x);
-        auto nth1 = partition_y(first, nth2, root.y);
-        auto nth3 = partition_y(nth2, last, root.y);
+        if (is_partitioned()) {
+            partition_insert(first, last);
+            return;
+        }
 
-        children[0] = make_unique<binary_quad_tree>(first, nth1);
-        children[1] = make_unique<binary_quad_tree>(nth1, nth2);
-        children[2] = make_unique<binary_quad_tree>(nth2, nth3);
-        children[3] = make_unique<binary_quad_tree>(nth3, last);
+        copy(first, last, back_inserter(points));
+        partition_tree();
+        partition_insert(begin(points), end(points));
     }
 
-    size_t count_query(Box query) const noexcept {
-        size_t size = last - first;
+    size_t count_query(Query query) const noexcept {
         if (size == 0 || !intersect(query, box)) {
             return 0;
         }
@@ -215,13 +166,9 @@ struct binary_quad_tree {
             return size;
         }
         size_t count = 0;
-        if (!children[0]) {
-            if (size <= MAX_SIZE_LEAF) {
-                for (auto it = first; it != last; ++it) {
-                    count += bounded(query, *it);
-                }
-            } else {
-                count = size * bounded(query, *first);
+        if (!is_partitioned()) {
+            for (auto point : points) {
+                count += bounded(query, point);
             }
         } else {
             count += children[0]->count_query(query);
@@ -232,21 +179,28 @@ struct binary_quad_tree {
         return count;
     }
 
-    size_t depth() const noexcept {
-        if (!children[0]) {
-            return 1;
-        } else {
-            auto n0 = children[0]->depth() + 1;
-            auto n1 = children[1]->depth() + 1;
-            auto n2 = children[2]->depth() + 1;
-            auto n3 = children[3]->depth() + 1;
-            return max(max(n0, n1), max(n2, n3));
-        }
+    size_t tree_size() const noexcept {
+        return size;
     }
 
-    size_t size() const noexcept {
-        return last - first;
+    size_t depth() const noexcept {
+        if (is_partitioned()) {
+            return 1 + max(max(children[0]->depth(), children[1]->depth()),
+                           max(children[2]->depth(), children[3]->depth()));
+        }
+        return 1;
     }
 };
 
-} // namespace quad_tree
+//               y
+//       .   .   ↑   .   .
+//  .            |            .
+//               |
+//  .      1     |     3      .
+//               |
+//    -----------|----------→ x
+//               |
+//  .      0     |     2      .
+//               |
+//  .            |            .
+//       .   .       .   .
