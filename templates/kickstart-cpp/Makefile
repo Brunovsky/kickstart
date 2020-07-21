@@ -117,16 +117,16 @@ CXXFLAGS := $(WARNS)
 
 # * Modes
 
-.PHONY: code_perfm code_debug build_naive build_generate
-.PHONY: run code debug valgrind fast test naive generate clean
+.PHONY: perfm debug build_naive build_generate
+.PHONY: run code valgrind fast test naive generate clean
 
-code_perfm: MODE := performance
-code_perfm: CXXFLAGS += $(OPTIM)
-code_perfm: $(EXE)
+perfm: MODE := performance
+perfm: CXXFLAGS += $(OPTIM)
+perfm: $(EXE)
 
-code_debug: MODE := debug
-code_debug: CXXFLAGS += $(DEBUG)
-code_debug: $(EXE)
+debug: MODE := debug
+debug: CXXFLAGS += $(DEBUG)
+debug: $(EXE)
 
 build_naive: MODE := performance
 build_naive: CXXFLAGS += $(OPTIM)
@@ -149,20 +149,20 @@ $(GENEXE): $(GEN)
 	@$(CXX) $(GEN) $(CXXFLAGS) -o $@
 
 # Compile and run, build in debug mode by default
-run code: code_debug
+run code: debug
 	@$(EXE) < input.txt
 
 # Build in debug mode and run under valgrind
-debug valgrind: code_debug
+valgrind: debug
 	@clear
 	@valgrind $(EXE) < input.txt
 
 # Compile and run in perfm mode
-fast: code_perfm
+fast: perfm
 	@$(EXE) < input.txt
 
 # Compile, run and test against the naive's version, build in perfm mode by default
-test: code_perfm
+test: perfm
 	@$(EXE) < input.txt > program.txt
 	@cmp program.txt naive.txt && echo OK
 
