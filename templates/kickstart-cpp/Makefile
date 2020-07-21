@@ -5,9 +5,9 @@ CPP_STANDARD := c++14
 # Compiler command
 CC := g++
 
-CODE := code.cpp
-NAIVE := naive.cpp
-GEN := generate.cpp
+CODE := ./code.cpp
+NAIVE := ./naive.cpp
+GEN := ./generate.cpp
 
 EXE := ./hack
 NAIVEEXE := ./hack_naive

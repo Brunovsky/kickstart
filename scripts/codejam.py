@@ -35,7 +35,7 @@ def read_year():
 
 def read_round():
     rnd = tryinput("Problem Round?  ex: QR\n> ")
-    if not re.match("[A-Z]", rnd):
+    if not re.match("[A-Z1-9]{1,2}", rnd):
         print(f"Bad input round: {rnd}")
         return read_round()
     return rnd
@@ -105,4 +105,4 @@ if template == "cpp":
     os.symlink("../../../../templates/codejam-cpp/Makefile",
                f"{folder}/Makefile")
 
-subprocess.call(["code", "--reuse-window", folder])
+subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/input.txt"])
