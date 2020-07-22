@@ -2,7 +2,7 @@
 
 ## [149. Max Points on a Line](https://leetcode.com/problems/max-points-on-a-line/)
 
-Unattempted
+Solved
 
-* Complexity: -
-* Memory: -
+* Complexity: O(N^2)
+* Memory: O(N)
