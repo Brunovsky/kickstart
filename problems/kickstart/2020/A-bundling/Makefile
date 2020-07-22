@@ -1,1 +1,1 @@
-../../../../templates/kickstart-cpp/Makefile
+../../templates/cpp/Makefile

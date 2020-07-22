@@ -1,1 +1,1 @@
-../../../templates/leet-cpp/Makefile
+../templates/cpp/Makefile

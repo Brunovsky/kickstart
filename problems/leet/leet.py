@@ -68,8 +68,8 @@ number = read_number()
 name = read_name()
 friendly = read_friendly()
 link = read_link(name)
-competition = "leet"
-problem = f"{number}-{name}"
+
+folder = f"{number}-{name}"
 readme = f"""# LeetCode - {difficulty}
 
 ## [{number}. {friendly}]({link})
@@ -79,7 +79,6 @@ Unattempted
 * Complexity: -
 * Memory: -
 """
-folder = f"problems/{competition}/{problem}"
 
 print(f"Problem folder: {folder}")
 
@@ -89,17 +88,23 @@ readmefile = open(f"{folder}/README.md", "w")
 readmefile.write(readme)
 readmefile.close()
 
-# Copy template
 if template == "cpp":
-    shutil.copy("templates/leet-cpp/code.cpp", folder)
-    os.symlink("../../../templates/leet-cpp/Makefile", f"{folder}/Makefile")
+    shutil.copy("templates/cpp/code.cpp", folder)
+    os.symlink("../templates/cpp/Makefile", f"{folder}/Makefile")
+    subprocess.call(["code",
+                     f"{folder}/code.cpp"
+                     ])
 
 if template == "shell":
-    shutil.copy("templates/leet-shell/code.sh", folder)
-    os.symlink("../../../templates/leet-shell/Makefile", f"{folder}/Makefile")
+    shutil.copy("templates/shell/code.sh", folder)
+    os.symlink("../templates/shell/Makefile", f"{folder}/Makefile")
+    subprocess.call(["code",
+                     f"{folder}/code.sh"
+                     ])
 
 if template == "js":
-    shutil.copy("templates/leet-js/code.js", folder)
-    os.symlink("../../../templates/leet-js/Makefile", f"{folder}/Makefile")
-
-subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/input.txt"])
+    shutil.copy("templates/js/code.js", folder)
+    os.symlink("../templates/js/Makefile", f"{folder}/Makefile")
+    subprocess.call(["code",
+                     f"{folder}/code.js"
+                     ])

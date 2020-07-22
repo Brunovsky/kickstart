@@ -1,4 +1,13 @@
-.PHONY: build clean run formatall
+.PHONY: new kickstart build clean run formatall
+.PHONY: cpp cpp-interactive
+
+new kickstart: cpp
+
+cpp:
+	@./kickstart.py cpp
+
+cpp-interactive:
+	@./kickstart.py cpp-interactive
 
 build:
 	@+./all.sh BUILD
@@ -10,4 +19,4 @@ run:
 	@+./all.sh RUN run
 
 formatall:
-	@clang-format --fallback-style=none -i */*/*.cpp
+	@clang-format --fallback-style=none -i 20*/**.cpp

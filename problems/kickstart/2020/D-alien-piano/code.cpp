@@ -28,14 +28,12 @@ auto solve() {
             m2 = min4(n1 + 1, n2, n3 + 1, n4 + 1);
             m3 = min4(n1 + 1, n2 + 1, n3, n4 + 1);
             m4 = min4(n1 + 1, n2 + 1, n3 + 1, n4);
-        }
-        if (a < b) {
+        } else if (a < b) {
             m1 = min4(n1 + 1, n2 + 1, n3 + 1, n4 + 1);
             m2 = min4(n1, n2 + 1, n3 + 1, n4 + 1);
             m3 = min4(n1, n2, n3 + 1, n4 + 1);
             m4 = min4(n1, n2, n3, n4 + 1);
-        }
-        if (a > b) {
+        } else {
             m1 = min4(n1 + 1, n2, n3, n4);
             m2 = min4(n1 + 1, n2 + 1, n3, n4);
             m3 = min4(n1 + 1, n2 + 1, n3 + 1, n4);

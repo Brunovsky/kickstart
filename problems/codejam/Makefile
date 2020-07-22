@@ -1,4 +1,13 @@
-.PHONY: build clean run formatall
+.PHONY: new codejam build clean run formatall
+.PHONY: cpp cpp-interactive
+
+new codejam: cpp
+
+cpp:
+	@./codejam.py cpp
+
+cpp-interactive:
+	@./codejam.py cpp-interactive
 
 build:
 	@+./all.sh BUILD

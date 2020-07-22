@@ -1,1 +1,1 @@
-../../../../templates/codejam-cpp/Makefile
+../../templates/cpp/Makefile

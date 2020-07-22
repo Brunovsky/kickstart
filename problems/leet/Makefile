@@ -1,4 +1,16 @@
-.PHONY: build clean run formatall
+.PHONY: new leet build clean run formatall
+.PHONY: cpp shell js
+
+new leet: cpp
+
+cpp:
+	@./leet.py cpp
+
+shell:
+	@./leet.py shell
+
+js:
+	@./leet.py js
 
 build:
 	@+./all.sh BUILD

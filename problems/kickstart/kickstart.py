@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import re
 import sys
@@ -34,7 +34,7 @@ def read_year():
 
 
 def read_round():
-    rnd = tryinput("Problem Round?  ex: QR\n> ")
+    rnd = tryinput("Problem Round?  ex: B\n> ")
     if not re.match("[A-Z1-9]{1,2}", rnd):
         print(f"Bad input round: {rnd}")
         return read_round()
@@ -57,11 +57,11 @@ def read_friendly():
     return friendly
 
 
-def read_points():
-    pts = tryinput(f"Problem points?  ex: 10pts, 12pts\n> ")
+def read_points(index):
+    pts = tryinput(f"Problem points #{index}?  ex: 10  (as in 10pts)\n> ")
     if not re.match("[0-9]{1,2}", pts):
         print(f"Bad input points: {pts}")
-        return read_points()
+        return read_points(index)
     return pts
 
 
@@ -74,13 +74,14 @@ year = read_year()
 rnd = read_round()
 name = read_name()
 friendly = read_friendly()
-pts = read_points()
+pts1 = read_points(1)
+pts2 = read_points(2)
 link = read_link()
-competition = f"codejam/{year}"
-problem = f"{rnd}-{name}"
-readme = f"""# CodeJam {year} - {friendly}
 
-## [{friendly} ({pts})]({link})
+folder = f"{year}/{rnd}-{name}"
+readme = f"""# Kickstart {year} - {friendly}
+
+## [{friendly} ({pts1}pts, {pts2}pts)]({link})
 
 Unattempted
 
@@ -88,7 +89,6 @@ Unattempted
 * Complexity: -
 * Memory: -
 """
-folder = f"problems/{competition}/{problem}"
 
 print(f"Problem folder: {folder}")
 
@@ -98,19 +98,25 @@ readmefile = open(f"{folder}/README.md", "w")
 readmefile.write(readme)
 readmefile.close()
 
-# Copy template
 if template == "cpp":
-    shutil.copy("templates/codejam-cpp/code.cpp", folder)
-    shutil.copy("templates/codejam-cpp/input.txt", folder)
-    os.symlink("../../../../templates/codejam-cpp/Makefile",
+    shutil.copy("templates/cpp/code.cpp", folder)
+    shutil.copy("templates/cpp/input.txt", folder)
+    os.symlink("../../templates/cpp/Makefile",
                f"{folder}/Makefile")
+    subprocess.call(["code",
+                     f"{folder}/code.cpp",
+                     f"{folder}/input.txt"
+                     ])
 
-# Copy template
 if template == "cpp-interactive":
-    shutil.copy("templates/codejam-cpp-interactive/code.cpp", folder)
-    shutil.copy("templates/codejam-cpp-interactive/input.txt", folder)
-    os.symlink("../../../../templates/codejam-cpp-interactive/Makefile",
+    shutil.copy("templates/cpp-interactive/code.cpp", folder)
+    shutil.copy("templates/cpp-interactive/input.txt", folder)
+    shutil.copy("templates/cpp-interactive/run.sh", folder)
+    os.symlink("../../templates/cpp-interactive/Makefile",
                f"{folder}/Makefile")
     print("Don't forget to add the testing tool (testing_tool.py)")
-
-subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/input.txt"])
+    subprocess.call(["code",
+                     f"{folder}/code.cpp",
+                     f"{folder}/input.txt",
+                     f"{folder}/run.sh"
+                     ])

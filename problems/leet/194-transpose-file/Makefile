@@ -1,1 +1,1 @@
-../../../templates/leet-shell/Makefile
+../templates/shell/Makefile
