@@ -6,12 +6,10 @@ CPP_STANDARD := c++14
 CC := g++
 
 CODE := code.cpp
-NAIVE := naive.cpp
 GEN := generate.cpp
 
-TESTING_TOOL := python3 ./testing_tool.py
+RUN := ./run.sh
 EXE := ./hack
-NAIVEEXE := ./hack_naive
 GENEXE := ./hack_generate
 
 # * Dialect
@@ -119,7 +117,7 @@ CXXFLAGS := $(WARNS)
 # * Modes
 
 .PHONY: perfm debug build_naive build_generate
-.PHONY: run code valgrind fast test naive generate clean
+.PHONY: run code fast generate clean
 
 perfm: MODE := performance
 perfm: CXXFLAGS += $(OPTIM)
@@ -151,20 +149,11 @@ $(GENEXE): $(GEN)
 
 # Compile and run, build in debug mode by default
 run code: debug
-	@$(TESTING_TOOL) $(EXE)
-
-# Build in debug mode and run under valgrind
-valgrind: debug
-	@clear
-	@$(TESTING_TOOL) valgrind $(EXE)
+	@$(RUN)
 
 # Compile and run in perfm mode
 fast: perfm
-	@$(TESTING_TOOL) $(EXE)
-
-# Compile and run the naive version in 'naive.cpp'
-naive: build_naive
-	@$(TESTING_TOOL) @$(NAIVEEXE)
+	@$(RUN)
 
 # Compile and run the input generator in 'generate.cpp'
 generate: build_generate
