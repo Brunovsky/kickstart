@@ -92,6 +92,7 @@ if template == "cpp":
     shutil.copy("templates/cpp/code.cpp", folder)
     os.symlink("../templates/cpp/Makefile", f"{folder}/Makefile")
     subprocess.call(["code",
+                     f"{folder}/README.md",
                      f"{folder}/code.cpp"
                      ])
 
@@ -99,12 +100,14 @@ if template == "shell":
     shutil.copy("templates/shell/code.sh", folder)
     os.symlink("../templates/shell/Makefile", f"{folder}/Makefile")
     subprocess.call(["code",
-                     f"{folder}/code.sh"
+                     f"{folder}/README.md",
+                     f"{folder}/code.sh",
                      ])
 
 if template == "js":
     shutil.copy("templates/js/code.js", folder)
     os.symlink("../templates/js/Makefile", f"{folder}/Makefile")
     subprocess.call(["code",
+                     f"{folder}/README.md",
                      f"{folder}/code.js"
                      ])

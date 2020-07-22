@@ -103,6 +103,7 @@ if template == "cpp":
     os.symlink("../../templates/cpp/Makefile",
                f"{folder}/Makefile")
     subprocess.call(["code",
+                     f"{folder}/README.md",
                      f"{folder}/code.cpp",
                      f"{folder}/input.txt"
                      ])
@@ -115,6 +116,7 @@ if template == "cpp-interactive":
                f"{folder}/Makefile")
     print("Don't forget to add the testing tool (testing_tool.py)")
     subprocess.call(["code",
+                     f"{folder}/README.md",
                      f"{folder}/code.cpp",
                      f"{folder}/input.txt",
                      f"{folder}/run.sh"
