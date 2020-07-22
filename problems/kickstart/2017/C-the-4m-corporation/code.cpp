@@ -27,23 +27,23 @@ auto optimize(int t) {
         return INT_MAX;
     }
     if (coef > 0 && term > 0) {
-        max1 = floor(double(term) / double(coef));
+        max1 = floor(1.0 * term / coef);
     }
     if (coef < 0 && term < 0) {
-        min1 = ceil(double(term) / double(coef));
+        min1 = ceil(1.0 * term / coef);
     }
 
-    // (2 * MEAN - b)S <= c - kMEAN
+    // (2MEAN - b)S <= c - kMEAN
     term = c - k * MEAN;
     coef = 2 * MEAN - b;
     if ((coef >= 0 && term < 0) || (coef > 0 && term <= 0)) {
         return INT_MAX;
     }
     if (coef > 0 && term > 0) {
-        max2 = floor(double(term) / double(coef));
+        max2 = floor(1.0 * term / coef);
     }
     if (coef < 0 && term < 0) {
-        min2 = ceil(double(term) / double(coef));
+        min2 = ceil(1.0 * term / coef);
     }
 
     int maxS = min(max1, max2);

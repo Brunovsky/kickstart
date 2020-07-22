@@ -5,13 +5,12 @@
 using namespace std;
 namespace gnu = __gnu_pbds;
 
-using min_tree =
-    gnu::tree<pair<int, int>, gnu::null_type, less<pair<int, int>>,
-              gnu::rb_tree_tag, gnu::tree_order_statistics_node_update>;
+using min_tree = gnu::tree<pair<int, int>, gnu::null_type, less<pair<int, int>>,
+                           gnu::rb_tree_tag, gnu::tree_order_statistics_node_update>;
 
 // *****
 
-#define MAXSUM 100000073L
+#define MAXSUM 100'000'073L
 #define MAXPROD (MAXSUM * MAXSUM)
 
 void read(long &N, long &K, vector<long> &A, vector<long> &B) {

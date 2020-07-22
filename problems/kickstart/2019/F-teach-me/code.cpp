@@ -42,24 +42,6 @@ vector<Info> infos;
 unordered_map<SkillSet, u32> finger;
 u64 N, S;
 
-u64 solve() {
-  u64 exceptions = 0;
-
-  for (u32 i = 1; i < infos.size(); ++i) {
-    const auto &info = infos[i];
-    if (info.employees == 0)
-      continue;
-
-    u32 underlyings = 0;
-    for (u32 index : info.subsets)
-      underlyings += infos[index].employees;
-
-    exceptions += info.employees * (info.employees - 1 + underlyings);
-  }
-
-  return N * (N - 1) - exceptions;
-}
-
 u32 add_skillset(SkillSet &skillset) {
   Info info{skillset, 0};
   info.subsets.reserve(1 << skillset.size());
@@ -90,9 +72,7 @@ u32 add_skillset(SkillSet &skillset) {
   return index;
 }
 
-// *****
-
-void reparse_test() {
+u64 solve() {
   cin >> N >> S;
   infos.clear();
   finger.clear();
@@ -117,6 +97,22 @@ void reparse_test() {
 
     ++infos[index].employees;
   }
+
+  u64 exceptions = 0;
+
+  for (u32 i = 1; i < infos.size(); ++i) {
+    const auto &info = infos[i];
+    if (info.employees == 0)
+      continue;
+
+    u32 underlyings = 0;
+    for (u32 index : info.subsets)
+      underlyings += infos[index].employees;
+
+    exceptions += info.employees * (info.employees - 1 + underlyings);
+  }
+
+  return N * (N - 1) - exceptions;
 }
 
 // *****
@@ -125,7 +121,6 @@ int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

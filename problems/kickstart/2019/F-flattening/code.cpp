@@ -50,6 +50,11 @@ void fill_aux() {
 }
 
 auto solve() {
+  cin >> N >> K;
+  A.assign(N, 0);
+  for (u32 i = 0; i < N; ++i)
+    cin >> A[i];
+
   fill_aux();
 
   u32 NR = R.size();
@@ -78,20 +83,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> N >> K;
-  A.assign(N, 0);
-  for (u32 i = 0; i < N; ++i)
-    cin >> A[i];
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

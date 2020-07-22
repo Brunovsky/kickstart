@@ -40,10 +40,11 @@ auto solve() {
         if (count == 2) {
             return "AMBIGUOUS"s;
         }
-        solution = D;
+        solution = move(D);
     try_next:
         continue;
     }
+    assert(count == 1);
 
     return solution;
 }

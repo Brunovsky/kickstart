@@ -6,7 +6,7 @@ using namespace std;
 
 using i64 = int64_t;
 
-constexpr i64 MOD = 1000000007;
+constexpr i64 MOD = 1'000'000'007;
 
 i64 centers_onion(i64 R, i64 C) {
     i64 S = R + C;
@@ -51,16 +51,13 @@ i64 dots_onion(i64 R, i64 C) {
     return (2 * (t1 + t2 - t3) + c) % MOD;
 }
 
-i64 onion(i64 R, i64 C) {
-    if (R > C)
-        swap(R, C);
-    return (centers_onion(R, C) + dots_onion(R, C) + 2 * MOD) % MOD;
-}
-
 auto solve() {
     i64 R, C;
     cin >> R >> C >> ws;
-    return onion(R, C);
+    if (R > C) {
+        swap(R, C);
+    }
+    return (centers_onion(R, C) + dots_onion(R, C) + 2 * MOD) % MOD;
 }
 
 // *****

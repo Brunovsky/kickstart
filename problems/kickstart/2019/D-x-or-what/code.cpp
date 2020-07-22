@@ -18,6 +18,15 @@ vector<uint> P;
 vector<uint> V;
 
 auto solve() {
+  cin >> N >> Q >> ws;
+  A.assign(N, 0);
+  P.assign(Q, 0);
+  V.assign(Q, 0);
+  for (uint n = 0; n < N; ++n)
+    cin >> A[n] >> ws;
+  for (uint q = 0; q < Q; ++q)
+    cin >> P[q] >> V[q] >> ws;
+
   set<uint> odds;
   for (uint i = 0; i < N; ++i) {
     if (xor_odd(A[i]))
@@ -50,24 +59,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> N >> Q >> ws;
-  A.assign(N, 0);
-  P.assign(Q, 0);
-  V.assign(Q, 0);
-  for (uint n = 0; n < N; ++n)
-    cin >> A[n] >> ws;
-  for (uint q = 0; q < Q; ++q)
-    cin >> P[q] >> V[q] >> ws;
-}
-
-// *****
-
 int main() {
   uint T;
   cin >> T >> ws;
   for (uint t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ":";
     for (uint n : solution)

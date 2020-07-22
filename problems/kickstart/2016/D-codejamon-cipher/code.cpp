@@ -6,7 +6,7 @@ using namespace std;
 
 using alph = array<uint16_t, 26>;
 
-constexpr uint64_t MOD = 1000000007;
+constexpr uint64_t MOD = 1'000'000'007;
 
 alph sub(alph lhs, alph rhs) {
     alph word;

@@ -3,7 +3,8 @@
 using namespace std;
 
 // N = 2
-// ===== Don't know what's wrong :(
+// =====
+// see code below for definitions of D1, D2, E1, E2
 // suppose d1 out of D1 are correct answers (for A1 and B)
 //     D1 - d1 are correct answers for A2
 // suppose d2 out of D2 are correct answers (for A2 and B)
@@ -27,10 +28,10 @@ using namespace std;
 //        0 <= e2 <= E2
 //
 // solution:
-// the possible range of d1 - d2 is [-D2,D1] and d1 + d2 is [0,D1+D2] so replace
+// the possible range of d1 - d2 is [-D2,D1] and d1 + d2 is [0,D1+D2]. replace:
 //   dd := d1 - d2 (difference of ds)
 //   sd := d1 + d2 (sum of d)
-// the possible range of e1 - e2 is [-E1,E2] and e1 + e2 is [0,E1+E2] so replace
+// the possible range of e1 - e2 is [-E1,E2] and e1 + e2 is [0,E1+E2]. replace:
 //   de := e1 - e2 (difference of es)
 //   se := e1 + e2 (sum of e)
 //
@@ -48,8 +49,8 @@ using namespace std;
 //   dd := (S1 + D1 - S2 - D2) / 2
 //   de := (2 * E1 + D1 + D2 - S1 - S2) / 2
 //
-// to finish (se and sd) apply the fact that the extrema of se (resp. sd) will
-// be reached when one of the terms is maximized - e1 or e2 (resp. d1 or d2).
+// to finish (maximize se and sd) we apply the fact that the maximum of se (resp. sd) will
+// be reached when one of the terms is maximized - e1=E1 or e2=E2 (resp. d1=D1 or d2=D2).
 
 // *****
 

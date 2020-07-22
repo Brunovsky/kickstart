@@ -78,9 +78,9 @@ auto solve() {
     int home_land_cost = sums[1];
 
     double q = 1.0; // we are home with probability q
-    double home_land_p = double(home_land_cost) / (N - 1);
-    double land_home_p = double(land_home_cost) / (N - 1);
-    double land_land_p = double(land_land_cost) / ((N - 2) * (N - 1));
+    double home_land_p = 1.0 * home_land_cost / (N - 1);
+    double land_home_p = 1.0 * land_home_cost / (N - 1);
+    double land_land_p = 1.0 * land_land_cost / ((N - 2) * (N - 1));
     int caught = 0;
     double probability = 0.0;
 

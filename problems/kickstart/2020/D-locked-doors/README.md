@@ -2,7 +2,7 @@
 
 ## [Locked Doors (12pts, 26pts)](https://codingcompetitions.withgoogle.com/kickstart/round/000000000019ff08/0000000000386d5c)
 
-Solved (live)
+Solved
 
 Binary tree with an ancestry finger table
 

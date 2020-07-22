@@ -11,6 +11,16 @@ vector<uint> torn; // pages torn out
 vector<uint> R;    // ith lazy reader reads multiples of R[i]
 
 auto solve() {
+  cin >> N >> T >> L;
+  torn.resize(T);
+  R.resize(L);
+
+  for (uint i = 0; i < T; ++i)
+    cin >> torn[i];
+  for (uint i = 0; i < L; ++i)
+    cin >> R[i];
+  sort(R.begin(), R.end());
+
   vector<bool> is_torn(N + 1, false);
   for (uint t : torn)
     is_torn[t] = true;
@@ -28,24 +38,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> N >> T >> L;
-  torn.resize(T);
-  for (uint i = 0; i < T; ++i)
-    cin >> torn[i];
-  R.resize(L);
-  for (uint i = 0; i < L; ++i)
-    cin >> R[i];
-  sort(R.begin(), R.end());
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

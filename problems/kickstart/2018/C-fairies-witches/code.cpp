@@ -41,6 +41,14 @@ u64 visit(vector<edge_t> edges, edge_t e0, u64 minsum) {
 }
 
 auto solve() {
+  cin >> N;
+  M.assign(N, vector<u32>(N, 0));
+  for (u32 i = 0; i < N; ++i) {
+    for (u32 j = 0; j < N; ++j) {
+      cin >> M[i][j];
+    }
+  }
+
   vector<edge_t> edges;
 
   for (u32 i = 0; i < N; ++i) {
@@ -66,23 +74,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> N;
-  M.assign(N, vector<u32>(N, 0));
-  for (u32 i = 0; i < N; ++i) {
-    for (u32 j = 0; j < N; ++j) {
-      cin >> M[i][j];
-    }
-  }
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

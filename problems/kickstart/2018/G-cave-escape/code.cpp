@@ -7,10 +7,9 @@ using namespace std;
 #define IS_ROOM(x) (0 <= x)
 
 // https://stackoverflow.com/questions/1851134
-constexpr int next_lexicographical_mask(int v) {
+inline void next_lexicographical_mask(int &v) {
   int t = v | (v - 1);
-  int w = (t + 1) | (((~t & -~t) - 1) >> (__builtin_ctz(v) + 1));
-  return w;
+  v = (t + 1) | (((~t & -~t) - 1) >> (__builtin_ctz(v) + 1));
 }
 
 // *****
@@ -237,15 +236,15 @@ void constrained_dp() {
     int tmask = (1 << ntraps) - 1;
     do {
       compute_constrained_energy(tmask);
-      tmask = next_lexicographical_mask(tmask);
+      next_lexicographical_mask(tmask);
     } while (tmask <= TMASK);
   }
   compute_constrained_energy(0);
 }
 
 auto solve() {
-  cin >> R >> C >> E >> SR >> SC >> TR >> TC >> ws;
   clean();
+  cin >> R >> C >> E >> SR >> SC >> TR >> TC >> ws;
   for (int r = 1; r <= R; r++) {
     for (int c = 1; c <= C; c++) {
       cin >> cave[r][c] >> ws;

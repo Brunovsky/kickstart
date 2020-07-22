@@ -9,6 +9,12 @@ u64 N, M;
 vector<u64> A;
 
 auto solve() {
+  cin >> N >> M;
+  A.resize(N);
+  for (u64 i = 0; i < N; ++i) {
+    cin >> A[i];
+  }
+
   u64 M_power_two = 0, M_exponent_two = 0;
   if (M > 0) {
     u64 m = M;
@@ -74,20 +80,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> N >> M;
-  A.resize(N);
-  for (u64 i = 0; i < N; ++i)
-    cin >> A[i];
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

@@ -20,6 +20,11 @@ string A, B;
 vector<alph> pA, pB;
 
 auto solve() {
+  A.clear();
+  B.clear();
+  cin >> L >> ws >> A >> ws >> B >> ws;
+  assert(A.length() == size_t(L) && B.length() == size_t(L));
+
   pA.assign(L + 1, {});
   pB.assign(L + 1, {});
   pA[0] = {};
@@ -65,20 +70,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  A.clear();
-  B.clear();
-  cin >> L >> ws >> A >> ws >> B >> ws;
-  assert(A.length() == size_t(L) && B.length() == size_t(L));
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

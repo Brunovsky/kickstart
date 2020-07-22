@@ -9,6 +9,10 @@ u32 N, P;
 vector<u32> S;
 
 auto solve() {
+  cin >> N >> P >> ws;
+  S.assign(N, 0);
+  for (u32 i = 0; i < N; ++i)
+    cin >> S[i] >> ws;
   sort(S.begin(), S.end());
 
   u32 l = 0, r = P - 1;
@@ -35,20 +39,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> N >> P >> ws;
-  S.assign(N, 0);
-  for (u32 i = 0; i < N; ++i)
-    cin >> S[i] >> ws;
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

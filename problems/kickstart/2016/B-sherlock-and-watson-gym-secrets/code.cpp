@@ -12,7 +12,7 @@ struct count_t {
 
 using count_map_t = vector<count_t>;
 
-constexpr i64 MOD = 1000000007;
+constexpr i64 MOD = 1'000'000'007;
 i64 A, B, N, K;
 
 // compute b^e (mod m)

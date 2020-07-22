@@ -4,8 +4,8 @@ using namespace std;
 
 // *****
 
-#define MAXN 100000
-#define MAXG 100001
+#define MAXN 100'000
+#define MAXG 100'001
 
 int N, G, M;
 

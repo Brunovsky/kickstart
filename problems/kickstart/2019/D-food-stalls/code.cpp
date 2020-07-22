@@ -50,6 +50,13 @@ int K, N;
 vector<Post> posts;
 
 auto solve() {
+  cin >> K >> N >> ws;
+  posts.assign(N, {});
+  for (int i = 0; i < N; ++i)
+    cin >> posts[i].D;
+  for (int i = 0; i < N; ++i)
+    cin >> posts[i].C;
+
   i64 minimum = 0;
   sort(posts.begin(), posts.end());
 
@@ -170,22 +177,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> K >> N >> ws;
-  posts.assign(N, {});
-  for (int i = 0; i < N; ++i)
-    cin >> posts[i].D;
-  for (int i = 0; i < N; ++i)
-    cin >> posts[i].C;
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

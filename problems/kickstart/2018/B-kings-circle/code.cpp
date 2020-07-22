@@ -14,7 +14,7 @@ bool operator<(Cafe lhs, Cafe rhs) {
 
 #define LHS 0
 #define RHS 1
-#define MAXM 1000001UL
+#define MAXM 1'000'001UL
 
 long N, M;
 vector<Cafe> cafes;

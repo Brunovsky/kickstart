@@ -15,7 +15,9 @@ int L[MAX];
 i64 A[MAX][MAX];
 i64 C[MAX][MAX];
 
-using upgrade_t = pair<i64, i64>; // first=cost, second=attack
+using upgrade_t = pair<i64, i64>;
+#define COST first
+#define ATTACK second
 
 auto combine(int N1, int N2) {
     // upgrades[c]: upgrade combinations with c cards from range [N1,N2)
@@ -28,8 +30,8 @@ auto combine(int N1, int N2) {
         for (int c = i - N1; c >= 0; c--) {
             int S = upgrades[c].size();
             for (int j = 0; j < S; j++) {
-                i64 cost = upgrades[c][j].first;
-                i64 attack = upgrades[c][j].second + A[i][L[i]];
+                i64 cost = upgrades[c][j].COST;
+                i64 attack = upgrades[c][j].ATTACK + A[i][L[i]];
                 upgrades[c + 1].push_back({cost, attack});
 
                 for (int l = L[i]; l < K[i]; l++) {
@@ -52,8 +54,8 @@ auto combine(int N1, int N2) {
 
         // remove combinations whose attack is not the largest for its cost
         while (read < S) {
-            if (max_attack < up[read].second) {
-                max_attack = up[read].second;
+            if (max_attack < up[read].ATTACK) {
+                max_attack = up[read].ATTACK;
                 up[write++] = up[read];
             }
             read++;
@@ -95,16 +97,16 @@ auto solve() {
         int i = 0, j = 0;
 
         while (i < S1 && j < S2) {
-            while (j < S2 && L1[i].first + L2[j].first > M) {
+            while (j < S2 && L1[i].COST + L2[j].COST > M) {
                 j++;
             }
             if (j == S2) {
                 break;
             }
-            while (i < S1 && L1[i].first + L2[j].first <= M) {
+            while (i < S1 && L1[i].COST + L2[j].COST <= M) {
                 i++;
             }
-            i64 attack = L1[i - 1].second + L2[j].second;
+            i64 attack = L1[i - 1].ATTACK + L2[j].ATTACK;
             best = max(best, attack);
         }
     }

@@ -4,8 +4,8 @@ using namespace std;
 
 // *****
 
-#define MAXN 100000
-#define MAX 10000000
+#define MAXN 100'000
+#define MAX 10'000'000
 
 int N;
 int A[MAXN];

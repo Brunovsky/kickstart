@@ -6,7 +6,7 @@ Solved
 
 For every range X[L..R] (there are N^2 such ranges) determine if [L..R], when
 sorted, contains only consecutive integers (e.g. [A..B]) and if so, determine
-its shift (e.g. `A-B`) which is the movement in X that puts it in the correct
+its shift (e.g. `A-L`) which is the movement along X that puts it in the correct
 sorted position.
 
 This can be achieved in `O(N^2)` time and space.

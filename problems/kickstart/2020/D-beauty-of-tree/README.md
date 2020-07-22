@@ -2,7 +2,7 @@
 
 ## [Beauty of tree (13pts, 19pts)](https://codingcompetitions.withgoogle.com/kickstart/round/000000000019ff08/0000000000386edd)
 
-Solved (live)
+Solved
 
 * Time: 31 minutes
 * Complexity: O(N)

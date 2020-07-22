@@ -14,6 +14,14 @@ vector<alph> prefix;
 vector<int> L, R;
 
 auto solve() {
+  cin >> N >> Q >> ws;
+  cin >> text >> ws;
+  assert(text.size() == size_t(N));
+  L.assign(Q, 0);
+  R.assign(Q, 0);
+  for (int i = 0; i < Q; ++i)
+    cin >> L[i] >> R[i] >> ws;
+
   prefix.assign(N + 1, {});
   for (int n = 0; n < N; ++n) {
     prefix[n + 1] = prefix[n];
@@ -36,23 +44,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> N >> Q >> ws;
-  cin >> text >> ws;
-  assert(text.size() == size_t(N));
-  L.assign(Q, 0);
-  R.assign(Q, 0);
-  for (int i = 0; i < Q; ++i)
-    cin >> L[i] >> R[i] >> ws;
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

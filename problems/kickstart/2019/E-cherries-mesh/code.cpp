@@ -19,6 +19,17 @@ void dfs(u32 i) {
 }
 
 auto solve() {
+  cin >> N >> M >> ws;
+  adj.assign(N, {});
+  tag.assign(N, 0);
+  for (u32 m = 0; m < M; ++m) {
+    u32 Ci, Di;
+    cin >> Ci >> Di >> ws;
+    --Ci, --Di;
+    adj[Ci].push_back(Di);
+    adj[Di].push_back(Ci);
+  }
+
   u32 components = 0;
 
   for (u32 i = 0; i < N; ++i) {
@@ -33,26 +44,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> N >> M >> ws;
-  adj.assign(N, {});
-  tag.assign(N, 0);
-  for (u32 m = 0; m < M; ++m) {
-    u32 Ci, Di;
-    cin >> Ci >> Di >> ws;
-    --Ci, --Di;
-    adj[Ci].push_back(Di);
-    adj[Di].push_back(Ci);
-  }
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

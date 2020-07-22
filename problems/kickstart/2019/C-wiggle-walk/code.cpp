@@ -61,6 +61,10 @@ void remove(Node node) {
 }
 
 pair<int, int> solve() {
+  cin >> I >> R >> C >> SR >> SC >> ws;
+  cin >> commands >> ws;
+  assert(commands.size() == size_t(I));
+
   nodes.clear();
 
   int r = SR, c = SC;
@@ -87,19 +91,10 @@ pair<int, int> solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> I >> R >> C >> SR >> SC >> ws;
-  cin >> commands >> ws;
-  assert(commands.size() == size_t(I));
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution.first << ' ' << solution.second
          << '\n';

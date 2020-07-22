@@ -4,7 +4,7 @@ using namespace std;
 
 // *****
 
-constexpr int MAX_COST = 1000000001;
+constexpr int MAX_COST = 1'000'000'001;
 
 struct range {
     int L, R;

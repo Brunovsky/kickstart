@@ -4,7 +4,7 @@ using namespace std;
 
 // *****
 
-constexpr int SIDE_MAX = 500000000;
+constexpr int SIDE_MAX = 500'000'000;
 
 struct star_t {
     int X, Y, Z, R;

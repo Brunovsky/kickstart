@@ -52,7 +52,48 @@ bool node_cmp(const node_t &node, u64 k) {
   return node.prefix < k;
 }
 
+void read() {
+  cin >> N >> Q >> ws;
+  Hi.assign(N + 1, 0);
+  Lo.assign(N + 1, 0);
+  K.assign(Q + 3, 0);
+  u64 x1, x2, x3, a1, b1, c1, m1;
+  u64 y1, y2, y3, a2, b2, c2, m2;
+  u64 z1, z2, z3, a3, b3, c3, m3;
+  cin >> x1 >> x2 >> a1 >> b1 >> c1 >> m1 >> ws;
+  cin >> y1 >> y2 >> a2 >> b2 >> c2 >> m2 >> ws;
+  cin >> z1 >> z2 >> a3 >> b3 >> c3 >> m3 >> ws;
+
+  Hi[0] = max(x1, y1) + 1;
+  Lo[0] = min(x1, y1);
+  Hi[1] = max(x2, y2) + 1;
+  Lo[1] = min(x2, y2);
+
+  for (u64 i = 2; i < N; ++i) {
+    x3 = (a1 * x2 + b1 * x1 + c1) % m1;
+    y3 = (a2 * y2 + b2 * y1 + c2) % m2;
+    x1 = x2;
+    x2 = x3;
+    y1 = y2;
+    y2 = y3;
+    Hi[i] = max(x3, y3) + 1;
+    Lo[i] = min(x3, y3);
+  }
+
+  K[0] = z1 + 1;
+  K[1] = z2 + 1;
+
+  for (u64 i = 2; i < Q; ++i) {
+    z3 = (a3 * z2 + b3 * z1 + c3) % m3;
+    z1 = z2;
+    z2 = z3;
+    K[i] = z3 + 1;
+  }
+}
+
 auto solve() {
+  read();
+
   endp.clear();
   for (u64 l : Hi)
     endp.push_back(l);
@@ -105,52 +146,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> N >> Q >> ws;
-  Hi.assign(N + 1, 0);
-  Lo.assign(N + 1, 0);
-  K.assign(Q + 3, 0);
-  u64 x1, x2, x3, a1, b1, c1, m1;
-  u64 y1, y2, y3, a2, b2, c2, m2;
-  u64 z1, z2, z3, a3, b3, c3, m3;
-  cin >> x1 >> x2 >> a1 >> b1 >> c1 >> m1 >> ws;
-  cin >> y1 >> y2 >> a2 >> b2 >> c2 >> m2 >> ws;
-  cin >> z1 >> z2 >> a3 >> b3 >> c3 >> m3 >> ws;
-
-  Hi[0] = max(x1, y1) + 1;
-  Lo[0] = min(x1, y1);
-  Hi[1] = max(x2, y2) + 1;
-  Lo[1] = min(x2, y2);
-
-  for (u64 i = 2; i < N; ++i) {
-    x3 = (a1 * x2 + b1 * x1 + c1) % m1;
-    y3 = (a2 * y2 + b2 * y1 + c2) % m2;
-    x1 = x2;
-    x2 = x3;
-    y1 = y2;
-    y2 = y3;
-    Hi[i] = max(x3, y3) + 1;
-    Lo[i] = min(x3, y3);
-  }
-
-  K[0] = z1 + 1;
-  K[1] = z2 + 1;
-
-  for (u64 i = 2; i < Q; ++i) {
-    z3 = (a3 * z2 + b3 * z1 + c3) % m3;
-    z1 = z2;
-    z2 = z3;
-    K[i] = z3 + 1;
-  }
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

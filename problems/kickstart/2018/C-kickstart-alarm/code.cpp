@@ -34,7 +34,22 @@ u64 power(u64 n) {
   return c;
 }
 
+void read() {
+  u64 x, y, C, D, E1, E2, F;
+  cin >> N >> K >> x >> y >> C >> D >> E1 >> E2 >> F >> ws;
+  A.assign(N + 1, 0);
+  A[1] = (x + y) % F;
+  for (u64 n = 2; n <= N; ++n) {
+    u64 X = (C * x + D * y + E1) % F;
+    u64 Y = (D * x + C * y + E2) % F;
+    x = X;
+    y = Y;
+    A[n] = (x + y) % F;
+  }
+}
+
 auto solve() {
+  read();
   u64 weight_sum = 0, POWER_SUM = 0;
 
   for (u64 n = N, c = 1; n > 0; --n, ++c) {
@@ -54,27 +69,12 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  u64 x, y, C, D, E1, E2, F;
-  cin >> N >> K >> x >> y >> C >> D >> E1 >> E2 >> F >> ws;
-  A.assign(N + 1, 0);
-  A[1] = (x + y) % F;
-  for (u64 n = 2; n <= N; ++n) {
-    u64 X = (C * x + D * y + E1) % F;
-    u64 Y = (D * x + C * y + E2) % F;
-    x = X;
-    y = Y;
-    A[n] = (x + y) % F;
-  }
-}
-
 // *****
 
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

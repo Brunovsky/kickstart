@@ -7,13 +7,10 @@ using namespace std;
 enum ans_t { MISS = 0, HIT = 1, CENTER = 100 };
 
 ans_t guess(long X, long Y) {
-    static int g = 0;
-    fprintf(stderr, "Guess %d: %ld %ld\n", ++g, X, Y);
     printf("%ld %ld\n", X, Y);
     string response;
     cin >> response;
     if (response == "CENTER") {
-        g = 0;
         return CENTER;
     } else if (response == "HIT") {
         return HIT;

@@ -5,5 +5,5 @@
 Solved
 
 * Time: 15 minutes
-* Complexity: O(9 * 11^2)
-* Memory: O(9 * 11^2)
+* Complexity: O(9 * 11^4)
+* Memory: O(9 * 11^3)

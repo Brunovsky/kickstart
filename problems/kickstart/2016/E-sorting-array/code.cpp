@@ -124,7 +124,6 @@ auto solve3() {
                 // P = 2 case
                 // swap X[L..l] and X[r..R]
                 if (L_max == R && R_min == L) {
-                    // int shift = Sr - Sl;
                     int M_chunks = chunks[l + 1][r - 1];
                     int k = L_chunks + M_chunks + R_chunks + 2;
                     K = max(K, k);
@@ -144,9 +143,8 @@ auto solve3() {
                 else if (R_min == L) {
                     int S1 = shifts[L][l] - Sr;
                     int m1 = l + S1 + 1;
-                    int shift_1 = Sr - Sl;
 
-                    if (S1 && shifts[l + 1][m1 - 1] != shift_1) {
+                    if (S1 && shifts[l + 1][m1 - 1] != Sr - Sl) {
                         continue;
                     }
 
@@ -157,8 +155,9 @@ auto solve3() {
                             continue;
                         }
 
-                        // int Sm = m2 - m1 + 1;
-                        // int shift_2 = Sr - Sm;
+                        int Sm = m2 - m1 + 1;
+                        assert(!S2 || shifts[m2 + 1][r - 1] == Sr - Sm);
+                        (void)Sm;
 
                         int S1_chunks = chunks[l + 1][m1 - 1];
                         int S2_chunks = chunks[m2 + 1][r - 1];
@@ -181,21 +180,21 @@ auto solve3() {
                 else if (L_max == R) {
                     int S2 = -Sl - shifts[r][R];
                     int m2 = r - 1 - S2;
-                    int shift_2 = Sr - Sl;
 
-                    if (S2 && shifts[m2 + 1][r - 1] != shift_2) {
+                    if (S2 && -shifts[m2 + 1][r - 1] != Sl - Sr) {
                         continue;
                     }
 
                     for (int m1 = m2; m1 > l; --m1) {
                         int S1 = m1 - 1 - l;
 
-                        if (shifts[m1][m2] != -(Sl + S1)) {
+                        if (-shifts[m1][m2] != Sl + S1) {
                             continue;
                         }
 
-                        // int Sm = m2 - m1 + 1;
-                        // int shift_1 = Sm - Sl;
+                        int Sm = m2 - m1 + 1;
+                        assert(!S1 || -shifts[l + 1][m1 - 1] == Sl - Sm);
+                        (void)Sm;
 
                         int S1_chunks = chunks[l + 1][m1 - 1];
                         int S2_chunks = chunks[m2 + 1][r - 1];

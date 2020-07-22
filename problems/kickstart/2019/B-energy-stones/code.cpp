@@ -22,6 +22,14 @@ auto sum() {
 // *****
 
 auto solve() {
+  cin >> N >> ws;
+  stones.assign(N, {});
+
+  for (u32 n = 0; n < N; ++n) {
+    cin >> stones[n].S >> stones[n].E >> stones[n].I >> ws;
+    assert(stones[n].S > 0);
+  }
+
   auto maxT = sum();
 
   sort(stones.begin(), stones.end(), [](const Stone &Ci, const Stone &Cj) {
@@ -59,23 +67,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> N >> ws;
-  stones.assign(N, {});
-
-  for (u32 n = 0; n < N; ++n) {
-    cin >> stones[n].S >> stones[n].E >> stones[n].I >> ws;
-    assert(stones[n].S > 0);
-  }
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

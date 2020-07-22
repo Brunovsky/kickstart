@@ -101,6 +101,7 @@ u64 count_k1(u64 L, u64 R) {
 //  > Counted in count_k1(L, R).
 
 auto solve() {
+  cin >> testL >> testR >> ws;
   u64 L = testL, R = testR;
 
   u64 A8 = ordered(L, 8, R);          // O(1)
@@ -114,12 +115,6 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> testL >> testR >> ws;
-}
-
-// *****
-
 int main() {
   N = 31623UL; // sqrt(1'000'000'000) rounded up
   small_odd_sieve();
@@ -127,7 +122,6 @@ int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

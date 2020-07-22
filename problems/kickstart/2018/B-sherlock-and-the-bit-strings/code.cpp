@@ -5,14 +5,14 @@ using namespace std;
 // *****
 
 #define MAXN 102
-#define MAXP 1000000000000000073LL
+#define MAXP 1'000'000'000'000'000'073LL
 #define MAXD 15
 
 constexpr int MASK(int n) {
   return (1 << min(n, MAXD + 1)) - 1;
 }
 
-#define GLB_MASK MASK(MAXD + 1)
+constexpr int GLB_MASK = (1 << 16) - 1;
 
 // 0001111110000
 //    ^b1  ^b2 0-indexed

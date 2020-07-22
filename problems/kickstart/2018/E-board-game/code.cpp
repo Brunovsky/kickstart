@@ -4,12 +4,12 @@ using namespace std;
 
 // *****
 
-// (3N choose N)
+// (2N choose N) and (3N choose N)
 constexpr int choose2N[] = {1, 2, 6, 20, 70, 252};
 constexpr int choose3N[] = {1, 3, 15, 84, 495, 3003};
 
 #define MAXSZ 16
-#define MAXSUM 5000001
+#define MAXSUM 5'000'001
 #define MAXID (choose3N[5] + 1)
 
 using SumMask = pair<int, int>;
@@ -202,7 +202,6 @@ auto solve() {
       } while (a2mask < SUP2MASK);
     }
 
-    // OK
     int b2mask = NMASK;
     do {
       int B2 = sum_mask(b2mask, Bremaining);
@@ -212,6 +211,7 @@ auto solve() {
       int b2 = Bid[B2];
       int b3 = Bid[B3];
 
+      // WLOG B1 >= B2 >= B3
       if (B1 >= B2) {
         beaten2[b1][b2] = sum2(BtoA[b2]);
         if (B2 >= B3) {
@@ -237,6 +237,7 @@ auto solve() {
       int b2 = Bid[B2];
       int b3 = Bid[B3];
 
+      // WLOG B1 >= B2 >= B3
       if (B1 >= B2 && B2 >= B3) {
         int size_12 = beaten2[b1][b2];
         int size_13 = beaten2[b1][b3];

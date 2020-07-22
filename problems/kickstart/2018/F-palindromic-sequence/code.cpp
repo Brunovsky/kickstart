@@ -9,7 +9,7 @@ using namespace std;
 
 // *****
 
-#define MAXK 100000000000073L
+#define MAXK 100'000'000'000'073L
 
 long pown(long n, long k) {
   long q = 1;

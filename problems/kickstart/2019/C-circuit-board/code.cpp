@@ -50,6 +50,15 @@ int subcircuit(int r, int c) {
 }
 
 auto solve() {
+  cin >> R >> C >> K >> ws;
+  V.assign(R, vector<int>(C, 0));
+  range.assign(R, vector<int>(C, 0));
+  for (int r = 0; r < R; ++r) {
+    for (int c = 0; c < C; ++c) {
+      cin >> V[r][c] >> ws;
+    }
+  }
+
   for (int r = 0; r < R; ++r) {
     rangify(r);
   }
@@ -67,24 +76,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> R >> C >> K >> ws;
-  V.assign(R, vector<int>(C, 0));
-  range.assign(R, vector<int>(C, 0));
-  for (int r = 0; r < R; ++r) {
-    for (int c = 0; c < C; ++c) {
-      cin >> V[r][c] >> ws;
-    }
-  }
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

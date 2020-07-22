@@ -58,25 +58,7 @@ void enter_dist(u32 i, u32 p) {
   }
 }
 
-const vector<u32> &solve() {
-  visited = vector<i8>(N, CLEAN);
-  dist = vector<u32>(N, N);
-
-  enter_cycle(0, 0);
-
-  for (u32 i = 0; i < N; ++i) {
-    if (dist[i] == 0) {
-      enter_dist(i, i);
-      break;
-    }
-  }
-
-  return dist;
-}
-
-// *****
-
-void reparse_test() {
+void solve() {
   cin >> N >> ws;
   adj.assign(N, {});
   for (u32 n = 0; n < N; ++n) {
@@ -86,6 +68,18 @@ void reparse_test() {
     adj[xi].push_back(yi);
     adj[yi].push_back(xi);
   }
+
+  visited.assign(N, CLEAN);
+  dist.assign(N, N);
+
+  enter_cycle(0, 0);
+
+  for (u32 i = 0; i < N; ++i) {
+    if (dist[i] == 0) {
+      enter_dist(i, i);
+      break;
+    }
+  }
 }
 
 // *****
@@ -94,10 +88,9 @@ int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
-    auto solution = solve();
+    solve();
     cout << "Case #" << t << ": ";
-    for (u32 d : solution)
+    for (u32 d : dist)
       cout << ' ' << d;
     cout << '\n';
   }

@@ -2,7 +2,7 @@
 
 ## [Alien Piano (7pts, 11pts)](https://codingcompetitions.withgoogle.com/kickstart/round/000000000019ff08/0000000000387174)
 
-Solved (live)
+Solved
 
 * Time: 18 minutes
 * Complexity: O(n)

@@ -4,30 +4,30 @@ using namespace std;
 
 using i64 = int64_t;
 
-// ***** ***** ***** ***** ***** Knuth Morris Pratt (from library)
+// Knuth Morris Pratt (from library)
 
 namespace {
 
-class knuth_morris_pratt {
+class KMP {
   vector<int> lookup_;
   string pattern;
 
 public:
-  knuth_morris_pratt(string pattern);
-  int lookup(size_t index) const;
-  size_t shift(size_t index) const;
+  KMP(string pattern);
+  int lookup(int index) const;
+  int shift(int index) const;
   const string &get_pattern() const;
 };
 
-knuth_morris_pratt::knuth_morris_pratt(string pattern) : pattern(pattern) {
-  size_t P = pattern.size();
+KMP::KMP(string pattern) : pattern(pattern) {
+  int P = pattern.size();
 
   lookup_.resize(P + 1);
 
   lookup_[0] = -1;
-  long border = 0; // need to compare against 0
+  int border = 0; // need to compare against 0
 
-  for (size_t index = 1; index < P; ++index, ++border) {
+  for (int index = 1; index < P; ++index, ++border) {
     if (pattern[index] == pattern[border]) {
       lookup_[index] = lookup_[border];
     } else {
@@ -42,29 +42,28 @@ knuth_morris_pratt::knuth_morris_pratt(string pattern) : pattern(pattern) {
   lookup_[P] = border;
 }
 
-int knuth_morris_pratt::lookup(size_t index) const {
+int KMP::lookup(int index) const {
   return lookup_[index];
 }
 
-size_t knuth_morris_pratt::shift(size_t index) const {
+int KMP::shift(int index) const {
   return index - lookup_[index];
 }
 
-const string &knuth_morris_pratt::get_pattern() const {
+const string &KMP::get_pattern() const {
   return pattern;
 }
 
-vector<size_t> knuth_morris_pratt_search(const string &text,
-                                         const knuth_morris_pratt &kmp) {
+vector<int> kmp_search(const string &text, const KMP &kmp) {
   const string &pattern = kmp.get_pattern();
-  long P = pattern.size(), T = text.size();
+  int P = pattern.size(), T = text.size();
 
-  vector<size_t> match;
+  vector<int> match;
   if (P == 0)
     return match;
 
-  long i = 0;
-  long j = 0;
+  int i = 0;
+  int j = 0;
 
   while (i <= T - P) {
     while ((j < P) && (text[i + j] == pattern[j]))
@@ -90,8 +89,6 @@ vector<size_t> knuth_morris_pratt_search(const string &text,
 
 } // namespace
 
-// ***** ***** ***** ***** *****
-
 // *****
 
 int R, C;
@@ -104,23 +101,57 @@ void fill_word_counts(const string &word) {
   if (word.empty())
     return;
 
-  knuth_morris_pratt kmp(word);
+  KMP kmp(word);
   const int l = word.size();
 
   for (int r = 1; r <= R; ++r) {
-    auto indices = knuth_morris_pratt_search(text_rows[r - 1], kmp);
+    auto indices = kmp_search(text_rows[r - 1], kmp);
     for (int c : indices)
       H[r][c + l][l] += i64(l);
   }
 
   for (int c = 1; c <= C; ++c) {
-    auto indices = knuth_morris_pratt_search(text_cols[c - 1], kmp);
+    auto indices = kmp_search(text_cols[c - 1], kmp);
     for (int r : indices)
       V[r + l][c][l] += i64(l);
   }
 }
 
+i64 gcd(i64 a, i64 b) {
+  while (a != 0) {
+    b = b % a;
+    swap(a, b);
+  }
+  return abs(b);
+}
+
 auto solve() {
+  int W;
+  cin >> R >> C >> W >> ws;
+  text_rows.assign(R, {});
+  text_cols.assign(C, {});
+  for (int r = 0; r < R; ++r) {
+    string text;
+    cin >> text >> ws;
+    assert(text.size() == size_t(C));
+    text_rows[r] = move(text);
+  }
+  for (int c = 0; c < C; ++c) {
+    text_cols[c].resize(R);
+    for (int r = 0; r < R; ++r) {
+      text_cols[c][r] = text_rows[r][c];
+    }
+  }
+  words.clear();
+  for (int w = 0; w < W; ++w) {
+    string word;
+    cin >> word;
+    int len = word.size();
+    if (len > R && len > C)
+      continue;
+    words.push_back(move(word));
+  }
+
   memset(H, 0, sizeof(H));
   memset(V, 0, sizeof(V));
 
@@ -191,47 +222,12 @@ auto solve() {
     }
   }
 
-  // poor man's gcd
-  for (i64 i = best_sum; i > 0; --i) {
-    if ((best_len % i) == 0 && (best_sum % i) == 0) {
-      best_len /= i;
-      best_sum /= i;
-      break;
-    }
-  }
+  i64 g = gcd(best_sum, best_len);
+  best_len /= g;
+  best_sum /= g;
 
   return to_string(best_len) + "/" + to_string(best_sum) + " " +
          to_string(count);
-}
-
-// *****
-
-void reparse_test() {
-  int W;
-  cin >> R >> C >> W >> ws;
-  text_rows.assign(R, {});
-  text_cols.assign(C, {});
-  for (int r = 0; r < R; ++r) {
-    string text;
-    cin >> text >> ws;
-    assert(text.size() == size_t(C));
-    text_rows[r] = move(text);
-  }
-  for (int c = 0; c < C; ++c) {
-    text_cols[c].resize(R);
-    for (int r = 0; r < R; ++r) {
-      text_cols[c][r] = text_rows[r][c];
-    }
-  }
-  words.clear();
-  for (int w = 0; w < W; ++w) {
-    string word;
-    cin >> word;
-    int len = word.size();
-    if (len > R && len > C)
-      continue;
-    words.push_back(move(word));
-  }
 }
 
 // *****
@@ -240,7 +236,6 @@ int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

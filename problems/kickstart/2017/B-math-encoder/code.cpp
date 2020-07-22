@@ -6,7 +6,7 @@ using namespace std;
 
 using i64 = int64_t;
 
-constexpr i64 MOD = 1000000007;
+constexpr i64 MOD = 1'000'000'007;
 
 auto solve() {
     i64 N;

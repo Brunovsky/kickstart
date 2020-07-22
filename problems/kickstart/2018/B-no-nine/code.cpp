@@ -29,15 +29,14 @@ u64 no_nine(u64 n) {
 
   for (int k = num_digits; k >= 2; k--) {
     int digit = digits[k - 1];
+    assert(digit != 9); // problem statement
     count += digit * 8 * pown(9, k - 2);
-    if (digit == 9) {
-      return count;
-    }
     sum = (sum + digit) % 9;
   }
 
   int D = digits[0];
-  for (int d = 0; d <= min(8, D); d++) {
+  assert(D != 9); // problem statement
+  for (int d = 0; d <= D; d++) {
     count += ((sum + d) % 9) != 0;
   }
   return count;
@@ -51,17 +50,7 @@ auto solve() {
 
 // *****
 
-void driver() {
-  for (int n = 2; n <= 200; n++) {
-    cout << n << ": " << no_nine(n);
-    if (no_nine(n) == no_nine(n - 1))
-      cout << "  <----";
-    cout << '\n';
-  }
-}
-
 int main() {
-  driver();
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {

@@ -10,6 +10,11 @@ ui N;
 vector<ui> A;
 
 auto solve() {
+  cin >> N >> ws;
+  A.assign(N, 0);
+  for (ui i = 0; i < N; ++i)
+    cin >> A[i] >> ws;
+
   sort(A.begin(), A.end());
 
   ui count = 0;
@@ -41,20 +46,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> N >> ws;
-  A.assign(N, 0);
-  for (ui i = 0; i < N; ++i)
-    cin >> A[i] >> ws;
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

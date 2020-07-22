@@ -89,6 +89,7 @@ auto solve() {
                         chmax(S[k], above[k - 1] + kth_triangle);
                     }
 
+                    // n == 0 means L is spurious
                     if (n > 0) {
                         for (int k = 1; k <= K; k++) {
                             chmax(L[k], S[k]);

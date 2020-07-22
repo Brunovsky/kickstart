@@ -16,6 +16,15 @@ struct Node {
 };
 
 auto solve() {
+  cin >> N >> K >> ws;
+  S.clear();
+  P.assign(N, 0);
+  A.assign(N, 0);
+  for (int i = 0; i < N; ++i)
+    cin >> P[i];
+  for (int i = 0; i < N; ++i)
+    cin >> A[i];
+
   B.assign(100'001, {});
   for (int i = 0; i < N; ++i)
     B[A[i]].push_back(P[i]);
@@ -63,24 +72,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> N >> K >> ws;
-  S.clear();
-  P.assign(N, 0);
-  A.assign(N, 0);
-  for (int i = 0; i < N; ++i)
-    cin >> P[i];
-  for (int i = 0; i < N; ++i)
-    cin >> A[i];
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

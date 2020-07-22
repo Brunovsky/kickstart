@@ -25,6 +25,18 @@ vector<Day> days;
 //
 
 auto solve() {
+  cin >> D >> S >> ws;
+  slots.assign(S, {});
+  days.assign(D, {});
+  for (u32 s = 0; s < S; ++s) {
+    cin >> slots[s].cod >> slots[s].eat >> ws;
+  }
+  for (u32 d = 0; d < D; ++d) {
+    cin >> days[d].coding >> days[d].eating >> ws;
+    days[d].i = d;
+    days[d].verdict = false;
+  }
+
   // Sort the days by coding requirement, increasing.
   sort(days.begin(), days.end(),
        [](const Day &d1, const Day &d2) { return d1.coding < d2.coding; });
@@ -86,27 +98,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> D >> S >> ws;
-  slots.assign(S, {});
-  days.assign(D, {});
-  for (u32 s = 0; s < S; ++s) {
-    cin >> slots[s].cod >> slots[s].eat >> ws;
-  }
-  for (u32 d = 0; d < D; ++d) {
-    cin >> days[d].coding >> days[d].eating >> ws;
-    days[d].i = d;
-    days[d].verdict = false;
-  }
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

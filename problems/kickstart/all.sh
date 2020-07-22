@@ -5,7 +5,7 @@
 CMD="$1"
 shift
 
-for folder in */*/; do
+for folder in 20*/*/; do
 	folder="${folder%/}"
 	echo "$CMD  $folder"
 	make -s -C "$folder" "$@" | sed 's/^/  /'

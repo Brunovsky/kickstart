@@ -2,7 +2,7 @@
 
 ## [Record Breaker (4pts, 8pts)]()
 
-Solved (live)
+Solved
 
 * Time: 2 minutes
 * Complexity: O(N)

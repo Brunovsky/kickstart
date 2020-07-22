@@ -63,21 +63,10 @@ bool can(int maxray) {
   for (int r = 0; r < R; ++r) {
     for (int c = 0; c < C; ++c) {
       if (main_grid[r][c] > maxray) {
-        const int sum_cell = r + c, dif_cell = r - c;
-
-        const int sum_min_cell = sum_cell - maxray;
-        const int sum_max_cell = sum_cell + maxray;
-        const int dif_min_cell = dif_cell - maxray;
-        const int dif_max_cell = dif_cell + maxray;
-
-        if (sum_min < sum_min_cell)
-          sum_min = sum_min_cell;
-        if (sum_max > sum_max_cell)
-          sum_max = sum_max_cell;
-        if (dif_min < dif_min_cell)
-          dif_min = dif_min_cell;
-        if (dif_max > dif_max_cell)
-          dif_max = dif_max_cell;
+        sum_min = min(sum_min, r + c - maxray);
+        sum_max = max(sum_max, r + c + maxray);
+        dif_min = min(dif_min, r - c - maxray);
+        dif_max = max(dif_max, r - c + maxray);
       }
     }
     if (sum_min > sum_max || dif_min > dif_max)
@@ -108,6 +97,16 @@ bool can(int maxray) {
 }
 
 auto solve() {
+  cin >> R >> C >> ws;
+  towers.assign(R, vector<bool>(C, false));
+  for (int r = 0; r < R; ++r) {
+    string text;
+    cin >> text;
+    text.resize(C);
+    for (int c = 0; c < C; ++c)
+      towers[r][c] = text[c] == '1';
+  }
+
   main_grid.assign(R, vector<int>(C, INT32_MAX));
   const int max_dist = flood_fill(main_grid);
 
@@ -131,25 +130,10 @@ auto solve() {
 
 // *****
 
-void reparse_test() {
-  cin >> R >> C >> ws;
-  towers.assign(R, vector<bool>(C, false));
-  for (int r = 0; r < R; ++r) {
-    string text;
-    cin >> text;
-    text.resize(C);
-    for (int c = 0; c < C; ++c)
-      towers[r][c] = text[c] == '1';
-  }
-}
-
-// *****
-
 int main() {
   unsigned T;
   cin >> T >> ws;
   for (unsigned t = 1; t <= T; ++t) {
-    reparse_test();
     auto solution = solve();
     cout << "Case #" << t << ": " << solution << '\n';
   }

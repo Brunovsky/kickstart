@@ -4,7 +4,7 @@ using namespace std;
 
 // *****
 
-#define MAX 200001
+#define MAX 200'001
 long double fac[MAX];
 
 long W, H, L, R, U, D;
@@ -27,7 +27,7 @@ long double under(int L, int D, int H) {
     if (L == 0 || D == H) {
         return 0.0;
     }
-    double sum = 0;
+    long double sum = 0.0;
     for (int k = 0; k < L; k++) {
         sum += choose(n, k);
     }
