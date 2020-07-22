@@ -4,11 +4,11 @@
 
 for year in 20*; do
     echo "$year"
-    for folder in $year/*/; do
-        if test -f "$folder/.skip"; then
-            continue
+    for folder in "$year"/*/; do
+        folder="${folder%/}"
+        if test -f "$folder/README.md"; then
+            problem="${folder#"$year"/}"
+            echo -e "  " $(sed '5q;d' "$folder/README.md") "\t" "$problem"
         fi
-
-        echo -e "  " $(sed '5q;d' $folder/README.md) "\t" "$folder"
     done
 done
