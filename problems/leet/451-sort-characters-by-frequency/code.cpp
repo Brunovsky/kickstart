@@ -22,7 +22,7 @@ public:
     vector<data_t> data(256);
 
     for (int i = 0; i < 256; ++i)
-      data[i] = {static_cast<unsigned char>(i), 0};
+      data[i] = {char(i), 0};
 
     for (size_t i = 0; i < s.size(); ++i)
       data[static_cast<unsigned char>(s[i])].count++;

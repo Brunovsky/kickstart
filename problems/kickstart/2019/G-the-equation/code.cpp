@@ -9,8 +9,6 @@ u64 N, M;
 vector<u64> A;
 
 auto solve() {
-  u64 maxA = *max_element(A.begin(), A.end());
-
   u64 M_power_two = 0, M_exponent_two = 0;
   if (M > 0) {
     u64 m = M;

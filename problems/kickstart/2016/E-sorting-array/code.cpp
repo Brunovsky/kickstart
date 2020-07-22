@@ -17,15 +17,15 @@ void compute_chunk_shifts() {
     for (int i = 1; i <= N; ++i) {
         int max_ij = 0;
         int min_ij = N + 1;
-        int prev_shift = N + 1;
+        int s = N + 1;
         int n = 0;
         for (int j = i; j <= N; ++j) {
             max_ij = max(max_ij, X[j]);
             min_ij = min(min_ij, X[j]);
             if (max_ij - min_ij == j - i) {
                 int shift = min_ij - i;
-                n = chunks[i][j] = (shift == prev_shift) ? n + 1 : 1;
-                prev_shift = shifts[i][j] = shift;
+                n = chunks[i][j] = (shift == s) ? n + 1 : 1;
+                s = shifts[i][j] = shift;
             }
         }
     }
@@ -66,9 +66,9 @@ auto solve2() {
                     break;
                 }
 
-                int Sl = l - L + 1;
-                int Sr = R - r + 1;
-                int shift = Sr - Sl;
+                // int Sl = l - L + 1;
+                // int Sr = R - r + 1;
+                // int shift = Sr - Sl;
                 int M_chunks = chunks[l + 1][r - 1];
                 int chunks = L_chunks + 1 + M_chunks + 1 + R_chunks;
                 K = max(K, chunks);
@@ -124,11 +124,10 @@ auto solve3() {
                 // P = 2 case
                 // swap X[L..l] and X[r..R]
                 if (L_max == R && R_min == L) {
-                    int shift = Sr - Sl;
+                    // int shift = Sr - Sl;
                     int M_chunks = chunks[l + 1][r - 1];
                     int k = L_chunks + M_chunks + R_chunks + 2;
                     K = max(K, k);
-                    continue;
                 }
 
                 // P = 3 case, right shift
@@ -142,7 +141,7 @@ auto solve3() {
                 // shifts[l+1][m1-1] == Sr - Sl
                 // shifts[m1][m2]    == Sr + S2
                 // shifts[m2+1][r-1] == Sr - Sm
-                if (R_min == L) {
+                else if (R_min == L) {
                     int S1 = shifts[L][l] - Sr;
                     int m1 = l + S1 + 1;
                     int shift_1 = Sr - Sl;
@@ -158,15 +157,14 @@ auto solve3() {
                             continue;
                         }
 
-                        int Sm = m2 - m1 + 1;
-                        int shift_2 = Sr - Sm;
+                        // int Sm = m2 - m1 + 1;
+                        // int shift_2 = Sr - Sm;
 
                         int S1_chunks = chunks[l + 1][m1 - 1];
                         int S2_chunks = chunks[m2 + 1][r - 1];
                         int k = L_chunks + R_chunks + S1_chunks + S2_chunks + 3;
                         K = max(K, k);
                     }
-                    continue;
                 }
 
                 // P = 3 case, left shift
@@ -180,7 +178,7 @@ auto solve3() {
                 // -shifts[m1][m2]    == Sl + S1
                 // -shifts[m2+1][r-1] == Sl - Sr
                 // -shifts[r][R]      == Sl + S2
-                if (L_max == R) {
+                else if (L_max == R) {
                     int S2 = -Sl - shifts[r][R];
                     int m2 = r - 1 - S2;
                     int shift_2 = Sr - Sl;
@@ -196,15 +194,14 @@ auto solve3() {
                             continue;
                         }
 
-                        int Sm = m2 - m1 + 1;
-                        int shift_1 = Sm - Sl;
+                        // int Sm = m2 - m1 + 1;
+                        // int shift_1 = Sm - Sl;
 
                         int S1_chunks = chunks[l + 1][m1 - 1];
                         int S2_chunks = chunks[m2 + 1][r - 1];
                         int k = L_chunks + R_chunks + S1_chunks + S2_chunks + 3;
                         K = max(K, k);
                     }
-                    continue;
                 }
             }
         }

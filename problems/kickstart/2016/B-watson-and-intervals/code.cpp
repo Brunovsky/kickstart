@@ -46,13 +46,13 @@ auto solve() {
     cin >> N >> L1 >> R1 >> A >> B >> C1 >> C2 >> M;
 
     vector<range> intervals(N);
-    intervals[0] = {L1, R1};
+    intervals[0] = {int(L1), int(R1)};
     i64 x = L1, y = R1;
     for (int i = 1; i < N; ++i) {
         i64 xx = (A * x + B * y + C1) % M;
         i64 yy = (A * y + B * x + C2) % M;
         x = xx, y = yy;
-        intervals[i] = {min(x, y), max(x, y)};
+        intervals[i] = {int(min(x, y)), int(max(x, y))};
     }
 
     vector<int> endp;

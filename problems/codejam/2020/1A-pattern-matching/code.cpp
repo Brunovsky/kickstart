@@ -31,7 +31,7 @@ auto solve() {
         }
     }
     string a, m, b;
-    int A = 0, M = 0, B = 0;
+    int A = 0, B = 0;
     for (int i = 0; i < N; i++) {
         const auto &p = patterns[i];
         int S = p.size();

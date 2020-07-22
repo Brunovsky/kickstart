@@ -39,7 +39,6 @@ int main() {
   vector<int> dividend{12, 10, 10, INT_MIN, INT_MAX, INT_MAX, 73, 4};
   vector<int> divisor{3, 3, -3, 1, -1, 1, 4, 1};
 
-  bool dirty = false;
   for (size_t i = 0; i < dividend.size(); ++i) {
     int div = Solution{}.divide(dividend[i], divisor[i]);
     if (div == dividend[i] / divisor[i])

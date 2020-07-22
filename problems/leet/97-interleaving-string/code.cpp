@@ -13,8 +13,7 @@ public:
     if (S1 + S2 != S3)
       return false;
 
-    uint8_t dp[S1 + 1];
-    memset(dp, 0, sizeof(dp));
+    vector<uint8_t> dp(S1 + 1, 0);
 
     dp[0] = true;
     for (int i = 0; i < S1; ++i) {

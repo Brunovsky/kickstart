@@ -58,7 +58,7 @@ auto solve() {
 
     if (eat < days[d].eating)
       continue; // exit early if impossible
-    u64 codlo = days[d].coding - cod, codrange = slots[s].cod;
+    u64 codlo = days[d].coding - cod;
 
     // f = codlo / slots[s].cod
     // decrease in day.eating: f * slots[s].eat = codlo / slots[s].cod *

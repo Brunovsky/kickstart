@@ -189,7 +189,7 @@ int main() {
   for (int t = 1; t <= 50; ++t) {
     Test test = gen(t);
     double actual = Solution{}.test(test.nums1, test.nums2);
-    if (actual == test.expected)
+    if (long(2 * actual) == long(2 * test.expected))
       continue;
     printf("Failed test %d\n> Expected: %lf\n> Actual:   %lf\n", t,
            test.expected, actual);
@@ -199,7 +199,7 @@ int main() {
     for (int k = 4; k < 10; ++k) {
       Test test = gen2(t, k);
       double actual = Solution{}.test(test.nums1, test.nums2);
-      if (actual == test.expected)
+      if (long(2 * actual) == long(2 * test.expected))
         continue;
       printf("Failed test %d\n> Expected: %lf\n> Actual:   %lf\n", t,
              test.expected, actual);

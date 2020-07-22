@@ -55,8 +55,7 @@ i64 gcd(i64 a, i64 b, i64 &x, i64 &y) {
 
 i64 invmod(i64 a, i64 mod) {
   i64 x, y;
-  auto g = gcd(a, mod, x, y);
-  assert(g == 1);
+  gcd(a, mod, x, y);
   return x < 0 ? (mod + x % mod) : (x % mod);
 }
 

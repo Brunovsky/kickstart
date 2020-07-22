@@ -16,7 +16,7 @@ struct TreeNode {
 
 class Solution {
 public:
-  void traverse(vector<vector<int>> &levels, TreeNode *root, int depth) {
+  void traverse(vector<vector<int>> &levels, TreeNode *root, unsigned depth) {
     if (!root)
       return;
     if (depth >= levels.size())
@@ -30,7 +30,7 @@ public:
   vector<vector<int>> zigzagLevelOrder(TreeNode *root) {
     vector<vector<int>> levels;
     traverse(levels, root, 0);
-    for (int i = 1; i < levels.size(); i += 2) {
+    for (uint i = 1; i < levels.size(); i += 2) {
       reverse(levels[i].begin(), levels[i].end());
     }
     return levels;

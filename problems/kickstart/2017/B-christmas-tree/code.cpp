@@ -17,34 +17,11 @@ int hi[101][101];
 #define GREEN(r, c) (grid[r - 1][c - 1] == '#')
 #define GREEN2(r, c) (GREEN(r, c - 1) && GREEN(r, c))
 
-void debug() {
-    printf("HEIGHTS\n");
-    for (int r = 1; r <= R; r++) {
-        for (int c = 1; c <= C; c++) {
-            printf("%2d ", hi[r][c]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-
-    for (int k = 1; k <= K; k++) {
-        printf("k = %d\n", k);
-        for (int r = 1; r <= R; r++) {
-            for (int c = 1; c <= C; c++) {
-                printf("%2d ", dp[r][c][k]);
-            }
-            printf("\n");
-        }
-        printf("\n");
-    }
-}
-
 auto solve() {
     cin >> R >> C >> K >> ws;
     grid.resize(R);
     for (int i = 0; i < R; ++i) {
         getline(cin, grid[i]);
-        assert(grid[i].size() == size_t(C));
     }
 
     memset(dp, 0, sizeof(dp));
@@ -58,8 +35,7 @@ auto solve() {
 
                 int n = 1;
                 int c2 = c + 2;
-                while (n < r && c2 <= C && GREEN2(r, c2) &&
-                       hi[r - n][c + n] == n) {
+                while (n < r && c2 <= C && GREEN2(r, c2) && hi[r - n][c + n] == n) {
                     hi[r - n][c + n]++;
                     n++, c2 += 2;
                 }
@@ -132,7 +108,9 @@ auto solve() {
     int best = 0;
     for (int r = 1; r <= R; r++) {
         for (int c = 1; c <= C; c++) {
-            chmax(best, dp[r][c][K]);
+            if (GREEN(r, c)) {
+                chmax(best, dp[r][c][K]);
+            }
         }
     }
     return best;

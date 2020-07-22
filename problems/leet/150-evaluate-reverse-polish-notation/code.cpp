@@ -4,7 +4,7 @@ using namespace std;
 
 // *****
 
-constexpr bool IS_TOK(const string &token) {
+inline bool IS_TOK(const string &token) {
   if (token.length() != 1)
     return false;
   char c = token[0];
@@ -14,9 +14,10 @@ constexpr bool IS_TOK(const string &token) {
 class Solution {
 public:
   int evalRPN(vector<string> &tokens) {
-    vector<int> stack((tokens.size() + 1) / 2);
+    int T = tokens.size();
+    vector<int> stack((T + 1) / 2);
     int s = 0;
-    for (int i = 0; i < tokens.size(); ++i) {
+    for (int i = 0; i < T; ++i) {
       string tok = tokens[i];
       if (IS_TOK(tok)) {
         int a = stack[s - 2];

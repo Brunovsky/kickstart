@@ -71,9 +71,6 @@ auto populate(int M1, int M2) {
 }
 
 auto solve() {
-  i64 a = 0;
-  i64 b = 0;
-
   cin >> N >> H >> ws;
   for (int i = 0; i < N; i++) {
     cin >> A[i] >> ws;

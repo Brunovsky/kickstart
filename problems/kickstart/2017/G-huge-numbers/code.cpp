@@ -7,7 +7,7 @@ using namespace std;
 using u64 = uint64_t;
 
 u64 power_mod(u64 b, u64 e, u64 mod) {
-    u64 power = 1, exp = e;
+    u64 power = 1;
     u64 mul = b % mod;
     while (e > 0) {
         if (e & 1)

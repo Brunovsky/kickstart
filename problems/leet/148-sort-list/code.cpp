@@ -25,7 +25,7 @@ class Solution {
         b = b->next;
       }
     }
-    tail->next = a ?: b;
+    tail->next = a ? a : b;
     return pre_head.next;
   }
 

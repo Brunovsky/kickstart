@@ -14,7 +14,7 @@ auto solve() {
         getline(cin, grid[i]);
     }
 
-    int r_one, c_one;
+    int r_one = -1, c_one = -1;
 
     for (int r = 0; r < N; r++) {
         int count = 0;

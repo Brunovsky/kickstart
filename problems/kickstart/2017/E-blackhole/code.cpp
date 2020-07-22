@@ -29,10 +29,7 @@ double dist(Point2D p1, Point2D p2) {
     return sqrt(dx * dx + dy * dy);
 }
 
-int intersect(Point2D p1, double r1, Point2D p2, double r2, Point2D &i1,
-              Point2D &i2) {
-    constexpr double off = 1e-6; // for assertions
-
+int intersect(Point2D p1, double r1, Point2D p2, double r2, Point2D &i1, Point2D &i2) {
     double d = dist(p1, p2);
     assert(d > 0.0);
     double dif = abs(r1 - r2);
@@ -48,8 +45,6 @@ int intersect(Point2D p1, double r1, Point2D p2, double r2, Point2D &i1,
     // the circles intersect on [p1p2]
     if (abs(d - (r1 + r2)) <= DBL_EPSILON || abs(d - dif) <= DBL_EPSILON) {
         i1 = {X, Y};
-        assert(abs(dist(i1, p1) - r1) <= off);
-        assert(abs(dist(i1, p2) - r2) <= off);
         return 1;
     }
     double h = sqrt((r1 - d1) * (r1 + d1));
@@ -57,16 +52,11 @@ int intersect(Point2D p1, double r1, Point2D p2, double r2, Point2D &i1,
     double Yh = h * (p1.X - p2.X) / d;
     i1 = {X + Xh, Y + Yh};
     i2 = {X - Xh, Y - Yh};
-    assert(abs(dist(i1, p1) - r1) <= off);
-    assert(abs(dist(i1, p2) - r2) <= off);
-    assert(abs(dist(i2, p1) - r1) <= off);
-    assert(abs(dist(i2, p2) - r2) <= off);
     return 2;
 }
 
 // whether an intersection of O(p1,r1) and O(p2,r2) is inside O(p3,r3)
-bool cross_inside(Point2D p1, double r1, Point2D p2, double r2, Point2D p3,
-                  double r3) {
+bool cross_inside(Point2D p1, double r1, Point2D p2, double r2, Point2D p3, double r3) {
     Point2D i1, i2;
     int count = intersect(p1, r1, p2, r2, i1, i2);
     // intersection i1 is inside O(p3,r3)
@@ -87,13 +77,13 @@ bool circle_inside(Point2D p1, Point2D p2, double r2, Point2D p3, double r3) {
 }
 
 // whether there exists a point inside all circles
-bool exists_common_point(Point2D p1, double r1, Point2D p2, double r2,
-                         Point2D p3, double r3) {
-    return cross_inside(p1, r1, p2, r2, p3, r3) ||
-           cross_inside(p2, r2, p3, r3, p1, r1) ||
-           cross_inside(p3, r3, p1, r1, p2, r2) ||
-           circle_inside(p1, p2, r2, p3, r3) ||
-           circle_inside(p2, p3, r3, p1, r1) ||
+bool exists_common_point(Point2D p1, double r1, Point2D p2, double r2, Point2D p3,
+                         double r3) {
+    return cross_inside(p1, r1, p2, r2, p3, r3) || //
+           cross_inside(p2, r2, p3, r3, p1, r1) || //
+           cross_inside(p3, r3, p1, r1, p2, r2) || //
+           circle_inside(p1, p2, r2, p3, r3) ||    //
+           circle_inside(p2, p3, r3, p1, r1) ||    //
            circle_inside(p3, p1, r1, p2, r2);
 }
 

@@ -27,7 +27,6 @@ auto solve() {
         for (u64 i = 1; i < n; ++i) {
             const auto &L = f[i];
             const auto &R = f[n - i];
-            u64 one = L.one;
             u64 C0 = L.one * (R.C0) % M;
             u64 C1 = L.one * (R.C1 + 2 * R.C0) % M;
             u64 C2 = L.one * (R.C2 + R.C1 + R.C0) % M;

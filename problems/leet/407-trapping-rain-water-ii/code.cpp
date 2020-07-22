@@ -25,8 +25,7 @@ public:
     };
 
     set<point, function<bool(point, point)>> valleys(cmp);
-    uint8_t F[R][C];
-    memset(F, 0, sizeof(F));
+    vector<vector<uint8_t>> F(R, vector<uint8_t>(C, 0));
 
     for (int r = 0; r < R; ++r) {
       valleys.insert({r, 0});

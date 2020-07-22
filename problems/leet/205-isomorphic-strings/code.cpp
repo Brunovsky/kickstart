@@ -10,12 +10,13 @@ public:
     char st[128] = {0};
     char ts[128] = {0};
     for (int i = 0, S = s.size(); i < S; i++) {
-      // st[cs] == ct  and ts[ct] == cs
-      if (st[s[i]] == 0)
-        st[s[i]] = t[i];
-      if (ts[t[i]] == 0)
-        ts[t[i]] = s[i];
-      if (st[s[i]] != t[i] || ts[t[i]] != s[i])
+      char &smap = st[int(s[i])];
+      char &tmap = ts[int(t[i])];
+      if (smap == 0)
+        smap = t[i];
+      if (tmap == 0)
+        tmap = s[i];
+      if (smap != t[i] || tmap != s[i])
         return false;
     }
     return true;
