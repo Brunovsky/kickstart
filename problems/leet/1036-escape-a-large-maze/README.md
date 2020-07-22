@@ -2,7 +2,7 @@
 
 ## [1036. Escape a Large Maze](https://leetcode.com/problems/escape-a-large-maze/)
 
-Failed solution (too slow)
+Too slow
 
 * Time: 2 hours
 * Complexity: -

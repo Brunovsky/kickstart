@@ -2,7 +2,9 @@
 
 ## [200. Number of Islands](https://leetcode.com/problems/number-of-islands/)
 
-Solved, classic floodfill problem
+Solved
+
+Classic floodfill problem
 
 * Complexity: O(RC)
 * Memory: O(1) if inplace, O(RC) otherwise, maybe better

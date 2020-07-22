@@ -2,7 +2,9 @@
 
 ## [29. Divide Two Integers](https://leetcode.com/problems/divide-two-integers)
 
-Solved with much hate
+Solved
+
+With much hate
 
 * Complexity: -
 * Memory: -

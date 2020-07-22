@@ -2,7 +2,7 @@
 
 ## [65. Valid Number](https://leetcode.com/problems/valid-number)
 
-Solved :D
+Solved
 
 * Complexity: O(L)
 * Memory: depends on the engine

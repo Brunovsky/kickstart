@@ -2,7 +2,9 @@
 
 ## [43. Multiply Strings](https://leetcode.com/problems/multiply-strings)
 
-Solved, standard multiplication
+Solved
+
+Standard multiplication
 
 * Complexity: O(N1 N2)
 * Memory: O(N1 + N2)
