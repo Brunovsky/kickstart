@@ -15,6 +15,12 @@ kickstart-cpp:
 kickstart-interactive kickstart-interactive-cpp:
 	@./scripts/kickstart.py cpp-interactive
 
+codejam-cpp:
+	@./scripts/codejam.py cpp
+
+codejam-interactive codejam-interactive-cpp:
+	@./scripts/codejam.py cpp-interactive
+
 leet-cpp:
 	@./scripts/leet.py cpp
 
@@ -23,9 +29,6 @@ leet-shell:
 
 leet-js:
 	@./scripts/leet.py js
-
-codejam-cpp:
-	@./scripts/codejam.py cpp
 
 formatall:
 	@clang-format --fallback-style=none -i $(shell find . -name '*.cpp' -type f)

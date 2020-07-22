@@ -105,4 +105,12 @@ if template == "cpp":
     os.symlink("../../../../templates/codejam-cpp/Makefile",
                f"{folder}/Makefile")
 
+# Copy template
+if template == "cpp-interactive":
+    shutil.copy("templates/codejam-cpp-interactive/code.cpp", folder)
+    shutil.copy("templates/codejam-cpp-interactive/input.txt", folder)
+    os.symlink("../../../../templates/codejam-cpp-interactive/Makefile",
+               f"{folder}/Makefile")
+    print("Don't forget to add the testing tool (testing_tool.py)")
+
 subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/input.txt"])
