@@ -1,9 +1,11 @@
 ---
 Language: Cpp
 BasedOnStyle: Google
-AccessModifierOffset: -4 # -1
+#AccessModifierOffset: -1
+AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
-AlignConsecutiveMacros: true # false
+#AlignConsecutiveMacros: false
+AlignConsecutiveMacros: true
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
 AlignEscapedNewlines: Left
@@ -12,10 +14,13 @@ AlignTrailingComments: true
 AllowAllArgumentsOnNextLine: true
 AllowAllConstructorInitializersOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: Empty # Never
+#AllowShortBlocksOnASingleLine: Never
+AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Empty # All
-AllowShortLambdasOnASingleLine: Empty # All
+#AllowShortFunctionsOnASingleLine: All
+AllowShortFunctionsOnASingleLine: Empty
+#AllowShortLambdasOnASingleLine: All
+AllowShortLambdasOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterReturnType: None
@@ -29,10 +34,12 @@ BreakInheritanceList: BeforeColon
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
 BreakStringLiterals: true
-ColumnLimit: 90 # 80
+#ColumnLimit: 80
+ColumnLimit: 90
 CommentPragmas: "^ IWYU pragma:"
 CompactNamespaces: false
-ConstructorInitializerAllOnOneLineOrOnePerLine: false # true
+#ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
@@ -46,9 +53,9 @@ ForEachMacros:
     - Q_FOREACH
     - BOOST_FOREACH
 IncludeBlocks: Regroup
-#IndentCaseBlocks: false
-IndentCaseLabels: false # true
-IndentGotoLabels: true # true
+#IndentCaseLabels: true
+IndentCaseLabels: false
+IndentGotoLabels: true
 IndentPPDirectives: None
 IndentWidth: 4
 IndentWrappedFunctionNames: false
