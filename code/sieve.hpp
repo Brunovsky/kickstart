@@ -32,10 +32,13 @@ void odd_sieve() {
 
 // count number of primes in range [L, R]
 u64 count_odd_primes(u64 L, u64 R) {
-    assert(L <= R && R <= N * N);
-
-    L |= 1, R |= 1;
+    assert(R <= N * N);
+    L = L | 1;
+    R = (R - 1) | 1;
     L = max(3UL, L);
+    if (R < L) {
+        return 0;
+    }
     vector<bool> is_composite((R - L + 2) / 2, false);
 
     for (u64 p : odd_primes) {
@@ -44,14 +47,14 @@ u64 count_odd_primes(u64 L, u64 R) {
         }
         u64 k = max((p + L - 1) / p | 1, p);
         for (u64 n = k * p, i = (n - L) >> 1; n <= R; i += p, n += 2 * p) {
-            is_composite[i] = 1;
+            is_composite[i] = true;
         }
     }
 
     // alternatively, gather them up in a vector
     u64 count = 0;
-    for (u64 c : is_composite) {
-        count += !c;
+    for (bool b : is_composite) {
+        count += !b;
     }
     return count;
 }
