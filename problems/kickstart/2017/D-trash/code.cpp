@@ -2,7 +2,7 @@
 
 using namespace std;
 
-// ****
+// *****
 
 struct Obstacle {
     int X, Y;
@@ -82,7 +82,7 @@ bool check(double R) {
         double &aover = ranges[i].aover;
         a_around(O[i].X, O[i].Y, R, aunder, aover);
     }
-    sort(ranges.begin(), ranges.end());
+    sort(begin(ranges), end(ranges));
     double top = 0.0;
     for (int i = 0; i < N; i++) {
         double aunder = ranges[i].aunder;

@@ -2,6 +2,8 @@
 
 using namespace std;
 
+// *****
+
 // N = 2
 // =====
 // see code below for definitions of D1, D2, E1, E2
@@ -52,8 +54,6 @@ using namespace std;
 // to finish (maximize se and sd) we apply the fact that the maximum of se (resp. sd) will
 // be reached when one of the terms is maximized - e1=E1 or e2=E2 (resp. d1=D1 or d2=D2).
 
-// *****
-
 int N, Q;
 string A1s, A2s, Bs;
 
@@ -91,8 +91,6 @@ auto solve2() {
     int S1, S2;
     cin >> S1 >> S2 >> ws;
 
-    // patterns are bits for A1A2B.
-
     // A1 and A2 gave different answers
     // ... and B matches A1
     int D1 = ((~A1 & A2 & ~B) | (A1 & ~A2 & B)).count(); // 010, 101
@@ -104,8 +102,6 @@ auto solve2() {
     int E1 = ((~A1 & ~A2 & B) | (A1 & A2 & ~B)).count(); // 001, 110
     // ... and B gave the same answer too
     int E2 = Q - D1 - D2 - E1; // 000, 111
-
-    // magical thinking indeed:
 
     int dd = ((S1 + D1) - (S2 + D2)) / 2;   // d1 - d2
     int sd = min(2 * D1 - dd, 2 * D2 + dd); // d1 + d2

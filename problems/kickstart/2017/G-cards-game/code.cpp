@@ -4,50 +4,58 @@ using namespace std;
 
 // *****
 
-// Kruskal with weak disjoint-set
-
 struct edge_t {
-    uint i, j, w;
+    int i, j, w;
 };
 
+bool operator<(edge_t u, edge_t v) {
+    return make_tuple(u.w, u.i, u.j) < make_tuple(v.w, v.i, v.j);
+}
+
+vector<int> parent;
+
+int find(int i) {
+    while (i != parent[i]) {
+        i = parent[i] = parent[parent[i]];
+    }
+    return i;
+}
+
+int join(int i, int j) {
+    return parent[find(j)] = find(i);
+}
+
 auto solve() {
-    uint N;
+    int N;
     cin >> N;
-    vector<uint> A(N), B(N);
-    for (uint i = 0; i < N; ++i)
+    vector<int> A(N), B(N);
+    for (int i = 0; i < N; ++i) {
         cin >> A[i];
-    for (uint i = 0; i < N; ++i)
+    }
+    for (int i = 0; i < N; ++i) {
         cin >> B[i];
+    }
 
     vector<edge_t> adj(N * (N - 1) / 2);
-    uint k = 0;
-    for (uint i = 0; i < N; ++i)
-        for (uint j = i + 1; j < N; ++j)
+    int k = 0;
+    for (int i = 0; i < N; ++i) {
+        for (int j = i + 1; j < N; ++j) {
             adj[k++] = {i, j, min(A[i] ^ B[j], A[j] ^ B[i])};
-    assert(k == N * (N - 1) / 2);
+        }
+    }
+    sort(begin(adj), end(adj));
 
-    sort(adj.begin(), adj.end(), [&](edge_t u, edge_t v) {
-        return tie(u.w, u.i, u.j) < tie(v.w, v.i, v.j);
-    });
+    parent.assign(N, {});
+    iota(begin(parent), end(parent), 0);
 
-    vector<uint> next(N);
-    iota(next.begin(), next.end(), 0);
-
-    auto find = [&](uint i) {
-        while (i != next[i])
-            i = next[i] = next[next[i]];
-        return i;
-    };
-
-    auto join = [&](uint i, uint j) { return next[find(j)] = find(i); };
-
-    uint64_t sum = 0, n = 0, edges = 0;
+    long sum = 0, n = 0, edges = 0;
 
     while (edges < N - 1) {
-        uint i = adj[n].i, j = adj[n].j, w = adj[n].w;
+        int i = adj[n].i, j = adj[n].j, w = adj[n].w;
         ++n;
-        if (find(i) == find(j))
+        if (find(i) == find(j)) {
             continue;
+        }
         sum += w;
         join(i, j);
         ++edges;

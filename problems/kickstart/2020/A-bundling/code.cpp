@@ -13,11 +13,8 @@ using iter_t = vector<string>::const_iterator;
 
 #define DONE '\0'
 
-char get_index(iter_t iter, size_t i) {
-    assert(i <= iter->size());
-    if (i == iter->size())
-        return DONE;
-    return (*iter)[i];
+char at(iter_t iter, size_t i) {
+    return i == iter->size() ? DONE : (*iter)[i];
 }
 
 bundle_t make_bundle(iter_t begin, iter_t end, size_t i, int K) {
@@ -25,13 +22,14 @@ bundle_t make_bundle(iter_t begin, iter_t end, size_t i, int K) {
 
     while (begin != end) {
         iter_t it = begin;
-        char c = get_index(it, i);
+        char c = at(it, i);
         int moved = 0;
-        while (it != end && get_index(it, i) == c)
+        while (it != end && at(it, i) == c) {
             ++it, ++moved;
-        if (moved < K)
+        }
+        if (moved < K) {
             bundle.excess += moved;
-        else if (c == DONE) {
+        } else if (c == DONE) {
             bundle.score += i * (moved / K);
             bundle.excess += (moved % K);
         } else {
@@ -51,12 +49,11 @@ auto solve() {
     int N, K;
     cin >> N >> K;
     vector<string> s(N);
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < N; ++i) {
         cin >> s[i];
-
-    sort(s.begin(), s.end());
-
-    return make_bundle(s.begin(), s.end(), 0, K).score;
+    }
+    sort(begin(s), end(s));
+    return make_bundle(begin(s), end(s), 0, K).score;
 }
 
 // *****

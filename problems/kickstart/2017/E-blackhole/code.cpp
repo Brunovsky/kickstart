@@ -6,10 +6,8 @@ using namespace std;
 
 // following analysis
 
-using i64 = int64_t;
-
 struct Point3D {
-    i64 X, Y, Z;
+    long X, Y, Z;
 };
 
 struct Point2D {
@@ -17,9 +15,9 @@ struct Point2D {
 };
 
 double dist(Point3D p1, Point3D p2) {
-    i64 dx = p1.X - p2.X;
-    i64 dy = p1.Y - p2.Y;
-    i64 dz = p1.Z - p2.Z;
+    long dx = p1.X - p2.X;
+    long dy = p1.Y - p2.Y;
+    long dz = p1.Z - p2.Z;
     return sqrt(dx * dx + dy * dy + dz * dz);
 }
 
@@ -60,12 +58,12 @@ bool cross_inside(Point2D p1, double r1, Point2D p2, double r2, Point2D p3, doub
     Point2D i1, i2;
     int count = intersect(p1, r1, p2, r2, i1, i2);
     // intersection i1 is inside O(p3,r3)
-    if (count >= 1 && dist(i1, p3) <= r3)
+    if (count >= 1 && dist(i1, p3) <= r3) {
         return true;
+    }
     // intersection i2 is inside O(p3,r3)
-    if (count >= 2 && dist(i2, p3) <= r3)
+    if (count >= 2 && dist(i2, p3) <= r3) {
         return true;
-    if (count == 0) {
     }
     return false;
 }

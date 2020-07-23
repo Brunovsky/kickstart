@@ -66,9 +66,6 @@ auto solve2() {
                     break;
                 }
 
-                // int Sl = l - L + 1;
-                // int Sr = R - r + 1;
-                // int shift = Sr - Sl;
                 int M_chunks = chunks[l + 1][r - 1];
                 int chunks = L_chunks + 1 + M_chunks + 1 + R_chunks;
                 K = max(K, chunks);
@@ -155,10 +152,6 @@ auto solve3() {
                             continue;
                         }
 
-                        int Sm = m2 - m1 + 1;
-                        assert(!S2 || shifts[m2 + 1][r - 1] == Sr - Sm);
-                        (void)Sm;
-
                         int S1_chunks = chunks[l + 1][m1 - 1];
                         int S2_chunks = chunks[m2 + 1][r - 1];
                         int k = L_chunks + R_chunks + S1_chunks + S2_chunks + 3;
@@ -191,10 +184,6 @@ auto solve3() {
                         if (-shifts[m1][m2] != Sl + S1) {
                             continue;
                         }
-
-                        int Sm = m2 - m1 + 1;
-                        assert(!S1 || -shifts[l + 1][m1 - 1] == Sl - Sm);
-                        (void)Sm;
 
                         int S1_chunks = chunks[l + 1][m1 - 1];
                         int S2_chunks = chunks[m2 + 1][r - 1];

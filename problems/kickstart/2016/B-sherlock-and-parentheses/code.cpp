@@ -5,7 +5,7 @@ using namespace std;
 // *****
 
 auto solve() {
-    uint64_t L, R, N;
+    ulong L, R, N;
     cin >> L >> R >> ws;
     N = min(L, R);
     return N * (N + 1) / 2;

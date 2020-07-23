@@ -9,18 +9,19 @@ auto solve() {
     vector<int> A;
     cin >> N >> K;
     A.resize(N);
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < N; ++i) {
         cin >> A[i];
-
-    int count = 0;
-    for (int i = 0; i < N - K + 1; ++i) {
-        for (int j = i, n = K; j < i + K; ++j, --n)
-            if (A[j] != n)
-                goto next;
-        ++count;
-    next:;
     }
 
+    int count = N - K + 1;
+    for (int i = 0; i < N - K + 1; ++i) {
+        for (int j = i, n = K; j < i + K; ++j, --n) {
+            if (A[j] != n) {
+                count--;
+                break;
+            }
+        }
+    }
     return count;
 }
 

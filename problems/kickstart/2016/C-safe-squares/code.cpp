@@ -20,7 +20,7 @@ auto solve() {
             grid[r][c] += grid[r][c - 1] + grid[r - 1][c] - grid[r - 1][c - 1];
         }
     }
-    uint64_t count = R * C - K;
+    long count = R * C - K;
     for (int len = 2, most = min(R, C); len <= most; ++len) {
         for (int r = len; r <= R; ++r) {
             for (int c = len; c <= C; ++c) {
@@ -29,8 +29,7 @@ auto solve() {
                 int sw = grid[r][c - len];
                 int se = grid[r][c];
                 int monsters = se - (sw + ne) + nw;
-                if (monsters == 0)
-                    ++count;
+                count += monsters == 0;
             }
         }
     }

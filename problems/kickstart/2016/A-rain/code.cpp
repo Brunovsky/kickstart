@@ -21,15 +21,16 @@ bool is_sea(point p) {
     return p.r < 0 || p.c < 0 || p.r >= R || p.c >= C;
 }
 
-const vector<point> adj = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+constexpr point dd[4] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
 auto solve() {
     memset(H, 0, sizeof(H));
     memset(W, 0, sizeof(W));
     memset(F, 0, sizeof(F));
     cin >> R >> C >> ws;
-    if (R <= 2 || C <= 2)
+    if (R <= 2 || C <= 2) {
         return 0;
+    }
     assert(R <= 50 && C <= 50);
 
     for (int r = 0; r < R; ++r) {
@@ -59,8 +60,8 @@ auto solve() {
         F[V.r][V.c] = true;
         int hV = W[V.r][V.c];
 
-        for (point off : adj) {
-            point N = {V.r + off.r, V.c + off.c};
+        for (point d : dd) {
+            point N = {V.r + d.r, V.c + d.c};
             if (is_sea(N) || F[N.r][N.c]) {
                 continue;
             }

@@ -31,10 +31,10 @@ bool D_cmp(int i, int j) {
 void prepare() {
     As.resize(N);
     Ds.resize(N);
-    iota(As.begin(), As.end(), 0);
-    iota(Ds.begin(), Ds.end(), 0);
-    sort(As.begin(), As.end(), A_cmp);
-    sort(Ds.begin(), Ds.end(), D_cmp);
+    iota(begin(As), end(As), 0);
+    iota(begin(Ds), end(Ds), 0);
+    sort(begin(As), end(As), A_cmp);
+    sort(begin(Ds), end(Ds), D_cmp);
 
     int i, k;
     i = k = 0;
@@ -59,20 +59,20 @@ bool visit(int a, int d) {
     soldier_t A = soldiers[As[a]];
     soldier_t D = soldiers[Ds[d]];
 
-    if (A.D > D.D || A.A < D.A)
+    if (A.D > D.D || A.A < D.A || W[A.A][D.D]) {
         return false;
-
-    if (W[A.A][D.D])
-        return false;
+    }
 
     // the current bound can be achieved from first play
-    if (A == D)
+    if (A == D) {
         return true;
+    }
 
     for (int i = 0; i < a; ++i) {
         soldier_t u = soldiers[As[i]];
-        if (u.A >= A.A)
+        if (u.A >= A.A) {
             break;
+        }
         if (u.D <= D.D) {
             W[u.A][D.D] = true;
         }
@@ -80,8 +80,9 @@ bool visit(int a, int d) {
 
     for (int i = 0; i < d; ++i) {
         soldier_t u = soldiers[Ds[i]];
-        if (u.D >= D.D)
+        if (u.D >= D.D) {
             break;
+        }
         if (u.A <= A.A) {
             W[A.A][u.D] = true;
         }
@@ -93,8 +94,9 @@ bool visit(int a, int d) {
 auto solve() {
     cin >> N >> ws;
     soldiers.resize(N);
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < N; ++i) {
         cin >> soldiers[i].A >> soldiers[i].D >> ws;
+    }
 
     prepare();
     memset(W, 0, sizeof(W));

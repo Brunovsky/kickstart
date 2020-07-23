@@ -15,8 +15,9 @@ auto solve() {
     int maximum = -1;
     int records = 0;
     for (int i = 0; i < N; ++i) {
-        if (V[i] > maximum && (i + 1 == N || V[i] > V[i + 1]))
+        if (V[i] > maximum && (i + 1 == N || V[i] > V[i + 1])) {
             ++records;
+        }
         maximum = max(V[i], maximum);
     }
     return records;

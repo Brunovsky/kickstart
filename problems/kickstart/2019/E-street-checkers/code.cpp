@@ -1,88 +1,85 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-using u64 = uint64_t;
-using i8 = int8_t;
 
 // *****
 
-u64 testL, testR, N;
-vector<u64> small_primes;
+ulong N;
+vector<ulong> small_primes;
 
-static bool ordered(u64 a, u64 b, u64 c) noexcept {
-  return a <= b && b <= c;
+inline bool ordered(ulong a, ulong b, ulong c) {
+    return a <= b && b <= c;
 }
 
 // Find all odd primes at most N, inclusive. Start at 3.
 void small_odd_sieve() {
-  assert(small_primes.empty());
-  small_primes.reserve(30'000);
-  N |= 1; // make N odd.
+    assert(small_primes.empty());
+    small_primes.reserve(30'000);
+    N |= 1; // make N odd.
 
-  vector<i8> is_composite(N / 2, 0);
+    vector<int8_t> is_composite(N / 2, 0);
 
-  for (u64 n = 3, i = 0; n <= N; ++i, n += 2) {
-    if (is_composite[i])
-      continue;
-    for (u64 j = n * n; j <= N; j += 2 * n) {
-      is_composite[(j - 3) / 2] = 1;
+    for (ulong n = 3, i = 0; n <= N; ++i, n += 2) {
+        if (is_composite[i]) {
+            continue;
+        }
+        ulong m = n * n;
+        for (ulong j = (m - 3) >> 1; m <= N; j += n, m += 2 * n) {
+            is_composite[j] = 1;
+        }
     }
-  }
 
-  for (u64 i = 0, n = 3; n <= N; ++i, n += 2) {
-    if (!is_composite[i])
-      small_primes.push_back(n);
-  }
+    for (ulong i = 0, n = 3; n <= N; ++i, n += 2) {
+        if (!is_composite[i]) {
+            small_primes.push_back(n);
+        }
+    }
 }
 
 // Count all odd primes in [L, R], inclusive. Require R at most N * N.
-u64 sieve(u64 L, u64 R) {
-  assert(R <= N * N);
+ulong sieve(ulong L, ulong R) {
+    assert(R <= N * N);
 
-  if (R < L || R == 0)
-    return 0;
-  L = L | 1;
-  R = (R - 1) | 1;
-  if (R < L)
-    return 0;
-
-  vector<i8> is_composite((R - L + 2) / 2, 0);
-  u64 count = 0;
-
-  for (const u64 p : small_primes) {
-    if (p * p > R)
-      break;
-
-    // (k-1)p < L <= kp
-    // (k-1) < L/p <= k
-
-    const u64 k = max((p + L - 1) / p | 1, p);
-    u64 n = k * p;
-
-    for (; n <= R; n += 2 * p) {
-      assert(ordered(L, n, R) && n == (n | 1));
-      is_composite[(n - L) >> 1] = 1;
+    if (R < L || R == 0) {
+        return 0;
     }
-  }
+    L = L | 1;
+    R = (R - 1) | 1;
+    if (R < L) {
+        return 0;
+    }
 
-  for (u64 comp : is_composite)
-    count += !comp;
+    vector<int8_t> is_composite((R - L + 2) / 2, 0);
 
-  return count;
+    for (const ulong p : small_primes) {
+        if (p * p > R) {
+            break;
+        }
+        const ulong k = max((p + L - 1) / p | 1, p);
+        ulong n = k * p;
+        for (ulong i = (n - L) >> 1; n <= R; i += p, n += 2 * p) {
+            is_composite[i] = 1;
+        }
+    }
+
+    ulong count = 0;
+    for (bool b : is_composite) {
+        count += !b;
+    }
+    return count;
 }
 
 // Count integers in the range [L, R] that are 2 modulo 4.
 // There are cleaner ways of doing this
-u64 count_k1(u64 L, u64 R) {
-  u64 count = (R - L) / 4;
-  u64 Lhi = L + (R - L) % 4;
-
-  for (u64 n = L; n <= Lhi; ++n) {
-    if ((n % 4) == 2)
-      ++count;
-  }
-
-  return count;
+ulong count_k1(ulong L, ulong R) {
+    ulong count = (R - L) / 4;
+    ulong Lhi = L + (R - L) % 4;
+    for (ulong n = L; n <= Lhi; ++n) {
+        if ((n % 4) == 2) {
+            ++count;
+        }
+    }
+    return count;
 }
 
 // X = 2^k * SUM(pi^ei)
@@ -101,29 +98,28 @@ u64 count_k1(u64 L, u64 R) {
 //  > Counted in count_k1(L, R).
 
 auto solve() {
-  cin >> testL >> testR >> ws;
-  u64 L = testL, R = testR;
+    ulong L, R;
+    cin >> L >> R >> ws;
 
-  u64 A8 = ordered(L, 8, R);          // O(1)
-  u64 B1 = sieve(L, R);               // O((R - L) sqrt R)
-  u64 B2 = sieve((L + 3) / 4, R / 4); // O((R - L) sqrt R)
-  u64 C = count_k1(L, R);             // O(1)
-  u64 total = A8 + B1 + B2 + C;
+    ulong A8 = ordered(L, 8, R);          // O(1)
+    ulong B1 = sieve(L, R);               // O((R - L) sqrt R)
+    ulong B2 = sieve((L + 3) / 4, R / 4); // O((R - L) sqrt R)
+    ulong C = count_k1(L, R);             // O(1)
+    ulong total = A8 + B1 + B2 + C;
 
-  return total;
+    return total;
 }
 
 // *****
 
 int main() {
-  N = 31623UL; // sqrt(1'000'000'000) rounded up
-  small_odd_sieve();
-
-  unsigned T;
-  cin >> T >> ws;
-  for (unsigned t = 1; t <= T; ++t) {
-    auto solution = solve();
-    cout << "Case #" << t << ": " << solution << '\n';
-  }
-  return 0;
+    N = 31623UL; // sqrt(1'000'000'000) rounded up
+    small_odd_sieve();
+    unsigned T;
+    cin >> T >> ws;
+    for (unsigned t = 1; t <= T; ++t) {
+        auto solution = solve();
+        cout << "Case #" << t << ": " << solution << '\n';
+    }
+    return 0;
 }

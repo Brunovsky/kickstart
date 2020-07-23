@@ -2,19 +2,19 @@
 
 using namespace std;
 
-#define chmax(store, value) store = max(store, value)
-
 // *****
+
+#define chmax(store, value) store = max(store, value)
 
 int R, C, K;
 vector<string> grid;
 
 // dp[r][c][k]: maxsize of k-christmas tree seated on (r,c)
-int dp[101][101][101];
 // hi[r][c]: height of the tree rooted on (r,c)
+int dp[101][101][101];
 int hi[101][101];
 
-#define GREEN(r, c) (grid[r - 1][c - 1] == '#')
+#define GREEN(r, c)  (grid[r - 1][c - 1] == '#')
 #define GREEN2(r, c) (GREEN(r, c - 1) && GREEN(r, c))
 
 auto solve() {

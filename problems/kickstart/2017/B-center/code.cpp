@@ -24,8 +24,9 @@ auto solve() {
     int N;
     cin >> N >> ws;
 
-    if (N == 1)
+    if (N == 1) {
         return 0.0;
+    }
 
     vector<point_t> A(N);
     vector<point_t> B(N);
@@ -41,8 +42,8 @@ auto solve() {
         min_Y = min(min_Y, point.Y);
     }
 
-    sort(A.begin(), A.end(), cmp_n1);
-    sort(B.begin(), B.end(), cmp_p1);
+    sort(begin(A), end(A), cmp_n1);
+    sort(begin(B), end(B), cmp_p1);
 
     double sX = min_X - 1.0, sY = min_Y - 1.0;
     double c1 = sX + sY, c2 = sX - sY;

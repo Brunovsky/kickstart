@@ -4,26 +4,22 @@ using namespace std;
 
 // *****
 
-using i64 = int64_t;
-
-constexpr i64 MOD = 1'000'000'007;
+constexpr long MOD = 1'000'000'007;
 
 auto solve() {
-    i64 N;
+    long N;
     cin >> N;
-    vector<i64> nums(N);
-    for (i64 i = 0; i < N; ++i) {
+    vector<long> nums(N);
+    for (long i = 0; i < N; ++i) {
         cin >> nums[i];
     }
 
-    sort(nums.begin(), nums.end());
+    sort(begin(nums), end(nums));
 
-    i64 sum = 0, power = 1;
-    for (i64 i = 0, j = N - 1; i < N; ++i, --j) {
-        sum += nums[i] * power;
-        sum -= nums[j] * power;
-        sum = sum % MOD;
-        power = (2 * power) % MOD;
+    long sum = 0, pow2 = 1;
+    for (long i = 0, j = N - 1; i < N; ++i, --j) {
+        sum = (sum + (nums[i] - nums[j]) * pow2) % MOD;
+        pow2 = (2 * pow2) % MOD;
     }
 
     return sum;

@@ -53,7 +53,7 @@ auto solve() {
 
     if (N == 2) {
         int cost = adj[1][0].cost;
-        return double(cost) * P;
+        return 1.0 * cost * P;
     }
 
     cost.resize(N + 1, 0);

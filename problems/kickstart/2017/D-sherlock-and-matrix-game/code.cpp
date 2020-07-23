@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
 
@@ -10,7 +11,7 @@ using min_tree = gnu::tree<pair<int, int>, gnu::null_type, less<pair<int, int>>,
 
 // *****
 
-#define MAXSUM 100'000'073L
+#define MAXSUM  100'000'073L
 #define MAXPROD (MAXSUM * MAXSUM)
 
 void read(long &N, long &K, vector<long> &A, vector<long> &B) {
@@ -60,8 +61,9 @@ auto gen_sums(const vector<long> &V, int n, int K) {
         // sum - prefix >= n
         for (auto p : tree) {
             long subsum = sum - p.first;
-            if (n >= subsum)
+            if (n >= subsum) {
                 break;
+            }
             sums.push_back(subsum);
         }
         tree.insert({sum, i + 1});
@@ -117,7 +119,7 @@ auto find_and_gen(vector<long> &V, long K) {
     auto smallest_sums = gen_sums(V, kth_smallest, K);
     sym(V);
     sym(smallest_sums);
-    reverse(smallest_sums.begin(), smallest_sums.end());
+    reverse(begin(smallest_sums), end(smallest_sums));
 
     smallest_sums.resize(2 * K);
     for (long i = 0; i < K; i++) {

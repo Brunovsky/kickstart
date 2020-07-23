@@ -14,7 +14,7 @@ auto solve() {
     for (int i = 0; i < N; i++) {
         cin >> S[i];
     }
-    sort(S.begin(), S.end());
+    sort(begin(S), end(S));
     P.resize(N + 1, 0);
     for (int i = 0; i < N; i++) {
         P[i + 1] = P[i] + S[i];

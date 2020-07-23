@@ -1,85 +1,76 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-using u32 = uint32_t;
-using u64 = uint64_t;
 
 // *****
 
-u32 N;
-vector<vector<u32>> M;
+#define MAXN 15
+
+int N;
+int M[MAXN][MAXN];
 
 struct edge_t {
-  u32 i, j;
-
-  friend bool operator<(edge_t lhs, edge_t rhs) noexcept {
-    return M[lhs.i][lhs.j] < M[rhs.i][rhs.j];
-  }
+    int i, j;
 };
 
-u64 visit(vector<edge_t> edges, edge_t e0, u64 minsum) {
-  auto newbegin = remove_if(edges.begin(), edges.end(), [e0](edge_t edge) {
-    return edge.i == e0.i || edge.j == e0.i || edge.i == e0.j || edge.j == e0.j;
-  });
-  edges.erase(newbegin, edges.end());
+bool operator<(edge_t lhs, edge_t rhs) noexcept {
+    return M[lhs.i][lhs.j] < M[rhs.i][rhs.j];
+}
 
-  u64 solutions = 0;
+bool connected(edge_t lhs, edge_t rhs) {
+    return lhs.i == rhs.i || lhs.j == rhs.i || lhs.i == rhs.j || lhs.j == rhs.j;
+}
 
-  while (!edges.empty()) {
-    edge_t e = edges.back();
-    edges.pop_back();
+int dfs(vector<edge_t> edges, edge_t e0, int minsum) {
+    auto newbegin = remove_if(begin(edges), end(edges), [e0](edge_t edge) {
+        return connected(e0, edge);
+    });
+    edges.erase(newbegin, end(edges));
 
-    bool sufficient = M[e.i][e.j] >= minsum;
-    if (sufficient)
-      ++solutions;
+    int solutions = 0;
 
-    u64 newminsum = sufficient ? 0 : minsum - M[e.i][e.j];
-    solutions += visit(edges, e, newminsum);
-  }
+    while (!edges.empty()) {
+        edge_t e = edges.back();
+        edges.pop_back();
+        solutions += M[e.i][e.j] >= minsum;
+        int newminsum = max(0, minsum - M[e.i][e.j]);
+        solutions += dfs(edges, e, newminsum);
+    }
 
-  return solutions;
+    return solutions;
 }
 
 auto solve() {
-  cin >> N;
-  M.assign(N, vector<u32>(N, 0));
-  for (u32 i = 0; i < N; ++i) {
-    for (u32 j = 0; j < N; ++j) {
-      cin >> M[i][j];
+    cin >> N;
+    memset(M, 0, sizeof(M));
+    vector<edge_t> edges;
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            cin >> M[i][j];
+            if (i < j && M[i][j] > 0) {
+                edges.push_back({i, j});
+            }
+        }
     }
-  }
+    sort(begin(edges), end(edges));
 
-  vector<edge_t> edges;
-
-  for (u32 i = 0; i < N; ++i) {
-    for (u32 j = i + 1; j < N; ++j) {
-      if (M[i][j] > 0)
-        edges.push_back({i, j});
+    int solution = 0;
+    while (!edges.empty()) {
+        edge_t e = edges.back();
+        edges.pop_back();
+        solution += dfs(edges, e, M[e.i][e.j] + 1);
     }
-  }
-
-  sort(edges.begin(), edges.end());
-
-  u64 solution = 0;
-
-  while (!edges.empty()) {
-    edge_t e = edges.back();
-    edges.pop_back();
-
-    solution += visit(edges, e, M[e.i][e.j] + 1);
-  }
-
-  return solution;
+    return solution;
 }
 
 // *****
 
 int main() {
-  unsigned T;
-  cin >> T >> ws;
-  for (unsigned t = 1; t <= T; ++t) {
-    auto solution = solve();
-    cout << "Case #" << t << ": " << solution << '\n';
-  }
-  return 0;
+    unsigned T;
+    cin >> T >> ws;
+    for (unsigned t = 1; t <= T; ++t) {
+        auto solution = solve();
+        cout << "Case #" << t << ": " << solution << '\n';
+    }
+    return 0;
 }

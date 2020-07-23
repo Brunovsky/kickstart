@@ -28,8 +28,9 @@ auto solve() {
             int m = W[i - 1] - 'A';
             if (D[i] != ' ') {
                 int r = D[i] - 'A';
-                if (m != ((l + r) % 26))
+                if (m != ((l + r) % 26)) {
                     goto try_next;
+                }
             } else {
                 int r = (m - l + 26) % 26;
                 D[i] = r + 'A';

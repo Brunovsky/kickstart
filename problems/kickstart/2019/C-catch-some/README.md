@@ -6,4 +6,4 @@ Solved
 
 * Time: 7 hours
 * Complexity: O(N^2)
-* Memory: O(N + 100000)
+* Memory: O(N^2 + P)

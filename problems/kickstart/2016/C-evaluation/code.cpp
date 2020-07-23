@@ -12,8 +12,9 @@ static regex rgx("^([a-z]+)=[a-z]+\\(((?:[a-z]+(?:,[a-z]+)*)?)\\)$"s,
                  regex_constants::ECMAScript | regex_constants::optimize);
 
 int accept_one(const string &var) {
-    if (id_map.count(var))
+    if (id_map.count(var)) {
         return id_map[var];
+    }
     id_map.emplace(var, next_id);
     return next_id++;
 }
@@ -23,8 +24,9 @@ vector<int> accept_many(const string &vars) {
     vector<int> ids;
     while (i < S) {
         int j = i + 1;
-        while (j < S && vars[j] != ',')
+        while (j < S && vars[j] != ',') {
             ++j;
+        }
         ids.push_back(accept_one(vars.substr(i, j - i)));
         i = j + 1;
     }
@@ -52,8 +54,9 @@ auto solve() {
 
         // more variables than equations means busted
         if (next_id > N) {
-            while (++i < N)
+            while (++i < N) {
                 getline(cin, line);
+            }
             return "BAD";
         }
 
@@ -73,8 +76,9 @@ auto solve() {
             }
         }
         // the remaining nodes form a cyclic graph, busted
-        if (found == -1)
+        if (found == -1) {
             return "BAD";
+        }
 
         removed[found] = true;
         for (int k = 0; k < N; ++k) {

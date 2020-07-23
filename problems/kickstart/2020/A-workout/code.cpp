@@ -4,43 +4,53 @@ using namespace std;
 
 // *****
 
+#define MAXN 100'001
+
+int N, K;
+int diff[MAXN];
+int split[MAXN];
+int M[MAXN];
+
+int quot(int i) {
+    return (diff[i] + split[i]) / (split[i] + 1);
+}
+
+bool cmp(int l, int r) {
+    int dquot = quot(l) - quot(r);
+    if (dquot != 0) {
+        return dquot > 0;
+    }
+
+    int ddiff = diff[l] - diff[r];
+    if (ddiff != 0) {
+        return ddiff < 0;
+    }
+
+    return l < r;
+}
+
 auto solve() {
-    int N, K;
-    vector<int> M;
+    memset(diff, 0, sizeof(diff));
+    memset(split, 0, sizeof(split));
+    memset(M, 0, sizeof(M));
+
     cin >> N >> K;
-    M.assign(N, 0);
-    for (int i = 0; i < N; ++i)
+
+    for (int i = 0; i < N; ++i) {
         cin >> M[i];
-
-    const int D = N - 1;
-    vector<int> dif(D, 0);
-    for (int i = 0; i < D; ++i)
-        dif[i] = M[i + 1] - M[i];
-
-    vector<int> spl(D, 0);
+    }
 
     using cmp_t = function<bool(int, int)>;
-    const auto quot = [&](int i) { return (dif[i] + spl[i]) / (spl[i] + 1); };
-    const cmp_t cmp = [&](int l, int r) {
-        const int quotdiff = quot(l) - quot(r);
-        if (quotdiff != 0)
-            return quotdiff > 0;
-
-        const int difdiff = dif[l] - dif[r];
-        if (difdiff != 0)
-            return difdiff < 0;
-
-        return l < r;
-    };
-
     set<int, cmp_t> indices(cmp);
-    for (int i = 0; i < D; ++i)
+    for (int i = 0; i < N - 1; ++i) {
+        diff[i] = M[i + 1] - M[i];
         indices.insert(i);
+    }
 
     for (int k = 0; k < K; ++k) {
         const int i = *indices.begin();
         indices.erase(indices.begin());
-        ++spl[i];
+        ++split[i];
         indices.insert(i);
     }
 

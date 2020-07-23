@@ -4,21 +4,19 @@ using namespace std;
 
 // *****
 
-#define LEN 1'000'000'000ll
+#define LEN 1'000'000'000LL
 
-struct Move {
-    long long row, col;
-};
-
-Move parse(const string &cmd) {
+auto solve() {
+    string cmd;
+    cin >> cmd;
     int i = 0, len = cmd.size();
-    long long row = 0, col = 0;
+    long row = 0, col = 0;
 
-    vector<long long> mul_stack = {1};
-    long long mul = 0;
+    vector<long> multipliers = {1};
+    long mul = 0;
 
     while (i < len) {
-        long long delta = mul_stack.back();
+        long delta = multipliers.back();
 
         switch (cmd[i]) {
         case 'N':
@@ -34,11 +32,11 @@ Move parse(const string &cmd) {
             row = (row + delta + LEN) % LEN;
             break;
         case '(':
-            mul_stack.push_back((mul * delta) % LEN);
+            multipliers.push_back((mul * delta) % LEN);
             mul = 0;
             break;
         case ')':
-            mul_stack.pop_back();
+            multipliers.pop_back();
             break;
         default:
             mul = (mul * 10) + (cmd[i] - '0');
@@ -48,13 +46,7 @@ Move parse(const string &cmd) {
         ++i;
     }
 
-    return {++row, ++col};
-}
-
-auto solve() {
-    string cmd;
-    cin >> cmd;
-    return parse(cmd);
+    return pair<long, long>{++row, ++col};
 }
 
 // *****
@@ -64,7 +56,7 @@ int main() {
     cin >> T >> ws;
     for (unsigned t = 1; t <= T; ++t) {
         auto move = solve();
-        cout << "Case #" << t << ": " << move.row << ' ' << move.col << '\n';
+        cout << "Case #" << t << ": " << move.first << ' ' << move.second << '\n';
     }
     return 0;
 }

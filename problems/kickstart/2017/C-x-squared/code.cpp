@@ -42,6 +42,8 @@ auto solve() {
         }
     }
 
+    assert(r_one != -1 && c_one != -1);
+
     // this is not actually necessary
     if (grid[r_one][c_one] != 'X') {
         return "IMPOSSIBLE";

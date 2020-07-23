@@ -5,14 +5,14 @@ using namespace std;
 // *****
 
 #define MAXN 100'000
-#define MAX 10'000'000
+#define MAX  10'000'000
 
 int N;
 int A[MAXN];
-int c[2 * MAX + 1];
+int cnt[2 * MAX + 1];
 
 auto solve() {
-    memset(c, 0, sizeof(c));
+    memset(cnt, 0, sizeof(cnt));
     cin >> N >> ws;
 
     int positive = 0;
@@ -21,16 +21,16 @@ auto solve() {
         positive += max(A[i], 0);
     }
 
-    uint64_t total = 0;
+    ulong total = 0;
     int sum = 0;
-    c[MAX]++;
+    cnt[MAX]++;
     for (int i = 0; i < N; i++) {
         sum += A[i];
         for (int n = 0; n * n <= positive; n++) {
             // sum - prefix = n ==> prefix = sum - n
-            total += c[MAX + sum - n * n];
+            total += cnt[MAX + sum - n * n];
         }
-        c[MAX + sum]++;
+        cnt[MAX + sum]++;
     }
     return total;
 }

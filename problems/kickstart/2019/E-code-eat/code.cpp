@@ -1,109 +1,88 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-using u32 = uint32_t;
-using u64 = uint64_t;
 
 // *****
 
 struct Slot {
-  u64 cod, eat;
+    long coding, eating;
 };
 
 struct Day {
-  u64 coding, eating;
-  bool verdict = false;
-  u32 i;
+    long coding, eating;
+    int i;
 };
 
-u32 D, S;
-vector<Slot> slots;
-vector<Day> days;
+#define MAXS 100'000
+#define MAXD 100'000
 
-// C0  C1  C2  ... Cs  Cs+1 ...  CS-1
-// E0  E1  E2  ... Es  Es+1 ...  ES-1
-//
+int D, S;
+Slot slots[MAXS];
+Day days[MAXD];
+
+inline bool cmp_coding(const Day &lhs, const Day &rhs) {
+    return lhs.coding < rhs.coding;
+}
+
+inline bool cmp_ratio(const Slot &s1, const Slot &s2) {
+    return s1.coding * s2.eating > s1.eating * s2.coding;
+}
 
 auto solve() {
-  cin >> D >> S >> ws;
-  slots.assign(S, {});
-  days.assign(D, {});
-  for (u32 s = 0; s < S; ++s) {
-    cin >> slots[s].cod >> slots[s].eat >> ws;
-  }
-  for (u32 d = 0; d < D; ++d) {
-    cin >> days[d].coding >> days[d].eating >> ws;
-    days[d].i = d;
-    days[d].verdict = false;
-  }
-
-  // Sort the days by coding requirement, increasing.
-  sort(days.begin(), days.end(),
-       [](const Day &d1, const Day &d2) { return d1.coding < d2.coding; });
-
-  // Sort the slots in such a way that the ratio cod/eat is decreasing.
-  sort(slots.begin(), slots.end(), [](const Slot &s1, const Slot &s2) {
-    return s1.cod * s2.eat > s1.eat * s2.cod;
-  });
-
-  u64 cod = 0, eat = 0;
-
-  for (u32 s = 0; s < S; ++s) {
-    eat += slots[s].eat;
-  }
-
-  for (u32 d = 0, s = 0; d < D; ++d) {
-    // transform next slot fully into coding?
-    while (s < S && cod + slots[s].cod <= days[d].coding) {
-      cod += slots[s].cod;
-      eat -= slots[s++].eat;
+    cin >> D >> S >> ws;
+    memset(slots, 0, sizeof(slots));
+    memset(days, 0, sizeof(days));
+    for (int s = 0; s < S; ++s) {
+        cin >> slots[s].coding >> slots[s].eating >> ws;
+    }
+    for (int d = 0; d < D; ++d) {
+        cin >> days[d].coding >> days[d].eating >> ws;
+        days[d].i = d;
     }
 
-    if (s == S) {
-      if (cod < days[d].coding)
-        break;
-      days[d].verdict = eat >= days[d].eating;
-      continue;
+    // Sort the days by coding requirement, increasing.
+    // Sort the slots in such a way that the ratio coding/eating is decreasing.
+    sort(days, days + D, cmp_coding);
+    sort(slots, slots + S, cmp_ratio);
+
+    long coding = 0, eating = 0;
+    for (int s = 0; s < S; ++s) {
+        eating += slots[s].eating;
     }
 
-    // invariant: cod <= days[d].coding < cod + slots[s].cod
+    string text(D, 'N');
+    for (int d = 0, s = 0; d < D; d++) {
+        // transform next slot fully into coding?
+        while (s < S && coding + slots[s].coding <= days[d].coding) {
+            coding += slots[s].coding;
+            eating -= slots[s++].eating;
+        }
 
-    if (eat < days[d].eating)
-      continue; // exit early if impossible
-    u64 codlo = days[d].coding - cod;
+        if (s == S) {
+            if (coding < days[d].coding) {
+                break;
+            }
+            bool verdict = eating >= days[d].eating;
+            text[days[d].i] = verdict ? 'Y' : 'N';
+            continue;
+        }
 
-    // f = codlo / slots[s].cod
-    // decrease in day.eating: f * slots[s].eat = codlo / slots[s].cod *
-    // slots[s].eat we must have:
-
-    // day.eating <= eat - f * slots[s].eat
-    // f * slots[s].eat <= eat - day.eating
-    // codlo * slots[s].eat <= (eat - day.eating) * slots[s].cod
-
-    days[d].verdict =
-        codlo * slots[s].eat <= (eat - days[d].eating) * slots[s].cod;
-  }
-
-  // this could be O(D) but I'm lazy
-  sort(days.begin(), days.end(),
-       [](const Day &d1, const Day &d2) { return d1.i < d2.i; });
-
-  string text;
-  text.resize(D);
-  for (u32 d = 0; d < D; ++d)
-    text[d] = days[d].verdict ? 'Y' : 'N';
-
-  return text;
+        long dc = days[d].coding - coding;
+        long de = eating - days[d].eating;
+        bool verdict = dc * slots[s].eating <= de * slots[s].coding;
+        text[days[d].i] = verdict ? 'Y' : 'N';
+    }
+    return text;
 }
 
 // *****
 
 int main() {
-  unsigned T;
-  cin >> T >> ws;
-  for (unsigned t = 1; t <= T; ++t) {
-    auto solution = solve();
-    cout << "Case #" << t << ": " << solution << '\n';
-  }
-  return 0;
+    unsigned T;
+    cin >> T >> ws;
+    for (unsigned t = 1; t <= T; ++t) {
+        auto solution = solve();
+        cout << "Case #" << t << ": " << solution << '\n';
+    }
+    return 0;
 }

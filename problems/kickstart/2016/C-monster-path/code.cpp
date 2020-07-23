@@ -4,7 +4,7 @@ using namespace std;
 
 // *****
 
-constexpr int MAX = 20;
+#define MAX 20
 
 enum dir_t : int { NORTH = 0, WEST = 1, SOUTH = 2, EAST = 3 };
 
@@ -15,22 +15,24 @@ double encounter[MAX][MAX];
 vector<dir_t> dirs;
 
 void move(int &r, int &c, dir_t dir) {
-    if (dir == NORTH)
+    if (dir == NORTH) {
         --r;
-    else if (dir == WEST)
+    } else if (dir == WEST) {
         --c;
-    else if (dir == SOUTH)
+    } else if (dir == SOUTH) {
         ++r;
-    else if (dir == EAST)
+    } else if (dir == EAST) {
         ++c;
+    }
 }
 
 bool check_path() {
     int r = Rs, c = Cs;
     for (auto dir : dirs) {
         move(r, c, dir);
-        if (r < 0 || c < 0 || r >= R || c >= C)
+        if (r < 0 || c < 0 || r >= R || c >= C) {
             return false;
+        }
     }
     return true;
 }

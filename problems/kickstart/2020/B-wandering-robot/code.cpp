@@ -7,7 +7,7 @@ using namespace std;
 #define MAX 200'001
 long double fac[MAX];
 
-long W, H, L, R, U, D;
+int W, H, L, R, U, D;
 
 void prepare() {
     fac[0] = fac[1] = 0;

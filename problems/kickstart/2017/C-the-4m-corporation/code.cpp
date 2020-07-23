@@ -4,6 +4,8 @@ using namespace std;
 
 // *****
 
+#define IMPOSSIBLE INT_MAX
+
 int MIN;
 int MAX;
 int MEAN;
@@ -24,7 +26,7 @@ auto optimize(int t) {
     term = k * MEAN - c;
     coef = a - 2 * MEAN;
     if ((coef >= 0 && term < 0) || (coef > 0 && term <= 0)) {
-        return INT_MAX;
+        return IMPOSSIBLE;
     }
     if (coef > 0 && term > 0) {
         max1 = floor(1.0 * term / coef);
@@ -37,7 +39,7 @@ auto optimize(int t) {
     term = c - k * MEAN;
     coef = 2 * MEAN - b;
     if ((coef >= 0 && term < 0) || (coef > 0 && term <= 0)) {
-        return INT_MAX;
+        return IMPOSSIBLE;
     }
     if (coef > 0 && term > 0) {
         max2 = floor(1.0 * term / coef);
@@ -49,7 +51,7 @@ auto optimize(int t) {
     int maxS = min(max1, max2);
     int minS = max(max(min1, min2), 0);
     if (maxS >= 0 && maxS < minS) {
-        return INT_MAX;
+        return IMPOSSIBLE;
     }
 
     return 2 * minS + k;
@@ -72,11 +74,11 @@ auto solve() {
     if (MIN + MED + MAX == 3 * MEAN) {
         return "3"s;
     }
-    // need >3 dudes
+    // need >3 departments
 
     auto odd = optimize(1);
     auto even = optimize(2);
-    if (odd == INT_MAX && even == INT_MAX) {
+    if (odd == IMPOSSIBLE && even == IMPOSSIBLE) {
         return "IMPOSSIBLE"s;
     }
     return to_string(min(odd, even));

@@ -4,13 +4,11 @@ using namespace std;
 
 // *****
 
-using i64 = int64_t;
-
-i64 geo(i64 b, i64 k, i64 N, bool &overflow) {
-    i64 bound = N / b;
-    i64 last = b;
-    i64 sum = b + 1;
-    for (i64 i = 2; i < k; ++i) {
+long geo(long b, long k, long N, bool &overflow) {
+    long bound = N / b;
+    long last = b;
+    long sum = b + 1;
+    for (long i = 2; i < k; ++i) {
         if (last > bound) {
             overflow = true;
             return 0;
@@ -23,18 +21,18 @@ i64 geo(i64 b, i64 k, i64 N, bool &overflow) {
 }
 
 auto solve() {
-    i64 N;
+    long N;
     cin >> N;
-    i64 k = 0, e = 1;
+    long k = 0, e = 1;
     while (e < N) {
         ++k, e <<= 1;
     }
     while (k > 2) {
-        i64 l = 2, r = N - 2;
+        long l = 2, r = N - 2;
         bool overflow;
         while (l <= r) {
-            i64 b = (l + r) / 2;
-            i64 res = geo(b, k, N, overflow);
+            long b = (l + r) / 2;
+            long res = geo(b, k, N, overflow);
             if (overflow) {
                 r = b - 1;
             } else if (res == N) {

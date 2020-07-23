@@ -14,18 +14,12 @@ struct range {
 int N, M, L, P;
 vector<range> tree;
 
-void pushup() {
-    for (int i = L - 1; i > 0; --i) {
-        tree[i].L = tree[i << 1].L;
-        tree[i].R = tree[i << 1 | 1].R;
-    }
-}
-
 void update(int l, int cost) {
     int i = l <= (2 * L - P) ? P + l - 1 : P + l - L - 1;
     do {
-        if (tree[i].cost <= cost)
+        if (tree[i].cost <= cost) {
             break;
+        }
         tree[i].cost = cost;
         i >>= 1;
     } while (i > 0);
@@ -67,20 +61,21 @@ void insert(int a, int b, int c) {
 auto solve() {
     cin >> N >> M >> L >> ws;
     P = 1;
-    while (P < L)
+    while (P < L) {
         P <<= 1;
+    }
 
     tree.assign(2 * L, {});
-    auto obegin = tree.begin() + L;
-    auto oend = tree.end();
-
     for (int i = 0; i < L; ++i) {
         tree[i + L].L = i + 1;
         tree[i + L].R = i + 1;
     }
 
-    rotate(obegin, obegin + (2 * L - P), oend); // align tree
-    pushup();
+    rotate(begin(tree) + L, begin(tree) + (3 * L - P), end(tree));
+    for (int i = L - 1; i > 0; --i) {
+        tree[i].L = tree[i << 1].L;
+        tree[i].R = tree[i << 1 | 1].R;
+    }
     for (int i = 0; i < N; ++i) {
         int a, b, c;
         cin >> a >> b >> c;

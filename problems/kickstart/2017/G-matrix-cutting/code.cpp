@@ -19,17 +19,14 @@ auto solve() {
     }
     for (int iS = 1; iS <= N; ++iS) {
         for (int jS = 1; jS <= M; ++jS) {
-            if (iS == 1 && jS == 1)
+            if (iS == 1 && jS == 1) {
                 continue;
+            }
             for (int iL = 0, iR = iS; iR <= N; ++iL, ++iR) {
                 for (int jL = 0, jR = jS; jR <= M; ++jL, ++jR) {
                     int &curr = dp[iS][jS][iL][jL];
-                    int m;
-                    if (iS > 1) {
-                        m = min(dm[1][jS][iL][jL], dm[iS - 1][jS][iL + 1][jL]);
-                    } else {
-                        m = min(dm[iS][1][iL][jL], dm[iS][jS - 1][iL][jL + 1]);
-                    }
+                    int m = iS > 1 ? min(dm[1][jS][iL][jL], dm[iS - 1][jS][iL + 1][jL])
+                                   : min(dm[iS][1][iL][jL], dm[iS][jS - 1][iL][jL + 1]);
                     dm[iS][jS][iL][jL] = m;
                     // horizontal cuts
                     for (int iM = iL + 1; iM < iR; ++iM) {

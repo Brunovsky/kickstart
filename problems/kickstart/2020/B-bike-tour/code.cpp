@@ -9,13 +9,16 @@ auto solve() {
     cin >> N;
 
     vector<int> v(N);
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < N; ++i) {
         cin >> v[i];
+    }
 
     int n = 0;
-    for (int i = 1; i + 1 < N; ++i)
-        if (v[i] > v[i - 1] && v[i] > v[i + 1])
+    for (int i = 1; i + 1 < N; ++i) {
+        if (v[i] > v[i - 1] && v[i] > v[i + 1]) {
             ++n;
+        }
+    }
     return n;
 }
 

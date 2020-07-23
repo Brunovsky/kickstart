@@ -8,7 +8,7 @@ auto solve() {
     int N;
     cin >> N;
     vector<int> least(N + 1, 0);
-    iota(least.begin(), least.end(), 0);
+    iota(begin(least), end(least), 0);
 
     for (int i = 2, n = 4; n <= N; ++i, n = i * i) {
         for (int j = n; j <= N; ++j) {

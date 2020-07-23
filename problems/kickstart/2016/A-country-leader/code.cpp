@@ -14,9 +14,11 @@ auto solve() {
         string candidate;
         getline(cin, candidate);
         bitset<26> alph;
-        for (char c : candidate)
-            if (c != ' ')
+        for (char c : candidate) {
+            if (c != ' ') {
                 alph[c - 'A'] = true;
+            }
+        }
         int candidate_num = alph.count();
         if (candidate_num > best_num) {
             best = move(candidate);

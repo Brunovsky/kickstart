@@ -4,19 +4,17 @@ using namespace std;
 
 // *****
 
-using i64 = int64_t;
-
 #define MAX 13
 
-i64 M;
+long M;
 int N;
 int K[MAX];
 int L[MAX];
-i64 A[MAX][MAX];
-i64 C[MAX][MAX];
+long A[MAX][MAX];
+long C[MAX][MAX];
 
-using upgrade_t = pair<i64, i64>;
-#define COST first
+using upgrade_t = pair<long, long>;
+#define COST   first
 #define ATTACK second
 
 auto combine(int N1, int N2) {
@@ -30,8 +28,8 @@ auto combine(int N1, int N2) {
         for (int c = i - N1; c >= 0; c--) {
             int S = upgrades[c].size();
             for (int j = 0; j < S; j++) {
-                i64 cost = upgrades[c][j].COST;
-                i64 attack = upgrades[c][j].ATTACK + A[i][L[i]];
+                long cost = upgrades[c][j].COST;
+                long attack = upgrades[c][j].ATTACK + A[i][L[i]];
                 upgrades[c + 1].push_back({cost, attack});
 
                 for (int l = L[i]; l < K[i]; l++) {
@@ -46,11 +44,11 @@ auto combine(int N1, int N2) {
 
     for (int c = 0; c <= N2 - N1; c++) {
         auto &up = upgrades[c];
-        sort(up.begin(), up.end());
+        sort(begin(up), end(up));
 
         int S = up.size();
         int read = 0, write = 0;
-        i64 max_attack = -1;
+        long max_attack = -1;
 
         // remove combinations whose attack is not the largest for its cost
         while (read < S) {
@@ -83,15 +81,16 @@ auto solve() {
     auto L1s = combine(0, N / 2);
     auto L2s = combine(N / 2, N);
 
-    i64 best = 0;
+    long best = 0;
     for (size_t cl = 0; cl <= 8; cl++) {
+        // cl cards from L1 set, cr cards from L2 set
         size_t cr = 8 - cl;
         if (cl >= L1s.size() || cr >= L2s.size()) {
             continue;
         }
         auto &L1 = L1s[cl];
         auto &L2 = L2s[cr];
-        reverse(L2.begin(), L2.end());
+        reverse(begin(L2), end(L2));
         int S1 = L1.size();
         int S2 = L2.size();
         int i = 0, j = 0;
@@ -106,7 +105,7 @@ auto solve() {
             while (i < S1 && L1[i].COST + L2[j].COST <= M) {
                 i++;
             }
-            i64 attack = L1[i - 1].ATTACK + L2[j].ATTACK;
+            long attack = L1[i - 1].ATTACK + L2[j].ATTACK;
             best = max(best, attack);
         }
     }

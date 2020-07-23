@@ -6,35 +6,54 @@ using namespace std;
 
 #define RANGE(node) (node->R - node->L)
 
+#define MAXN 100'000
+
 int N;
-vector<int> D;
+int D[MAXN];
 
 struct Node {
-    Node *parent = nullptr;
-    Node *left = nullptr;
-    Node *right = nullptr;
+    Node* parent = nullptr;
+    Node* left = nullptr;
+    Node* right = nullptr;
     int L, R;
-    vector<Node *> finger; // for queries
+    vector<Node*> finger; // for queries
+
+    Node(Node* parent, int L, int R) : parent(parent), L(L), R(R) {}
 };
 
-vector<Node *> ancestry;    // for building the tree
-vector<Node *> leaves;      // for queries
-vector<Node *> aggregators; // to free without recursion
-
-Node *build_node(Node *parent, int L, int R) {
-    Node *node = new Node();
-    node->parent = parent;
-    node->L = L;
-    node->R = R;
-    if (L == R) {
-        leaves[L] = node;
-    } else {
-        aggregators.push_back(node);
-    }
-    return node;
+bool cmp_doors(int i, int j) {
+    return D[i] > D[j];
 }
 
-void build_finger_recursively(Node *node) {
+bool cmp_nodes(Node* l, Node* r) {
+    if (l->R < r->L) {
+        return true;
+    }
+    if (r->R < l->L) {
+        return false;
+    }
+    if (RANGE(l) != RANGE(r)) {
+        return RANGE(l) < RANGE(r);
+    }
+    return l->L < r->L;
+}
+
+vector<Node*> ancestry;               // for building the tree
+vector<unique_ptr<Node>> leaves;      // for queries
+vector<unique_ptr<Node>> aggregators; // to free without recursion
+
+Node* build_node(Node* parent, int L, int R) {
+    auto node = make_unique<Node>(parent, L, R);
+    if (L == R) {
+        leaves[L] = move(node);
+        return leaves[L].get();
+    } else {
+        aggregators.push_back(move(node));
+        return aggregators.back().get();
+    }
+}
+
+void build_finger_recursively(Node* node) {
     if (!node)
         return;
 
@@ -53,40 +72,24 @@ void build_finger_recursively(Node *node) {
 }
 
 void free_nodes() {
-    for (Node *node : leaves)
-        delete node;
-    for (Node *node : aggregators)
-        delete node;
+    leaves.clear();
+    aggregators.clear();
 }
 
 void prepare_tree() {
     vector<int> doors(N - 1);
-    iota(doors.begin(), doors.end(), 0);
-    auto cmp_doors = [](int i, int j) { return D[i] > D[j]; };
-    auto cmp_nodes = [](Node *l, Node *r) {
-        if (l->R < r->L)
-            return true;
-        if (r->R < l->L)
-            return false;
-        if (RANGE(l) != RANGE(r))
-            return RANGE(l) < RANGE(r);
-        return l->L < r->L;
-    };
-    sort(doors.begin(), doors.end(), cmp_doors);
+    iota(begin(doors), end(doors), 0);
+    sort(begin(doors), end(doors), cmp_doors);
 
     // I need to study more, fuck me this is a mess
-    ancestry.clear();
     leaves.resize(N);
-    aggregators.clear();
 
-    set<Node *, decltype(cmp_nodes)> built(cmp_nodes);
-    Node *root = build_node(nullptr, 0, N - 1);
+    set<Node*, decltype(*cmp_nodes)> built(cmp_nodes);
+    Node* root = build_node(nullptr, 0, N - 1);
     built.insert(root);
     for (int door : doors) {
-        Node dummy;
-        dummy.L = door;
-        dummy.R = door;
-        Node *parent = *built.upper_bound(&dummy);
+        Node dummy(nullptr, door, door);
+        Node* parent = *built.upper_bound(&dummy);
         parent->left = build_node(parent, parent->L, door);
         parent->right = build_node(parent, door + 1, parent->R);
         built.insert(parent->left);
@@ -97,7 +100,7 @@ void prepare_tree() {
     build_finger_recursively(root);
 }
 
-int query(Node *node, int K) {
+int query(Node* node, int K) {
     if (RANGE(node) < K && RANGE(node->parent) >= K) {
         if (node->L != node->parent->L) {
             return node->R + 1 - K;
@@ -105,7 +108,8 @@ int query(Node *node, int K) {
             return node->L + 1 + K;
         }
     }
-    const auto &f = node->finger;
+    // walk up the ancestry of this node until we find a parent whose range is >= K
+    const auto& f = node->finger;
     int i = 0;
     int F = f.size();
     do {
@@ -117,27 +121,26 @@ int query(Node *node, int K) {
 auto solve() {
     int Q;
     cin >> N >> Q >> ws;
-    D.resize(N - 1);
-    for (int i = 0; i + 1 < N; ++i)
+    memset(D, 0, sizeof(D));
+    for (int i = 0; i + 1 < N; ++i) {
         cin >> D[i];
+    }
 
     prepare_tree();
 
-    vector<int> answers(Q);
     for (int i = 0; i < Q; ++i) {
         int S, K;
         cin >> S >> K >> ws;
 
         if (K == 1) {
-            answers[i] = S;
-            continue;
+            cout << ' ' << S;
+        } else {
+            cout << ' ' << query(leaves[S - 1].get(), K - 1);
         }
-
-        answers[i] = query(leaves[S - 1], K - 1);
     }
 
     free_nodes();
-    return answers;
+    return;
 }
 
 // *****
@@ -146,10 +149,8 @@ int main() {
     unsigned T;
     cin >> T >> ws;
     for (unsigned t = 1; t <= T; ++t) {
-        auto solution = solve();
         cout << "Case #" << t << ":";
-        for (int ans : solution)
-            cout << ' ' << ans;
+        solve();
         cout << '\n';
     }
     return 0;

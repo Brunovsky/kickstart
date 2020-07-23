@@ -4,11 +4,14 @@ using namespace std;
 
 // *****
 
+#define MAXN 500001
+
 int N, A, B;
 vector<vector<int>> children;
 
 size_t sum_A, sum_B, sum_AB;
-vector<size_t> count_A, count_B;
+size_t count_A[MAXN];
+size_t count_B[MAXN];
 
 // visit in postorder
 void visit(int node, int depth) {
@@ -17,8 +20,9 @@ void visit(int node, int depth) {
     int pre_A = count_A[ai];
     int pre_B = count_B[bi];
 
-    for (int child : children[node])
+    for (int child : children[node]) {
         visit(child, depth + 1);
+    }
 
     ++count_A[ai], ++count_B[bi];
     size_t node_A = count_A[ai] - pre_A;
@@ -40,8 +44,8 @@ auto solve() {
     }
 
     sum_A = sum_B = sum_AB = 0;
-    count_A.assign(A, {});
-    count_B.assign(B, {});
+    memset(count_A, 0, sizeof(count_A));
+    memset(count_B, 0, sizeof(count_B));
     visit(1, 0);
 
     double expected_A = double(sum_A) / N;

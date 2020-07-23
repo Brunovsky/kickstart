@@ -4,29 +4,33 @@ using namespace std;
 
 // *****
 
-using ull = unsigned long long;
+#define MAXN 1003
+
+int N;
+ulong D;
+ulong X[MAXN];
+
+bool is_possible(ulong s) {
+    for (int i = 1; i <= N; ++i) {
+        ulong mod = s % X[i];
+        if (mod != 0) {
+            s += X[i] - mod;
+        }
+    }
+    return s <= D;
+}
 
 auto solve() {
-    int N;
-    ull D;
     cin >> N >> D;
 
-    vector<ull> X(N + 1);
-    for (int i = 1; i <= N; ++i)
+    memset(X, 0, sizeof(X));
+    for (int i = 1; i <= N; ++i) {
         cin >> X[i];
+    }
 
-    auto is_possible = [&](ull s) {
-        for (int i = 1; i <= N; ++i) {
-            ull mod = s % X[i];
-            if (mod != 0)
-                s += X[i] - mod;
-        }
-        return s <= D;
-    };
-
-    ull lo = 1, hi = D;
+    ulong lo = 1, hi = D;
     while (lo < hi) {
-        ull mi = (lo + hi + 1) / 2;
+        ulong mi = (lo + hi + 1) / 2;
         if (is_possible(mi)) {
             lo = mi;
         } else {

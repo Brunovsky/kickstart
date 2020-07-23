@@ -7,8 +7,9 @@ using namespace std;
 string expand(string s) {
     string e;
     e.reserve(4 * s.size());
-    for (char c : s)
+    for (char c : s) {
         e.append(c == '*' ? 4 : 1, c);
+    }
     return e;
 }
 
@@ -28,8 +29,9 @@ auto solve() {
     next[0] = true;
 
     for (int j = 0; j < B; ++j) {
-        if (b[j] != '*')
+        if (b[j] != '*') {
             break;
+        }
         next[j + 1] = true;
     }
 
