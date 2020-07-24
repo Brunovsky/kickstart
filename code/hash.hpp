@@ -4,18 +4,22 @@ using namespace std;
 
 // *****
 
-namespace std {
-
-// TODO: replace Num
-template <typename Num>
-struct hash<vector<Num>> {
-    inline size_t operator()(const vector<Num> &vec) const noexcept {
+struct vechasher {
+    template <template <typename...> typename Container, typename V, typename... T>
+    size_t operator()(const Container<V, T...>& vec) const noexcept {
+        hash<V> hasher;
         size_t seed = distance(begin(vec), end(vec));
-        for (auto i : vec) {
-            seed ^= size_t(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        for (auto n : vec) {
+            seed ^= hasher(n) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
         return seed;
     }
 };
 
-} // namespace std
+struct pairhasher {
+    template <typename U, typename V>
+    size_t operator()(const pair<U, V>& p) const noexcept {
+        size_t lhs = p.first, rhs = p.second;
+        return (lhs + rhs) * (lhs + rhs + 1) / 2 + rhs;
+    }
+};
