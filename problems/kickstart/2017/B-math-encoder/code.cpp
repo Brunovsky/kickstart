@@ -22,7 +22,7 @@ auto solve() {
         pow2 = (2 * pow2) % MOD;
     }
 
-    return sum;
+    return (sum + MOD) % MOD;
 }
 
 // *****
