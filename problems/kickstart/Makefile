@@ -1,4 +1,4 @@
-.PHONY: new kickstart build clean run formatall
+.PHONY: new kickstart build debug clean run formatall
 .PHONY: cpp cpp-interactive
 
 new kickstart: cpp
@@ -11,6 +11,9 @@ cpp-interactive:
 
 build:
 	@+./all.sh BUILD
+
+debug:
+	@+./all.sh BUILD debug
 
 clean:
 	@+./all.sh CLEAN clean

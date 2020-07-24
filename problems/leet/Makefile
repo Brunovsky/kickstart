@@ -1,4 +1,4 @@
-.PHONY: new leet build clean run formatall
+.PHONY: new leet build debug clean run formatall
 .PHONY: cpp shell js
 
 new leet: cpp
@@ -14,6 +14,9 @@ js:
 
 build:
 	@+./all.sh BUILD
+
+debug:
+	@+./all.sh BUILD debug
 
 clean:
 	@+./all.sh CLEAN clean
