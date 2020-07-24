@@ -49,11 +49,11 @@ $(GENEXE): $(GEN)
 
 # Compile and run, build in debug mode by default
 run code: debug
-	@$(RUN)
+	@+$(RUN)
 
 # Compile and run in perfm mode
 fast: perfm
-	@$(RUN)
+	@+$(RUN)
 
 # Compile and run the input generator in 'generate.cpp'
 generate: build_generate
