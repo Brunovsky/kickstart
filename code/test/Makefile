@@ -10,7 +10,7 @@ EXE := ./hack
 
 DEPS := ../disjoint_set.hpp ../fenwick.hpp ../quad_tree.hpp ../segment_tree.hpp
 DEPS += ../russian_segment_tree.hpp
-DEPS += ../hash.hpp ../math.hpp ../sieve.hpp
+DEPS += ../hash.hpp ../math.hpp ../sieve.hpp ../bits.hpp
 DEPS += ../kmp.hpp
 
 # * Dialect

@@ -4,14 +4,11 @@ using namespace std;
 
 // *****
 
-using i64 = int64_t;
-using u64 = uint64_t;
-
 /**
  * Compute b^e (mod m)
  */
-i64 power(i64 base, i64 exp, i64 mod) {
-    i64 power = 1;
+long power(long base, long exp, long mod) {
+    long power = 1;
     base = base % mod;
     while (exp > 0) {
         if (exp & 1) {
@@ -26,8 +23,8 @@ i64 power(i64 base, i64 exp, i64 mod) {
 /**
  * Compute b^e
  */
-i64 power(i64 base, i64 exp) {
-    i64 power = 1;
+long power(long base, long exp) {
+    long power = 1;
     while (exp > 0) {
         if (exp & 1) {
             power = power * base;
@@ -39,8 +36,8 @@ i64 power(i64 base, i64 exp) {
 }
 
 // Compute n!
-u64 factorial(u64 n) {
-    u64 f = 1;
+ulong factorial(ulong n) {
+    ulong f = 1;
     while (n > 1) {
         f = f * n--;
     }
@@ -48,8 +45,8 @@ u64 factorial(u64 n) {
 }
 
 // Compute n! (mod m)
-u64 factorial(u64 n, u64 mod) {
-    u64 f = 1;
+ulong factorial(ulong n, ulong mod) {
+    ulong f = 1;
     while (n > 1) {
         f = (f * n--) % mod;
     }
@@ -59,11 +56,11 @@ u64 factorial(u64 n, u64 mod) {
 /**
  * Compute x, y such that ax + by = gcd(a,b)
  */
-i64 gcd(i64 a, i64 b, i64 &x, i64 &y) {
-    i64 xn = 1, yn = 0;
+long gcd(long a, long b, long &x, long &y) {
+    long xn = 1, yn = 0;
     x = 0, y = 1;
     while (a != 0) {
-        i64 q = b / a;
+        long q = b / a;
         b = b % a;
         x = x - q * xn;
         y = y - q * yn;
@@ -80,8 +77,8 @@ i64 gcd(i64 a, i64 b, i64 &x, i64 &y) {
 /**
  * Compute x such that ax = 1 (mod m) (modular multiplicative inverse)
  */
-i64 invmod(i64 a, i64 mod) {
-    i64 x, y;
+long invmod(long a, long mod) {
+    long x, y;
     auto g = gcd(a, mod, x, y);
     assert(g == 1);
     x = x % mod;
@@ -91,7 +88,7 @@ i64 invmod(i64 a, i64 mod) {
 /**
  * Compute gcd(a,b)
  */
-i64 gcd(i64 a, i64 b) {
+long gcd(long a, long b) {
     while (a != 0) {
         b = b % a;
         swap(a, b);
@@ -102,15 +99,15 @@ i64 gcd(i64 a, i64 b) {
 /**
  * Compute lcm(a,b)
  */
-u64 lcm(u64 a, u64 b) {
+ulong lcm(ulong a, ulong b) {
     return a * (b / gcd(a, b));
 }
 
 /**
  * Compute primes dividing n
  */
-map<u64, int> factorize(u64 n) {
-    map<u64, int> primes;
+map<ulong, int> factorize(ulong n) {
+    map<ulong, int> primes;
     while ((n & 1) == 0) {
         primes[2]++;
         n >>= 1;
@@ -127,8 +124,8 @@ map<u64, int> factorize(u64 n) {
 /**
  * Compute phi(n) (totient function), naively
  */
-u64 totient(u64 n) {
-    u64 tot = 1;
+ulong totient(ulong n) {
+    ulong tot = 1;
     if ((n & 1) == 0) {
         n >>= 1;
         while ((n & 1) == 0) {
@@ -136,7 +133,7 @@ u64 totient(u64 n) {
             n >>= 1;
         }
     }
-    for (u64 p = 3; n > 1; p += 2) {
+    for (ulong p = 3; n > 1; p += 2) {
         if ((n % p) == 0) {
             tot *= p - 1;
             n = n / p;
@@ -152,12 +149,12 @@ u64 totient(u64 n) {
 /**
  * Compute (n choose k)
  */
-u64 binomial(u64 n, u64 k) {
+ulong binomial(ulong n, ulong k) {
     assert(k <= n);
     k = min(k, n - k);
     n = n - k + 1;
-    u64 binom = 1;
-    u64 i = 1;
+    ulong binom = 1;
+    ulong i = 1;
     while (i <= k) {
         binom = (binom * n++) / i++;
     }
