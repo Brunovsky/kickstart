@@ -110,7 +110,6 @@ if template == "cpp":
 
 if template == "cpp-interactive":
     shutil.copy("templates/cpp-interactive/code.cpp", folder)
-    shutil.copy("templates/cpp-interactive/input.txt", folder)
     shutil.copy("templates/cpp-interactive/run.sh", folder)
     shutil.copy("templates/cpp-interactive/interactive_runner.py", folder)
     os.symlink("../../templates/cpp-interactive/Makefile",
@@ -119,6 +118,5 @@ if template == "cpp-interactive":
     subprocess.call(["code",
                      f"{folder}/README.md",
                      f"{folder}/code.cpp",
-                     f"{folder}/input.txt",
                      f"{folder}/run.sh"
                      ])
