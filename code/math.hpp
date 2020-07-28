@@ -166,7 +166,7 @@ ulong totient(ulong n) {
 /**
  * Compute (n choose k)
  */
-ulong binomial(ulong n, ulong k) {
+ulong choose(ulong n, ulong k) {
     assert(k <= n);
     k = min(k, n - k);
     n = n - k + 1;

@@ -12,13 +12,13 @@ int main() {
     assert(totient(194) == 96);
     assert(totient(73) == 72);
     assert(totient(48) == 16);
-    assert(binomial(4, 2) == 6);
-    assert(binomial(6, 3) == 20);
-    assert(binomial(6, 2) == 15);
-    assert(binomial(2, 0) == 1);
-    assert(binomial(5, 2) == 10);
-    assert(binomial(2, 2) == 1);
-    assert(binomial(3, 1) == 3);
+    assert(choose(4, 2) == 6);
+    assert(choose(6, 3) == 20);
+    assert(choose(6, 2) == 15);
+    assert(choose(2, 0) == 1);
+    assert(choose(5, 2) == 10);
+    assert(choose(2, 2) == 1);
+    assert(choose(3, 1) == 3);
 
     i64 x, y;
     assert(gcd(54, 135, x, y) == 27);
