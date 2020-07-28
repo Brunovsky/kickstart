@@ -12,7 +12,7 @@ struct frac {
         if (d < 0) {
             n = -n, d = -d;
         }
-        long g = gcd(n, d);
+        long g = frac::gcd(n, d);
         n /= g, d /= g;
     }
 
@@ -34,6 +34,24 @@ frac inv(const frac& f) {
     return frac(f.d, f.n);
 }
 
+frac abs(const frac& f) {
+    return frac(abs(f.n), f.d);
+}
+
+string to_string(const frac& f) {
+    if (f.d == 0) {
+        return (f.n > 0 ? '+' : '-') + "inf"s;
+    } else if (f.d == 1) {
+        return to_string(f.n);
+    } else {
+        return to_string(f.n) + '/' + to_string(f.d);
+    }
+}
+
+ostream& operator<<(ostream& out, const frac& f) {
+    return out << to_string(f);
+}
+
 bool operator==(const frac& a, const frac& b) {
     return a.n == b.n && a.d == b.d;
 }
@@ -52,7 +70,49 @@ bool operator<=(const frac& a, const frac& b) {
 bool operator>=(const frac& a, const frac& b) {
     return a.n * b.d >= b.n * a.d;
 }
+bool operator==(const frac& a, long b) {
+    return a.n == b && a.d == 1;
+}
+bool operator!=(const frac& a, long b) {
+    return a.n != b || a.d != 1;
+}
+bool operator<(const frac& a, long b) {
+    return a.n < b * a.d;
+}
+bool operator>(const frac& a, long b) {
+    return a.n > b * a.d;
+}
+bool operator<=(const frac& a, long b) {
+    return a.n <= b * a.d;
+}
+bool operator>=(const frac& a, long b) {
+    return a.n >= b * a.d;
+}
+bool operator==(long b, const frac& a) {
+    return a.n == b && a.d == 1;
+}
+bool operator!=(long b, const frac& a) {
+    return a.n != b || a.d != 1;
+}
+bool operator<(long b, const frac& a) {
+    return a.n > b * a.d;
+}
+bool operator>(long b, const frac& a) {
+    return a.n < b * a.d;
+}
+bool operator<=(long b, const frac& a) {
+    return a.n >= b * a.d;
+}
+bool operator>=(long b, const frac& a) {
+    return a.n <= b * a.d;
+}
 
+frac operator-(const frac& f) {
+    return frac(-f.n, f.d);
+}
+frac operator!(const frac& f) {
+    return f.n == 0;
+}
 frac operator+(const frac& a, const frac& b) {
     return frac(a.n * b.d + b.n * a.d, a.d * b.d);
 }
@@ -65,16 +125,54 @@ frac operator*(const frac& a, const frac& b) {
 frac operator/(const frac& a, const frac& b) {
     return frac(a.n * b.d, a.d * b.n);
 }
-frac operator%(const frac& a, const frac& b) {
-    return frac((a.n * b.d) % (b.n * a.d), a.d * b.d);
+frac& operator+=(frac& a, const frac& b) {
+    return a = a + b;
+}
+frac& operator-=(frac& a, const frac& b) {
+    return a = a - b;
+}
+frac& operator*=(frac& a, const frac& b) {
+    return a = a * b;
+}
+frac& operator/=(frac& a, const frac& b) {
+    return a = a / b;
 }
 
-frac absdif(const frac& a, const frac& b) {
-    return frac(abs(a.n * b.d - b.n * a.d), a.d * b.d);
+frac operator+(const frac& a, long b) {
+    return frac(a.n + b * a.d, a.d);
 }
-
-ostream& operator<<(ostream& out, const frac& f) {
-    return out << f.n << '/' << f.d;
+frac operator-(const frac& a, long b) {
+    return frac(a.n - b * a.d, a.d);
+}
+frac operator*(const frac& a, long b) {
+    return frac(a.n * b, a.d);
+}
+frac operator/(const frac& a, long b) {
+    return frac(a.n, a.d * b);
+}
+frac operator+(long b, const frac& a) {
+    return frac(a.n + b * a.d, a.d);
+}
+frac operator-(long b, const frac& a) {
+    return frac(a.n - b * a.d, a.d);
+}
+frac operator*(long b, const frac& a) {
+    return frac(a.n * b, a.d);
+}
+frac operator/(long b, const frac& a) {
+    return frac(a.n, a.d * b);
+}
+frac& operator+=(frac& a, long b) {
+    return a = a + b;
+}
+frac& operator-=(frac& a, long b) {
+    return a = a - b;
+}
+frac& operator*=(frac& a, long b) {
+    return a = a * b;
+}
+frac& operator/=(frac& a, long b) {
+    return a = a / b;
 }
 
 // fraction closest to f with denominator at most maxd
@@ -100,7 +198,7 @@ frac closest(frac f, long maxd) {
     long k = (maxd - q0) / q1;
     frac b1(p0 + k * p1, q0 + k * q1);
     frac b2(p1, q1);
-    return absdif(b1, f) <= absdif(b2, f) ? b1 : b2;
+    return abs(b1 - f) <= abs(b2 - f) ? b1 : b2;
 }
 
 using cf_t = vector<long>;
@@ -116,7 +214,7 @@ cf_t cf1_sequence(frac f) {
     return cf1;
 }
 
-// the second continued fraction representation of f:  a] --> a-1,a]
+// the second continued fraction representation of f:  a] --> a-1,1]
 cf_t cf2_sequence(frac f) {
     cf_t cf2 = cf1_sequence(f);
     if (!cf2.empty()) {
@@ -140,12 +238,12 @@ frac compute_fraction(const cf_t& cf) {
 frac cf_search(frac lo, frac hi) {
     assert(lo < hi);
     long a = lo;
-    if (hi > frac(a + 1)) {
+    if (hi > a + 1) {
         return a + 1;
     }
     frac fa = frac(a);
     if (lo.d == 1) {
-        return fa + inv(inv(hi - fa) + frac(1));
+        return fa + inv(inv(hi - fa) + 1L);
     } else {
         return fa + inv(cf_search(inv(hi - fa), inv(lo - fa)));
     }

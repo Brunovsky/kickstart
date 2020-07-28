@@ -13,7 +13,7 @@ int main() {
     assert(frac(7, -19) == frac(-7, 19));
     assert(frac(-74, -4) == frac(37, 2));
     assert(frac(2, 3) + frac(3, 4) == frac(17, 12));
-    assert(absdif(frac(2, 3), frac(3, 4)) == frac(1, 12));
+    assert(abs(frac(2, 3) - frac(3, 4)) == frac(1, 12));
     auto cf = cf1_sequence(pi);
     for (uint i = 0; i < cf.size(); i++) {
         cout << cf[i] << " ";
