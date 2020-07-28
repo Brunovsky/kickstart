@@ -10,8 +10,9 @@ void test() {
     mm.add(3, 2), mm.add(3, 3);
     mm.add(4, 3), mm.add(4, 4);
     mm.add(5, 3);
-    int res = mm.compute();
-    assert(res == 5);
+    int maximal = mm.compute();
+    printf("maximal #1: %d\n", maximal);
+    assert(maximal == 5);
 
     mm = MM(8, 8);
     mm.add(1, 1), mm.add(1, 4);
@@ -21,10 +22,9 @@ void test() {
     mm.add(5, 5), mm.add(5, 6), mm.add(5, 7);
     mm.add(6, 3), mm.add(6, 6);
     mm.add(7, 6), mm.add(7, 7);
-    res = mm.compute();
-    assert(res == 7);
-
-    (void)res;
+    maximal = mm.compute();
+    printf("maximal #2: %d\n", maximal);
+    assert(maximal == 7);
 }
 
 int main() {

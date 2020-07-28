@@ -10,7 +10,6 @@ struct maximum_flow {
     vector<int> source;
     vector<int> target;
     vector<int> cap;
-    static constexpr int nil = -1, inf = INT_MAX;
 
     maximum_flow(int V) : V(V), E(0) {
         adj.resize(V, {});
@@ -18,7 +17,7 @@ struct maximum_flow {
 
     // normal nodes are 1..V
     void add(int u, int v, int capacity) {
-        assert(0 <= u && u < V && 0 <= v && v < V && u != v);
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0);
         int uv = E++;
         int vu = E++;
         source.resize(E), target.resize(E), cap.resize(E);
@@ -29,6 +28,8 @@ struct maximum_flow {
         adj[u].push_back(uv);
         adj[v].push_back(vu);
     }
+
+    static constexpr int nil = -1, inf = INT_MAX;
 
     int compute(int s, int t) {
         vector<int> flow(E, 0);
@@ -72,7 +73,6 @@ struct maximum_flow_dinic {
     vector<int> source;
     vector<int> target;
     vector<int> cap;
-    static constexpr int nil = -1, inf = INT_MAX;
 
     maximum_flow_dinic(int V) : V(V), E(0) {
         adj.resize(V, {});
@@ -80,7 +80,7 @@ struct maximum_flow_dinic {
 
     // normal nodes are 1..V
     void add(int u, int v, int capacity) {
-        assert(0 <= u && u < V && 0 <= v && v < V && u != v);
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0);
         int uv = E++;
         int vu = E++;
         source.resize(E), target.resize(E), cap.resize(E);
@@ -95,6 +95,7 @@ struct maximum_flow_dinic {
     vector<int> flow;
     vector<int> level;
     vector<int> arc;
+    static constexpr int nil = -1, inf = INT_MAX;
 
     bool bfs(int s, int t) {
         level.assign(V + 2, nil);
@@ -155,7 +156,6 @@ struct maximum_flow_push_relabel {
     vector<int> source;
     vector<int> target;
     vector<int> cap;
-    static constexpr int nil = -1, inf = INT_MAX;
 
     maximum_flow_push_relabel(int V) : V(V), E(0) {
         adj.resize(V, {});
@@ -163,7 +163,7 @@ struct maximum_flow_push_relabel {
 
     // normal nodes are 1..V
     void add(int u, int v, int capacity) {
-        assert(0 <= u && u < V && 0 <= v && v < V && u != v);
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0);
         int uv = E++;
         int vu = E++;
         source.resize(E), target.resize(E), cap.resize(E);
@@ -180,8 +180,9 @@ struct maximum_flow_push_relabel {
     vector<int> arc;
     vector<int> flow;
     queue<int> active; // fifo selection, O(V^3)
+    static constexpr int nil = -1, inf = INT_MAX;
 
-    bool push(int e) {
+    void push(int e) {
         int u = source[e], v = target[e];
         int send = min(excess[u], cap[e] - flow[e]);
         flow[e] += send;
@@ -191,7 +192,6 @@ struct maximum_flow_push_relabel {
         if (excess[v] == send) {
             active.push(v);
         }
-        return excess[u] > 0;
     }
 
     void relabel(int u) {
@@ -216,7 +216,8 @@ struct maximum_flow_push_relabel {
             int v = target[e];
             if (cap[e] > flow[e] && height[u] > height[v]) {
                 assert(height[u] == height[v] + 1);
-                i += push(e);
+                push(e);
+                i += excess[u] > 0;
             } else {
                 i++;
             }

@@ -4,23 +4,25 @@ using namespace std;
 
 // *****
 
-// hungarian version, O(EV)
+// hungarian version
 struct maximal_matching {
     int U, V;
     vector<vector<int>> adj;
-    vector<int> mu; // mu[u]=v where the mapping is u<->v, nil if u is unmatched
-    vector<int> mv; // mv[v]=u where the mapping is u<->v, nil if v is unmatched
-    vector<int> vis;
-    int iteration;
-    static constexpr int nil = -1;
 
     maximal_matching(int U, int V) : U(U), V(V) {
         adj.assign(U, {});
     }
 
     void add(int u, int v) {
+        assert(0 <= u && u < U && 0 <= v && v < V);
         adj[u].push_back(v);
     }
+
+    vector<int> mu;  // mu[u]=v where the mapping is u<->v, nil if u is unmatched
+    vector<int> mv;  // mv[v]=u where the mapping is u<->v, nil if v is unmatched
+    vector<int> vis; // vis[u]: last iteration that u was visited
+    int iteration;
+    static constexpr int nil = -1;
 
     bool dfs(int u) {
         vis[u] = iteration;
@@ -63,25 +65,26 @@ struct maximal_matching {
 };
 constexpr int maximal_matching::nil;
 
-// hopcroft karp version, O(E sqrt(V))
+// hopcroft karp version
 struct maximal_matching_big {
     int U, V;
     vector<vector<int>> adj;
-    vector<int> mu; // mu[u]=v where the mapping is u<->v, nil if u is unmatched
-    vector<int> mv; // mv[v]=u where the mapping is u<->v, nil if v is unmatched
-    vector<int> vis;
-    vector<int> dist;
-    int iteration;
-    static constexpr int nil = 0, inf = INT_MAX;
 
     maximal_matching_big(int U, int V) : U(U), V(V) {
         adj.assign(U + 1, {});
-        dist.assign(U + 1, 0);
     }
 
     void add(int u, int v) {
+        assert(0 <= u && u < U && 0 <= v && v < V);
         adj[u + 1].push_back(v + 1);
     }
+
+    vector<int> mu;   // mu[u]=v where the mapping is u<->v, nil if u is unmatched
+    vector<int> mv;   // mv[v]=u where the mapping is u<->v, nil if v is unmatched
+    vector<int> vis;  // vis[u]: last iteration that u was visited
+    vector<int> dist; // dist[u]: distance of u to s
+    int iteration;
+    static constexpr int nil = 0, inf = INT_MAX;
 
     bool bfs() {
         queue<int> Q;
@@ -99,6 +102,7 @@ struct maximal_matching_big {
             Q.pop();
             if (dist[u] < dist[nil]) {
                 for (int v : adj[u]) {
+                    // note: the check v != mu[u] is implicit in dist[mv[v]] == inf
                     if (dist[mv[v]] == inf) {
                         dist[mv[v]] = dist[u] + 1;
                         Q.push(mv[v]);
@@ -131,6 +135,7 @@ struct maximal_matching_big {
         mu.assign(U + 1, nil);
         mv.assign(V + 1, nil);
         vis.assign(U + 1, 0);
+        dist.assign(U + 1, 0);
         int matching = 0;
         iteration = 0;
         while (bfs()) {
