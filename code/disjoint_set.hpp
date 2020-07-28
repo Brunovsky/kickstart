@@ -4,32 +4,30 @@ using namespace std;
 
 // *****
 
-int N;
-vector<int> snext, srank;
+struct disjoint_set {
+    int N;
+    vector<int> next, rank;
 
-int find(int i) {
-    while (i != snext[i]) {
-        i = snext[i] = snext[snext[i]];
+    disjoint_set(int N) : N(N), next(N), rank(N, 0) {
+        iota(begin(next), end(next), 0);
     }
-    return i;
-}
 
-void join(int i, int j) {
-    i = find(i);
-    j = find(j);
-    if (i != j) {
-        if (srank[i] < srank[j]) {
-            swap(i, j);
+    int find(int i) {
+        while (i != next[i]) {
+            i = next[i] = next[next[i]];
         }
-        snext[j] = i;
-        srank[i] += srank[i] == srank[j];
+        return i;
     }
-}
 
-// *****
-
-void driver() {
-    snext.resize(N);
-    srank.assign(N, 0);
-    iota(snext.begin(), snext.end(), 0);
-}
+    void join(int i, int j) {
+        i = find(i);
+        j = find(j);
+        if (i != j) {
+            if (rank[i] < rank[j]) {
+                swap(i, j);
+            }
+            next[j] = i;
+            rank[i] += rank[i] == rank[j];
+        }
+    }
+};
