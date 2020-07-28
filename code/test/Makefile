@@ -9,7 +9,7 @@ FILE := code.cpp
 EXE := ./hack
 
 DEPS := ../disjoint_set.hpp ../fenwick.hpp ../quad_tree.hpp ../segment_tree.hpp
-DEPS += ../russian_segment_tree.hpp ../maximal_matching.hpp
+DEPS += ../russian_segment_tree.hpp ../maximal_matching.hpp ../maximum_flow.hpp
 DEPS += ../hash.hpp ../math.hpp ../sieve.hpp ../bits.hpp ../frac.hpp
 DEPS += ../kmp.hpp
 
@@ -20,13 +20,13 @@ include ../../templates/cpp-flags.make
 .PHONY: perfm debug
 .PHONY: run code valgrind fast clean
 
-perfm: MODE := performance
-perfm: CXXFLAGS += $(OPTIM)
-perfm: $(EXE)
-
 debug: MODE := debug
 debug: CXXFLAGS += $(DEBUG)
 debug: $(EXE)
+
+perfm: MODE := performance
+perfm: CXXFLAGS += $(OPTIM)
+perfm: $(EXE)
 
 # Compilation rule
 $(EXE): $(FILE) $(DEPS)
