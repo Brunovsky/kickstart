@@ -104,6 +104,23 @@ ulong lcm(ulong a, ulong b) {
 }
 
 /**
+ * Solve the system a = b[i] (mod p[i]), i = 0,...,n-1
+ */
+long chinese(int n, long remainders[], long primes[]) {
+    long p = 1, a = 0;
+    for (int i = 0; i < n; i++) {
+        long q = primes[i], b = remainders[i];
+        long x, y;
+        gcd(p, q, x, y);
+        a = a * q * y + b * p * x;
+        p = p * q;
+        a = a % p;
+        a = a < 0 ? a + p : a;
+    }
+    return a;
+}
+
+/**
  * Compute primes dividing n
  */
 map<ulong, int> factorize(ulong n) {
