@@ -9,10 +9,10 @@ using namespace std;
  * For undirected graphs insert edges both ways
  */
 struct dijkstra {
-    int V, E;
+    int V;
     vector<vector<pair<int, int>>> adj;
 
-    dijkstra(int V) : V(V), E(0) {
+    dijkstra(int V) : V(V) {
         adj.resize(V, {});
     }
 
@@ -77,11 +77,11 @@ struct dijkstra {
  * For undirected graphs insert edges both ways
  */
 struct astar {
-    int V, E;
+    int V;
     vector<vector<pair<int, int>>> adj;
     using heuristic_t = const function<int(int)>&;
 
-    astar(int V) : V(V), E(0) {
+    astar(int V) : V(V) {
         adj.resize(V, {});
     }
 
@@ -200,10 +200,11 @@ struct floyd_warshall {
         if (next[u][v] == -1) {
             return path;
         }
-        do {
+        while (u != v) {
             path.push_back(u);
             u = next[u][v];
-        } while (u != v);
+        }
+        path.push_back(v);
         return path;
     }
 };
@@ -234,6 +235,7 @@ struct bellman_ford {
         dist.assign(V, INT_MAX);
         prev.assign(V, -1);
         dist[s] = 0;
+        prev[s] = s;
 
         bool stop = false;
         for (int k = 1; k < V && !stop; k++) {

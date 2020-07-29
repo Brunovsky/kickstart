@@ -16,13 +16,12 @@ struct mincost_matching {
         adj.assign(U + 1, {});
     }
 
-    void add(int u, int v, int edge_cost) {
-        assert(0 <= u && u < U && 0 <= v && v < V && edge_cost >= 0);
+    void add(int u, int v, int w) {
+        assert(0 <= u && u < U && 0 <= v && v < V && w >= 0);
         int e = E++;
-        source.resize(E), target.resize(E), cost.resize(E);
-        source[e] = u + 1;
-        target[e] = v + 1;
-        cost[e] = edge_cost;
+        source.push_back(u + 1);
+        target.push_back(v + 1);
+        cost.push_back(w);
         adj[u + 1].push_back(e);
     }
 
@@ -71,7 +70,6 @@ struct mincost_matching {
                 for (int e : adj[u]) {
                     int v = target[e];
                     if (cost[e] > pu[u] + pv[v]) {
-                        assert(mu[u] != v && mv[v] != u);
                         delta = min(delta, cost[e] - pu[u] - pv[v]);
                     }
                 }
