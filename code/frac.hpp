@@ -4,6 +4,7 @@ using namespace std;
 
 // *****
 
+// positive infinity is frac(1, 0) and negative infinity is frac(-1, 0)
 struct frac {
     long n, d;
 
@@ -31,11 +32,33 @@ private:
 };
 
 frac inv(const frac& f) {
-    return frac(f.d, f.n);
+    return f.n >= 0 ? frac(f.d, f.n) : frac(-f.d, -f.n);
 }
 
 frac abs(const frac& f) {
     return frac(abs(f.n), f.d);
+}
+
+long floor(const frac& f) {
+    if (f.d == 0) {
+        return f;
+    }
+    return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d;
+}
+
+long ceil(const frac& f) {
+    if (f.d == 0) {
+        return f;
+    }
+    return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d;
+}
+
+frac operator-(const frac& f) {
+    return frac(-f.n, f.d);
+}
+
+frac operator!(const frac& f) {
+    return f.n == 0;
 }
 
 string to_string(const frac& f) {
@@ -95,47 +118,16 @@ bool operator!=(long b, const frac& a) {
     return a.n != b || a.d != 1;
 }
 bool operator<(long b, const frac& a) {
-    return a.n > b * a.d;
+    return b * a.d < a.n;
 }
 bool operator>(long b, const frac& a) {
-    return a.n < b * a.d;
+    return b * a.d > a.n;
 }
 bool operator<=(long b, const frac& a) {
-    return a.n >= b * a.d;
+    return b * a.d <= a.n;
 }
 bool operator>=(long b, const frac& a) {
-    return a.n <= b * a.d;
-}
-
-frac operator-(const frac& f) {
-    return frac(-f.n, f.d);
-}
-frac operator!(const frac& f) {
-    return f.n == 0;
-}
-frac operator+(const frac& a, const frac& b) {
-    return frac(a.n * b.d + b.n * a.d, a.d * b.d);
-}
-frac operator-(const frac& a, const frac& b) {
-    return frac(a.n * b.d - b.n * a.d, a.d * b.d);
-}
-frac operator*(const frac& a, const frac& b) {
-    return frac(a.n * b.n, a.d * b.d);
-}
-frac operator/(const frac& a, const frac& b) {
-    return frac(a.n * b.d, a.d * b.n);
-}
-frac& operator+=(frac& a, const frac& b) {
-    return a = a + b;
-}
-frac& operator-=(frac& a, const frac& b) {
-    return a = a - b;
-}
-frac& operator*=(frac& a, const frac& b) {
-    return a = a * b;
-}
-frac& operator/=(frac& a, const frac& b) {
-    return a = a / b;
+    return b * a.d >= a.n;
 }
 
 frac operator+(const frac& a, long b) {
@@ -150,6 +142,9 @@ frac operator*(const frac& a, long b) {
 frac operator/(const frac& a, long b) {
     return frac(a.n, a.d * b);
 }
+frac operator%(const frac& a, long b) {
+    return a - b * long(a / b);
+}
 frac operator+(long b, const frac& a) {
     return frac(a.n + b * a.d, a.d);
 }
@@ -161,6 +156,9 @@ frac operator*(long b, const frac& a) {
 }
 frac operator/(long b, const frac& a) {
     return frac(a.n, a.d * b);
+}
+frac operator%(long b, const frac& a) {
+    return b - long(b / a) * a;
 }
 frac& operator+=(frac& a, long b) {
     return a = a + b;
@@ -174,6 +172,40 @@ frac& operator*=(frac& a, long b) {
 frac& operator/=(frac& a, long b) {
     return a = a / b;
 }
+frac& operator%=(frac& a, long b) {
+    return a = a % b;
+}
+
+frac operator+(const frac& a, const frac& b) {
+    return frac(a.n * b.d + b.n * a.d, a.d * b.d);
+}
+frac operator-(const frac& a, const frac& b) {
+    return frac(a.n * b.d - b.n * a.d, a.d * b.d);
+}
+frac operator*(const frac& a, const frac& b) {
+    return frac(a.n * b.n, a.d * b.d);
+}
+frac operator/(const frac& a, const frac& b) {
+    return frac(a.n * b.d, a.d * b.n);
+}
+frac operator%(const frac& a, const frac& b) {
+    return a - long(a / b) * b;
+}
+frac& operator+=(frac& a, const frac& b) {
+    return a = a + b;
+}
+frac& operator-=(frac& a, const frac& b) {
+    return a = a - b;
+}
+frac& operator*=(frac& a, const frac& b) {
+    return a = a * b;
+}
+frac& operator/=(frac& a, const frac& b) {
+    return a = a / b;
+}
+frac& operator%=(frac& a, const frac& b) {
+    return a = a % b;
+}
 
 // fraction closest to f with denominator at most maxd
 frac closest(frac f, long maxd) {
@@ -183,7 +215,7 @@ frac closest(frac f, long maxd) {
     if (d <= maxd) {
         return f;
     }
-    while (1) {
+    while (true) {
         long a = n / d;
         long p2 = p0 + a * p1;
         long q2 = q0 + a * q1;
@@ -206,6 +238,8 @@ using cf_t = vector<long>;
 // the first continued fraction representation of f
 cf_t cf1_sequence(frac f) {
     cf_t cf1;
+    cf1.push_back(floor(f));
+    f = f - floor(f);
     while (f.n) {
         swap(f.n, f.d);
         cf1.push_back(f.n / f.d);
@@ -231,7 +265,7 @@ frac compute_fraction(const cf_t& cf) {
         f.n += cf[i] * f.d;
         swap(f.n, f.d);
     }
-    return f;
+    return inv(f);
 }
 
 // from codejam: compute fraction between lo and hi with smallest possible denominator
