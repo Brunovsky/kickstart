@@ -11,7 +11,7 @@ EXE := ./hack
 DEPS := ../disjoint_set.hpp ../fenwick.hpp ../quad_tree.hpp ../segment_tree.hpp
 DEPS += ../russian_segment_tree.hpp ../maximal_matching.hpp ../maximum_flow.hpp
 DEPS += ../mincost_matching.hpp ../simplex.hpp ../shortest_path.hpp
-DEPS += ../min_spanning_forest.hpp ../transportation.hpp
+DEPS += ../min_spanning_forest.hpp ../transportation.hpp ../linear_system.hpp
 DEPS += ../hash.hpp ../math.hpp ../sieve.hpp ../bits.hpp ../frac.hpp
 DEPS += ../kmp.hpp
 
