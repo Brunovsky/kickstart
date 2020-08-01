@@ -15,6 +15,7 @@ using namespace std;
  *   - AVL tree rotations and rebalancing for insertions and deletions
  *   - Single insert and erase
  *   - All iterators
+ *   - Support comparison operators
  *
  * TODO:
  *   - Define set, multiset wrappers
@@ -22,7 +23,6 @@ using namespace std;
  *   - Support emplace() and emplace_hint()
  *   - Support equal_range(), lower_bound() and upper_bound()
  *   - Support merge() and extract()
- *   - Support comparison operators
  *
  * Improvements:
  *   - Add small pool of dropped avl_nodes for reuse
@@ -90,9 +90,8 @@ struct avl_node {
     unique_ptr<T> data;
     int8_t balance = 0;
 
-    avl_node(node_t* parent, T data) : parent(parent), data(make_unique<T>(move(data))) {}
-
     avl_node() {}
+    avl_node(node_t* parent, T data) : parent(parent), data(make_unique<T>(move(data))) {}
 
     ~avl_node() {
         delete link[0];
@@ -255,15 +254,14 @@ struct avl_const_iterator {
 
 template <typename T, typename CmpFn = less<T>>
 struct avl_tree {
-  public:
     using iterator = avl_iterator<T>;
     using const_iterator = avl_const_iterator<T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using size_type = size_t;
 
-  private:
     using node_t = avl_node<T>;
+    using tree_t = avl_tree<T, CmpFn>;
 
     // The real tree's root is head->link[0]. head is never nullptr.
     node_t* head;
@@ -287,7 +285,6 @@ struct avl_tree {
         return head->link[0] ? node_t::maximum(head->link[0]) : nullptr;
     }
 
-  public:
     inline iterator begin() noexcept {
         return iterator(minimum());
     }
@@ -325,7 +322,25 @@ struct avl_tree {
         return const_reverse_iterator(begin());
     }
 
-  private:
+    friend bool operator==(const tree_t& lhs, const tree_t& rhs) noexcept {
+        return lhs.size() == rhs.size() && equal(lhs.begin(), lhs.end(), rhs.begin());
+    }
+    friend bool operator!=(const tree_t& lhs, const tree_t& rhs) noexcept {
+        return !(lhs == rhs);
+    }
+    friend bool operator<(const tree_t& lhs, const tree_t& rhs) noexcept {
+        return lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+    }
+    friend bool operator>(const tree_t& lhs, const tree_t& rhs) noexcept {
+        return rhs < lhs;
+    }
+    friend bool operator<=(const tree_t& lhs, const tree_t& rhs) noexcept {
+        return !(rhs < lhs);
+    }
+    friend bool operator>=(const tree_t& lhs, const tree_t& rhs) noexcept {
+        return !(lhs < rhs);
+    }
+
     /**
      * AVL functions
      *
