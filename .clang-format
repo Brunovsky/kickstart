@@ -2,7 +2,7 @@
 Language: Cpp
 BasedOnStyle: Google
 #AccessModifierOffset: -1
-AccessModifierOffset: -4
+AccessModifierOffset: -2
 AlignAfterOpenBracket: Align
 #AlignConsecutiveMacros: false
 AlignConsecutiveMacros: true
