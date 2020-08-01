@@ -1,5 +1,6 @@
 #include <cassert>
 #include <iostream>
+#include <limits>
 #include <memory>
 
 using namespace std;
@@ -16,12 +17,12 @@ using namespace std;
  *   - Single insert and erase
  *   - All iterators
  *   - Support comparison operators
+ *   - Support equal_range(), lower_bound() and upper_bound()
  *
  * TODO:
  *   - Define set, multiset wrappers
  *   - Define map, multimap wrappers
  *   - Support emplace() and emplace_hint()
- *   - Support equal_range(), lower_bound() and upper_bound()
  *   - Support merge() and extract()
  *
  * Improvements:
@@ -341,6 +342,160 @@ struct avl_tree {
         return !(lhs < rhs);
     }
 
+    template <typename K>
+    node_t* find_node(const K& data) {
+        node_t* x = head->link[0];
+        while (x) {
+            bool lesser = do_compare(data, *x->data);
+            if (!lesser && !do_compare(*x->data, data))
+                return x;
+            x = x->link[!lesser];
+        }
+        return head;
+    }
+    template <typename K>
+    const node_t* find_node(const K& data) const {
+        const node_t* x = head->link[0];
+        while (x) {
+            bool lesser = do_compare(data, *x->data);
+            if (!lesser && !do_compare(*x->data, data))
+                return x;
+            x = x->link[!lesser];
+        }
+        return head;
+    }
+    template <typename K>
+    iterator find(const K& data) {
+        return iterator(find_node(data));
+    }
+    template <typename K>
+    const_iterator find(const K& data) const {
+        return const_iterator(find_node(data));
+    }
+    template <typename K>
+    iterator lower_bound(const K& data) {
+        node_t* x = head->link[0];
+        node_t* y = head;
+        while (x) {
+            if (!do_compare(*x->data, data))
+                y = x, x = x->link[0];
+            else
+                x = x->link[1];
+        }
+        return iterator(y);
+    }
+    template <typename K>
+    const_iterator lower_bound(const K& data) const {
+        const node_t* x = head->link[0];
+        const node_t* y = head;
+        while (x) {
+            if (!do_compare(*x->data, data))
+                y = x, x = x->link[0];
+            else
+                x = x->link[1];
+        }
+        return const_iterator(y);
+    }
+    template <typename K>
+    iterator upper_bound(const K& data) {
+        node_t* x = head->link[0];
+        node_t* y = head;
+        while (x) {
+            if (do_compare(data, *x->data))
+                y = x, x = x->link[0];
+            else
+                x = x->link[1];
+        }
+        return iterator(y);
+    }
+    template <typename K>
+    const_iterator upper_bound(const K& data) const {
+        const node_t* x = head->link[0];
+        const node_t* y = head;
+        while (x) {
+            if (do_compare(data, *x->data))
+                y = x, x = x->link[0];
+            else
+                x = x->link[1];
+        }
+        return const_iterator(y);
+    }
+    template <typename K>
+    std::pair<iterator, iterator> equal_range(const K& data) {
+        node_t* x = head->link[0];
+        node_t* y = head;
+        while (x) {
+            if (do_compare(*x->data, data))
+                x = x->link[1];
+            else if (do_compare(data, *x->data))
+                y = x, x = x->link[0];
+            else {
+                node_t* xu = x->link[1];
+                node_t* yu = y;
+                y = x, x = x->link[0];
+                // lower bound [x, y]
+                while (x) {
+                    if (!do_compare(*x->data, data))
+                        y = x, x = x->link[0];
+                    else
+                        x = x->link[1];
+                }
+                // upper bound [xu, yu]
+                while (xu) {
+                    if (do_compare(data, *xu->data))
+                        yu = xu, xu = xu->link[0];
+                    else
+                        xu = xu->link[1];
+                }
+                return {iterator(y), iterator(yu)};
+            }
+        }
+        return {iterator(y), iterator(y)};
+    }
+    template <typename K>
+    std::pair<const_iterator, const_iterator> equal_range(const K& data) const {
+        const node_t* x = head->link[0];
+        const node_t* y = head;
+        while (x) {
+            if (do_compare(*x->data, data))
+                x = x->link[1];
+            else if (do_compare(data, *x->data))
+                y = x, x = x->link[0];
+            else {
+                const node_t* xu = x->link[1];
+                const node_t* yu = y;
+                y = x, x = x->link[0];
+                // lower bound [x, y]
+                while (x) {
+                    if (!do_compare(*x->data, data))
+                        y = x, x = x->link[0];
+                    else
+                        x = x->link[1];
+                }
+                // upper bound [xu, yu]
+                while (xu) {
+                    if (do_compare(data, *xu->data))
+                        yu = xu, xu = xu->link[0];
+                    else
+                        xu = xu->link[1];
+                }
+                return {const_iterator(y), const_iterator(yu)};
+            }
+        }
+        return {const_iterator(y), const_iterator(y)};
+    }
+    template <typename K>
+    bool contains(const K& data) const {
+        const node_t* x = head->link[0];
+        while (x) {
+            bool lesser = do_compare(data, *x->data);
+            if (!lesser && !do_compare(*x->data, data))
+                return true;
+            x = x->link[!lesser];
+        }
+        return false;
+    }
+
     /**
      * AVL functions
      *
@@ -555,7 +710,6 @@ struct avl_tree {
         node_count--;
     }
 
-  public:
     std::pair<iterator, bool> insert_unique(const T& data) {
         node_t* y = head->link[0];
         node_t* parent = head;
@@ -588,8 +742,8 @@ struct avl_tree {
     }
 
     bool erase_unique(const T& data) {
-        node_t* y = find(data);
-        if (y) {
+        node_t* y = find_node(data);
+        if (y != head) {
             erase_node(y);
             return true;
         }
@@ -616,48 +770,8 @@ struct avl_tree {
         return node_count == 0;
     }
 
-    node_t* find(const T& data) {
-        node_t* y = head->link[0];
-        while (y) {
-            bool lesser = do_compare(data, *y->data);
-            if (!lesser && !do_compare(*y->data, data)) {
-                return y;
-            }
-            y = y->link[!lesser];
-        }
-        return nullptr;
-    }
-
-    node_t* lower_bound(const T& data) {
-        node_t *y = head->link[0], parent = head;
-        while (y) {
-            bool lesser = do_compare(*y->data, data);
-            parent = y;
-            y = y->link[lesser];
-        }
-        return parent;
-    }
-
-    node_t* upper_bound(const T& data) {
-        node_t *y = head->link[0], parent = head;
-        while (y) {
-            bool lesser = do_compare(data, *y->data);
-            parent = y;
-            y = y->link[!lesser];
-        }
-        return parent;
-    }
-
-    bool contains(const T& data) const {
-        node_t* y = head->link[0];
-        while (y) {
-            bool lesser = do_compare(data, *y->data);
-            if (!lesser && !do_compare(*y->data, data)) {
-                return true;
-            }
-            y = y->link[!lesser];
-        }
-        return false;
+    size_t max_size() const noexcept {
+        return std::numeric_limits<size_t>::max();
     }
 
 #if DEBUG_AVL_TREE

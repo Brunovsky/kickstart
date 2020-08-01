@@ -7,6 +7,68 @@
 
 mt19937 mt(random_device{}());
 
+void range_tests() {
+    uniform_int_distribution<int> dists(5, 200);
+    uniform_int_distribution<int> distn(-10000, 10000);
+
+    for (int t = 0; t < 2'000; t++) {
+        avl_tree<int> tree;
+        vector<int> nums;
+        int s = dists(mt);
+        for (int i = 0; i < s; i++) {
+            nums.push_back(distn(mt));
+        }
+        for (int n : nums) {
+            auto it = tree.insert_multi(n);
+            assert(it != tree.end() && *it == n);
+        }
+        sort(begin(nums), end(nums));
+        assert(tree.size() == nums.size());
+
+        uniform_int_distribution<int> disti(0, s - 1);
+        for (int l = 0; l < 10; l++) {
+            int i = disti(mt);
+            int n = nums[i];
+            auto nbegin = lower_bound(begin(nums), end(nums), n);
+            auto nend = upper_bound(begin(nums), end(nums), n);
+            auto tbegin = tree.lower_bound(n);
+            auto tend = tree.upper_bound(n);
+            auto t2 = tree.equal_range(n);
+            assert(t2.first == tbegin && t2.second == tend);
+            assert(tbegin != tend); // because n actually exists
+            int cnt = 0;
+            for (auto it = tbegin; it != tend; it++) {
+                cnt++;
+                assert(*it == n);
+            }
+            assert(cnt == nend - nbegin);
+            assert(tree.find(n) != tree.end());
+        }
+        for (int l = 0; l < 30; l++) {
+            int i = disti(mt), j = disti(mt);
+            if (i > j)
+                swap(i, j);
+            int n = nums[i], m = nums[j];
+            auto nbegin = lower_bound(begin(nums), end(nums), n);
+            auto nend = upper_bound(begin(nums), end(nums), m);
+            auto tbegin = tree.lower_bound(n);
+            auto tend = tree.upper_bound(m);
+            assert(tbegin != tend); // because n actually exists
+            int cnt = 0;
+            for (auto it = tbegin; it != tend; it++) {
+                cnt++;
+                // printf("%d %d %d\n", n, *it, m);
+                assert(n <= *it && *it <= m);
+            }
+            assert(cnt == nend - nbegin);
+            assert(tree.find(n) != tree.end() && tree.find(m) != tree.end());
+        }
+
+        cout << "\r  range test #" << t + 1 << flush;
+    }
+    cout << "\r  range test OK  -----\n";
+}
+
 void compare_test() {
     uniform_int_distribution<int> dists(5, 200);
     uniform_int_distribution<int> distn(1, 10000);
@@ -84,6 +146,7 @@ void battle_test() {
 }
 
 int main() {
+    range_tests();
     compare_test();
     battle_test();
     return 0;
