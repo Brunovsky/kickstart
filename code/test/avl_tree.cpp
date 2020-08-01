@@ -9,7 +9,7 @@ uniform_int_distribution<int> dist(1, 40);
 bernoulli_distribution doErase(0.25);
 
 void test() {
-    for (int k = 0; k < 100; k++) {
+    for (int k = 0; k < 10000; k++) {
         avl_tree<int> tree;
         assert(tree.empty());
         printf("test %d\n", k + 1);

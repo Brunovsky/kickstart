@@ -7,6 +7,32 @@ using namespace std;
 // *****
 
 /**
+ * STL-friendly AVL tree template for (multi)sets and (multi)maps.
+ *   - Parametrized by type T and comparison functor.
+ *   - Does not use allocators (for simplicity)
+ *
+ * Done:
+ *   - AVL tree rotations and rebalancing for insertions and deletions
+ *   - Single insert and erase
+ *   - All iterators
+ *
+ * TODO:
+ *   - Define set, multiset wrappers
+ *   - Define map, multimap wrappers
+ *   - Support emplace() and emplace_hint()
+ *   - Support equal_range(), lower_bound() and upper_bound()
+ *   - Support merge() and extract()
+ *   - Support comparison operators
+ *
+ * Improvements:
+ *   - Add small pool of dropped avl_nodes for reuse
+ *   - Add constant-time minimum() and maximum() to avl_tree
+ *   - Add order statistics or some other node update policy
+ *   - Hide node balance in parent pointer (how?)
+ *   - Support range insert and erase
+ */
+
+/**
  * Left rotation notes
  *
  *       y                     x
