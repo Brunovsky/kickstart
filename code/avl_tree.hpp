@@ -264,10 +264,12 @@ struct avl_tree {
     using tree_t = avl_tree<T, CmpFn>;
 
     // The real tree's root is head->link[0]. head is never nullptr.
+  private:
     node_t* head;
     size_t node_count;
     CmpFn cmp;
 
+  public:
     avl_tree(const CmpFn& cmp = CmpFn()) noexcept
         : head(new node_t()), node_count(0), cmp(cmp) {}
 
@@ -317,11 +319,12 @@ struct avl_tree {
     bool empty() const noexcept {
         return node_count == 0;
     }
-    size_t max_size() const noexcept {
+    constexpr size_t max_size() const noexcept {
         return std::numeric_limits<size_t>::max();
     }
 
-    inline bool do_compare(const T& lhs, const T& rhs) const {
+    template <typename K1 = T, typename K2 = T>
+    inline bool do_compare(const K1& lhs, const K2& rhs) const {
         return cmp(lhs, rhs);
     }
 

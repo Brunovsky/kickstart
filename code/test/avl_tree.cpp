@@ -1,6 +1,7 @@
 #include "../avl_tree.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <random>
 #include <set>
 
@@ -68,6 +69,12 @@ void merge_test(int T = 500) {
         assert(sym.debug());
         assert(itr.debug());
 
+        // ping-pong
+        avl_tree<int> c = a;
+        b.merge_multi(c);
+        c.merge_multi(b);
+        assert(a == c);
+
         cout << "\r     merge test #" << t << flush;
     }
 
@@ -108,6 +115,12 @@ void merge_test(int T = 500) {
         assert(difba.debug());
         assert(sym.debug());
         assert(itr.debug());
+
+        // ping-pong
+        avl_tree<int> c = a;
+        b.merge_unique(c);
+        c.merge_unique(b);
+        assert(a == c);
 
         cout << "\r     merge test #" << t + T << flush;
     }
@@ -650,6 +663,73 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
     cout << "\r    battle test OK " << bti << " ---\n";
 }
 
+/**
+ * Test the following:
+ *      - Performance
+ */
+void performance_test(int T = 500) {
+    using namespace std::chrono;
+    intd distn(0, 100000);
+
+    using ms = chrono::milliseconds;
+
+    {
+        auto now = steady_clock::now();
+        for (int t = 1; t <= T; t++) {
+            std::multiset<int> tree;
+            for (int i = 0; i < 10 * t; i++) {
+                tree.insert(distn(mt));
+            }
+        }
+        auto time = duration_cast<ms>(steady_clock::now() - now);
+        printf("multiset insertions: %ldms\n", time.count());
+    }
+
+    {
+        auto now = steady_clock::now();
+        for (int t = 1; t <= T; t++) {
+            avl_tree<int> tree;
+            for (int i = 0; i < 10 * t; i++) {
+                tree.insert_multi(distn(mt));
+            }
+        }
+        auto time = duration_cast<ms>(steady_clock::now() - now);
+        printf("avl_tree insertions: %ldms\n", time.count());
+    }
+
+    {
+        size_t cnt = 0;
+        auto now = steady_clock::now();
+        for (int t = 1; t <= T; t++) {
+            std::multiset<int> tree;
+            for (int i = 0; i < 5 * t; i++) {
+                tree.insert(distn(mt));
+            }
+            for (int i = 0; i < 60 * t; i++) {
+                cnt += tree.count(distn(mt)) > 0;
+            }
+        }
+        auto time = duration_cast<ms>(steady_clock::now() - now);
+        printf("multiset query: %ldms (count: %lu)\n", time.count(), cnt);
+    }
+
+    {
+        size_t cnt = 0;
+        auto now = steady_clock::now();
+        for (int t = 1; t <= T; t++) {
+            avl_tree<int> tree;
+            for (int i = 0; i < 5 * t; i++) {
+                tree.insert_multi(distn(mt));
+            }
+            for (int i = 0; i < 60 * t; i++) {
+                cnt += tree.count(distn(mt)) > 0;
+            }
+        }
+        auto time = duration_cast<ms>(steady_clock::now() - now);
+        printf("avl_tree query: %ldms (count: %lu)\n", time.count(), cnt);
+    }
+}
+
 int main() {
     hint_test();
     emplace_test();
@@ -664,7 +744,7 @@ int main() {
     battle_test(800, intd(5, 700), intd(0, 7),
                 boold(0.40), boold(0.45), boold(0.30), boold(0.20), boold(0.002));
     // inserts only test
-    battle_test(500, intd(5, 700), intd(0, 7),
+    battle_test(300, intd(5, 700), intd(0, 7),
                 boold(0.00), boold(0.30), boold(0.60), boold(0.50), boold(0.000));
     // generic test with many conflicts
     battle_test(800, intd(100, 700), intd(0, 3),
@@ -680,6 +760,8 @@ int main() {
                 boold(0.10), boold(0.25), boold(0.50), boold(0.30), boold(0.075));
     //               erase        emplace      multi        hint         clear
     // clang-format on
+
+    performance_test();
 
     return 0;
 }
