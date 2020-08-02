@@ -237,8 +237,8 @@ void iterators_test(int T = 500) {
             assert(tree.begin() == tree.end());
         } else {
             // 2: test minimum(), maximum()
-            assert(*tree.minimum()->data == nums.front());
-            assert(*tree.maximum()->data == nums.back());
+            assert(tree.minimum()->data == nums.front());
+            assert(tree.maximum()->data == nums.back());
         }
 
         // subtest 1: look for an existing integer n.

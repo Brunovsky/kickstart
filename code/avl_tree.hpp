@@ -91,13 +91,25 @@ struct avl_node {
 
     node_t* parent = nullptr;
     node_t* link[2] = {};
-    std::unique_ptr<T> data;
+    // use dummy for header node, and actual data for every other node
+    union {
+        int8_t _dummy;
+        T data;
+    };
     int8_t balance = 0;
 
-    avl_node() {}
-    avl_node(T data) : data(std::make_unique<T>(std::move(data))) {}
+    avl_node(T data) : data(std::move(data)) {}
     template <typename... Args>
-    avl_node(Args&&... args) : data(std::make_unique<T>(std::forward<Args>(args)...)) {}
+    avl_node(Args&&... args) : data(std::forward<Args>(args)...) {}
+
+  private:
+    struct avl_head_tag_t {};
+    avl_node([[maybe_unused]] avl_head_tag_t tag) {}
+
+  public:
+    static node_t* new_head() {
+        return new node_t(avl_head_tag_t{});
+    }
 
     ~avl_node() {
         delete link[0];
@@ -170,10 +182,10 @@ struct avl_iterator {
     explicit avl_iterator(node_t* y) : y(y) {}
 
     T& operator*() const noexcept {
-        return *y->data;
+        return y->data;
     }
     T* operator->() const noexcept {
-        return y->data.get();
+        return y->data;
     }
     self_type& operator++() noexcept {
         y = node_t::increment(y);
@@ -219,10 +231,10 @@ struct avl_const_iterator {
     avl_const_iterator(const iterator_t& it) : y(it.y) {}
 
     const T& operator*() const noexcept {
-        return *y->data;
+        return y->data;
     }
     const T* operator->() const noexcept {
-        return y->data.get();
+        return &y->data;
     }
     self_type& operator++() noexcept {
         y = node_t::increment(y);
@@ -264,25 +276,24 @@ struct avl_tree {
     using tree_t = avl_tree<T, CmpFn>;
 
     // The real tree's root is head->link[0]. head is never nullptr.
-  private:
     node_t* head;
     size_t node_count;
     CmpFn cmp;
 
-  public:
     avl_tree(const CmpFn& cmp = CmpFn()) noexcept
-        : head(new node_t()), node_count(0), cmp(cmp) {}
+        : head(node_t::new_head()), node_count(0), cmp(cmp) {}
 
     // Move constructor
     avl_tree(avl_tree&& other) noexcept
-        : head(new node_t()), node_count(other.node_count), cmp(std::move(other.cmp)) {
+        : head(node_t::new_head()), node_count(other.node_count),
+          cmp(std::move(other.cmp)) {
         adopt_node(head, other.head->link[0], 0);
         other.head->link[0] = nullptr; // note: we leave other in a semi-valid state
         other.node_count = 0;
     }
     // Copy constructor
     avl_tree(const avl_tree& other) noexcept
-        : head(new node_t()), node_count(other.node_count), cmp(other.cmp) {
+        : head(node_t::new_head()), node_count(other.node_count), cmp(other.cmp) {
         adopt_node(head, deep_clone_node(other.head->link[0]), 0);
     }
     // Move assignment
@@ -403,8 +414,8 @@ struct avl_tree {
     node_t* find_node(const K& data) {
         node_t* x = head->link[0];
         while (x) {
-            bool lesser = do_compare(data, *x->data);
-            if (!lesser && !do_compare(*x->data, data))
+            bool lesser = do_compare(data, x->data);
+            if (!lesser && !do_compare(x->data, data))
                 return x;
             x = x->link[!lesser];
         }
@@ -414,8 +425,8 @@ struct avl_tree {
     const node_t* find_node(const K& data) const {
         const node_t* x = head->link[0];
         while (x) {
-            bool lesser = do_compare(data, *x->data);
-            if (!lesser && !do_compare(*x->data, data))
+            bool lesser = do_compare(data, x->data);
+            if (!lesser && !do_compare(x->data, data))
                 return x;
             x = x->link[!lesser];
         }
@@ -434,7 +445,7 @@ struct avl_tree {
         node_t* x = head->link[0];
         node_t* y = head;
         while (x) {
-            if (!do_compare(*x->data, data))
+            if (!do_compare(x->data, data))
                 y = x, x = x->link[0];
             else
                 x = x->link[1];
@@ -446,7 +457,7 @@ struct avl_tree {
         const node_t* x = head->link[0];
         const node_t* y = head;
         while (x) {
-            if (!do_compare(*x->data, data))
+            if (!do_compare(x->data, data))
                 y = x, x = x->link[0];
             else
                 x = x->link[1];
@@ -458,7 +469,7 @@ struct avl_tree {
         node_t* x = head->link[0];
         node_t* y = head;
         while (x) {
-            if (do_compare(data, *x->data))
+            if (do_compare(data, x->data))
                 y = x, x = x->link[0];
             else
                 x = x->link[1];
@@ -470,7 +481,7 @@ struct avl_tree {
         const node_t* x = head->link[0];
         const node_t* y = head;
         while (x) {
-            if (do_compare(data, *x->data))
+            if (do_compare(data, x->data))
                 y = x, x = x->link[0];
             else
                 x = x->link[1];
@@ -482,9 +493,9 @@ struct avl_tree {
         node_t* x = head->link[0];
         node_t* y = head;
         while (x) {
-            if (do_compare(*x->data, data))
+            if (do_compare(x->data, data))
                 x = x->link[1];
-            else if (do_compare(data, *x->data))
+            else if (do_compare(data, x->data))
                 y = x, x = x->link[0];
             else {
                 node_t* xu = x->link[1];
@@ -492,14 +503,14 @@ struct avl_tree {
                 y = x, x = x->link[0];
                 // lower bound [x, y]
                 while (x) {
-                    if (!do_compare(*x->data, data))
+                    if (!do_compare(x->data, data))
                         y = x, x = x->link[0];
                     else
                         x = x->link[1];
                 }
                 // upper bound [xu, yu]
                 while (xu) {
-                    if (do_compare(data, *xu->data))
+                    if (do_compare(data, xu->data))
                         yu = xu, xu = xu->link[0];
                     else
                         xu = xu->link[1];
@@ -514,9 +525,9 @@ struct avl_tree {
         const node_t* x = head->link[0];
         const node_t* y = head;
         while (x) {
-            if (do_compare(*x->data, data))
+            if (do_compare(x->data, data))
                 x = x->link[1];
-            else if (do_compare(data, *x->data))
+            else if (do_compare(data, x->data))
                 y = x, x = x->link[0];
             else {
                 const node_t* xu = x->link[1];
@@ -524,14 +535,14 @@ struct avl_tree {
                 y = x, x = x->link[0];
                 // lower bound [x, y]
                 while (x) {
-                    if (!do_compare(*x->data, data))
+                    if (!do_compare(x->data, data))
                         y = x, x = x->link[0];
                     else
                         x = x->link[1];
                 }
                 // upper bound [xu, yu]
                 while (xu) {
-                    if (do_compare(data, *xu->data))
+                    if (do_compare(data, xu->data))
                         yu = xu, xu = xu->link[0];
                     else
                         xu = xu->link[1];
@@ -545,8 +556,8 @@ struct avl_tree {
     bool contains(const K& data) const {
         const node_t* x = head->link[0];
         while (x) {
-            bool lesser = do_compare(data, *x->data);
-            if (!lesser && !do_compare(*x->data, data))
+            bool lesser = do_compare(data, x->data);
+            if (!lesser && !do_compare(x->data, data))
                 return true;
             x = x->link[!lesser];
         }
@@ -574,7 +585,7 @@ struct avl_tree {
     static node_t* deep_clone_node(const node_t* node) {
         if (!node)
             return nullptr;
-        node_t* clone = new node_t(*node->data);
+        node_t* clone = new node_t(node->data);
         clone->balance = node->balance;
         adopt_node(clone, deep_clone_node(node->link[0]), 0);
         adopt_node(clone, deep_clone_node(node->link[1]), 1);
@@ -812,8 +823,8 @@ struct avl_tree {
         node_t* parent = head;
         bool lesser = true;
         while (y) {
-            lesser = do_compare(*node->data, *y->data);
-            if (!lesser && !do_compare(*y->data, *node->data)) {
+            lesser = do_compare(node->data, y->data);
+            if (!lesser && !do_compare(y->data, node->data)) {
                 drop_node(node);
                 return {iterator(y), false};
             }
@@ -828,7 +839,7 @@ struct avl_tree {
         node_t* parent = head;
         bool lesser = true;
         while (y) {
-            lesser = do_compare(*node->data, *y->data);
+            lesser = do_compare(node->data, y->data);
             parent = y;
             y = y->link[!lesser];
         }
@@ -837,23 +848,23 @@ struct avl_tree {
     }
     iterator insert_node_hint_unique(node_t* node, node_t* hint) {
         if (hint == head) {
-            if (node_count > 0 && do_compare(*maximum()->data, *node->data)) {
+            if (node_count > 0 && do_compare(maximum()->data, node->data)) {
                 insert_node(maximum(), node, 1);
                 return iterator(node);
             }
             return insert_node_unique(node).first; // bad hint
-        } else if (do_compare(*node->data, *hint->data)) {
+        } else if (do_compare(node->data, hint->data)) {
             if (hint == minimum()) {
                 insert_node(minimum(), node, 0);
                 return iterator(node);
             }
             node_t* prev = node_t::decrement(hint);
-            if (do_compare(*prev->data, *node->data)) {
+            if (do_compare(prev->data, node->data)) {
                 insert_node_before(hint, node);
                 return iterator(node);
             }
             return insert_node_unique(node).first; // bad hint
-        } else if (do_compare(*hint->data, *node->data)) {
+        } else if (do_compare(hint->data, node->data)) {
             return insert_node_unique(node).first; // bad hint
         } else {
             drop_node(node);
@@ -862,23 +873,23 @@ struct avl_tree {
     }
     iterator insert_node_hint_multi(node_t* node, node_t* hint) {
         if (hint == head) {
-            if (node_count > 0 && do_compare(*maximum()->data, *node->data)) {
+            if (node_count > 0 && do_compare(maximum()->data, node->data)) {
                 insert_node(maximum(), node, 1);
                 return iterator(node);
             }
             return insert_node_multi(node); // bad hint
-        } else if (do_compare(*node->data, *hint->data)) {
+        } else if (do_compare(node->data, hint->data)) {
             if (hint == minimum()) {
                 insert_node(minimum(), node, 0);
                 return iterator(node);
             }
             node_t* prev = node_t::decrement(hint);
-            if (do_compare(*prev->data, *node->data)) {
+            if (do_compare(prev->data, node->data)) {
                 insert_node_before(hint, node);
                 return iterator(node);
             }
             return insert_node_multi(node);
-        } else if (do_compare(*hint->data, *node->data)) {
+        } else if (do_compare(hint->data, node->data)) {
             return insert_node_multi(node);
         } else {
             insert_node_before(hint, node);
@@ -970,8 +981,8 @@ struct avl_tree {
             node_t* y = head;
             bool lesser = true;
             while (x) {
-                lesser = do_compare(*node->data, *x->data);
-                if (!lesser && !do_compare(*x->data, *node->data))
+                lesser = do_compare(node->data, x->data);
+                if (!lesser && !do_compare(x->data, node->data))
                     goto skip;
                 y = x;
                 x = x->link[!lesser];
@@ -990,12 +1001,12 @@ struct avl_tree {
         for (auto it = src.begin(); it != src.end();) {
             node_t* node = it.y;
             ++it;
-            assert(node && node->parent && node->data);
+            assert(node && node->parent);
             node_t* x = head->link[0];
             node_t* y = head;
             bool lesser = true;
             while (x) {
-                lesser = do_compare(*node->data, *x->data);
+                lesser = do_compare(node->data, x->data);
                 y = x;
                 x = x->link[!lesser];
             }
@@ -1009,7 +1020,7 @@ struct avl_tree {
     }
 
     bool debug() const {
-        AVL_ASSERT(head && !head->link[1] && !head->data && head->balance == 0);
+        AVL_ASSERT(head && !head->link[1] && head->balance == 0);
         int height, cnt = 0;
         AVL_ASSERT(debug(head->link[0], head, '?', height, cnt));
         AVL_ASSERT(cnt == int(node_count));
@@ -1024,10 +1035,10 @@ struct avl_tree {
             return true;
         }
         cnt++;
-        AVL_ASSERT(y->parent == parent && y->data);
+        AVL_ASSERT(y->parent == parent);
         AVL_ASSERT(-1 <= y->balance && y->balance <= +1);
-        AVL_ASSERT(side != '<' || !do_compare(*parent->data, *y->data));
-        AVL_ASSERT(side != '>' || !do_compare(*y->data, *parent->data));
+        AVL_ASSERT(side != '<' || !do_compare(parent->data, y->data));
+        AVL_ASSERT(side != '>' || !do_compare(y->data, parent->data));
 
         int left, right;
         AVL_ASSERT(debug(y->link[0], y, '<', left, cnt));
