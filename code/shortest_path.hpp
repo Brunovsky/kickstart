@@ -239,7 +239,7 @@ struct bellman_ford {
             stop = true;
             for (int e = 0; e < E; e++) {
                 int u = source[e], v = target[e];
-                if (dist[u] < dist[v] + weight[e]) {
+                if (dist[u] > dist[v] + weight[e]) {
                     dist[u] = dist[v] + weight[e];
                     prev[v] = u;
                     stop = false;
