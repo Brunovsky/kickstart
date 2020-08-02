@@ -12,9 +12,130 @@ ostream& operator<<(ostream& out, pair<int, int> ints) {
     return out << '(' << ints.first << ',' << ints.second << ')';
 }
 
+template struct avl_tree<int>;
+template struct avl_tree<pair<int, int>>;
+template struct avl_tree<int, greater<int>>;
+template struct avl_tree<pair<int, int>, greater<pair<int, int>>>;
+
 mt19937 mt(random_device{}());
 using intd = uniform_int_distribution<int>;
 using boold = bernoulli_distribution;
+
+/**
+ * Test the following:
+ *      - merge_unique(), merge_multi()
+ *      - extract()
+ *      - set_union, set_different, etc
+ *      - avl_inserters
+ */
+void merge_test(int T = 500) {
+    intd dists(0, 100);
+    intd distn(-70, 70);
+
+    // subtest 1: multi merge
+    for (int t = 1; t <= T; t++) {
+        avl_tree<int> a, b;
+        size_t as = dists(mt), bs = dists(mt);
+
+        for (uint i = 0; i < as; i++) {
+            a.insert_multi(distn(mt));
+        }
+        for (uint i = 0; i < bs; i++) {
+            b.insert_multi(distn(mt));
+        }
+        assert(as == a.size() && bs == b.size());
+
+        avl_tree<int> uni, difab, difba, itr, sym;
+        set_union(begin(a), end(a), begin(b), end(b), avl_inserter_multi(uni));
+        set_difference(begin(a), end(a), begin(b), end(b), avl_inserter_multi(difab));
+        set_difference(begin(b), end(b), begin(a), end(a), avl_inserter_multi(difba));
+        set_intersection(begin(a), end(a), begin(b), end(b), avl_inserter_multi(itr));
+        set_symmetric_difference(begin(a), end(a), begin(b), end(b),
+                                 avl_inserter_multi(sym));
+
+        a.merge_multi(b);
+        assert(a.debug());
+        assert(b.debug());
+
+        assert(a.size() == as + bs);
+        assert(b.empty());
+
+        assert(uni.size() == itr.size() + sym.size());
+        assert(sym.size() == difab.size() + difba.size());
+        assert(uni.debug());
+        assert(difab.debug());
+        assert(difba.debug());
+        assert(sym.debug());
+        assert(itr.debug());
+
+        cout << "\r     merge test #" << t << flush;
+    }
+
+    // subtest 2: unique merge
+    for (int t = 1; t <= T; t++) {
+        avl_tree<int> a, b;
+        size_t as = dists(mt), bs = dists(mt);
+
+        for (uint i = 0; i < as; i++) {
+            a.insert_unique(distn(mt));
+        }
+        for (uint i = 0; i < bs; i++) {
+            b.insert_unique(distn(mt));
+        }
+        assert(as >= a.size() && bs >= b.size());
+        as = a.size(), bs = b.size();
+
+        avl_tree<int> uni, difab, difba, itr, sym;
+        set_union(begin(a), end(a), begin(b), end(b), avl_inserter_unique(uni));
+        set_difference(begin(a), end(a), begin(b), end(b), avl_inserter_unique(difab));
+        set_difference(begin(b), end(b), begin(a), end(a), avl_inserter_unique(difba));
+        set_intersection(begin(a), end(a), begin(b), end(b), avl_inserter_unique(itr));
+        set_symmetric_difference(begin(a), end(a), begin(b), end(b),
+                                 avl_inserter_unique(sym));
+
+        a.merge_unique(b);
+        assert(a.debug());
+        assert(b.debug());
+
+        assert(b.size() <= bs && as <= a.size());
+        assert(a.size() + b.size() == as + bs);
+
+        assert(uni.size() == a.size());
+        assert(uni.size() == itr.size() + sym.size());
+        assert(sym.size() == difab.size() + difba.size());
+        assert(uni.debug());
+        assert(difab.debug());
+        assert(difba.debug());
+        assert(sym.debug());
+        assert(itr.debug());
+
+        cout << "\r     merge test #" << t + T << flush;
+    }
+
+    // subtest 3: extract
+    for (int t = 1; t <= T; t++) {
+        avl_tree<int> a, b;
+        int s = dists(mt);
+        for (int i = 0; i < s; i++) {
+            a.insert_multi(distn(mt));
+        }
+        avl_tree<int> c(a); // clone a
+        vector<avl_tree<int>::node_t*> node_handles;
+        for (auto it = a.begin(); it != a.end();) {
+            node_handles.push_back(a.extract(it++));
+        }
+        assert(a.empty());
+        for (avl_tree<int>::node_t* handle : node_handles) {
+            b.insert_node_multi(handle);
+        }
+        assert(b.debug());
+        assert(b == c);
+
+        cout << "\r     merge test #" << t + 2 * T << flush;
+    }
+
+    cout << "\r     merge test OK -----\n";
+}
 
 /**
  * Test the following:
@@ -32,6 +153,7 @@ void construct_test(int T = 500) {
         for (int i = 0, s = dists(mt); i < s; i++) {
             a.insert_multi(distn(mt));
         }
+
         // 1: copy construction
         avl_tree<int> b(a);
         assert(a.size() == b.size() && a == b);
@@ -51,6 +173,11 @@ void construct_test(int T = 500) {
         assert(b.empty());
         assert(e.size() == c.size() && e == c);
         assert(e.size() == d.size() && e == d);
+
+        assert(a.debug());
+        assert(b.debug());
+        assert(c.debug());
+        assert(d.debug());
     }
     cout << "\r construct test OK -----\n";
 }
@@ -83,12 +210,13 @@ void iterators_test(int T = 500) {
         }
         sort(begin(nums), end(nums));
         assert(tree.size() == nums.size());
+        assert(tree.debug());
 
         // 1: test iteration
-        assert(is_sorted(begin(tree), end(tree)));
         assert(equal(begin(nums), end(nums), begin(tree), end(tree)));
-        assert(is_sorted(rbegin(nums), rend(nums), greater<int>{}));
         assert(equal(rbegin(nums), rend(nums), rbegin(tree), rend(tree)));
+        assert(is_sorted(begin(tree), end(tree)));
+        assert(is_sorted(rbegin(tree), rend(tree), greater<int>{}));
 
         if (s == 0) {
             // 2: test minimum(), maximum()
@@ -228,6 +356,8 @@ void equality_test(int T = 500) {
         for (int n : nums) {
             rhs.insert_multi(n);
         }
+        assert(lhs.debug());
+        assert(rhs.debug());
 
         sort(begin(nums), end(nums));
 
@@ -281,6 +411,7 @@ void comparison_test(int T = 500) {
     for (int i = 0; i < T; i++) {
         const auto& tree = trees[i];
         const auto& nums = numsets[i];
+        assert(tree.debug());
         assert(equal(begin(tree), end(tree), begin(nums), end(nums)));
     }
     for (int i = 0; i + 1 < T; i++) {
@@ -335,6 +466,8 @@ void hint_test() {
     tree.erase_unique(5);
     assert(tree.empty());
 
+    assert(tree.debug());
+
     cout << "\r      hint test OK -----\n";
 }
 
@@ -353,6 +486,8 @@ void emplace_test() {
     b.emplace_unique(3, 2), b.emplace_unique(2, 3), b.emplace_unique(1, 2);
 
     assert(a == b);
+    assert(a.debug());
+    assert(b.debug());
 
     cout << "\r   emplace test OK -----\n";
 }
@@ -482,7 +617,7 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
             assert(tree.count(n) == good.count(n));
             assert(tree.size() == good.size());
 
-            tree.debug(); // verify invariants
+            assert(tree.debug()); // verify invariants
 
             if (doclear(mt)) {
                 tree.clear();
@@ -516,12 +651,13 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
 }
 
 int main() {
-    construct_test();
-    comparison_test();
-    iterators_test();
-    equality_test();
     hint_test();
     emplace_test();
+    equality_test();
+    comparison_test();
+    iterators_test();
+    construct_test();
+    merge_test();
 
     // clang-format off
     // generic test with moderate conflicts

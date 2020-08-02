@@ -12,25 +12,31 @@
  *
  * Done:
  *   - AVL tree rotations and rebalancing for insertions and deletions
- *   - Single insert and erase
+ *   - Single and range insert and erase
  *   - All iterators
  *   - Support comparison operators
  *   - Support equal_range(), lower_bound() and upper_bound()
  *   - Support emplace(), emplace_hint(), and insert_hint()
+ *   - Support merge() and extract()
+ *   - Support inserters (avl_inserter_*)
  *   - Copying and moving
  *
  * TODO:
  *   - Define set, multiset wrappers
  *   - Define map, multimap wrappers
- *   - Support merge() and extract()
  *
- * Improvements:
+ * Further improvements:
  *   - Add small pool of dropped avl_nodes for reuse
  *   - Add constant-time minimum() and maximum() to avl_tree
  *   - Add order statistics or some other node update policy
  *   - Hide node balance in parent pointer (how?)
- *   - Support range insert and erase
  */
+
+#define AVL_ASSERT(condition)                              \
+    if (!(condition)) {                                    \
+        std::cerr << "invariant broken: " #condition "\n"; \
+        return false;                                      \
+    }
 
 /**
  * Left rotation notes
@@ -78,8 +84,6 @@
  * is -1 (i.e. the height diminished) iff rotations occurred and the new root
  * is 0-balanced.
  */
-
-#define DEBUG_AVL_TREE 1
 
 template <typename T>
 struct avl_node {
@@ -252,6 +256,8 @@ struct avl_tree {
     using const_iterator = avl_const_iterator<T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    using value_type = T;
     using size_type = size_t;
 
     using node_t = avl_node<T>;
@@ -272,13 +278,11 @@ struct avl_tree {
         other.head->link[0] = nullptr; // note: we leave other in a semi-valid state
         other.node_count = 0;
     }
-
     // Copy constructor
     avl_tree(const avl_tree& other) noexcept
         : head(new node_t()), node_count(other.node_count), cmp(other.cmp) {
         adopt_node(head, deep_clone_node(other.head->link[0]), 0);
     }
-
     // Move assignment
     avl_tree& operator=(avl_tree&& other) noexcept {
         delete head->link[0];
@@ -289,7 +293,6 @@ struct avl_tree {
         other.node_count = 0;
         return *this;
     }
-
     // Copy assignment
     avl_tree& operator=(const avl_tree& other) noexcept {
         delete head->link[0];
@@ -556,13 +559,15 @@ struct avl_tree {
         node->link[0] = node->link[1] = nullptr;
         delete node;
     }
-
     static inline void adopt_node(node_t* parent, node_t* child, bool is_right) {
         parent->link[is_right] = child;
         if (child)
             child->parent = parent;
     }
-
+    static inline void clear_node(node_t* node) {
+        node->parent = node->link[0] = node->link[1] = nullptr;
+        node->balance = 0;
+    }
     static node_t* deep_clone_node(const node_t* node) {
         if (!node)
             return nullptr;
@@ -768,7 +773,6 @@ struct avl_tree {
     }
 
     void insert_node(node_t* parent, node_t* y, bool is_right) {
-        assert(parent && y && y->data && !y->parent);
         adopt_node(parent, y, is_right);
         rebalance_after_insert(y);
         node_count++;
@@ -789,11 +793,14 @@ struct avl_tree {
             insert_node(node, y, 0);
         }
     }
-
     void erase_node(node_t* y) {
-        assert(y && y->data && y->parent);
         erase_node_and_rebalance(y);
         drop_node(y);
+        node_count--;
+    }
+    void yank_node(node_t* y) {
+        erase_node_and_rebalance(y);
+        clear_node(y);
         node_count--;
     }
 
@@ -926,6 +933,16 @@ struct avl_tree {
         }
         return false;
     }
+    size_t erase_multi(const T& data) {
+        auto range = equal_range(data);
+        size_t cnt = 0;
+        for (auto it = range.first; it != range.second;) {
+            node_t* y = it.y;
+            ++it, ++cnt;
+            erase_node(y);
+        }
+        return cnt;
+    }
     void erase(iterator pos) {
         assert(pos.y != head);
         erase_node(pos.y);
@@ -935,56 +952,164 @@ struct avl_tree {
             erase_node(it.y);
         }
     }
+    node_t* extract(const_iterator pos) {
+        node_t* y = const_cast<node_t*>(pos.y);
+        yank_node(y);
+        return y;
+    }
 
-#if DEBUG_AVL_TREE
+    template <typename CmpFn2>
+    void merge_unique(avl_tree<T, CmpFn2>& src) {
+        for (auto it = src.begin(); it != src.end();) {
+            node_t* node = it.y;
+            ++it;
+            node_t* x = head->link[0];
+            node_t* y = head;
+            bool lesser = true;
+            while (x) {
+                lesser = do_compare(*node->data, *x->data);
+                if (!lesser && !do_compare(*x->data, *node->data))
+                    goto skip;
+                y = x;
+                x = x->link[!lesser];
+            }
+            src.yank_node(node);
+            insert_node(y, node, !lesser);
+        skip:;
+        }
+    }
+    template <typename CmpFn2>
+    void merge_unique(avl_tree<T, CmpFn2>&& src) {
+        merge_unique(src);
+    }
+    template <typename CmpFn2>
+    void merge_multi(avl_tree<T, CmpFn2>& src) {
+        for (auto it = src.begin(); it != src.end();) {
+            node_t* node = it.y;
+            ++it;
+            assert(node && node->parent && node->data);
+            node_t* x = head->link[0];
+            node_t* y = head;
+            bool lesser = true;
+            while (x) {
+                lesser = do_compare(*node->data, *x->data);
+                y = x;
+                x = x->link[!lesser];
+            }
+            src.yank_node(node);
+            insert_node(y, node, !lesser);
+        }
+    }
+    template <typename CmpFn2>
+    void merge_multi(avl_tree<T, CmpFn2>&& src) {
+        merge_multi(src);
+    }
+
+    bool debug() const {
+        AVL_ASSERT(head && !head->link[1] && !head->data && head->balance == 0);
+        int height, cnt = 0;
+        AVL_ASSERT(debug(head->link[0], head, '?', height, cnt));
+        AVL_ASSERT(cnt == int(node_count));
+        return true;
+    }
+
   private:
-    void debug_print(const node_t* y, char S, int depth) const {
-        std::string pad(2 * depth, ' ');
+    bool debug(const node_t* y, const node_t* parent, char side, int& height,
+               int& cnt) const {
         if (!y) {
-            std::cerr << pad << S << '\n';
-            return;
+            height = 0;
+            return true;
         }
-        std::cerr << pad << S << ' ' << *y->data << " (" << y->balance << ")\n";
-        if (y->link[0] || y->link[1]) {
-            debug_print(y->link[0], '<', depth + 1);
-            debug_print(y->link[1], '>', depth + 1);
-        }
-    }
+        cnt++;
+        AVL_ASSERT(y->parent == parent && y->data);
+        AVL_ASSERT(-1 <= y->balance && y->balance <= +1);
+        AVL_ASSERT(side != '<' || !do_compare(*parent->data, *y->data));
+        AVL_ASSERT(side != '>' || !do_compare(*y->data, *parent->data));
 
-    int debug(const node_t* y, const node_t* parent, char side) const {
-        if (!y) {
-            return 0;
-        }
-        assert(y->parent == parent);
-        assert(y->data != nullptr);
-        if (side == '<') {
-            assert(!do_compare(*parent->data, *y->data));
-        } else if (side == '>') {
-            assert(!do_compare(*y->data, *parent->data));
-        }
-        int left = debug(y->link[0], y, '<');
-        int right = debug(y->link[1], y, '>');
-        if (y->balance != right - left) {
-            std::cerr << "BUG balance at " << *y->data << "(" << y->balance << ")\n\n";
-            debug_print();
-        }
-        assert(-1 <= y->balance && y->balance <= +1);
-        assert(y->balance == right - left);
-        return 1 + std::max(left, right);
-    }
+        int left, right;
+        AVL_ASSERT(debug(y->link[0], y, '<', left, cnt));
+        AVL_ASSERT(debug(y->link[1], y, '>', right, cnt));
+        AVL_ASSERT(y->balance == right - left);
 
-  public:
-    void debug_print() const {
-        std::fprintf(stderr, "====== nodes: %03lu ===========\n", node_count);
-        debug_print(head->link[0], ' ', 0);
-        std::fprintf(stderr, "=============================\n");
+        height = 1 + std::max(left, right);
+        return true;
     }
-
-    void debug() const {
-        assert(head && !head->link[1] && !head->data && head->balance == 0);
-        debug(head->link[0], head, 'R');
-    }
-#else
-    void debug() const {}
-#endif
 };
+
+template <typename T, typename CmpFn>
+struct avl_inserter_unique_iterator {
+    using value_type = void;
+    using reference = void;
+    using pointer = void;
+    using difference_type = void;
+    using self_type = avl_inserter_unique_iterator<T, CmpFn>;
+    using iterator_category = std::output_iterator_tag;
+    using container_type = avl_tree<T, CmpFn>;
+
+    avl_inserter_unique_iterator(container_type& tree) : tree(&tree) {}
+
+    self_type& operator*() {
+        return *this;
+    }
+    self_type& operator++() {
+        return *this;
+    }
+    self_type& operator++(int) {
+        return *this;
+    }
+    self_type& operator=(const T& value) {
+        tree->insert_unique(value);
+        return *this;
+    }
+    self_type& operator=(T&& value) {
+        tree->insert_unique(std::move(value));
+        return *this;
+    }
+
+  private:
+    container_type* tree;
+};
+
+template <typename T, typename CmpFn>
+struct avl_inserter_multi_iterator {
+    using value_type = void;
+    using reference = void;
+    using pointer = void;
+    using difference_type = void;
+    using self_type = avl_inserter_multi_iterator<T, CmpFn>;
+    using iterator_category = std::output_iterator_tag;
+    using container_type = avl_tree<T, CmpFn>;
+
+    avl_inserter_multi_iterator(container_type& tree) : tree(&tree) {}
+
+    self_type& operator*() {
+        return *this;
+    }
+    self_type& operator++() {
+        return *this;
+    }
+    self_type& operator++(int) {
+        return *this;
+    }
+    self_type& operator=(const T& value) {
+        tree->insert_multi(value);
+        return *this;
+    }
+    self_type& operator=(T&& value) {
+        tree->insert_multi(std::move(value));
+        return *this;
+    }
+
+  private:
+    container_type* tree;
+};
+
+template <typename T, typename CmpFn>
+avl_inserter_unique_iterator<T, CmpFn> avl_inserter_unique(avl_tree<T, CmpFn>& tree) {
+    return avl_inserter_unique_iterator<T, CmpFn>(tree);
+}
+
+template <typename T, typename CmpFn>
+avl_inserter_multi_iterator<T, CmpFn> avl_inserter_multi(avl_tree<T, CmpFn>& tree) {
+    return avl_inserter_multi_iterator<T, CmpFn>(tree);
+}
