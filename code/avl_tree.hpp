@@ -89,9 +89,10 @@ template <typename T>
 struct avl_node {
     using node_t = avl_node<T>;
 
+    // this node is a head node iff parent pointer is nullptr.
+    // in the union, for head node use _dummy, for other nodes use data.
     node_t* parent = nullptr;
     node_t* link[2] = {};
-    // use dummy for header node, and actual data for every other node
     union {
         int8_t _dummy;
         T data;
@@ -114,6 +115,10 @@ struct avl_node {
     ~avl_node() {
         delete link[0];
         delete link[1];
+        // this node is a head node iff parent is nullptr
+        if (parent) {
+            data.~T();
+        }
     }
 
     static node_t* minimum(node_t* n) noexcept {

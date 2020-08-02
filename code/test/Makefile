@@ -40,7 +40,7 @@ run code: debug
 
 valgrind: debug
 	@clear
-	@valgrind $(EXE)
+	@valgrind --leak-check=full $(EXE)
 
 fast: perfm
 	@$(EXE)

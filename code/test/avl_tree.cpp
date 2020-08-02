@@ -1,3 +1,5 @@
+#undef NDEBUG
+
 #include "../avl_tree.hpp"
 
 #include <algorithm>
@@ -8,6 +10,32 @@
 using namespace std;
 
 // *****
+
+/**
+ * Non-copyable, non-movable, non-default-constructible type
+ * that always allocates memory.
+ */
+struct always_allocs {
+    always_allocs(int n1, int n2) : num1(new int(n1)), num2(new int(n2)) {}
+    always_allocs(always_allocs&&) = delete;
+    always_allocs(const always_allocs&) = delete;
+    always_allocs& operator=(always_allocs&&) = delete;
+    always_allocs& operator=(const always_allocs&) = delete;
+    ~always_allocs() {
+        assert(num1 && num2);
+        delete num1;
+        delete num2;
+    }
+    friend bool operator<(const always_allocs& lhs, const always_allocs& rhs) {
+        return tie(*lhs.num1, *lhs.num2) < tie(*rhs.num1, *rhs.num2);
+    }
+    friend bool operator==(const always_allocs& lhs, const always_allocs& rhs) {
+        return *lhs.num1 == *rhs.num1 && *lhs.num2 == *rhs.num2;
+    }
+
+  private:
+    int *num1, *num2;
+};
 
 ostream& operator<<(ostream& out, pair<int, int> ints) {
     return out << '(' << ints.first << ',' << ints.second << ')';
@@ -440,6 +468,53 @@ void comparison_test(int T = 500) {
 
 /**
  * Test the following:
+ *      - Value construction and destruction for non-trivial types
+ *      - Memory allocation
+ */
+void memory_test() {
+    avl_tree<string> stree;
+
+    string a(80, 'a'), b(40, 'b'), c(120, 'c'), d(200, 'd');
+    stree.insert_unique(c), stree.insert_unique(b);
+    stree.insert_unique(a), stree.insert_unique(d);
+
+    assert(stree.debug());
+    assert(*stree.begin() == a);
+    assert(*stree.rbegin() == d);
+
+    avl_tree<vector<int>> vtree;
+    vector<int> v1(80, 1), v2(60, 2), v3(20, 3), v4(100, 4);
+    vtree.insert_unique(v3), vtree.insert_unique(v2);
+    vtree.insert_unique(v1), vtree.insert_unique(v4);
+
+    assert(vtree.debug());
+    assert(*vtree.begin() == v1);
+    assert(*vtree.rbegin() == v4);
+
+    avl_tree<always_allocs> atree;
+    atree.emplace_unique(3, 4), atree.emplace_unique(2, 1);
+    atree.emplace_unique(2, 3), atree.emplace_unique(1, 7);
+
+    assert(atree.debug());
+    assert(*atree.begin() == always_allocs(1, 7));
+    assert(*atree.rbegin() == always_allocs(3, 4));
+
+    // remove everything and insert again, and check memory on valgrind
+    stree.clear();
+    vtree.clear();
+    atree.clear();
+    stree.insert_unique(a), stree.insert_unique(d);
+    stree.insert_unique(c), stree.insert_unique(b);
+    vtree.insert_unique(v1), vtree.insert_unique(v4);
+    vtree.insert_unique(v3), vtree.insert_unique(v2);
+    atree.emplace_unique(2, 3), atree.emplace_unique(1, 7);
+    atree.emplace_unique(3, 4), atree.emplace_unique(2, 1);
+
+    cout << "\r    memory test OK -----\n";
+}
+
+/**
+ * Test the following:
  *      - insert_hint_unique()  returned iterator
  *      - insert_hint_multi()  returned iterator
  *      - erase()
@@ -735,6 +810,7 @@ int main() {
     emplace_test();
     equality_test();
     comparison_test();
+    memory_test();
     iterators_test();
     construct_test();
     merge_test();
