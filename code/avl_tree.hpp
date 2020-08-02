@@ -1,5 +1,4 @@
 #include <cassert>
-#include <iostream>
 #include <limits>
 #include <memory>
 
@@ -29,14 +28,8 @@
  *   - Add small pool of dropped avl_nodes for reuse
  *   - Add constant-time minimum() and maximum() to avl_tree
  *   - Add order statistics or some other node update policy
- *   - Hide node balance in parent pointer (how?)
+ *   - Hide node balance in parent pointer (how?) -> this might decrease performance
  */
-
-#define AVL_ASSERT(condition)                              \
-    if (!(condition)) {                                    \
-        std::cerr << "invariant broken: " #condition "\n"; \
-        return false;                                      \
-    }
 
 /**
  * Left rotation notes
@@ -1024,34 +1017,28 @@ struct avl_tree {
         merge_multi(src);
     }
 
-    bool debug() const {
-        AVL_ASSERT(head && !head->link[1] && head->balance == 0);
-        int height, cnt = 0;
-        AVL_ASSERT(debug(head->link[0], head, '?', height, cnt));
-        AVL_ASSERT(cnt == int(node_count));
-        return true;
+    void debug() const {
+        assert(head && !head->link[1] && head->balance == 0);
+        size_t cnt = 0;
+        debug(head->link[0], head, '?', cnt);
+        assert(cnt == node_count);
     }
 
   private:
-    bool debug(const node_t* y, const node_t* parent, char side, int& height,
-               int& cnt) const {
+    int debug(const node_t* y, const node_t* parent, char side, size_t& cnt) const {
         if (!y) {
-            height = 0;
-            return true;
+            return 0;
         }
         cnt++;
-        AVL_ASSERT(y->parent == parent);
-        AVL_ASSERT(-1 <= y->balance && y->balance <= +1);
-        AVL_ASSERT(side != '<' || !do_compare(parent->data, y->data));
-        AVL_ASSERT(side != '>' || !do_compare(y->data, parent->data));
+        assert(y->parent == parent);
+        assert(-1 <= y->balance && y->balance <= +1);
+        assert(side != '<' || !do_compare(parent->data, y->data));
+        assert(side != '>' || !do_compare(y->data, parent->data));
 
-        int left, right;
-        AVL_ASSERT(debug(y->link[0], y, '<', left, cnt));
-        AVL_ASSERT(debug(y->link[1], y, '>', right, cnt));
-        AVL_ASSERT(y->balance == right - left);
-
-        height = 1 + std::max(left, right);
-        return true;
+        int l = debug(y->link[0], y, '<', cnt);
+        int r = debug(y->link[1], y, '>', cnt);
+        assert(y->balance == r - l);
+        return 1 + std::max(l, r);
     }
 };
 

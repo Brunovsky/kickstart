@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <iostream>
 #include <random>
 #include <set>
 
@@ -83,19 +84,19 @@ void merge_test(int T = 500) {
                                  avl_inserter_multi(sym));
 
         a.merge_multi(b);
-        assert(a.debug());
-        assert(b.debug());
+        a.debug();
+        b.debug();
 
         assert(a.size() == as + bs);
         assert(b.empty());
 
         assert(uni.size() == itr.size() + sym.size());
         assert(sym.size() == difab.size() + difba.size());
-        assert(uni.debug());
-        assert(difab.debug());
-        assert(difba.debug());
-        assert(sym.debug());
-        assert(itr.debug());
+        uni.debug();
+        difab.debug();
+        difba.debug();
+        sym.debug();
+        itr.debug();
 
         // ping-pong
         avl_tree<int> c = a;
@@ -129,8 +130,8 @@ void merge_test(int T = 500) {
                                  avl_inserter_unique(sym));
 
         a.merge_unique(b);
-        assert(a.debug());
-        assert(b.debug());
+        a.debug();
+        b.debug();
 
         assert(b.size() <= bs && as <= a.size());
         assert(a.size() + b.size() == as + bs);
@@ -138,11 +139,11 @@ void merge_test(int T = 500) {
         assert(uni.size() == a.size());
         assert(uni.size() == itr.size() + sym.size());
         assert(sym.size() == difab.size() + difba.size());
-        assert(uni.debug());
-        assert(difab.debug());
-        assert(difba.debug());
-        assert(sym.debug());
-        assert(itr.debug());
+        uni.debug();
+        difab.debug();
+        difba.debug();
+        sym.debug();
+        itr.debug();
 
         // ping-pong
         avl_tree<int> c = a;
@@ -169,7 +170,7 @@ void merge_test(int T = 500) {
         for (avl_tree<int>::node_t* handle : node_handles) {
             b.insert_node_multi(handle);
         }
-        assert(b.debug());
+        b.debug();
         assert(b == c);
 
         cout << "\r     merge test #" << t + 2 * T << flush;
@@ -215,10 +216,10 @@ void construct_test(int T = 500) {
         assert(e.size() == c.size() && e == c);
         assert(e.size() == d.size() && e == d);
 
-        assert(a.debug());
-        assert(b.debug());
-        assert(c.debug());
-        assert(d.debug());
+        a.debug();
+        b.debug();
+        c.debug();
+        d.debug();
     }
     cout << "\r construct test OK -----\n";
 }
@@ -251,7 +252,7 @@ void iterators_test(int T = 500) {
         }
         sort(begin(nums), end(nums));
         assert(tree.size() == nums.size());
-        assert(tree.debug());
+        tree.debug();
 
         // 1: test iteration
         assert(equal(begin(nums), end(nums), begin(tree), end(tree)));
@@ -397,8 +398,8 @@ void equality_test(int T = 500) {
         for (int n : nums) {
             rhs.insert_multi(n);
         }
-        assert(lhs.debug());
-        assert(rhs.debug());
+        lhs.debug();
+        rhs.debug();
 
         sort(begin(nums), end(nums));
 
@@ -452,7 +453,7 @@ void comparison_test(int T = 500) {
     for (int i = 0; i < T; i++) {
         const auto& tree = trees[i];
         const auto& nums = numsets[i];
-        assert(tree.debug());
+        tree.debug();
         assert(equal(begin(tree), end(tree), begin(nums), end(nums)));
     }
     for (int i = 0; i + 1 < T; i++) {
@@ -478,7 +479,7 @@ void memory_test() {
     stree.insert_unique(c), stree.insert_unique(b);
     stree.insert_unique(a), stree.insert_unique(d);
 
-    assert(stree.debug());
+    stree.debug();
     assert(*stree.begin() == a);
     assert(*stree.rbegin() == d);
 
@@ -487,7 +488,7 @@ void memory_test() {
     vtree.insert_unique(v3), vtree.insert_unique(v2);
     vtree.insert_unique(v1), vtree.insert_unique(v4);
 
-    assert(vtree.debug());
+    vtree.debug();
     assert(*vtree.begin() == v1);
     assert(*vtree.rbegin() == v4);
 
@@ -495,7 +496,7 @@ void memory_test() {
     atree.emplace_unique(3, 4), atree.emplace_unique(2, 1);
     atree.emplace_unique(2, 3), atree.emplace_unique(1, 7);
 
-    assert(atree.debug());
+    atree.debug();
     assert(*atree.begin() == always_allocs(1, 7));
     assert(*atree.rbegin() == always_allocs(3, 4));
 
@@ -554,7 +555,7 @@ void hint_test() {
     tree.erase_unique(5);
     assert(tree.empty());
 
-    assert(tree.debug());
+    tree.debug();
 
     cout << "\r      hint test OK -----\n";
 }
@@ -574,8 +575,8 @@ void emplace_test() {
     b.emplace_unique(3, 2), b.emplace_unique(2, 3), b.emplace_unique(1, 2);
 
     assert(a == b);
-    assert(a.debug());
-    assert(b.debug());
+    a.debug();
+    b.debug();
 
     cout << "\r   emplace test OK -----\n";
 }
@@ -705,7 +706,7 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
             assert(tree.count(n) == good.count(n));
             assert(tree.size() == good.size());
 
-            assert(tree.debug()); // verify invariants
+            tree.debug(); // verify invariants
 
             if (doclear(mt)) {
                 tree.clear();
