@@ -180,15 +180,12 @@ struct floyd_warshall {
             next[u][u] = u;
         }
 
-        bool stop = false;
-        for (int k = 0; k < V && !stop; k++) {
-            stop = true;
+        for (int k = 0; k < V; k++) {
             for (int u = 0; u < V; u++) {
                 for (int v = 0; v < V; v++) {
                     if (dist[u][v] > dist[u][k] + dist[k][v]) {
                         dist[u][v] = dist[u][k] + dist[k][v];
                         next[u][v] = next[u][k];
-                        stop = false;
                     }
                 }
             }
