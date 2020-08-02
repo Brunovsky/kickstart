@@ -1,12 +1,12 @@
 #undef NDEBUG
 
-#include "../avl_tree.hpp"
-
 #include <algorithm>
 #include <chrono>
 #include <iostream>
 #include <random>
 #include <set>
+
+#include "../bs_tree.hpp"
 
 using namespace std;
 
@@ -42,10 +42,10 @@ ostream& operator<<(ostream& out, pair<int, int> ints) {
     return out << '(' << ints.first << ',' << ints.second << ')';
 }
 
-template struct avl_tree<int>;
-template struct avl_tree<pair<int, int>>;
-template struct avl_tree<int, greater<int>>;
-template struct avl_tree<pair<int, int>, greater<pair<int, int>>>;
+template struct bs_tree<int>;
+template struct bs_tree<pair<int, int>>;
+template struct bs_tree<int, greater<int>>;
+template struct bs_tree<pair<int, int>, greater<pair<int, int>>>;
 
 mt19937 mt(random_device{}());
 using intd = uniform_int_distribution<int>;
@@ -56,7 +56,7 @@ using boold = bernoulli_distribution;
  *      - merge_unique(), merge_multi()
  *      - extract()
  *      - set_union, set_different, etc
- *      - avl_inserters
+ *      - bst_inserters
  */
 void merge_test(int T = 500) {
     intd dists(0, 100);
@@ -64,7 +64,7 @@ void merge_test(int T = 500) {
 
     // subtest 1: multi merge
     for (int t = 1; t <= T; t++) {
-        avl_tree<int> a, b;
+        bs_tree<int> a, b;
         size_t as = dists(mt), bs = dists(mt);
 
         for (uint i = 0; i < as; i++) {
@@ -75,13 +75,13 @@ void merge_test(int T = 500) {
         }
         assert(as == a.size() && bs == b.size());
 
-        avl_tree<int> uni, difab, difba, itr, sym;
-        set_union(begin(a), end(a), begin(b), end(b), avl_inserter_multi(uni));
-        set_difference(begin(a), end(a), begin(b), end(b), avl_inserter_multi(difab));
-        set_difference(begin(b), end(b), begin(a), end(a), avl_inserter_multi(difba));
-        set_intersection(begin(a), end(a), begin(b), end(b), avl_inserter_multi(itr));
+        bs_tree<int> uni, difab, difba, itr, sym;
+        set_union(begin(a), end(a), begin(b), end(b), bst_inserter_multi(uni));
+        set_difference(begin(a), end(a), begin(b), end(b), bst_inserter_multi(difab));
+        set_difference(begin(b), end(b), begin(a), end(a), bst_inserter_multi(difba));
+        set_intersection(begin(a), end(a), begin(b), end(b), bst_inserter_multi(itr));
         set_symmetric_difference(begin(a), end(a), begin(b), end(b),
-                                 avl_inserter_multi(sym));
+                                 bst_inserter_multi(sym));
 
         a.merge_multi(b);
         a.debug();
@@ -99,7 +99,7 @@ void merge_test(int T = 500) {
         itr.debug();
 
         // ping-pong
-        avl_tree<int> c = a;
+        bs_tree<int> c = a;
         b.merge_multi(c);
         c.merge_multi(b);
         assert(a == c);
@@ -109,7 +109,7 @@ void merge_test(int T = 500) {
 
     // subtest 2: unique merge
     for (int t = 1; t <= T; t++) {
-        avl_tree<int> a, b;
+        bs_tree<int> a, b;
         size_t as = dists(mt), bs = dists(mt);
 
         for (uint i = 0; i < as; i++) {
@@ -121,13 +121,13 @@ void merge_test(int T = 500) {
         assert(as >= a.size() && bs >= b.size());
         as = a.size(), bs = b.size();
 
-        avl_tree<int> uni, difab, difba, itr, sym;
-        set_union(begin(a), end(a), begin(b), end(b), avl_inserter_unique(uni));
-        set_difference(begin(a), end(a), begin(b), end(b), avl_inserter_unique(difab));
-        set_difference(begin(b), end(b), begin(a), end(a), avl_inserter_unique(difba));
-        set_intersection(begin(a), end(a), begin(b), end(b), avl_inserter_unique(itr));
+        bs_tree<int> uni, difab, difba, itr, sym;
+        set_union(begin(a), end(a), begin(b), end(b), bst_inserter_unique(uni));
+        set_difference(begin(a), end(a), begin(b), end(b), bst_inserter_unique(difab));
+        set_difference(begin(b), end(b), begin(a), end(a), bst_inserter_unique(difba));
+        set_intersection(begin(a), end(a), begin(b), end(b), bst_inserter_unique(itr));
         set_symmetric_difference(begin(a), end(a), begin(b), end(b),
-                                 avl_inserter_unique(sym));
+                                 bst_inserter_unique(sym));
 
         a.merge_unique(b);
         a.debug();
@@ -146,7 +146,7 @@ void merge_test(int T = 500) {
         itr.debug();
 
         // ping-pong
-        avl_tree<int> c = a;
+        bs_tree<int> c = a;
         b.merge_unique(c);
         c.merge_unique(b);
         assert(a == c);
@@ -156,19 +156,21 @@ void merge_test(int T = 500) {
 
     // subtest 3: extract
     for (int t = 1; t <= T; t++) {
-        avl_tree<int> a, b;
+        bs_tree<int> a, b;
         int s = dists(mt);
         for (int i = 0; i < s; i++) {
             a.insert_multi(distn(mt));
         }
-        avl_tree<int> c(a); // clone a
-        vector<avl_tree<int>::node_t*> node_handles;
+        bs_tree<int> c(a); // clone a
+        vector<bs_tree<int>::node_type> node_handles;
         for (auto it = a.begin(); it != a.end();) {
-            node_handles.push_back(a.extract(it++));
+            auto nit = it;
+            ++it;
+            node_handles.push_back(a.extract(nit));
         }
         assert(a.empty());
-        for (avl_tree<int>::node_t* handle : node_handles) {
-            b.insert_node_multi(handle);
+        for (auto&& handle : node_handles) {
+            b.insert_multi(move(handle));
         }
         b.debug();
         assert(b == c);
@@ -188,20 +190,20 @@ void construct_test(int T = 500) {
     intd dists(0, 50);
     intd distn(-1000, 1000);
 
-    avl_tree<int> d, e;
+    bs_tree<int> d, e;
 
     for (int t = 1; t <= T; t++) {
-        avl_tree<int> a;
+        bs_tree<int> a;
         for (int i = 0, s = dists(mt); i < s; i++) {
             a.insert_multi(distn(mt));
         }
 
         // 1: copy construction
-        avl_tree<int> b(a);
+        bs_tree<int> b(a);
         assert(a.size() == b.size() && a == b);
 
         // 2: move construction
-        avl_tree<int> c(move(a));
+        bs_tree<int> c(move(a));
         assert(a.empty());
         assert(b.size() == c.size() && b == c);
 
@@ -220,6 +222,8 @@ void construct_test(int T = 500) {
         b.debug();
         c.debug();
         d.debug();
+
+        cout << "\r construct test #" << t << flush;
     }
     cout << "\r construct test OK -----\n";
 }
@@ -237,7 +241,7 @@ void iterators_test(int T = 500) {
     intd distn(-10000, 10000);
 
     for (int t = 1; t <= T; t++) {
-        avl_tree<int> tree;
+        bs_tree<int> tree;
 
         // generate a bunch of numbers, possibly repeated
         vector<int> nums;
@@ -262,12 +266,12 @@ void iterators_test(int T = 500) {
 
         if (s == 0) {
             // 2: test minimum(), maximum()
-            assert(tree.minimum() == tree.maximum());
+            assert(tree.rbegin() == tree.rend());
             assert(tree.begin() == tree.end());
         } else {
             // 2: test minimum(), maximum()
-            assert(tree.minimum()->data == nums.front());
-            assert(tree.maximum()->data == nums.back());
+            assert(*tree.begin() == nums.front());
+            assert(*tree.rbegin() == nums.back());
         }
 
         // subtest 1: look for an existing integer n.
@@ -384,7 +388,7 @@ void equality_test(int T = 500) {
     intd distn(1, 10000);
 
     for (int t = 1; t <= T; t++) {
-        avl_tree<int> lhs, rhs;
+        bs_tree<int> lhs, rhs;
         vector<int> nums;
         for (int i = 0, s = dists(mt); i < s; i++) {
             nums.push_back(distn(mt));
@@ -427,13 +431,13 @@ void comparison_test(int T = 500) {
     intd dists(0, 100);
     intd distn(-500, 500);
 
-    vector<avl_tree<int>> trees;
+    vector<bs_tree<int>> trees;
     vector<vector<int>> numsets;
 
     // generate many sets of nums and their corresponding trees.
     // sort the numsets and sort the trees, and ensure they were sorted the same.
     for (int t = 1; t <= T; t++) {
-        avl_tree<int> tree;
+        bs_tree<int> tree;
         vector<int> nums;
         for (int i = 0, s = dists(mt); i < s; i++) {
             nums.push_back(distn(mt));
@@ -473,7 +477,7 @@ void comparison_test(int T = 500) {
  *      - Memory allocation
  */
 void memory_test() {
-    avl_tree<string> stree;
+    bs_tree<string> stree;
 
     string a(80, 'a'), b(40, 'b'), c(120, 'c'), d(200, 'd');
     stree.insert_unique(c), stree.insert_unique(b);
@@ -483,7 +487,7 @@ void memory_test() {
     assert(*stree.begin() == a);
     assert(*stree.rbegin() == d);
 
-    avl_tree<vector<int>> vtree;
+    bs_tree<vector<int>> vtree;
     vector<int> v1(80, 1), v2(60, 2), v3(20, 3), v4(100, 4);
     vtree.insert_unique(v3), vtree.insert_unique(v2);
     vtree.insert_unique(v1), vtree.insert_unique(v4);
@@ -492,7 +496,7 @@ void memory_test() {
     assert(*vtree.begin() == v1);
     assert(*vtree.rbegin() == v4);
 
-    avl_tree<always_allocs> atree;
+    bs_tree<always_allocs> atree;
     atree.emplace_unique(3, 4), atree.emplace_unique(2, 1);
     atree.emplace_unique(2, 3), atree.emplace_unique(1, 7);
 
@@ -521,7 +525,7 @@ void memory_test() {
  *      - erase()
  */
 void hint_test() {
-    avl_tree<int> tree;
+    bs_tree<int> tree;
 
     auto it4 = tree.insert_unique(4).first;
     assert(*it4 == 4);
@@ -531,7 +535,7 @@ void hint_test() {
     auto it3 = tree.insert_hint_unique(it4, 3);
     assert(tree.size() == 2);
     assert(it3 != tree.end() && *it3 == 3);
-    auto it32 = tree.insert_hint_unique(it3, 3);
+    auto it32 = tree.emplace_hint_unique(it3, 3);
     auto it33 = tree.insert_hint_unique(it4, 3);
     assert(tree.size() == 2);
     assert(it3 == it32 && it3 == it33);
@@ -541,8 +545,8 @@ void hint_test() {
     auto it5 = tree.insert_hint_unique(it4, 5);
     assert(tree.size() == 3);
     assert(it5 != tree.end() && *it5 == 5);
-    auto it52 = tree.insert_hint_multi(it5, 5);
-    auto it53 = tree.insert_hint_multi(it52, 5);
+    auto it52 = tree.emplace_hint_multi(it5, 5);
+    auto it53 = tree.emplace_hint_multi(it52, 5);
     assert(tree.size() == 5);
     assert(*it52 == 5 && it52 != it5 && std::next(it52) == it5);
     assert(*it53 == 5 && it53 != it52 && std::next(it53) == it52);
@@ -566,13 +570,17 @@ void hint_test() {
  * Soft test - actual problems with emplace will be found in practice only
  */
 void emplace_test() {
-    avl_tree<pair<int, int>> a, b;
+    bs_tree<pair<int, int>> a, b;
 
     a.insert_unique({3, 2}), a.insert_unique({2, 3}), a.insert_unique({1, 2});
     a.insert_unique({2, 1}), a.insert_unique({1, 3}), a.insert_unique({3, 1});
 
     b.emplace_unique(2, 1), b.emplace_unique(1, 3), b.emplace_unique(3, 1);
     b.emplace_unique(3, 2), b.emplace_unique(2, 3), b.emplace_unique(1, 2);
+
+    a.emplace_multi(4, 7), a.emplace_multi(7, 4), a.emplace_multi(4, 7);
+
+    b.insert_multi({4, 7}), b.insert_multi({4, 7}), b.insert_multi({7, 4});
 
     assert(a == b);
     a.debug();
@@ -600,7 +608,7 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
     bti++;
 
     using pair_t = pair<int, int>;
-    using tree_t = avl_tree<pair_t, CmpFn>;
+    using tree_t = bs_tree<pair_t, CmpFn>;
     using it_t = typename tree_t::const_iterator;
     using constit_t = typename tree_t::const_iterator;
     using stl_t = std::multiset<pair_t, CmpFn>;
@@ -764,13 +772,13 @@ void performance_test(int T = 500) {
     {
         auto now = steady_clock::now();
         for (int t = 1; t <= T; t++) {
-            avl_tree<int> tree;
+            bs_tree<int> tree;
             for (int i = 0; i < 10 * t; i++) {
                 tree.insert_multi(distn(mt));
             }
         }
         auto time = duration_cast<ms>(steady_clock::now() - now);
-        printf("avl_tree insertions: %ldms\n", time.count());
+        printf("bs_tree insertions: %ldms\n", time.count());
     }
 
     {
@@ -793,7 +801,7 @@ void performance_test(int T = 500) {
         size_t cnt = 0;
         auto now = steady_clock::now();
         for (int t = 1; t <= T; t++) {
-            avl_tree<int> tree;
+            bs_tree<int> tree;
             for (int i = 0; i < 5 * t; i++) {
                 tree.insert_multi(distn(mt));
             }
@@ -802,7 +810,7 @@ void performance_test(int T = 500) {
             }
         }
         auto time = duration_cast<ms>(steady_clock::now() - now);
-        printf("avl_tree query: %ldms (count: %lu)\n", time.count(), cnt);
+        printf("bs_tree query: %ldms (count: %lu)\n", time.count(), cnt);
     }
 }
 

@@ -5,33 +5,6 @@
 // *****
 
 /**
- * STL-friendly AVL tree template for (multi)sets and (multi)maps.
- *   - Parametrized by type T and comparison functor.
- *   - Does not use allocators (for simplicity)
- *
- * Done:
- *   - AVL tree rotations and rebalancing for insertions and deletions
- *   - Single and range insert and erase
- *   - All iterators
- *   - Support comparison operators
- *   - Support equal_range(), lower_bound() and upper_bound()
- *   - Support emplace(), emplace_hint(), and insert_hint()
- *   - Support merge() and extract()
- *   - Support inserters (avl_inserter_*)
- *   - Copying and moving
- *
- * TODO:
- *   - Define set, multiset wrappers
- *   - Define map, multimap wrappers
- *
- * Further improvements:
- *   - Add small pool of dropped avl_nodes for reuse
- *   - Add constant-time minimum() and maximum() to avl_tree
- *   - Add order statistics or some other node update policy
- *   - Hide node balance in parent pointer (how?) -> this might decrease performance
- */
-
-/**
  * Left rotation notes
  *
  *       y                     x
@@ -76,14 +49,27 @@
  * Note: the height delta (difference in height compared to the previous tree)
  * is -1 (i.e. the height diminished) iff rotations occurred and the new root
  * is 0-balanced.
+ *
+ * AVL functions
+ * We handle rotations and rebalancing professionally, namely:
+ *   - roots which are unbalanced 'know' how to rebalance themselves
+ *   - rotation functions maintain invariants themselves
+ *   - rotation functions should compose, so that e.g. a left-right rotation can
+ *     be literally coded as a right rotation followed by a left rotation and
+ *     the result will be exactly what is expected, with invariants maintained
  */
 
+/**
+ * AVL node
+ * This same class is used to represent the head node. The node is the tree's head
+ * iff it does not hold data iff the parent pointer is nullptr.
+ * We hide the head constructor to prevent default-constructed data from generating
+ * head nodes
+ */
 template <typename T>
 struct avl_node {
     using node_t = avl_node<T>;
 
-    // this node is a head node iff parent pointer is nullptr.
-    // in the union, for head node use _dummy, for other nodes use data.
     node_t* parent = nullptr;
     node_t* link[2] = {};
     union {
@@ -101,17 +87,23 @@ struct avl_node {
     avl_node([[maybe_unused]] avl_head_tag_t tag) {}
 
   public:
-    static node_t* new_head() {
+    static node_t* new_empty() {
         return new node_t(avl_head_tag_t{});
     }
 
     ~avl_node() {
         delete link[0];
         delete link[1];
-        // this node is a head node iff parent is nullptr
-        if (parent) {
+        if (parent)
             data.~T();
-        }
+    }
+
+    inline bool is_leaf() const noexcept {
+        return !link[0] && !link[1];
+    }
+    size_t subtree_size() const noexcept {
+        return (link[0] ? link[0]->subtree_size() : 0) +
+               (link[1] ? link[1]->subtree_size() : 0) + 1;
     }
 
     static node_t* minimum(node_t* n) noexcept {
@@ -164,134 +156,36 @@ struct avl_node {
     }
 };
 
+/**
+ * AVL binary search tree core
+ * Tree is completely open
+ */
 template <typename T>
-struct avl_iterator {
-    using node_t = avl_node<T>;
-    node_t* y;
-
-    using value_type = T;
-    using reference = T&;
-    using pointer = T*;
-    using self_type = avl_iterator<T>;
-    using iterator_category = std::bidirectional_iterator_tag;
-    using difference_type = ptrdiff_t;
-
-    avl_iterator() : y(nullptr) {}
-    explicit avl_iterator(node_t* y) : y(y) {}
-
-    T& operator*() const noexcept {
-        return y->data;
-    }
-    T* operator->() const noexcept {
-        return y->data;
-    }
-    self_type& operator++() noexcept {
-        y = node_t::increment(y);
-        return *this;
-    }
-    self_type operator++(int) noexcept {
-        self_type z = *this;
-        y = node_t::increment(y);
-        return z;
-    }
-    self_type& operator--() noexcept {
-        y = node_t::decrement(y);
-        return *this;
-    }
-    self_type operator--(int) noexcept {
-        self_type z = *this;
-        y = node_t::decrement(y);
-        return z;
-    }
-    friend bool operator==(const self_type& lhs, const self_type& rhs) noexcept {
-        return lhs.y == rhs.y;
-    }
-    friend bool operator!=(const self_type& lhs, const self_type& rhs) noexcept {
-        return lhs.y != rhs.y;
-    }
-};
-
-template <typename T>
-struct avl_const_iterator {
-    using node_t = avl_node<T>;
-    using iterator_t = avl_iterator<T>;
-    const node_t* y;
-
-    using value_type = T;
-    using reference = const T&;
-    using pointer = const T*;
-    using self_type = avl_const_iterator<T>;
-    using iterator_category = std::bidirectional_iterator_tag;
-    using difference_type = ptrdiff_t;
-
-    avl_const_iterator() : y(nullptr) {}
-    explicit avl_const_iterator(const node_t* y) : y(y) {}
-    avl_const_iterator(const iterator_t& it) : y(it.y) {}
-
-    const T& operator*() const noexcept {
-        return y->data;
-    }
-    const T* operator->() const noexcept {
-        return &y->data;
-    }
-    self_type& operator++() noexcept {
-        y = node_t::increment(y);
-        return *this;
-    }
-    self_type operator++(int) noexcept {
-        self_type z = *this;
-        y = node_t::increment(y);
-        return z;
-    }
-    self_type& operator--() noexcept {
-        y = node_t::decrement(y);
-        return *this;
-    }
-    self_type operator--(int) noexcept {
-        self_type z = *this;
-        y = node_t::decrement(y);
-        return z;
-    }
-    friend bool operator==(const self_type& lhs, const self_type& rhs) noexcept {
-        return lhs.y == rhs.y;
-    }
-    friend bool operator!=(const self_type& lhs, const self_type& rhs) noexcept {
-        return lhs.y != rhs.y;
-    }
-};
-
-template <typename T, typename CmpFn = std::less<T>>
 struct avl_tree {
-    using iterator = avl_iterator<T>;
-    using const_iterator = avl_const_iterator<T>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
     using value_type = T;
     using size_type = size_t;
+    using node_type = avl_node<T>;
+    using tree_type = avl_tree<T>;
 
     using node_t = avl_node<T>;
-    using tree_t = avl_tree<T, CmpFn>;
+    using tree_t = avl_tree<T>;
 
     // The real tree's root is head->link[0]. head is never nullptr.
     node_t* head;
     size_t node_count;
-    CmpFn cmp;
 
-    avl_tree(const CmpFn& cmp = CmpFn()) noexcept
-        : head(node_t::new_head()), node_count(0), cmp(cmp) {}
+    avl_tree() noexcept : head(node_t::new_empty()), node_count(0) {}
 
     // Move constructor
     avl_tree(avl_tree&& other) noexcept
-        : head(node_t::new_head()), node_count(other.node_count),
-          cmp(std::move(other.cmp)) {
+        : head(node_t::new_empty()), node_count(other.node_count) {
         adopt_node(head, other.head->link[0], 0);
-        other.head->link[0] = nullptr; // note: we leave other in a semi-valid state
+        other.head->link[0] = nullptr;
         other.node_count = 0;
     }
     // Copy constructor
     avl_tree(const avl_tree& other) noexcept
-        : head(node_t::new_head()), node_count(other.node_count), cmp(other.cmp) {
+        : head(node_t::new_empty()), node_count(other.node_count) {
         adopt_node(head, deep_clone_node(other.head->link[0]), 0);
     }
     // Move assignment
@@ -299,7 +193,6 @@ struct avl_tree {
         delete head->link[0];
         adopt_node(head, other.head->link[0], 0);
         node_count = other.node_count;
-        cmp = std::move(other.cmp);
         other.head->link[0] = nullptr;
         other.node_count = 0;
         return *this;
@@ -309,7 +202,6 @@ struct avl_tree {
         delete head->link[0];
         adopt_node(head, deep_clone_node(other.head->link[0]), 0);
         node_count = other.node_count;
-        cmp = other.cmp;
         return *this;
     }
 
@@ -317,24 +209,26 @@ struct avl_tree {
         delete head;
     }
 
-    void clear() noexcept {
+    inline void swap(avl_tree& other) noexcept {
+        std::swap(head, other.head);
+        std::swap(node_count, other.node_count);
+    }
+    friend inline void swap(avl_tree& lhs, avl_tree& rhs) noexcept {
+        lhs.swap(rhs);
+    }
+    inline void clear() noexcept {
         delete head->link[0];
         head->link[0] = nullptr;
         node_count = 0;
     }
-    size_t size() const noexcept {
+    inline size_t size() const noexcept {
         return node_count;
     }
-    bool empty() const noexcept {
+    inline bool empty() const noexcept {
         return node_count == 0;
     }
     constexpr size_t max_size() const noexcept {
         return std::numeric_limits<size_t>::max();
-    }
-
-    template <typename K1 = T, typename K2 = T>
-    inline bool do_compare(const K1& lhs, const K2& rhs) const {
-        return cmp(lhs, rhs);
     }
 
     inline node_t* minimum() noexcept {
@@ -350,225 +244,11 @@ struct avl_tree {
         return head->link[0] ? node_t::maximum(head->link[0]) : head;
     }
 
-    inline iterator begin() noexcept {
-        return iterator(minimum());
-    }
-    inline iterator end() noexcept {
-        return iterator(head);
-    }
-    inline const_iterator begin() const noexcept {
-        return const_iterator(minimum());
-    }
-    inline const_iterator end() const noexcept {
-        return const_iterator(head);
-    }
-    inline const_iterator cbegin() const noexcept {
-        return const_iterator(minimum());
-    }
-    inline const_iterator cend() const noexcept {
-        return const_iterator(head);
-    }
-    inline reverse_iterator rbegin() noexcept {
-        return reverse_iterator(end());
-    }
-    inline reverse_iterator rend() noexcept {
-        return reverse_iterator(begin());
-    }
-    inline const_reverse_iterator rbegin() const noexcept {
-        return const_reverse_iterator(end());
-    }
-    inline const_reverse_iterator rend() const noexcept {
-        return const_reverse_iterator(begin());
-    }
-    inline const_reverse_iterator crbegin() const noexcept {
-        return const_reverse_iterator(end());
-    }
-    inline const_reverse_iterator crend() const noexcept {
-        return const_reverse_iterator(begin());
-    }
-
-    friend bool operator==(const tree_t& lhs, const tree_t& rhs) noexcept {
-        return lhs.size() == rhs.size() &&
-               std::equal(lhs.begin(), lhs.end(), rhs.begin());
-    }
-    friend bool operator!=(const tree_t& lhs, const tree_t& rhs) noexcept {
-        return !(lhs == rhs);
-    }
-    friend bool operator<(const tree_t& lhs, const tree_t& rhs) noexcept {
-        return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(),
-                                            rhs.end());
-    }
-    friend bool operator>(const tree_t& lhs, const tree_t& rhs) noexcept {
-        return rhs < lhs;
-    }
-    friend bool operator<=(const tree_t& lhs, const tree_t& rhs) noexcept {
-        return !(rhs < lhs);
-    }
-    friend bool operator>=(const tree_t& lhs, const tree_t& rhs) noexcept {
-        return !(lhs < rhs);
-    }
-
-    template <typename K = T>
-    node_t* find_node(const K& data) {
-        node_t* x = head->link[0];
-        while (x) {
-            bool lesser = do_compare(data, x->data);
-            if (!lesser && !do_compare(x->data, data))
-                return x;
-            x = x->link[!lesser];
-        }
-        return head;
-    }
-    template <typename K = T>
-    const node_t* find_node(const K& data) const {
-        const node_t* x = head->link[0];
-        while (x) {
-            bool lesser = do_compare(data, x->data);
-            if (!lesser && !do_compare(x->data, data))
-                return x;
-            x = x->link[!lesser];
-        }
-        return head;
-    }
-    template <typename K = T>
-    iterator find(const K& data) {
-        return iterator(find_node(data));
-    }
-    template <typename K = T>
-    const_iterator find(const K& data) const {
-        return const_iterator(find_node(data));
-    }
-    template <typename K = T>
-    iterator lower_bound(const K& data) {
-        node_t* x = head->link[0];
-        node_t* y = head;
-        while (x) {
-            if (!do_compare(x->data, data))
-                y = x, x = x->link[0];
-            else
-                x = x->link[1];
-        }
-        return iterator(y);
-    }
-    template <typename K = T>
-    const_iterator lower_bound(const K& data) const {
-        const node_t* x = head->link[0];
-        const node_t* y = head;
-        while (x) {
-            if (!do_compare(x->data, data))
-                y = x, x = x->link[0];
-            else
-                x = x->link[1];
-        }
-        return const_iterator(y);
-    }
-    template <typename K = T>
-    iterator upper_bound(const K& data) {
-        node_t* x = head->link[0];
-        node_t* y = head;
-        while (x) {
-            if (do_compare(data, x->data))
-                y = x, x = x->link[0];
-            else
-                x = x->link[1];
-        }
-        return iterator(y);
-    }
-    template <typename K = T>
-    const_iterator upper_bound(const K& data) const {
-        const node_t* x = head->link[0];
-        const node_t* y = head;
-        while (x) {
-            if (do_compare(data, x->data))
-                y = x, x = x->link[0];
-            else
-                x = x->link[1];
-        }
-        return const_iterator(y);
-    }
-    template <typename K = T>
-    std::pair<iterator, iterator> equal_range(const K& data) {
-        node_t* x = head->link[0];
-        node_t* y = head;
-        while (x) {
-            if (do_compare(x->data, data))
-                x = x->link[1];
-            else if (do_compare(data, x->data))
-                y = x, x = x->link[0];
-            else {
-                node_t* xu = x->link[1];
-                node_t* yu = y;
-                y = x, x = x->link[0];
-                // lower bound [x, y]
-                while (x) {
-                    if (!do_compare(x->data, data))
-                        y = x, x = x->link[0];
-                    else
-                        x = x->link[1];
-                }
-                // upper bound [xu, yu]
-                while (xu) {
-                    if (do_compare(data, xu->data))
-                        yu = xu, xu = xu->link[0];
-                    else
-                        xu = xu->link[1];
-                }
-                return {iterator(y), iterator(yu)};
-            }
-        }
-        return {iterator(y), iterator(y)};
-    }
-    template <typename K = T>
-    std::pair<const_iterator, const_iterator> equal_range(const K& data) const {
-        const node_t* x = head->link[0];
-        const node_t* y = head;
-        while (x) {
-            if (do_compare(x->data, data))
-                x = x->link[1];
-            else if (do_compare(data, x->data))
-                y = x, x = x->link[0];
-            else {
-                const node_t* xu = x->link[1];
-                const node_t* yu = y;
-                y = x, x = x->link[0];
-                // lower bound [x, y]
-                while (x) {
-                    if (!do_compare(x->data, data))
-                        y = x, x = x->link[0];
-                    else
-                        x = x->link[1];
-                }
-                // upper bound [xu, yu]
-                while (xu) {
-                    if (do_compare(data, xu->data))
-                        yu = xu, xu = xu->link[0];
-                    else
-                        xu = xu->link[1];
-                }
-                return {const_iterator(y), const_iterator(yu)};
-            }
-        }
-        return {const_iterator(y), const_iterator(y)};
-    }
-    template <typename K = T>
-    bool contains(const K& data) const {
-        const node_t* x = head->link[0];
-        while (x) {
-            bool lesser = do_compare(data, x->data);
-            if (!lesser && !do_compare(x->data, data))
-                return true;
-            x = x->link[!lesser];
-        }
-        return false;
-    }
-    template <typename K = T>
-    size_t count(const K& data) const {
-        auto range = equal_range(data);
-        return std::distance(range.first, range.second);
-    }
-
     static inline void drop_node(node_t* node) {
         node->link[0] = node->link[1] = nullptr;
+        delete node;
+    }
+    static inline void drop_subtree(node_t* node) {
         delete node;
     }
     static inline void adopt_node(node_t* parent, node_t* child, bool is_right) {
@@ -577,7 +257,8 @@ struct avl_tree {
             child->parent = parent;
     }
     static inline void clear_node(node_t* node) {
-        node->parent = node->link[0] = node->link[1] = nullptr;
+        node->link[0] = node->link[1] = nullptr;
+        node->parent = node;
         node->balance = 0;
     }
     static node_t* deep_clone_node(const node_t* node) {
@@ -589,17 +270,6 @@ struct avl_tree {
         adopt_node(clone, deep_clone_node(node->link[1]), 1);
         return clone;
     }
-
-    /**
-     * AVL functions
-     *
-     * We handle rotations and rebalancing professionally, namely:
-     *   - roots which are unbalanced 'know' how to rebalance themselves
-     *   - rotation functions maintain invariants themselves
-     *   - rotation functions should compose, so that e.g. a left-right rotation can
-     *     be literally coded as a right rotation followed by a left rotation and
-     *     the result will be exactly what is expected, with invariants maintained
-     */
 
     /**
      *       y                     x
@@ -622,7 +292,6 @@ struct avl_tree {
         x->balance = std::min(xb - 1, -y1);
         return x;
     }
-
     /**
      *         y                  x
      *        / \                / \
@@ -644,14 +313,12 @@ struct avl_tree {
         x->balance = std::max(xb + 1, y1);
         return x;
     }
-
     /**
      * Recalibrate the tree rooted at y that has become unbalanced, deducing
      * the necessary rotations. Does nothing if y is already balanced.
      * Returns the new root after calibration.
      */
     node_t* rebalance(node_t* y) {
-        assert(y && y != head);
         if (y->balance == -2) {
             if (y->link[0]->balance == +1) {
                 left_rotate(y->link[0]);
@@ -667,12 +334,23 @@ struct avl_tree {
         return y;
     }
 
+    /**
+     *             p(-1)                     p(0)                       p(+1)
+     *  h+1->h    / \   h         h->h-1    / \    h         h-1->h-2  / \   h
+     *           /   \                     /   \                      /   \
+     *          l     r                   l     r                    l     r
+     *         / \   / \                 / \   / \                  / \   / \
+     *       -.. .. .. ..              -.. .. .. ..               -.. .. .. ..
+     * height lower in left       height lower in left    height lower in left
+     *  new balance: 0             new balance: +1         new balance: +2 -> rebalance!
+     *  delta height: h+1->h       delta height: h->h      delta height: 0 if new root
+     *  overall height decreased   overall height did not  is imperfectly balanced (stop)
+     *  continue on p's parent.    change so stop.         otherwise -1 so continue.
+     */
     void rebalance_after_erase(node_t* y) {
-        if (y == head) {
+        if (y == head)
             return;
-        }
         y = rebalance(y);
-        // recalibrate the tree until we reach a node that is not 0-balanced
         while (y->parent != head && y->balance == 0) {
             bool is_right = y == y->parent->link[1];
             y->parent->balance += is_right ? -1 : 1;
@@ -680,16 +358,17 @@ struct avl_tree {
         }
     }
     /**
-     *             p  --> first ancestor of y that was not 0-balanced
-     *            / \.
-     *          [a] [b]
-     *          /     \.
-     *        ...     ...
-     *        /         \.
-     *      [d]         [c]
-     *      /           /
-     *    [e]          y
-     *     ^--> p became 0-balanced here, otherwise it needs a rebalance
+     *            p(+1)                     p(0)                        p(-1)
+     * h-1->h    / \   h         h->h+1    / \    h          h+1->h+2  / \   h
+     *          /   \                     /   \                       /   \
+     *         l     r                   l     r                     l     r
+     *        / \   / \                 / \   / \                   / \   / \
+     *      +.. .. .. ..              +.. .. .. ..                +.. .. .. ..
+     * height lower in left    height lower in left      height lower in left
+     *  new balance: 0          new balance: -1           new balance: -2 -> rebalance!
+     *  delta height: h->h      delta height: h->h+1      delta height: h+1->h+1 (always)
+     *  overall height did not  overall height increased  overall height did not
+     *  change so stop.         continue on p's parent    change so stop.
      */
     void rebalance_after_insert(node_t* y) {
         node_t* parent = y->parent;
@@ -773,349 +452,145 @@ struct avl_tree {
         w->balance += 1;
         rebalance_after_erase(w);
     }
-
     void erase_node_and_rebalance(node_t* y) {
-        if (!y->link[1]) {
+        if (!y->link[1])
             erase_node_pull_left(y);
-        } else if (!y->link[1]->link[0]) {
+        else if (!y->link[1]->link[0])
             erase_node_pull_right(y);
-        } else {
+        else
             erase_node_minimum(y);
-        }
     }
 
+    /**
+     * Insert node y into the tree as a child of parent on the given side.
+     * parent must not have a child on that side and y must be a free node.
+     *
+     *    parent         parent                 parent        parent
+     *     /       ->     /  \         or           \    ->    /  \
+     *   [l]            [l]   y                     [r]       y   [r]
+     */
     void insert_node(node_t* parent, node_t* y, bool is_right) {
         adopt_node(parent, y, is_right);
         rebalance_after_insert(y);
         node_count++;
     }
+    /**
+     * Insert node y after node, so that incrementing node afterwards gives y.
+     * Usually this will insert y as the right child of node.
+     * y must be a free node.
+     *
+     *    parent         parent                 parent        parent
+     *     /       ->     /  \         or        /  \    ->    /  \
+     *   [l]            [l]   y                [l]   r       [l]   r
+     *                                              /             /
+     *                                            ...           ...
+     *                                            /             /
+     *                              ++parent --> x             x
+     *                                            \           / \
+     *                                            [r]        y  [r]
+     */
     void insert_node_after(node_t* node, node_t* y) {
         if (node->link[1]) {
-            node_t* next = node_t::increment(node);
-            insert_node(node_t::minimum(next), y, 0);
+            insert_node(node_t::increment(node), y, 0);
         } else {
             insert_node(node, y, 1);
         }
     }
+    /**
+     * Insert node y before node, so that decrementing node afterwards gives y.
+     * Usually this will insert y as the left child of node.
+     * y must be a free node.
+     *
+     *   parent        parent                  parent        parent
+     *       \    ->    /  \          or        /  \    ->    /  \
+     *       [r]       y   [r]                 l   [r]       l   [r]
+     *                                          \             \
+     *                                          ...           ...
+     *                                            \             \
+     *                                --parent --> x             x
+     *                                            /             / \
+     *                                          [l]           [l]  y
+     */
     void insert_node_before(node_t* node, node_t* y) {
         if (node->link[0]) {
-            node_t* prev = node_t::decrement(node);
-            insert_node(node_t::maximum(prev), y, 1);
+            insert_node(node_t::decrement(node), y, 1);
         } else {
             insert_node(node, y, 0);
         }
     }
+    /**
+     * Remove node y from the tree and destroy it.
+     */
     void erase_node(node_t* y) {
         erase_node_and_rebalance(y);
         drop_node(y);
         node_count--;
     }
+    /**
+     * Remove node y from the tree but do not destroy it.
+     */
     void yank_node(node_t* y) {
         erase_node_and_rebalance(y);
         clear_node(y);
         node_count--;
     }
-
-    std::pair<iterator, bool> insert_node_unique(node_t* node) {
-        node_t* y = head->link[0];
-        node_t* parent = head;
-        bool lesser = true;
-        while (y) {
-            lesser = do_compare(node->data, y->data);
-            if (!lesser && !do_compare(y->data, node->data)) {
-                drop_node(node);
-                return {iterator(y), false};
-            }
-            parent = y;
-            y = y->link[!lesser];
-        }
-        insert_node(parent, node, !lesser);
-        return {iterator(node), true};
+    /**
+     * Fork an existing node in the tree so that it becomes a child of the given node
+     * x along with z. The boolean indicates which side the existing node will go to.
+     *
+     *      yield left               yield right
+     *      |        |               |        |
+     *      y   ->   x               y   ->   x
+     *              / \      or              / \
+     *             y  [z]                  [z]  y
+     */
+    void insert_node_leaf_fork(node_t* y, node_t* x, node_t* z, bool yield_right) {
+        assert(y->is_leaf() && (!z || z->is_leaf()));
+        adopt_node(y->parent, x, y == y->parent->link[1]);
+        adopt_node(x, y, yield_right);
+        adopt_node(x, z, !yield_right);
+        rebalance_after_insert(x);
+        x->balance = z ? 0 : (yield_right ? +1 : -1);
+        node_count += 1 + !!z;
     }
-    iterator insert_node_multi(node_t* node) {
-        node_t* y = head->link[0];
-        node_t* parent = head;
-        bool lesser = true;
-        while (y) {
-            lesser = do_compare(node->data, y->data);
-            parent = y;
-            y = y->link[!lesser];
-        }
-        insert_node(parent, node, !lesser);
-        return iterator(node);
-    }
-    iterator insert_node_hint_unique(node_t* node, node_t* hint) {
-        if (hint == head) {
-            if (node_count > 0 && do_compare(maximum()->data, node->data)) {
-                insert_node(maximum(), node, 1);
-                return iterator(node);
-            }
-            return insert_node_unique(node).first; // bad hint
-        } else if (do_compare(node->data, hint->data)) {
-            if (hint == minimum()) {
-                insert_node(minimum(), node, 0);
-                return iterator(node);
-            }
-            node_t* prev = node_t::decrement(hint);
-            if (do_compare(prev->data, node->data)) {
-                insert_node_before(hint, node);
-                return iterator(node);
-            }
-            return insert_node_unique(node).first; // bad hint
-        } else if (do_compare(hint->data, node->data)) {
-            return insert_node_unique(node).first; // bad hint
-        } else {
-            drop_node(node);
-            return iterator(hint);
-        }
-    }
-    iterator insert_node_hint_multi(node_t* node, node_t* hint) {
-        if (hint == head) {
-            if (node_count > 0 && do_compare(maximum()->data, node->data)) {
-                insert_node(maximum(), node, 1);
-                return iterator(node);
-            }
-            return insert_node_multi(node); // bad hint
-        } else if (do_compare(node->data, hint->data)) {
-            if (hint == minimum()) {
-                insert_node(minimum(), node, 0);
-                return iterator(node);
-            }
-            node_t* prev = node_t::decrement(hint);
-            if (do_compare(prev->data, node->data)) {
-                insert_node_before(hint, node);
-                return iterator(node);
-            }
-            return insert_node_multi(node);
-        } else if (do_compare(hint->data, node->data)) {
-            return insert_node_multi(node);
-        } else {
-            insert_node_before(hint, node);
-            return iterator(node);
-        }
-    }
-
-    std::pair<iterator, bool> insert_unique(const T& data) {
-        node_t* node = new node_t(data);
-        return insert_node_unique(node);
-    }
-    iterator insert_multi(const T& data) {
-        node_t* node = new node_t(data);
-        return insert_node_multi(node);
-    }
-    iterator insert_hint_unique(const_iterator hint, const T& data) {
-        node_t* node = new node_t(data);
-        node_t* hint_node = const_cast<node_t*>(hint.y);
-        return insert_node_hint_unique(node, hint_node);
-    }
-    iterator insert_hint_multi(const_iterator hint, const T& data) {
-        node_t* node = new node_t(data);
-        node_t* hint_node = const_cast<node_t*>(hint.y);
-        return insert_node_hint_multi(node, hint_node);
-    }
-
-    template <typename... Args>
-    std::pair<iterator, bool> emplace_unique(Args&&... args) {
-        node_t* node = new node_t(std::forward<Args>(args)...);
-        return insert_node_unique(node);
-    }
-    template <typename... Args>
-    iterator emplace_multi(Args&&... args) {
-        node_t* node = new node_t(std::forward<Args>(args)...);
-        return insert_node_multi(node);
-    }
-    template <typename... Args>
-    iterator emplace_hint_unique(const_iterator hint, Args&&... args) {
-        node_t* node = new node_t(std::forward<Args>(args)...);
-        node_t* hint_node = const_cast<node_t*>(hint.y);
-        return insert_node_hint_unique(node, hint_node);
-    }
-    template <typename... Args>
-    iterator emplace_hint_multi(const_iterator hint, Args&&... args) {
-        node_t* node = new node_t(std::forward<Args>(args)...);
-        node_t* hint_node = const_cast<node_t*>(hint.y);
-        return insert_node_hint_multi(node, hint_node);
-    }
-
-    bool erase_unique(const T& data) {
-        node_t* y = find_node(data);
-        if (y != head) {
-            erase_node(y);
-            return true;
-        }
-        return false;
-    }
-    size_t erase_multi(const T& data) {
-        auto range = equal_range(data);
-        size_t cnt = 0;
-        for (auto it = range.first; it != range.second;) {
-            node_t* y = it.y;
-            ++it, ++cnt;
-            erase_node(y);
-        }
-        return cnt;
-    }
-    void erase(iterator pos) {
-        assert(pos.y != head);
-        erase_node(pos.y);
-    }
-    void erase(iterator first, iterator last) {
-        for (auto it = first; it != last; ++it) {
-            erase_node(it.y);
-        }
-    }
-    node_t* extract(const_iterator pos) {
-        node_t* y = const_cast<node_t*>(pos.y);
-        yank_node(y);
-        return y;
-    }
-
-    template <typename CmpFn2>
-    void merge_unique(avl_tree<T, CmpFn2>& src) {
-        for (auto it = src.begin(); it != src.end();) {
-            node_t* node = it.y;
-            ++it;
-            node_t* x = head->link[0];
-            node_t* y = head;
-            bool lesser = true;
-            while (x) {
-                lesser = do_compare(node->data, x->data);
-                if (!lesser && !do_compare(x->data, node->data))
-                    goto skip;
-                y = x;
-                x = x->link[!lesser];
-            }
-            src.yank_node(node);
-            insert_node(y, node, !lesser);
-        skip:;
-        }
-    }
-    template <typename CmpFn2>
-    void merge_unique(avl_tree<T, CmpFn2>&& src) {
-        merge_unique(src);
-    }
-    template <typename CmpFn2>
-    void merge_multi(avl_tree<T, CmpFn2>& src) {
-        for (auto it = src.begin(); it != src.end();) {
-            node_t* node = it.y;
-            ++it;
-            assert(node && node->parent);
-            node_t* x = head->link[0];
-            node_t* y = head;
-            bool lesser = true;
-            while (x) {
-                lesser = do_compare(node->data, x->data);
-                y = x;
-                x = x->link[!lesser];
-            }
-            src.yank_node(node);
-            insert_node(y, node, !lesser);
-        }
-    }
-    template <typename CmpFn2>
-    void merge_multi(avl_tree<T, CmpFn2>&& src) {
-        merge_multi(src);
+    /**
+     * Contract a fork anywhere in the tree, erasing the node and one of its subtrees.
+     *
+     *       |        |                  |        |
+     *       y   ->   x                  y   ->   x
+     *      / \      / \       or       / \      / \
+     *     x   w    .. ..              w   x    .. ..
+     *    / \ / \                     / \ / \
+     *   .. ... ..                   .. ... ..
+     */
+    void contract_fork(node_t* y, bool keep_right) {
+        node_t* x = y->link[keep_right];
+        node_t* w = y->link[!keep_right];
+        bool is_right = y == y->parent->link[1];
+        adopt_node(y->parent, x, is_right);
+        rebalance_after_erase(x);
+        node_count -= 1 + w->subtree_size();
+        drop_subtree(w);
+        drop_node(y);
     }
 
     void debug() const {
         assert(head && !head->link[1] && head->balance == 0);
         size_t cnt = 0;
-        debug(head->link[0], head, '?', cnt);
+        debug_node(head->link[0], head, cnt);
         assert(cnt == node_count);
     }
 
   private:
-    int debug(const node_t* y, const node_t* parent, char side, size_t& cnt) const {
-        if (!y) {
+    int debug_node(const node_t* y, const node_t* parent, size_t& cnt) const {
+        if (!y)
             return 0;
-        }
         cnt++;
         assert(y->parent == parent);
         assert(-1 <= y->balance && y->balance <= +1);
-        assert(side != '<' || !do_compare(parent->data, y->data));
-        assert(side != '>' || !do_compare(y->data, parent->data));
-
-        int l = debug(y->link[0], y, '<', cnt);
-        int r = debug(y->link[1], y, '>', cnt);
+        int l = debug_node(y->link[0], y, cnt);
+        int r = debug_node(y->link[1], y, cnt);
         assert(y->balance == r - l);
         return 1 + std::max(l, r);
     }
 };
-
-template <typename T, typename CmpFn>
-struct avl_inserter_unique_iterator {
-    using value_type = void;
-    using reference = void;
-    using pointer = void;
-    using difference_type = void;
-    using self_type = avl_inserter_unique_iterator<T, CmpFn>;
-    using iterator_category = std::output_iterator_tag;
-    using container_type = avl_tree<T, CmpFn>;
-
-    avl_inserter_unique_iterator(container_type& tree) : tree(&tree) {}
-
-    self_type& operator*() {
-        return *this;
-    }
-    self_type& operator++() {
-        return *this;
-    }
-    self_type& operator++(int) {
-        return *this;
-    }
-    self_type& operator=(const T& value) {
-        tree->insert_unique(value);
-        return *this;
-    }
-    self_type& operator=(T&& value) {
-        tree->insert_unique(std::move(value));
-        return *this;
-    }
-
-  private:
-    container_type* tree;
-};
-
-template <typename T, typename CmpFn>
-struct avl_inserter_multi_iterator {
-    using value_type = void;
-    using reference = void;
-    using pointer = void;
-    using difference_type = void;
-    using self_type = avl_inserter_multi_iterator<T, CmpFn>;
-    using iterator_category = std::output_iterator_tag;
-    using container_type = avl_tree<T, CmpFn>;
-
-    avl_inserter_multi_iterator(container_type& tree) : tree(&tree) {}
-
-    self_type& operator*() {
-        return *this;
-    }
-    self_type& operator++() {
-        return *this;
-    }
-    self_type& operator++(int) {
-        return *this;
-    }
-    self_type& operator=(const T& value) {
-        tree->insert_multi(value);
-        return *this;
-    }
-    self_type& operator=(T&& value) {
-        tree->insert_multi(std::move(value));
-        return *this;
-    }
-
-  private:
-    container_type* tree;
-};
-
-template <typename T, typename CmpFn>
-avl_inserter_unique_iterator<T, CmpFn> avl_inserter_unique(avl_tree<T, CmpFn>& tree) {
-    return avl_inserter_unique_iterator<T, CmpFn>(tree);
-}
-
-template <typename T, typename CmpFn>
-avl_inserter_multi_iterator<T, CmpFn> avl_inserter_multi(avl_tree<T, CmpFn>& tree) {
-    return avl_inserter_multi_iterator<T, CmpFn>(tree);
-}

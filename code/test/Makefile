@@ -13,7 +13,7 @@ DEPS += ../russian_segment_tree.hpp ../maximal_matching.hpp ../maximum_flow.hpp
 DEPS += ../mincost_matching.hpp ../simplex.hpp ../shortest_path.hpp
 DEPS += ../min_spanning_forest.hpp ../transportation.hpp ../linear_system.hpp
 DEPS += ../hash.hpp ../math.hpp ../sieve.hpp ../bits.hpp ../frac.hpp
-DEPS += ../kmp.hpp ../dancing_links.hpp ../avl_tree.hpp
+DEPS += ../kmp.hpp ../dancing_links.hpp ../avl_tree.hpp ../bs_tree.hpp
 
 include ../../templates/cpp-flags.make
 
