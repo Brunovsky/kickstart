@@ -66,6 +66,8 @@ MacroBlockBegin: ""
 MacroBlockEnd: ""
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
+PenaltyBreakAssignment: 200
+PenaltyBreakBeforeFirstCallParameter: 100
 PointerAlignment: Left
 ReflowComments: true
 SortIncludes: true

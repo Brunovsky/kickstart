@@ -56,7 +56,7 @@ ifeq ($(COMPILER),clang)
 	WARNS += -Wchar-subscripts -Wshift-sign-overflow
 	WARNS += -Wdynamic-exception-spec
 	WARNS += -Wduplicate-enum -Wduplicate-method-arg -Wduplicate-method-match
-	WARNS += -Wshadow -Wshadow-field -Wshadow-uncaptured-local
+	WARNS += -Wshadow -Wshadow-uncaptured-local
 	WARNS += -Wformat-non-iso -Wformat-pedantic
 	WARNS += -Wextra-semi-stmt -Wheader-hygiene -Wnewline-eof
 	WARNS += -Widiomatic-parentheses -Wmissing-braces -Wredundant-parens
@@ -65,7 +65,7 @@ ifeq ($(COMPILER),clang)
 	WARNS += -Wover-aligned -Wpacked
 	WARNS += -Wreturn-std-move
 	WARNS += -Wself-assign -Wself-move
-	WARNS += -Wmissing-noreturn -Wmissing-prototypes -Wmissing-variable-declarations
+	WARNS += -Wmissing-noreturn
 	WARNS += -Wtautological-compare -Wtautological-constant-in-range-compare
 	WARNS += -Wundef -Wundefined-func-template -Wundefined-internal-type
 	WARNS += -Wunused-const-variable -Wunused-exception-parameter
