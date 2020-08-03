@@ -6,7 +6,7 @@
 #include <random>
 #include <set>
 
-#include "../bs_tree.hpp"
+#include "../bs_set.hpp"
 
 using namespace std;
 
@@ -42,10 +42,11 @@ ostream& operator<<(ostream& out, pair<int, int> ints) {
     return out << '(' << ints.first << ',' << ints.second << ')';
 }
 
-template struct bs_tree<int>;
-template struct bs_tree<pair<int, int>>;
-template struct bs_tree<int, greater<int>>;
-template struct bs_tree<pair<int, int>, greater<pair<int, int>>>;
+template struct bs_set<int>;
+template struct bs_set<pair<int, int>>;
+template struct bs_set<int, greater<int>>;
+template struct bs_set<pair<int, int>, greater<pair<int, int>>>;
+template struct bs_tree<pair<const int, int>, less<int>, map_tag>;
 
 mt19937 mt(random_device{}());
 using intd = uniform_int_distribution<int>;
@@ -64,26 +65,25 @@ void merge_test(int T = 500) {
 
     // subtest 1: multi merge
     for (int t = 1; t <= T; t++) {
-        bs_tree<int> a, b;
+        bs_multiset<int> a, b;
         size_t as = dists(mt), bs = dists(mt);
 
         for (uint i = 0; i < as; i++) {
-            a.insert_multi(distn(mt));
+            a.insert(distn(mt));
         }
         for (uint i = 0; i < bs; i++) {
-            b.insert_multi(distn(mt));
+            b.insert(distn(mt));
         }
         assert(as == a.size() && bs == b.size());
 
-        bs_tree<int> uni, difab, difba, itr, sym;
-        set_union(begin(a), end(a), begin(b), end(b), bst_inserter_multi(uni));
-        set_difference(begin(a), end(a), begin(b), end(b), bst_inserter_multi(difab));
-        set_difference(begin(b), end(b), begin(a), end(a), bst_inserter_multi(difba));
-        set_intersection(begin(a), end(a), begin(b), end(b), bst_inserter_multi(itr));
-        set_symmetric_difference(begin(a), end(a), begin(b), end(b),
-                                 bst_inserter_multi(sym));
+        bs_multiset<int> uni, difab, difba, itr, sym;
+        set_union(begin(a), end(a), begin(b), end(b), inserter(uni));
+        set_difference(begin(a), end(a), begin(b), end(b), inserter(difab));
+        set_difference(begin(b), end(b), begin(a), end(a), inserter(difba));
+        set_intersection(begin(a), end(a), begin(b), end(b), inserter(itr));
+        set_symmetric_difference(begin(a), end(a), begin(b), end(b), inserter(sym));
 
-        a.merge_multi(b);
+        a.merge(b);
         a.debug();
         b.debug();
 
@@ -99,9 +99,9 @@ void merge_test(int T = 500) {
         itr.debug();
 
         // ping-pong
-        bs_tree<int> c = a;
-        b.merge_multi(c);
-        c.merge_multi(b);
+        bs_multiset<int> c = a;
+        b.merge(c);
+        c.merge(b);
         assert(a == c);
 
         cout << "\r     merge test #" << t << flush;
@@ -109,27 +109,26 @@ void merge_test(int T = 500) {
 
     // subtest 2: unique merge
     for (int t = 1; t <= T; t++) {
-        bs_tree<int> a, b;
+        bs_set<int> a, b;
         size_t as = dists(mt), bs = dists(mt);
 
         for (uint i = 0; i < as; i++) {
-            a.insert_unique(distn(mt));
+            a.insert(distn(mt));
         }
         for (uint i = 0; i < bs; i++) {
-            b.insert_unique(distn(mt));
+            b.insert(distn(mt));
         }
         assert(as >= a.size() && bs >= b.size());
         as = a.size(), bs = b.size();
 
-        bs_tree<int> uni, difab, difba, itr, sym;
-        set_union(begin(a), end(a), begin(b), end(b), bst_inserter_unique(uni));
-        set_difference(begin(a), end(a), begin(b), end(b), bst_inserter_unique(difab));
-        set_difference(begin(b), end(b), begin(a), end(a), bst_inserter_unique(difba));
-        set_intersection(begin(a), end(a), begin(b), end(b), bst_inserter_unique(itr));
-        set_symmetric_difference(begin(a), end(a), begin(b), end(b),
-                                 bst_inserter_unique(sym));
+        bs_set<int> uni, difab, difba, itr, sym;
+        set_union(begin(a), end(a), begin(b), end(b), inserter(uni));
+        set_difference(begin(a), end(a), begin(b), end(b), inserter(difab));
+        set_difference(begin(b), end(b), begin(a), end(a), inserter(difba));
+        set_intersection(begin(a), end(a), begin(b), end(b), inserter(itr));
+        set_symmetric_difference(begin(a), end(a), begin(b), end(b), inserter(sym));
 
-        a.merge_unique(b);
+        a.merge(b);
         a.debug();
         b.debug();
 
@@ -146,9 +145,9 @@ void merge_test(int T = 500) {
         itr.debug();
 
         // ping-pong
-        bs_tree<int> c = a;
-        b.merge_unique(c);
-        c.merge_unique(b);
+        bs_set<int> c = a;
+        b.merge(c);
+        c.merge(b);
         assert(a == c);
 
         cout << "\r     merge test #" << t + T << flush;
@@ -156,13 +155,13 @@ void merge_test(int T = 500) {
 
     // subtest 3: extract
     for (int t = 1; t <= T; t++) {
-        bs_tree<int> a, b;
+        bs_multiset<int> a, b;
         int s = dists(mt);
         for (int i = 0; i < s; i++) {
-            a.insert_multi(distn(mt));
+            a.insert(distn(mt));
         }
-        bs_tree<int> c(a); // clone a
-        vector<bs_tree<int>::node_type> node_handles;
+        bs_multiset<int> c(a); // clone a
+        vector<bs_multiset<int>::node_type> node_handles;
         for (auto it = a.begin(); it != a.end();) {
             auto nit = it;
             ++it;
@@ -170,7 +169,7 @@ void merge_test(int T = 500) {
         }
         assert(a.empty());
         for (auto&& handle : node_handles) {
-            b.insert_multi(move(handle));
+            b.insert(move(handle));
         }
         b.debug();
         assert(b == c);
@@ -190,20 +189,20 @@ void construct_test(int T = 500) {
     intd dists(0, 50);
     intd distn(-1000, 1000);
 
-    bs_tree<int> d, e;
+    bs_multiset<int> d, e;
 
     for (int t = 1; t <= T; t++) {
-        bs_tree<int> a;
+        bs_multiset<int> a;
         for (int i = 0, s = dists(mt); i < s; i++) {
-            a.insert_multi(distn(mt));
+            a.insert(distn(mt));
         }
 
         // 1: copy construction
-        bs_tree<int> b(a);
+        bs_multiset<int> b(a);
         assert(a.size() == b.size() && a == b);
 
         // 2: move construction
-        bs_tree<int> c(move(a));
+        bs_multiset<int> c(move(a));
         assert(a.empty());
         assert(b.size() == c.size() && b == c);
 
@@ -241,7 +240,7 @@ void iterators_test(int T = 500) {
     intd distn(-10000, 10000);
 
     for (int t = 1; t <= T; t++) {
-        bs_tree<int> tree;
+        bs_multiset<int> tree;
 
         // generate a bunch of numbers, possibly repeated
         vector<int> nums;
@@ -251,7 +250,7 @@ void iterators_test(int T = 500) {
         }
         // put them into the tree, ensure they were inserted
         for (int n : nums) {
-            auto it = tree.insert_multi(n);
+            auto it = tree.insert(n);
             assert(it != tree.end() && *it == n);
         }
         sort(begin(nums), end(nums));
@@ -388,19 +387,19 @@ void equality_test(int T = 500) {
     intd distn(1, 10000);
 
     for (int t = 1; t <= T; t++) {
-        bs_tree<int> lhs, rhs;
+        bs_multiset<int> lhs, rhs;
         vector<int> nums;
         for (int i = 0, s = dists(mt); i < s; i++) {
             nums.push_back(distn(mt));
         }
         // insert into lhs in one order
         for (int n : nums) {
-            lhs.insert_multi(n);
+            lhs.insert(n);
         }
         // ... and into rhs in another
         shuffle(begin(nums), end(nums), mt);
         for (int n : nums) {
-            rhs.insert_multi(n);
+            rhs.insert(n);
         }
         lhs.debug();
         rhs.debug();
@@ -437,13 +436,13 @@ void comparison_test(int T = 500) {
     // generate many sets of nums and their corresponding trees.
     // sort the numsets and sort the trees, and ensure they were sorted the same.
     for (int t = 1; t <= T; t++) {
-        bs_tree<int> tree;
+        bs_multiset<int> tree;
         vector<int> nums;
         for (int i = 0, s = dists(mt); i < s; i++) {
             nums.push_back(distn(mt));
         }
         for (int n : nums) {
-            tree.insert_multi(n);
+            tree.insert(n);
         }
         trees.push_back(tree);
         sort(begin(nums), end(nums));
@@ -477,28 +476,28 @@ void comparison_test(int T = 500) {
  *      - Memory allocation
  */
 void memory_test() {
-    bs_tree<string> stree;
+    bs_set<string> stree;
 
     string a(80, 'a'), b(40, 'b'), c(120, 'c'), d(200, 'd');
-    stree.insert_unique(c), stree.insert_unique(b);
-    stree.insert_unique(a), stree.insert_unique(d);
+    stree.insert(c), stree.insert(b);
+    stree.insert(a), stree.insert(d);
 
     stree.debug();
     assert(*stree.begin() == a);
     assert(*stree.rbegin() == d);
 
-    bs_tree<vector<int>> vtree;
+    bs_set<vector<int>> vtree;
     vector<int> v1(80, 1), v2(60, 2), v3(20, 3), v4(100, 4);
-    vtree.insert_unique(v3), vtree.insert_unique(v2);
-    vtree.insert_unique(v1), vtree.insert_unique(v4);
+    vtree.insert(v3), vtree.insert(v2);
+    vtree.insert(v1), vtree.insert(v4);
 
     vtree.debug();
     assert(*vtree.begin() == v1);
     assert(*vtree.rbegin() == v4);
 
-    bs_tree<always_allocs> atree;
-    atree.emplace_unique(3, 4), atree.emplace_unique(2, 1);
-    atree.emplace_unique(2, 3), atree.emplace_unique(1, 7);
+    bs_set<always_allocs> atree;
+    atree.emplace(3, 4), atree.emplace(2, 1);
+    atree.emplace(2, 3), atree.emplace(1, 7);
 
     atree.debug();
     assert(*atree.begin() == always_allocs(1, 7));
@@ -508,12 +507,12 @@ void memory_test() {
     stree.clear();
     vtree.clear();
     atree.clear();
-    stree.insert_unique(a), stree.insert_unique(d);
-    stree.insert_unique(c), stree.insert_unique(b);
-    vtree.insert_unique(v1), vtree.insert_unique(v4);
-    vtree.insert_unique(v3), vtree.insert_unique(v2);
-    atree.emplace_unique(2, 3), atree.emplace_unique(1, 7);
-    atree.emplace_unique(3, 4), atree.emplace_unique(2, 1);
+    stree.insert(a), stree.insert(d);
+    stree.insert(c), stree.insert(b);
+    vtree.insert(v1), vtree.insert(v4);
+    vtree.insert(v3), vtree.insert(v2);
+    atree.emplace(2, 3), atree.emplace(1, 7);
+    atree.emplace(3, 4), atree.emplace(2, 1);
 
     cout << "\r    memory test OK -----\n";
 }
@@ -530,7 +529,7 @@ void hint_test() {
     auto it4 = tree.insert_unique(4).first;
     assert(*it4 == 4);
 
-    // the first insert puts a 3, the following ones just return the initial 3.
+    // the first insert puts a 3, the following isnert before the initial 3.
     // 3 is inserted to the left of minimum()
     auto it3 = tree.insert_hint_unique(it4, 3);
     assert(tree.size() == 2);

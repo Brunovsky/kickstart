@@ -17,16 +17,32 @@
  *   - Support merge() and extract()
  *   - Support inserters (avl_inserter_*)
  *   - Copying and moving
+ *   - Define set, multiset wrappers
  *
  * TODO:
- *   - Define set, multiset wrappers
  *   - Define map, multimap wrappers
  *   - Red black core (?)
  */
 
-// Tree core
+/**
+ * set, multiset, map, multimap tags and traits for bs_tree and friends.
+ */
+enum bs_tree_tag { set_tag, map_tag };
+
+/**
+ * Forward declarations
+ */
 template <typename T>
 using Tree = avl_tree<T>;
+
+template <typename T, typename Compare, bs_tree_tag tag>
+struct bst_traits;
+
+template <typename T, typename Compare, bs_tree_tag tag>
+struct bs_tree;
+
+template <typename BSTree>
+struct bst_node_handle_methods;
 
 template <typename BSTree>
 struct bst_iterator;
@@ -35,20 +51,110 @@ template <typename BSTree>
 struct bst_const_iterator;
 
 template <typename BSTree>
+struct bst_node_handle;
+
+template <typename BSTree>
+struct bst_insert_return_type;
+
+template <typename BSTree>
+struct bst_inserter_unique_iterator;
+
+template <typename BSTree>
+struct bst_inserter_multi_iterator;
+
+/**
+ * Define BST traits for sets and maps
+ * Sets store immutable elements themselves
+ * Maps store pairs where the key is immutable but the mapped value is mutable
+ */
+template <typename Key, typename Compare>
+struct bst_traits<Key, Compare, set_tag> {
+    using key_type = Key;
+    using value_type = Key;
+    using key_compare = Compare;
+    using value_compare = Compare;
+
+    using reference = const value_type&;
+    using const_reference = const value_type&;
+    using pointer = const value_type*;
+    using const_pointer = const value_type*;
+
+    static constexpr inline const Key& get_key(const value_type& elem) noexcept {
+        return elem;
+    }
+};
+template <typename Key, typename T, typename Compare>
+struct bst_traits<std::pair<const Key, T>, Compare, map_tag> {
+    using key_type = Key;
+    using value_type = std::pair<const Key, T>;
+    using mapped_type = T;
+    using key_compare = Compare;
+
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+
+    static constexpr inline const Key& get_key(const value_type& elem) noexcept {
+        return elem.first;
+    }
+};
+
+/**
+ * Node handle methods:
+ *   value(), key() and mapped()
+ * needs specialization according to standard
+ */
+template <typename Key, typename Compare>
+struct bst_node_handle_methods<bs_tree<Key, Compare, set_tag>> {
+  protected:
+    using BSTree = bs_tree<Key, Compare, set_tag>;
+    using self_t = bst_node_handle<bs_tree<Key, Compare, set_tag>>;
+
+  public:
+    using value_type = typename BSTree::value_type;
+
+    value_type& value() const noexcept {
+        return self_t::y->data;
+    }
+};
+
+template <typename V, typename Compare>
+struct bst_node_handle_methods<bs_tree<V, Compare, map_tag>> {
+  protected:
+    using BSTree = bs_tree<V, Compare, map_tag>;
+    using self_t = bst_node_handle<bs_tree<V, Compare, map_tag>>;
+
+  public:
+    using key_type = typename BSTree::key_type;
+    using mapped_type = typename BSTree::mapped_type;
+
+    key_type& key() const {
+        return self_t::y->data.first;
+    }
+    mapped_type& mapped() const {
+        return self_t::y->data.second;
+    }
+};
+
+/**
+ * Non-const iterator for bs_tree
+ * Works for all 4 container types
+ */
+template <typename BSTree>
 struct bst_iterator {
   private:
     friend BSTree;
     friend bst_const_iterator<BSTree>;
-    using T = typename BSTree::value_type;
     using node_t = typename BSTree::node_t;
-    using self_type = bst_iterator<BSTree>;
+    using self_t = bst_iterator<BSTree>;
     node_t* y;
 
   public:
     using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = T;
-    using reference = T&;
-    using pointer = T*;
+    using value_type = typename BSTree::value_type;
+    using reference = typename BSTree::reference;
+    using pointer = typename BSTree::pointer;
     using difference_type = ptrdiff_t;
 
     bst_iterator() : y(nullptr) {}
@@ -57,53 +163,56 @@ struct bst_iterator {
     explicit operator bool() const noexcept {
         return y != nullptr;
     }
-    T& operator*() const noexcept {
+    reference operator*() const noexcept {
         return y->data;
     }
-    T* operator->() const noexcept {
-        return y->data;
+    pointer operator->() const noexcept {
+        return &y->data;
     }
-    self_type& operator++() noexcept {
+    self_t& operator++() noexcept {
         y = node_t::increment(y);
         return *this;
     }
-    self_type operator++(int) noexcept {
-        self_type z = *this;
+    self_t operator++(int) noexcept {
+        self_t z = *this;
         y = node_t::increment(y);
         return z;
     }
-    self_type& operator--() noexcept {
+    self_t& operator--() noexcept {
         y = node_t::decrement(y);
         return *this;
     }
-    self_type operator--(int) noexcept {
-        self_type z = *this;
+    self_t operator--(int) noexcept {
+        self_t z = *this;
         y = node_t::decrement(y);
         return z;
     }
-    friend bool operator==(const self_type& lhs, const self_type& rhs) noexcept {
+    friend bool operator==(const self_t& lhs, const self_t& rhs) noexcept {
         return lhs.y == rhs.y;
     }
-    friend bool operator!=(const self_type& lhs, const self_type& rhs) noexcept {
+    friend bool operator!=(const self_t& lhs, const self_t& rhs) noexcept {
         return lhs.y != rhs.y;
     }
 };
 
+/**
+ * Const iterator for bs_tree
+ * Works for all 4 container types
+ */
 template <typename BSTree>
 struct bst_const_iterator {
   private:
     friend BSTree;
     friend bst_iterator<BSTree>;
-    using T = typename BSTree::value_type;
     using node_t = typename BSTree::node_t;
-    using self_type = bst_const_iterator<BSTree>;
+    using self_t = bst_const_iterator<BSTree>;
     const node_t* y;
 
   public:
     using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = T;
-    using reference = const T&;
-    using pointer = const T*;
+    using value_type = typename BSTree::value_type;
+    using reference = typename BSTree::const_reference;
+    using pointer = typename BSTree::const_pointer;
     using difference_type = ptrdiff_t;
 
     bst_const_iterator() : y(nullptr) {}
@@ -113,58 +222,57 @@ struct bst_const_iterator {
     explicit operator bool() const noexcept {
         return y != nullptr;
     }
-    const T& operator*() const noexcept {
+    reference operator*() const noexcept {
         return y->data;
     }
-    const T* operator->() const noexcept {
+    pointer operator->() const noexcept {
         return &y->data;
     }
-    self_type& operator++() noexcept {
+    self_t& operator++() noexcept {
         y = node_t::increment(y);
         return *this;
     }
-    self_type operator++(int) noexcept {
-        self_type z = *this;
+    self_t operator++(int) noexcept {
+        self_t z = *this;
         y = node_t::increment(y);
         return z;
     }
-    self_type& operator--() noexcept {
+    self_t& operator--() noexcept {
         y = node_t::decrement(y);
         return *this;
     }
-    self_type operator--(int) noexcept {
-        self_type z = *this;
+    self_t operator--(int) noexcept {
+        self_t z = *this;
         y = node_t::decrement(y);
         return z;
     }
-    friend bool operator==(const self_type& lhs, const self_type& rhs) noexcept {
+    friend bool operator==(const self_t& lhs, const self_t& rhs) noexcept {
         return lhs.y == rhs.y;
     }
-    friend bool operator!=(const self_type& lhs, const self_type& rhs) noexcept {
+    friend bool operator!=(const self_t& lhs, const self_t& rhs) noexcept {
         return lhs.y != rhs.y;
     }
 };
 
+/**
+ * The handle abstraction for extracted nodes
+ */
 template <typename BSTree>
-struct bst_node_handle {
+struct bst_node_handle : bst_node_handle_methods<BSTree> {
   private:
     friend BSTree;
-    using T = typename BSTree::value_type;
     using node_t = typename BSTree::node_t;
-    using self_type = bst_node_handle<BSTree>;
+    using self_t = bst_node_handle;
     node_t* y;
 
   public:
-    using key_type = typename BSTree::key_type;
-    using value_type = typename BSTree::value_type;
-
     bst_node_handle() : y(nullptr) {}
     explicit bst_node_handle(node_t* y) : y(y) {}
 
-    bst_node_handle(self_type&& other) : y(other.y) {
+    bst_node_handle(self_t&& other) : y(other.y) {
         other.y = nullptr;
     }
-    bst_node_handle& operator=(self_type&& other) {
+    bst_node_handle& operator=(self_t&& other) {
         delete y;
         y = other.y;
         other.y = nullptr;
@@ -180,20 +288,17 @@ struct bst_node_handle {
     explicit operator bool() const noexcept {
         return y != nullptr;
     }
-    value_type& value() const {
-        return y->data;
-    }
-    key_type& key() const {
-        return y->data.first; // TODO: will this need const_cast?
-    }
-    void swap(self_type& other) noexcept {
+    void swap(self_t& other) noexcept {
         swap(y, other.y);
     }
-    friend void swap(self_type& lhs, self_type& rhs) noexcept {
+    friend void swap(self_t& lhs, self_t& rhs) noexcept {
         swap(lhs.y, rhs.y);
     }
 };
 
+/**
+ * Return type for unique insertion using node handles
+ */
 template <typename BSTree>
 struct bst_insert_return_type {
     using iterator = typename BSTree::iterator;
@@ -204,53 +309,61 @@ struct bst_insert_return_type {
     node_type node;
 };
 
-template <typename T, typename Compare = std::less<T>>
-struct bs_tree : protected Tree<T> {
+/**
+ * Binary search tree built on top of the AVL tree core
+ * Can generate all 4 types of containers (set, multiset, map and multimap)
+ */
+template <typename T, typename Compare = std::less<T>, bs_tree_tag tag = set_tag>
+struct bs_tree : protected Tree<T>, public bst_traits<T, Compare, tag> {
   private:
-    using tree_t = Tree<T>;
-    using node_t = typename tree_t::node_t;
-    using handle_t = bst_node_handle<bs_tree>;
+    using Traits = bst_traits<T, Compare, tag>;
+    using node_t = typename Tree<T>::node_t;
+    friend bst_iterator<bs_tree>;
+    friend bst_const_iterator<bs_tree>;
+    friend bst_node_handle<bs_tree>;
+    friend bst_insert_return_type<bs_tree>;
 
-    using tree_t::drop_node;
-    using tree_t::erase_node;
-    using tree_t::head;
-    using tree_t::insert_node;
-    using tree_t::insert_node_after;
-    using tree_t::insert_node_before;
-    using tree_t::maximum;
-    using tree_t::minimum;
-    using tree_t::yank_node;
+    using Traits::get_key;
+    using Tree<T>::head;
+    using Tree<T>::drop_node;
+    using Tree<T>::insert_node;
+    using Tree<T>::insert_node_after;
+    using Tree<T>::insert_node_before;
+    using Tree<T>::erase_node;
+    using Tree<T>::yank_node;
+    using Tree<T>::maximum;
+    using Tree<T>::minimum;
 
   protected:
+    using Key = typename Traits::key_type;
     Compare comp;
 
-    template <typename K1 = T, typename K2 = T>
+    template <typename K1 = Key, typename K2 = Key>
     inline bool compare(const K1& lhs, const K2& rhs) const noexcept {
         return comp(lhs, rhs);
     }
 
   public:
+    using key_type = typename Traits::key_type;
+    using value_type = typename Traits::value_type;
+
     using iterator = bst_iterator<bs_tree>;
     using const_iterator = bst_const_iterator<bs_tree>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    using size_type = typename Tree<T>::size_type;
+    using difference_type = typename Tree<T>::difference_type;
+
+    using reference = typename Traits::reference;
+    using const_reference = typename Traits::const_reference;
+    using pointer = typename Traits::pointer;
+    using const_pointer = typename Traits::const_pointer;
+
     using node_type = bst_node_handle<bs_tree>;
     using insert_return_type = bst_insert_return_type<bs_tree>;
-    friend iterator;
-    friend const_iterator;
-    friend node_type;
 
-    using key_type = T;
-    using value_type = T;
-    using size_type = typename Tree<T>::size_type;
-    using key_compare = Compare;
-    using value_compare = Compare;
-    using reference = T&;
-    using const_reference = const T&;
-    using pointer = T*;
-    using const_pointer = const T*;
-
-    bs_tree() : tree_t() {}
+    bs_tree() {}
 
     explicit bs_tree(const Compare& comp) : comp(comp) {}
 
@@ -259,15 +372,15 @@ struct bs_tree : protected Tree<T> {
     bs_tree& operator=(const bs_tree& other) = default;
     bs_tree& operator=(bs_tree&& other) = default;
 
-    using tree_t::clear;
-    using tree_t::debug;
-    using tree_t::empty;
-    using tree_t::max_size;
-    using tree_t::size;
+    using Tree<T>::clear;
+    using Tree<T>::debug;
+    using Tree<T>::empty;
+    using Tree<T>::max_size;
+    using Tree<T>::size;
 
     void swap(bs_tree& other) {
         using std::swap;
-        tree_t::swap(other);
+        Tree<T>::swap(other);
         swap(comp, other.comp);
     }
     friend inline void swap(bs_tree& lhs, bs_tree& rhs) noexcept {
@@ -275,19 +388,19 @@ struct bs_tree : protected Tree<T> {
     }
 
     inline iterator begin() noexcept {
-        return iterator(tree_t::minimum());
+        return iterator(minimum());
     }
     inline iterator end() noexcept {
         return iterator(head);
     }
     inline const_iterator begin() const noexcept {
-        return const_iterator(tree_t::minimum());
+        return const_iterator(minimum());
     }
     inline const_iterator end() const noexcept {
         return const_iterator(head);
     }
     inline const_iterator cbegin() const noexcept {
-        return const_iterator(tree_t::minimum());
+        return const_iterator(minimum());
     }
     inline const_iterator cend() const noexcept {
         return const_iterator(head);
@@ -333,84 +446,84 @@ struct bs_tree : protected Tree<T> {
     }
 
   private:
-    template <typename K = T>
+    template <typename K = Key>
     node_t* find_node(const K& key) {
         node_t* x = head->link[0];
         while (x) {
-            bool lesser = compare(key, x->data);
-            if (!lesser && !compare(x->data, key))
+            bool lesser = compare(key, get_key(x->data));
+            if (!lesser && !compare(get_key(x->data), key))
                 return x;
             x = x->link[!lesser];
         }
         return head;
     }
-    template <typename K = T>
+    template <typename K = Key>
     const node_t* find_node(const K& key) const {
         const node_t* x = head->link[0];
         while (x) {
-            bool lesser = compare(key, x->data);
-            if (!lesser && !compare(x->data, key))
+            bool lesser = compare(key, get_key(x->data));
+            if (!lesser && !compare(get_key(x->data), key))
                 return x;
             x = x->link[!lesser];
         }
         return head;
     }
-    template <typename K = T>
+    template <typename K = Key>
     node_t* lower_bound_node(const K& key) {
         node_t* x = head->link[0];
         node_t* y = head;
         while (x) {
-            if (!compare(x->data, key))
+            if (!compare(get_key(x->data), key))
                 y = x, x = x->link[0];
             else
                 x = x->link[1];
         }
         return y;
     }
-    template <typename K = T>
+    template <typename K = Key>
     const node_t* lower_bound_node(const K& key) const {
         const node_t* x = head->link[0];
         const node_t* y = head;
         while (x) {
-            if (!compare(x->data, key))
+            if (!compare(get_key(x->data), key))
                 y = x, x = x->link[0];
             else
                 x = x->link[1];
         }
         return y;
     }
-    template <typename K = T>
+    template <typename K = Key>
     node_t* upper_bound_node(const K& key) {
         node_t* x = head->link[0];
         node_t* y = head;
         while (x) {
-            if (compare(key, x->data))
+            if (compare(key, get_key(x->data)))
                 y = x, x = x->link[0];
             else
                 x = x->link[1];
         }
         return y;
     }
-    template <typename K = T>
+    template <typename K = Key>
     const node_t* upper_bound_node(const K& key) const {
         const node_t* x = head->link[0];
         const node_t* y = head;
         while (x) {
-            if (compare(key, x->data))
+            if (compare(key, get_key(x->data)))
                 y = x, x = x->link[0];
             else
                 x = x->link[1];
         }
         return y;
     }
-    template <typename K = T>
+    template <typename K = Key>
     std::pair<node_t*, node_t*> equal_range_node(const K& key) {
         node_t* x = head->link[0];
         node_t* y = head;
         while (x) {
-            if (compare(x->data, key))
+            if (compare(get_key(x->data), key))
                 x = x->link[1];
-            else if (compare(key, x->data))
+            else if (compare(key, get_key(x->data)))
                 y = x, x = x->link[0];
             else {
                 node_t* xu = x->link[1];
@@ -418,14 +531,14 @@ struct bs_tree : protected Tree<T> {
                 y = x, x = x->link[0];
                 // lower bound [x, y]
                 while (x) {
-                    if (!compare(x->data, key))
+                    if (!compare(get_key(x->data), key))
                         y = x, x = x->link[0];
                     else
                         x = x->link[1];
                 }
                 // upper bound [xu, yu]
                 while (xu) {
-                    if (compare(key, xu->data))
+                    if (compare(key, get_key(xu->data)))
                         yu = xu, xu = xu->link[0];
                     else
                         xu = xu->link[1];
@@ -435,14 +548,14 @@ struct bs_tree : protected Tree<T> {
         }
         return {y, y};
     }
-    template <typename K = T>
+    template <typename K = Key>
     std::pair<const node_t*, const node_t*> equal_range_node(const K& key) const {
         const node_t* x = head->link[0];
         const node_t* y = head;
         while (x) {
-            if (compare(x->data, key))
+            if (compare(get_key(x->data), key))
                 x = x->link[1];
-            else if (compare(key, x->data))
+            else if (compare(key, get_key(x->data)))
                 y = x, x = x->link[0];
             else {
                 const node_t* xu = x->link[1];
@@ -450,7 +563,7 @@ struct bs_tree : protected Tree<T> {
                 y = x, x = x->link[0];
                 // lower bound [x, y]
                 while (x) {
-                    if (!compare(x->data, key))
+                    if (!compare(get_key(x->data), key))
                         y = x, x = x->link[0];
                     else
                         x = x->link[1];
@@ -469,54 +582,54 @@ struct bs_tree : protected Tree<T> {
     }
 
   public:
-    template <typename K = T>
+    template <typename K = Key>
     iterator find(const K& key) {
         return iterator(find_node(key));
     }
-    template <typename K = T>
+    template <typename K = Key>
     const_iterator find(const K& key) const {
         return const_iterator(find_node(key));
     }
-    template <typename K = T>
+    template <typename K = Key>
     iterator lower_bound(const K& key) {
         return iterator(lower_bound_node(key));
     }
-    template <typename K = T>
+    template <typename K = Key>
     const_iterator lower_bound(const K& key) const {
         return const_iterator(lower_bound_node(key));
     }
-    template <typename K = T>
+    template <typename K = Key>
     iterator upper_bound(const K& key) {
         return iterator(upper_bound_node(key));
     }
-    template <typename K = T>
+    template <typename K = Key>
     const_iterator upper_bound(const K& key) const {
         return const_iterator(upper_bound_node(key));
     }
-    template <typename K = T>
+    template <typename K = Key>
     std::pair<iterator, iterator> equal_range(const K& key) {
         auto nodes = equal_range_node(key);
         return {iterator(nodes.first), iterator(nodes.second)};
     }
-    template <typename K = T>
+    template <typename K = Key>
     std::pair<const_iterator, const_iterator> equal_range(const K& key) const {
         auto nodes = equal_range_node(key);
         return {const_iterator(nodes.first), const_iterator(nodes.second)};
     }
-    template <typename K = T>
-    bool contains(const K& data) const {
+    template <typename K = Key>
+    bool contains(const K& key) const {
         const node_t* x = head->link[0];
         while (x) {
-            bool lesser = compare(data, x->data);
-            if (!lesser && !compare(x->data, data))
+            bool lesser = compare(key, get_key(x->data));
+            if (!lesser && !compare(get_key(x->data), key))
                 return true;
             x = x->link[!lesser];
         }
         return false;
     }
-    template <typename K = T>
-    size_t count(const K& data) const {
-        auto range = equal_range(data);
+    template <typename K = Key>
+    size_t count(const K& key) const {
+        auto range = equal_range(key);
         return std::distance(range.first, range.second);
     }
 
@@ -526,8 +639,8 @@ struct bs_tree : protected Tree<T> {
         node_t* parent = head;
         bool lesser = true;
         while (y) {
-            lesser = compare(node->data, y->data);
-            if (!lesser && !compare(y->data, node->data))
+            lesser = compare(get_key(node->data), get_key(y->data));
+            if (!lesser && !compare(get_key(y->data), get_key(node->data)))
                 return {iterator(y), false};
             parent = y;
             y = y->link[!lesser];
@@ -543,23 +656,23 @@ struct bs_tree : protected Tree<T> {
     }
     std::pair<iterator, bool> try_insert_node_hint_unique(node_t* node, node_t* hint) {
         if (hint == head) {
-            if (size() > 0 && compare(tree_t::maximum()->data, node->data)) {
-                insert_node(tree_t::maximum(), node, 1);
+            if (size() > 0 && compare(get_key(maximum()->data), get_key(node->data))) {
+                insert_node(maximum(), node, 1);
                 return {iterator(node), true};
             }
             return try_insert_node_unique(node); // bad hint
-        } else if (compare(node->data, hint->data)) {
-            if (hint == tree_t::minimum()) {
-                insert_node(tree_t::minimum(), node, 0);
+        } else if (compare(get_key(node->data), get_key(hint->data))) {
+            if (hint == minimum()) {
+                insert_node(minimum(), node, 0);
                 return {iterator(node), true};
             }
             node_t* prev = node_t::decrement(hint);
-            if (compare(prev->data, node->data)) {
+            if (compare(get_key(prev->data), get_key(node->data))) {
                 insert_node_before(hint, node);
                 return {iterator(node), true};
             }
             return try_insert_node_unique(node); // bad hint
-        } else if (compare(hint->data, node->data)) {
+        } else if (compare(get_key(hint->data), get_key(node->data))) {
             return try_insert_node_unique(node); // bad hint
         } else {
             return {iterator(hint), false};
@@ -576,7 +689,7 @@ struct bs_tree : protected Tree<T> {
         node_t* parent = head;
         bool lesser = true;
         while (y) {
-            lesser = compare(node->data, y->data);
+            lesser = compare(get_key(node->data), get_key(y->data));
             parent = y;
             y = y->link[!lesser];
         }
@@ -585,23 +698,23 @@ struct bs_tree : protected Tree<T> {
     }
     iterator insert_node_hint_multi(node_t* node, node_t* hint) {
         if (hint == head) {
-            if (size() > 0 && compare(tree_t::maximum()->data, node->data)) {
-                insert_node(tree_t::maximum(), node, 1);
+            if (size() > 0 && compare(get_key(maximum()->data), get_key(node->data))) {
+                insert_node(maximum(), node, 1);
                 return iterator(node);
             }
             return insert_node_multi(node); // bad hint
-        } else if (compare(node->data, hint->data)) {
-            if (hint == tree_t::minimum()) {
-                insert_node(tree_t::minimum(), node, 0);
+        } else if (compare(get_key(node->data), get_key(hint->data))) {
+            if (hint == minimum()) {
+                insert_node(minimum(), node, 0);
                 return iterator(node);
             }
             node_t* prev = node_t::decrement(hint);
-            if (compare(prev->data, node->data)) {
+            if (compare(get_key(prev->data), get_key(node->data))) {
                 insert_node_before(hint, node);
                 return iterator(node);
             }
             return insert_node_multi(node);
-        } else if (compare(hint->data, node->data)) {
+        } else if (compare(get_key(hint->data), get_key(node->data))) {
             return insert_node_multi(node);
         } else {
             insert_node_before(hint, node);
@@ -720,16 +833,16 @@ struct bs_tree : protected Tree<T> {
         return insert_node_hint_multi(node, hint_node);
     }
 
-    bool erase_unique(const T& data) {
-        node_t* y = find_node(data);
+    bool erase_unique(const Key& key) {
+        node_t* y = find_node(key);
         if (y != head) {
             erase_node(y);
             return true;
         }
         return false;
     }
-    size_t erase_multi(const T& data) {
-        auto range = equal_range(data);
+    size_t erase_multi(const Key& key) {
+        std::pair<iterator, iterator> range = equal_range(key);
         size_t s = size();
         for (auto it = range.first; it != range.second;) {
             node_t* y = it.y;
@@ -748,7 +861,7 @@ struct bs_tree : protected Tree<T> {
         }
     }
     template <typename Pred>
-    size_type erase_if(bs_tree& bst, Pred pred) {
+    friend size_type erase_if(bs_tree& bst, Pred pred) {
         auto s = bst.size();
         for (auto it = bst.begin(), last = bst.end(); it != last;) {
             if (pred(*it))
@@ -764,7 +877,7 @@ struct bs_tree : protected Tree<T> {
         yank_node(y);
         return node_type(y);
     }
-    node_type extract(const T& key) {
+    node_type extract(const Key& key) {
         node_t* y = find_node(key);
         if (y != head) {
             yank_node(y);
@@ -773,8 +886,9 @@ struct bs_tree : protected Tree<T> {
         return node_type();
     }
 
+  protected:
     template <typename CmpFn2>
-    void merge_unique(bs_tree<T, CmpFn2>& src) {
+    void merge_unique(bs_tree<T, CmpFn2, tag>& src) {
         for (auto it = src.begin(); it != src.end();) {
             node_t* node = it.y;
             ++it;
@@ -782,8 +896,8 @@ struct bs_tree : protected Tree<T> {
             node_t* y = head;
             bool lesser = true;
             while (x) {
-                lesser = compare(node->data, x->data);
-                if (!lesser && !compare(x->data, node->data))
+                lesser = compare(get_key(node->data), get_key(x->data));
+                if (!lesser && !compare(get_key(x->data), get_key(node->data)))
                     goto skip;
                 y = x;
                 x = x->link[!lesser];
@@ -794,11 +908,11 @@ struct bs_tree : protected Tree<T> {
         }
     }
     template <typename CmpFn2>
-    void merge_unique(bs_tree<T, CmpFn2>&& src) {
+    void merge_unique(bs_tree<T, CmpFn2, tag>&& src) {
         merge_unique(src);
     }
     template <typename CmpFn2>
-    void merge_multi(bs_tree<T, CmpFn2>& src) {
+    void merge_multi(bs_tree<T, CmpFn2, tag>& src) {
         for (auto it = src.begin(); it != src.end();) {
             node_t* node = it.y;
             ++it;
@@ -807,7 +921,7 @@ struct bs_tree : protected Tree<T> {
             node_t* y = head;
             bool lesser = true;
             while (x) {
-                lesser = compare(node->data, x->data);
+                lesser = compare(get_key(node->data), get_key(x->data));
                 y = x;
                 x = x->link[!lesser];
             }
@@ -816,85 +930,89 @@ struct bs_tree : protected Tree<T> {
         }
     }
     template <typename CmpFn2>
-    void merge_multi(bs_tree<T, CmpFn2>&& src) {
+    void merge_multi(bs_tree<T, CmpFn2, tag>&& src) {
         merge_multi(src);
     }
 };
 
-template <typename T, typename Compare>
+template <typename BSTree>
 struct bst_inserter_unique_iterator {
+  private:
+    using T = typename BSTree::value_type;
+    BSTree* tree;
+
+  public:
+    using iterator_category = std::output_iterator_tag;
     using value_type = void;
     using reference = void;
     using pointer = void;
     using difference_type = void;
-    using self_type = bst_inserter_unique_iterator<T, Compare>;
-    using iterator_category = std::output_iterator_tag;
-    using container_type = bs_tree<T, Compare>;
+    using self_t = bst_inserter_unique_iterator;
+    using container_type = BSTree;
 
     bst_inserter_unique_iterator(container_type& tree) : tree(&tree) {}
 
-    self_type& operator*() {
+    self_t& operator*() {
         return *this;
     }
-    self_type& operator++() {
+    self_t& operator++() {
         return *this;
     }
-    self_type& operator++(int) {
+    self_t& operator++(int) {
         return *this;
     }
-    self_type& operator=(const T& value) {
+    self_t& operator=(const T& value) {
         tree->insert_unique(value);
         return *this;
     }
-    self_type& operator=(T&& value) {
+    self_t& operator=(T&& value) {
         tree->insert_unique(std::move(value));
         return *this;
     }
-
-  private:
-    container_type* tree;
 };
 
-template <typename T, typename Compare>
+template <typename BSTree>
 struct bst_inserter_multi_iterator {
+  private:
+    using T = typename BSTree::value_type;
+    BSTree* tree;
+
+  public:
+    using iterator_category = std::output_iterator_tag;
     using value_type = void;
     using reference = void;
     using pointer = void;
     using difference_type = void;
-    using self_type = bst_inserter_multi_iterator<T, Compare>;
-    using iterator_category = std::output_iterator_tag;
-    using container_type = bs_tree<T, Compare>;
+    using self_t = bst_inserter_multi_iterator;
+    using container_type = BSTree;
 
     bst_inserter_multi_iterator(container_type& tree) : tree(&tree) {}
 
-    self_type& operator*() {
+    self_t& operator*() {
         return *this;
     }
-    self_type& operator++() {
+    self_t& operator++() {
         return *this;
     }
-    self_type& operator++(int) {
+    self_t& operator++(int) {
         return *this;
     }
-    self_type& operator=(const T& value) {
+    self_t& operator=(const T& value) {
         tree->insert_multi(value);
         return *this;
     }
-    self_type& operator=(T&& value) {
+    self_t& operator=(T&& value) {
         tree->insert_multi(std::move(value));
         return *this;
     }
-
-  private:
-    container_type* tree;
 };
 
-template <typename T, typename Compare>
-bst_inserter_unique_iterator<T, Compare> bst_inserter_unique(bs_tree<T, Compare>& tree) {
-    return bst_inserter_unique_iterator<T, Compare>(tree);
+template <typename BSTree>
+bst_inserter_unique_iterator<BSTree> bst_inserter_unique(BSTree& tree) {
+    return bst_inserter_unique_iterator<BSTree>(tree);
 }
 
-template <typename T, typename Compare>
-bst_inserter_multi_iterator<T, Compare> bst_inserter_multi(bs_tree<T, Compare>& tree) {
-    return bst_inserter_multi_iterator<T, Compare>(tree);
+template <typename BSTree>
+bst_inserter_multi_iterator<BSTree> bst_inserter_multi(BSTree& tree) {
+    return bst_inserter_multi_iterator<BSTree>(tree);
 }

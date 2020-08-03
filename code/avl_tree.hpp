@@ -162,8 +162,8 @@ struct avl_node {
  */
 template <typename T>
 struct avl_tree {
-    using value_type = T;
     using size_type = size_t;
+    using difference_type = ptrdiff_t;
     using node_type = avl_node<T>;
     using tree_type = avl_tree<T>;
 
