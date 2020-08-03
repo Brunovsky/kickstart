@@ -174,6 +174,7 @@ struct bs_map : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
         return it->second;
     }
 
+    using bst::erase;
     bool erase(const Key& key) {
         return bst::erase_unique(key);
     }
@@ -275,6 +276,7 @@ struct bs_multimap : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
         return bst::emplace_hint_multi(hint, std::forward<Args>(args)...);
     }
 
+    using bst::erase;
     bool erase(const Key& key) {
         return bst::erase_multi(key);
     }

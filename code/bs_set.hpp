@@ -92,6 +92,7 @@ struct bs_set : bs_tree<Key, Compare, set_tag> {
         return bst::emplace_hint_unique(hint, std::forward<Args>(args)...);
     }
 
+    using bst::erase;
     bool erase(const Key& key) {
         return bst::erase_unique(key);
     }
@@ -194,7 +195,8 @@ struct bs_multiset : bs_tree<Key, Compare, set_tag> {
         return bst::emplace_hint_multi(hint, std::forward<Args>(args)...);
     }
 
-    bool erase(const Key& key) {
+    using bst::erase;
+    size_t erase(const Key& key) {
         return bst::erase_multi(key);
     }
 

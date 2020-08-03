@@ -82,6 +82,7 @@ struct bst_traits<Key, Compare, set_tag> {
     using pointer = const value_type*;
     using const_pointer = const value_type*;
 
+  protected:
     static constexpr inline const Key& get_key(const value_type& elem) noexcept {
         return elem;
     }
@@ -98,6 +99,7 @@ struct bst_traits<std::pair<const Key, T>, Compare, map_tag> {
     using pointer = value_type*;
     using const_pointer = const value_type*;
 
+  protected:
     static constexpr inline const Key& get_key(const value_type& elem) noexcept {
         return elem.first;
     }
@@ -852,7 +854,7 @@ struct bs_tree : protected Tree<T>, public bst_traits<T, Compare, tag> {
             ++it;
             erase_node(y);
         }
-        return size() - s;
+        return s - size();
     }
     void erase(iterator pos) {
         assert(pos.y != head);
