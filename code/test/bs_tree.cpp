@@ -1,4 +1,6 @@
+#ifndef NDEBUG
 #undef NDEBUG
+#endif
 
 #include <algorithm>
 #include <chrono>
@@ -43,6 +45,7 @@ ostream& operator<<(ostream& out, pair<int, int> ints) {
     return out << '(' << ints.first << ',' << ints.second << ')';
 }
 
+// Make sure these can be instantianed, at least...
 template struct bs_set<int>;
 template struct bs_set<pair<int, int>>;
 template struct bs_set<int, greater<int>>;
@@ -596,6 +599,57 @@ void emplace_test() {
     cout << "\r   emplace test OK -----\n";
 }
 
+/**
+ * Test the following:
+ *      - bs_map's operator[], at()
+ *      - bs_map's insert_or_assign(), try_emplace()
+ */
+void map_test() {
+    bs_map<string, string> a, b;
+
+    a["200"] = "def";
+    a["300"] = "200";
+    a["400"] = "300";
+    a["200"] = "100";
+    assert(a.size() == 3UL);
+
+    b["400"] = "xyz";
+    b["300"] = "200";
+    b["200"] = "100";
+    assert(b.size() == 3UL && a != b);
+    b["400"] = "300";
+    assert(b.size() == 3UL && a == b);
+    assert(b.at("200") == "100");
+    assert(b.at("400") == "300");
+
+    b.clear();
+    assert(b.empty());
+
+    b.insert_or_assign("200", "300");
+    b.insert_or_assign("300", "abc");
+    b.insert_or_assign("300", "200");
+    b.insert_or_assign("400", "def");
+    b.insert_or_assign("400", "500");
+    b.insert_or_assign("200", "100");
+    assert(b.size() == 3UL && a != b);
+    b.insert_or_assign("400", "300");
+    assert(b.size() == 3UL && a == b);
+    assert(b.at("200") == "100");
+    assert(b.at("400") == "300");
+
+    auto res = b.try_emplace("400", "xyz");
+    assert(res.first != b.end() && !res.second);
+    assert(b.size() == 3UL && a == b && b.at("400") == "300");
+    res = b.try_emplace("500", "400");
+    assert(res.first != b.end() && res.second);
+    assert(b.size() == 4UL && a != b && b.at("500") == "400");
+
+    a.emplace_hint(a.end(), "500", "400");
+    assert(a == b);
+
+    cout << "\r       map test OK -----\n";
+}
+
 static int bti = 0;
 
 /**
@@ -609,16 +663,16 @@ static int bti = 0;
  *      - debug() -> verify avl invariants
  * Compare the results of all operations with the equivalents ones on std::multiset.
  */
-template <typename CmpFn = less<pair<int, int>>>
+template <typename Compare = less<pair<int, int>>>
 void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
-                 boold domulti, boold dohint, boold doclear = boold(0)) {
+                 boold domulti, boold dohint, boold doclear) {
     bti++;
 
     using pair_t = pair<int, int>;
-    using tree_t = bs_tree<pair_t, CmpFn>;
+    using tree_t = bs_tree<pair_t, Compare>;
     using it_t = typename tree_t::const_iterator;
     using constit_t = typename tree_t::const_iterator;
-    using stl_t = std::multiset<pair_t, CmpFn>;
+    using stl_t = std::multiset<pair_t, Compare>;
 
     for (int t = 1; t <= T; t++) {
         tree_t tree;
@@ -730,7 +784,7 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
             }
         }
 
-        assert(is_sorted(tree.begin(), tree.end(), CmpFn{}));
+        assert(is_sorted(tree.begin(), tree.end(), Compare{}));
 
         // validate all iterators, in both directions
         vector<pair_t> collector;
@@ -754,73 +808,6 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
     cout << "\r    battle test OK " << bti << " ---\n";
 }
 
-/**
- * Test the following:
- *      - Performance
- */
-void performance_test(int T = 500) {
-    using namespace std::chrono;
-    intd distn(0, 100000);
-
-    using ms = chrono::milliseconds;
-
-    {
-        auto now = steady_clock::now();
-        for (int t = 1; t <= T; t++) {
-            std::multiset<int> tree;
-            for (int i = 0; i < 10 * t; i++) {
-                tree.insert(distn(mt));
-            }
-        }
-        auto time = duration_cast<ms>(steady_clock::now() - now);
-        printf("multiset insertions: %ldms\n", time.count());
-    }
-
-    {
-        auto now = steady_clock::now();
-        for (int t = 1; t <= T; t++) {
-            bs_multiset<int> tree;
-            for (int i = 0; i < 10 * t; i++) {
-                tree.insert(distn(mt));
-            }
-        }
-        auto time = duration_cast<ms>(steady_clock::now() - now);
-        printf("bs_multiset insertions: %ldms\n", time.count());
-    }
-
-    {
-        size_t cnt = 0;
-        auto now = steady_clock::now();
-        for (int t = 1; t <= T; t++) {
-            std::multiset<int> tree;
-            for (int i = 0; i < 5 * t; i++) {
-                tree.insert(distn(mt));
-            }
-            for (int i = 0; i < 60 * t; i++) {
-                cnt += tree.count(distn(mt)) > 0;
-            }
-        }
-        auto time = duration_cast<ms>(steady_clock::now() - now);
-        printf("multiset query: %ldms (count: %lu)\n", time.count(), cnt);
-    }
-
-    {
-        size_t cnt = 0;
-        auto now = steady_clock::now();
-        for (int t = 1; t <= T; t++) {
-            bs_multiset<int> tree;
-            for (int i = 0; i < 5 * t; i++) {
-                tree.insert(distn(mt));
-            }
-            for (int i = 0; i < 60 * t; i++) {
-                cnt += tree.count(distn(mt)) > 0;
-            }
-        }
-        auto time = duration_cast<ms>(steady_clock::now() - now);
-        printf("bs_multiset query: %ldms (count: %lu)\n", time.count(), cnt);
-    }
-}
-
 int main() {
     hint_test();
     emplace_test();
@@ -830,6 +817,7 @@ int main() {
     iterators_test();
     construct_test();
     merge_test();
+    map_test();
 
     // clang-format off
     // generic test with moderate conflicts
@@ -852,8 +840,6 @@ int main() {
                 boold(0.10), boold(0.25), boold(0.50), boold(0.30), boold(0.075));
     //               erase        emplace      multi        hint         clear
     // clang-format on
-
-    performance_test();
 
     return 0;
 }

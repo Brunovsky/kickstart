@@ -93,7 +93,7 @@ struct bs_map : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
         return bst::emplace_unique(std::forward<Args>(args)...);
     }
     template <typename... Args>
-    std::pair<iterator, bool> emplace_hint(const_iterator hint, Args&&... args) {
+    iterator emplace_hint(const_iterator hint, Args&&... args) {
         return bst::emplace_hint_unique(hint, std::forward<Args>(args)...);
     }
 
@@ -104,8 +104,8 @@ struct bs_map : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
             it->second = std::forward<M>(obj);
             return {it, false};
         }
-        it = bst::emplace_hint_unique(it, std::piecewise_construct, key,
-                                      std::forward<M>(obj));
+        it = emplace_hint(it, std::piecewise_construct, std::forward_as_tuple(key),
+                          std::forward_as_tuple(std::forward<M>(obj)));
         return {it, true};
     }
     template <typename M>
@@ -115,8 +115,9 @@ struct bs_map : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
             it->second = std::forward<M>(obj);
             return {it, false};
         }
-        it = bst::emplace_hint_unique(it, std::piecewise_construct, std::move(key),
-                                      std::forward<M>(obj));
+        it = emplace_hint(it, std::piecewise_construct,
+                          std::forward_as_tuple(std::move(key)),
+                          std::forward_as_tuple(std::forward<M>(obj)));
         return {it, true};
     }
     // TODO: hinted insert_or_assign, requires bs_tree support
@@ -127,8 +128,8 @@ struct bs_map : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
         if (it != bst::end() && !compare(key, it->first)) {
             return {it, false};
         }
-        it = bst::emplace_hint_unique(it, std::piecewise_construct, key,
-                                      std::forward<Args>(args)...);
+        it = emplace_hint(it, std::piecewise_construct, std::forward_as_tuple(key),
+                          std::forward_as_tuple(std::forward<Args>(args)...));
         return {it, true};
     }
     template <typename... Args>
@@ -137,9 +138,9 @@ struct bs_map : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
         if (it != bst::end() && !compare(key, it->first)) {
             return {it, false};
         }
-        it = bst::emplace_hint_unique(it, std::piecewise_construct,
-                                      std::forward_as_tuple(std::move(key)),
-                                      std::forward_as_tuple(std::forward<Args>(args)...));
+        it = emplace_hint(it, std::piecewise_construct,
+                          std::forward_as_tuple(std::move(key)),
+                          std::forward_as_tuple(std::forward<Args>(args)...));
         return {it, true};
     }
     // TODO: hinted try_emplace, requires bs_tree support
@@ -147,17 +148,16 @@ struct bs_map : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
     mapped_type& operator[](const Key& key) {
         auto it = bst::lower_bound(key);
         if (it == bst::end() || compare(key, it->first)) {
-            it = bst::emplace_hint_unique(it, std::piecewise_construct,
-                                          std::forward_as_tuple(key), std::tuple<>());
+            it = emplace_hint(it, std::piecewise_construct, std::forward_as_tuple(key),
+                              std::tuple<>());
         }
         return it->second;
     }
     mapped_type& operator[](Key&& key) {
         auto it = bst::lower_bound(key);
         if (it == bst::end() || compare(key, it->first)) {
-            it = bst::emplace_hint_unique(it, std::piecewise_construct,
-                                          std::forward_as_tuple(std::move(key)),
-                                          std::tuple<>());
+            it = emplace_hint(it, std::piecewise_construct,
+                              std::forward_as_tuple(std::move(key)), std::tuple<>());
         }
         return it->second;
     }

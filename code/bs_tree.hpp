@@ -297,7 +297,7 @@ struct bst_node_handle : bst_node_handle_methods<BSTree> {
         swap(y, other.y);
     }
     friend void swap(self_t& lhs, self_t& rhs) noexcept {
-        swap(lhs.y, rhs.y);
+        lhs.swap(rhs);
     }
 };
 
