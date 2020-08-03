@@ -1,3 +1,6 @@
+#ifndef BS_TREE_HPP
+#define BS_TREE_HPP
+
 #include "avl_tree.hpp"
 
 /**
@@ -873,6 +876,7 @@ struct bs_tree : protected Tree<T>, public bst_traits<T, Compare, tag> {
     }
 
     node_type extract(const_iterator pos) {
+        assert(pos.y != head);
         node_t* y = const_cast<node_t*>(pos.y);
         yank_node(y);
         return node_type(y);
@@ -1016,3 +1020,5 @@ template <typename BSTree>
 bst_inserter_multi_iterator<BSTree> bst_inserter_multi(BSTree& tree) {
     return bst_inserter_multi_iterator<BSTree>(tree);
 }
+
+#endif // BS_TREE_HPP

@@ -6,6 +6,7 @@
 #include <random>
 #include <set>
 
+#include "../bs_map.hpp"
 #include "../bs_set.hpp"
 
 using namespace std;
@@ -45,8 +46,15 @@ ostream& operator<<(ostream& out, pair<int, int> ints) {
 template struct bs_set<int>;
 template struct bs_set<pair<int, int>>;
 template struct bs_set<int, greater<int>>;
-template struct bs_set<pair<int, int>, greater<pair<int, int>>>;
-template struct bs_tree<pair<const int, int>, less<int>, map_tag>;
+template struct bs_multiset<int>;
+template struct bs_multiset<pair<int, int>>;
+template struct bs_multiset<int, greater<int>>;
+template struct bs_map<int, int>;
+template struct bs_map<int, pair<int, int>>;
+template struct bs_map<string, int, greater<string>>;
+template struct bs_multimap<int, int>;
+template struct bs_multimap<pair<int, int>, vector<int>>;
+template struct bs_multimap<string, int, greater<string>>;
 
 mt19937 mt(random_device{}());
 using intd = uniform_int_distribution<int>;
@@ -771,13 +779,13 @@ void performance_test(int T = 500) {
     {
         auto now = steady_clock::now();
         for (int t = 1; t <= T; t++) {
-            bs_tree<int> tree;
+            bs_multiset<int> tree;
             for (int i = 0; i < 10 * t; i++) {
-                tree.insert_multi(distn(mt));
+                tree.insert(distn(mt));
             }
         }
         auto time = duration_cast<ms>(steady_clock::now() - now);
-        printf("bs_tree insertions: %ldms\n", time.count());
+        printf("bs_multiset insertions: %ldms\n", time.count());
     }
 
     {
@@ -800,16 +808,16 @@ void performance_test(int T = 500) {
         size_t cnt = 0;
         auto now = steady_clock::now();
         for (int t = 1; t <= T; t++) {
-            bs_tree<int> tree;
+            bs_multiset<int> tree;
             for (int i = 0; i < 5 * t; i++) {
-                tree.insert_multi(distn(mt));
+                tree.insert(distn(mt));
             }
             for (int i = 0; i < 60 * t; i++) {
                 cnt += tree.count(distn(mt)) > 0;
             }
         }
         auto time = duration_cast<ms>(steady_clock::now() - now);
-        printf("bs_tree query: %ldms (count: %lu)\n", time.count(), cnt);
+        printf("bs_multiset query: %ldms (count: %lu)\n", time.count(), cnt);
     }
 }
 

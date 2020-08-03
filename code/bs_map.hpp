@@ -1,20 +1,25 @@
-#ifndef BS_SET_HPP
-#define BS_SET_HPP
+#ifndef BS_MAP_HPP
+#define BS_MAP_HPP
+
+#include <map>
 
 #include "bs_tree.hpp"
 
 // *****
 
-template <typename Key, typename Compare = std::less<Key>>
-struct bs_set : bs_tree<Key, Compare, set_tag> {
+template <typename Key, typename Value, typename Compare = std::less<Key>>
+struct bs_map : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
   private:
-    using bst = bs_tree<Key, Compare, set_tag>;
+    using bst = bs_tree<std::pair<const Key, Value>, Compare, map_tag>;
     using T = typename bst::value_type;
+
+    using bst::compare;
 
   public:
     using key_compare = typename bst::key_compare;
     using key_type = typename bst::key_type;
     using value_type = typename bst::value_type;
+    using mapped_type = typename bst::mapped_type;
     using iterator = typename bst::iterator;
     using const_iterator = typename bst::const_iterator;
     using reverse_iterator = typename bst::reverse_iterator;
@@ -31,24 +36,24 @@ struct bs_set : bs_tree<Key, Compare, set_tag> {
     using bst::bst;
 
     template <typename InputIt>
-    bs_set(InputIt first, InputIt last) {
+    bs_map(InputIt first, InputIt last) {
         bst::insert_unique(first, last);
     }
 
     template <typename InputIt>
-    bs_set(InputIt first, InputIt last, const Compare& comp) : bst(comp) {
+    bs_map(InputIt first, InputIt last, const Compare& comp) : bst(comp) {
         bst::insert_unique(first, last);
     }
 
-    bs_set(std::initializer_list<value_type> ilist) {
+    bs_map(std::initializer_list<value_type> ilist) {
         bst::insert_unique(std::move(ilist));
     }
 
-    bs_set(std::initializer_list<value_type> ilist, const Compare& comp) : bst(comp) {
+    bs_map(std::initializer_list<value_type> ilist, const Compare& comp) : bst(comp) {
         bst::insert_unique(std::move(ilist));
     }
 
-    bs_set& operator=(std::initializer_list<value_type> ilist) {
+    bs_map& operator=(std::initializer_list<value_type> ilist) {
         bst::clear();
         bst::insert_unique(std::move(ilist));
         return *this;
@@ -92,34 +97,110 @@ struct bs_set : bs_tree<Key, Compare, set_tag> {
         return bst::emplace_hint_unique(hint, std::forward<Args>(args)...);
     }
 
+    template <typename M>
+    std::pair<iterator, bool> insert_or_assign(const Key& key, M&& obj) {
+        auto it = bst::lower_bound(key);
+        if (it != bst::end() && !compare(key, it->first)) {
+            it->second = std::forward<M>(obj);
+            return {it, false};
+        }
+        it = bst::emplace_hint_unique(it, std::piecewise_construct, key,
+                                      std::forward<M>(obj));
+        return {it, true};
+    }
+    template <typename M>
+    std::pair<iterator, bool> insert_or_assign(Key&& key, M&& obj) {
+        auto it = bst::lower_bound(key);
+        if (it != bst::end() && !compare(key, it->first)) {
+            it->second = std::forward<M>(obj);
+            return {it, false};
+        }
+        it = bst::emplace_hint_unique(it, std::piecewise_construct, std::move(key),
+                                      std::forward<M>(obj));
+        return {it, true};
+    }
+    // TODO: hinted insert_or_assign, requires bs_tree support
+
+    template <typename... Args>
+    std::pair<iterator, bool> try_emplace(const Key& key, Args&&... args) {
+        auto it = bst::lower_bound(key);
+        if (it != bst::end() && !compare(key, it->first)) {
+            return {it, false};
+        }
+        it = bst::emplace_hint_unique(it, std::piecewise_construct, key,
+                                      std::forward<Args>(args)...);
+        return {it, true};
+    }
+    template <typename... Args>
+    std::pair<iterator, bool> try_emplace(Key&& key, Args&&... args) {
+        auto it = bst::lower_bound(key);
+        if (it != bst::end() && !compare(key, it->first)) {
+            return {it, false};
+        }
+        it = bst::emplace_hint_unique(it, std::piecewise_construct,
+                                      std::forward_as_tuple(std::move(key)),
+                                      std::forward_as_tuple(std::forward<Args>(args)...));
+        return {it, true};
+    }
+    // TODO: hinted try_emplace, requires bs_tree support
+
+    mapped_type& operator[](const Key& key) {
+        auto it = bst::lower_bound(key);
+        if (it == bst::end() || compare(key, it->first)) {
+            it = bst::emplace_hint_unique(it, std::piecewise_construct,
+                                          std::forward_as_tuple(key), std::tuple<>());
+        }
+        return it->second;
+    }
+    mapped_type& operator[](Key&& key) {
+        auto it = bst::lower_bound(key);
+        if (it == bst::end() || compare(key, it->first)) {
+            it = bst::emplace_hint_unique(it, std::piecewise_construct,
+                                          std::forward_as_tuple(std::move(key)),
+                                          std::tuple<>());
+        }
+        return it->second;
+    }
+    mapped_type& at(const Key& key) {
+        auto it = bst::lower_bound(key);
+        if (it == bst::end() || compare(key, it->first))
+            throw std::out_of_range("map::at");
+        return it->second;
+    }
+    const mapped_type& at(const Key& key) const {
+        auto it = bst::lower_bound(key);
+        if (it == bst::end() || compare(key, it->first))
+            throw std::out_of_range("map::at");
+        return it->second;
+    }
+
     bool erase(const Key& key) {
         return bst::erase_unique(key);
     }
 
     template <typename Compare2>
-    void merge(bs_set<Key, Compare2>& src) {
+    void merge(bs_map<Key, Compare2>& src) {
         return bst::merge_unique(src);
     }
     template <typename Compare2>
-    void merge(bs_set<Key, Compare2>&& src) {
+    void merge(bs_map<Key, Compare2>&& src) {
         return bst::merge_unique(std::move(src));
-    }
-
-    friend bst_inserter_unique_iterator<bst> inserter(bs_set& set) {
-        return bst_inserter_unique<bst>(set);
     }
 };
 
-template <typename Key, typename Compare = std::less<Key>>
-struct bs_multiset : bs_tree<Key, Compare, set_tag> {
+template <typename Key, typename Value, typename Compare = std::less<Key>>
+struct bs_multimap : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
   private:
-    using bst = bs_tree<Key, Compare, set_tag>;
+    using bst = bs_tree<std::pair<const Key, Value>, Compare, map_tag>;
     using T = typename bst::value_type;
+
+    using bst::compare;
 
   public:
     using key_compare = typename bst::key_compare;
     using key_type = typename bst::key_type;
     using value_type = typename bst::value_type;
+    using mapped_type = typename bst::mapped_type;
     using iterator = typename bst::iterator;
     using const_iterator = typename bst::const_iterator;
     using reverse_iterator = typename bst::reverse_iterator;
@@ -136,25 +217,25 @@ struct bs_multiset : bs_tree<Key, Compare, set_tag> {
     using bst::bst;
 
     template <typename InputIt>
-    bs_multiset(InputIt first, InputIt last) {
+    bs_multimap(InputIt first, InputIt last) {
         bst::insert_multi(first, last);
     }
 
     template <typename InputIt>
-    bs_multiset(InputIt first, InputIt last, const Compare& comp) : bst(comp) {
+    bs_multimap(InputIt first, InputIt last, const Compare& comp) : bst(comp) {
         bst::insert_multi(first, last);
     }
 
-    bs_multiset(std::initializer_list<value_type> ilist) {
+    bs_multimap(std::initializer_list<value_type> ilist) {
         bst::insert_multi(std::move(ilist));
     }
 
-    bs_multiset(std::initializer_list<value_type> ilist, const Compare& comp)
+    bs_multimap(std::initializer_list<value_type> ilist, const Compare& comp)
         : bst(comp) {
         bst::insert_multi(std::move(ilist));
     }
 
-    bs_multiset& operator=(std::initializer_list<value_type> ilist) {
+    bs_multimap& operator=(std::initializer_list<value_type> ilist) {
         bst::clear();
         bst::insert_multi(std::move(ilist));
         return *this;
@@ -199,17 +280,13 @@ struct bs_multiset : bs_tree<Key, Compare, set_tag> {
     }
 
     template <typename Compare2>
-    void merge(bs_multiset<Key, Compare2>& src) {
+    void merge(bs_multimap<Key, Compare2>& src) {
         return bst::merge_multi(src);
     }
     template <typename Compare2>
-    void merge(bs_multiset<Key, Compare2>&& src) {
+    void merge(bs_multimap<Key, Compare2>&& src) {
         return bst::merge_multi(std::move(src));
-    }
-
-    friend bst_inserter_multi_iterator<bst> inserter(bs_multiset& set) {
-        return bst_inserter_multi<bst>(set);
     }
 };
 
-#endif // BS_SET_HPP
+#endif // BS_MAP_HPP
