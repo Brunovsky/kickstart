@@ -69,7 +69,7 @@ NamespaceIndentation: None
 PointerAlignment: Left
 ReflowComments: true
 SortIncludes: true
-SortUsingDeclarations: true
+SortUsingDeclarations: false
 SpacesBeforeTrailingComments: 1
 Standard: Auto
 StatementMacros:
