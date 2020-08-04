@@ -1,11 +1,12 @@
 #include <cassert>
+#include <functional>
+#include <iostream>
 #include <limits>
-#include <memory>
 
 // *****
 
 /**
- * Left rotation notes
+ * AVL rotation notes
  *
  *       y                     x
  *      / \                   / \
@@ -82,28 +83,11 @@ struct avl_node {
     template <typename... Args>
     avl_node(Args&&... args) : data(std::forward<Args>(args)...) {}
 
-  private:
-    struct avl_head_tag_t {};
-    avl_node([[maybe_unused]] avl_head_tag_t tag) {}
-
-  public:
-    static node_t* new_empty() {
-        return new node_t(avl_head_tag_t{});
-    }
-
     ~avl_node() {
         delete link[0];
         delete link[1];
-        if (parent)
+        if (this != parent)
             data.~T();
-    }
-
-    inline bool is_leaf() const noexcept {
-        return !link[0] && !link[1];
-    }
-    size_t subtree_size() const noexcept {
-        return (link[0] ? link[0]->subtree_size() : 0) +
-               (link[1] ? link[1]->subtree_size() : 0) + 1;
     }
 
     static node_t* minimum(node_t* n) noexcept {
@@ -129,30 +113,39 @@ struct avl_node {
     static node_t* increment(node_t* n) noexcept {
         if (n->link[1])
             return minimum(n->link[1]);
-        while (n->parent && n == n->parent->link[1])
+        while (n == n->parent->link[1])
             n = n->parent;
         return n->parent;
     }
     static const node_t* increment(const node_t* n) noexcept {
         if (n->link[1])
             return minimum(n->link[1]);
-        while (n->parent && n == n->parent->link[1])
+        while (n == n->parent->link[1])
             n = n->parent;
         return n->parent;
     }
     static node_t* decrement(node_t* n) noexcept {
         if (n->link[0])
             return maximum(n->link[0]);
-        while (n->parent && n == n->parent->link[0])
+        while (n == n->parent->link[0])
             n = n->parent;
         return n->parent;
     }
     static const node_t* decrement(const node_t* n) noexcept {
         if (n->link[0])
             return maximum(n->link[0]);
-        while (n->parent && n == n->parent->link[0])
+        while (n == n->parent->link[0])
             n = n->parent;
         return n->parent;
+    }
+
+  private:
+    struct avl_head_tag_t {};
+    avl_node([[maybe_unused]] avl_head_tag_t tag) : parent(this) {}
+
+  public:
+    static node_t* new_empty() {
+        return new node_t(avl_head_tag_t{});
     }
 };
 
@@ -244,6 +237,7 @@ struct avl_tree {
         return head->link[0] ? node_t::maximum(head->link[0]) : head;
     }
 
+  private:
     static inline void drop_node(node_t* node) {
         node->link[0] = node->link[1] = nullptr;
         delete node;
@@ -271,6 +265,7 @@ struct avl_tree {
         return clone;
     }
 
+  public:
     /**
      *       y                     x
      *      / \                   / \
@@ -278,7 +273,7 @@ struct avl_tree {
      *        / \               / \
      *      [b] [c]           [a] [b]
      */
-    node_t* left_rotate(node_t* y) {
+    node_t* rotate_left(node_t* y) {
         node_t* x = y->link[1];
         assert(y->balance >= +1 && y->balance >= x->balance);
         bool is_right = y == y->parent->link[1];
@@ -292,6 +287,7 @@ struct avl_tree {
         x->balance = std::min(xb - 1, -y1);
         return x;
     }
+
     /**
      *         y                  x
      *        / \                / \
@@ -299,7 +295,7 @@ struct avl_tree {
      *      / \                    / \
      *    [a] [b]                [b] [c]
      */
-    node_t* right_rotate(node_t* y) {
+    node_t* rotate_right(node_t* y) {
         node_t* x = y->link[0];
         assert(y->balance <= -1 && y->balance <= x->balance);
         bool is_right = y == y->parent->link[1];
@@ -313,6 +309,7 @@ struct avl_tree {
         x->balance = std::max(xb + 1, y1);
         return x;
     }
+
     /**
      * Recalibrate the tree rooted at y that has become unbalanced, deducing
      * the necessary rotations. Does nothing if y is already balanced.
@@ -321,15 +318,15 @@ struct avl_tree {
     node_t* rebalance(node_t* y) {
         if (y->balance == -2) {
             if (y->link[0]->balance == +1) {
-                left_rotate(y->link[0]);
+                rotate_left(y->link[0]);
             }
-            return right_rotate(y);
+            return rotate_right(y);
         }
         if (y->balance == +2) {
             if (y->link[1]->balance == -1) {
-                right_rotate(y->link[1]);
+                rotate_right(y->link[1]);
             }
-            return left_rotate(y);
+            return rotate_left(y);
         }
         return y;
     }
@@ -357,6 +354,7 @@ struct avl_tree {
             y = rebalance(y->parent);
         }
     }
+
     /**
      *            p(+1)                     p(0)                        p(-1)
      * h-1->h    / \   h         h->h+1    / \    h          h+1->h+2  / \   h
@@ -372,21 +370,19 @@ struct avl_tree {
      */
     void rebalance_after_insert(node_t* y) {
         node_t* parent = y->parent;
-
-        // walk up the tree until we find an imperfectly balanced parent
         while (parent != head && parent->balance == 0) {
             bool is_right = y == parent->link[1];
             parent->balance = is_right ? +1 : -1;
             y = parent;
             parent = y->parent;
         }
-        // found the imperfectly balanced parent, or root
         if (parent != head) {
             bool is_right = y == parent->link[1];
             parent->balance += is_right ? +1 : -1;
             rebalance(parent);
         }
     }
+
     /**
      *   parent       parent  <-- rebalance here
      *     |            |
@@ -405,6 +401,7 @@ struct avl_tree {
             rebalance_after_erase(parent);
         }
     }
+
     /**
      *     |            |
      *     y            x  <-- rebalance here
@@ -423,6 +420,7 @@ struct avl_tree {
         x->balance = y->balance - 1;
         rebalance_after_erase(x);
     }
+
     /**
      *        |                       |
      *        y                       x
@@ -452,6 +450,10 @@ struct avl_tree {
         w->balance += 1;
         rebalance_after_erase(w);
     }
+
+    /**
+     * Select the erase position based on y's right subtree
+     */
     void erase_node_and_rebalance(node_t* y) {
         if (!y->link[1])
             erase_node_pull_left(y);
@@ -474,6 +476,7 @@ struct avl_tree {
         rebalance_after_insert(y);
         node_count++;
     }
+
     /**
      * Insert node y after node, so that incrementing node afterwards gives y.
      * Usually this will insert y as the right child of node.
@@ -496,6 +499,7 @@ struct avl_tree {
             insert_node(node, y, 1);
         }
     }
+
     /**
      * Insert node y before node, so that decrementing node afterwards gives y.
      * Usually this will insert y as the left child of node.
@@ -518,6 +522,7 @@ struct avl_tree {
             insert_node(node, y, 0);
         }
     }
+
     /**
      * Remove node y from the tree and destroy it.
      */
@@ -526,6 +531,7 @@ struct avl_tree {
         drop_node(y);
         node_count--;
     }
+
     /**
      * Remove node y from the tree but do not destroy it.
      */
@@ -534,6 +540,7 @@ struct avl_tree {
         clear_node(y);
         node_count--;
     }
+
     /**
      * Fork an existing node in the tree so that it becomes a child of the given node
      * x along with z. The boolean indicates which side the existing node will go to.
@@ -553,6 +560,7 @@ struct avl_tree {
         x->balance = z ? 0 : (yield_right ? +1 : -1);
         node_count += 1 + !!z;
     }
+
     /**
      * Contract a fork anywhere in the tree, erasing the node and one of its subtrees.
      *
@@ -574,14 +582,49 @@ struct avl_tree {
         drop_node(y);
     }
 
+    void pretty_print() const {
+        printf("======== count: %02d ========\n", int(node_count));
+        print_tree_preorder(head->link[0], "", false);
+        printf("===========================\n");
+    }
+
     void debug() const {
-        assert(head && !head->link[1] && head->balance == 0);
+        assert(head && !head->link[1] && head->balance == 0 && head->parent == head);
         size_t cnt = 0;
         debug_node(head->link[0], head, cnt);
         assert(cnt == node_count);
     }
 
   private:
+    void print_tree_preorder(node_t* n, std::string prefix, bool bar) const {
+        static const char* line[2] = {u8"└", u8"├"};
+        static const char* pad[2] = {"    ", u8" |  "};
+        if (!n) {
+            printf("%s %s\n", prefix.data(), line[bar]);
+            return;
+        }
+        printf(u8"%s %s── %s\n", prefix.data(), line[bar], print_node(n).data());
+        if (n->link[0] || n->link[1]) {
+            prefix += pad[bar];
+            print_tree_preorder(n->link[0], prefix, true);
+            print_tree_preorder(n->link[1], prefix, false);
+        }
+    }
+
+    static inline std::string print_node(node_t* node) noexcept {
+        std::string s;
+        s += std::to_string(node->data);
+        s += "(" + std::to_string(node->balance) + ")";
+        s += u8"  ╴  ╴  ╴  ╴ ";
+        if (node->parent != node->parent->parent)
+            s += "  ^(" + std::to_string(node->parent->data) + ")";
+        if (node->link[0])
+            s += "  <(" + std::to_string(node->link[0]->data) + ")";
+        if (node->link[1])
+            s += "  >(" + std::to_string(node->link[1]->data) + ")";
+        return s;
+    }
+
     int debug_node(const node_t* y, const node_t* parent, size_t& cnt) const {
         if (!y)
             return 0;

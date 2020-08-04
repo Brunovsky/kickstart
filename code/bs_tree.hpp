@@ -330,7 +330,6 @@ struct bs_tree : protected Tree<T>, public bst_traits<T, Compare, tag> {
 
     using Traits::get_key;
     using Tree<T>::head;
-    using Tree<T>::drop_node;
     using Tree<T>::insert_node;
     using Tree<T>::insert_node_after;
     using Tree<T>::insert_node_before;
@@ -656,7 +655,7 @@ struct bs_tree : protected Tree<T>, public bst_traits<T, Compare, tag> {
     std::pair<iterator, bool> insert_node_unique(node_t* node) {
         auto res = try_insert_node_unique(node);
         if (!res.second)
-            drop_node(node);
+            delete node;
         return res;
     }
     std::pair<iterator, bool> try_insert_node_hint_unique(node_t* node, node_t* hint) {
@@ -686,7 +685,7 @@ struct bs_tree : protected Tree<T>, public bst_traits<T, Compare, tag> {
     std::pair<iterator, bool> insert_node_hint_unique(node_t* node, node_t* hint) {
         auto res = try_insert_node_hint_unique(node, hint);
         if (!res.second)
-            drop_node(node);
+            delete node;
         return res;
     }
     iterator insert_node_multi(node_t* node) {

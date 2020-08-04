@@ -23,7 +23,7 @@ mt19937 mt(random_device{}());
 using intd = uniform_int_distribution<int>;
 using boold = bernoulli_distribution;
 
-void insert_test(int T = 500) {
+void insert_test(int T = 3000) {
     intd distn(1, 999);
     intd dists(0, 500);
 
@@ -31,14 +31,14 @@ void insert_test(int T = 500) {
         bs_set<int> tree;
         for (int i = 0, s = dists(mt); i < s; i++) {
             tree.insert(distn(mt));
-            tree.debug();
         }
+        tree.debug();
         cout << "\r      insert test #" << t << flush;
     }
     cout << "\r      insert test OK -----\n";
 }
 
-void erase_test(int T = 500) {
+void erase_test(int T = 3000) {
     intd distn(1, 999);
     intd dists(0, 500);
 
