@@ -390,8 +390,8 @@ struct avl_tree {
     /**
      *   parent       parent  <-- rebalance here
      *     |            |
-     *     y           [x]
-     *    /      ->
+     *     y     ->    [x]
+     *    /
      *  [x]
      *                 balance(parent) := ±1
      */
@@ -408,9 +408,9 @@ struct avl_tree {
     /**
      *     |            |
      *     y            x  <-- rebalance here
-     *    / \    ->    / \.
+     *    / \    ->    / \
      *  [a]  x       [a] [b]
-     *        \.
+     *        \
      *        [b]
      *               balance(x) := balance(y) - 1
      */
@@ -426,15 +426,15 @@ struct avl_tree {
     /**
      *        |                       |
      *        y                       x
-     *       / \                     / \.
+     *       / \                     / \
      *     [a]  x1                 [a]  x1
-     *         / \                     / \.
+     *         / \                     / \
      *       ... [b]      ->         ... [b]
-     *       / \                     / \.
+     *       / \                     / \
      *      w  [c]   rebalance -->  w  [c]
-     *     / \          here       / \.
+     *     / \          here       / \
      *    x  [d]                 [e]  [d]
-     *     \.
+     *     \
      *     [e]
      *                       balance(x) := balance(y)
      *                       balance(w) := balance(w) + 1

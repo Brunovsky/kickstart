@@ -1,14 +1,15 @@
 #ifndef BS_TREE_HPP
 #define BS_TREE_HPP
 
-#include "avl_tree.hpp"
+#include "rb_tree.hpp"
 
 /**
  * STL-friendly tree template for (multi)sets and (multi)maps.
  *   - Parametrized by type T and comparison functor.
  *   - Does not use allocators (for simplicity).
  *
- * Uses the avl_tree.hpp core in avl_tree.hpp
+ *   - Red black core
+ *   - AVL core
  *
  * Done:
  *   - Tree core
@@ -24,7 +25,6 @@
  *
  * TODO:
  *   - Define map, multimap wrappers
- *   - Red black core (?)
  */
 
 /**
@@ -36,7 +36,7 @@ enum bs_tree_tag { set_tag, map_tag };
  * Forward declarations
  */
 template <typename T>
-using Tree = avl_tree<T>;
+using Tree = rb_tree<T>;
 
 template <typename T, typename Compare, bs_tree_tag tag>
 struct bst_traits;

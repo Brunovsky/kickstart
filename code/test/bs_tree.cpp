@@ -1,9 +1,8 @@
-#ifndef NDEBUG
+#ifdef NDEBUG
 #undef NDEBUG
 #endif
 
 #include <algorithm>
-#include <chrono>
 #include <iostream>
 #include <random>
 #include <set>
@@ -49,15 +48,6 @@ ostream& operator<<(ostream& out, pair<int, int> ints) {
 template struct bs_set<int>;
 template struct bs_set<pair<int, int>>;
 template struct bs_set<int, greater<int>>;
-template struct bs_multiset<int>;
-template struct bs_multiset<pair<int, int>>;
-template struct bs_multiset<int, greater<int>>;
-template struct bs_map<int, int>;
-template struct bs_map<int, pair<int, int>>;
-template struct bs_map<string, int, greater<string>>;
-template struct bs_multimap<int, int>;
-template struct bs_multimap<pair<int, int>, vector<int>>;
-template struct bs_multimap<string, int, greater<string>>;
 
 mt19937 mt(random_device{}());
 using intd = uniform_int_distribution<int>;
@@ -481,6 +471,45 @@ void comparison_test(int T = 500) {
     cout << "\rcomparison test OK -----\n";
 }
 
+void insert_test(int T = 500) {
+    intd distn(0, 1'000);
+    intd dists(0, 200);
+
+    for (int t = 1; t <= T; t++) {
+        bs_set<int> tree;
+        for (int i = 0, s = dists(mt); i < s; i++) {
+            tree.insert(distn(mt));
+            tree.debug();
+        }
+        cout << "\r    insert test #" << t << flush;
+    }
+    cout << "\r    insert test OK -----\n";
+}
+
+void erase_test(int T = 500) {
+    intd distn(0, 1'000);
+    intd dists(0, 200);
+
+    for (int t = 1; t <= T; t++) {
+        bs_set<int> tree;
+        vector<int> nums;
+        int s = dists(mt);
+        for (int i = 0; i < s; i++) {
+            int n = distn(mt);
+            nums.push_back(n);
+            tree.insert(n);
+        }
+        tree.debug();
+        shuffle(begin(nums), end(nums), mt);
+        for (int i = 0; i < s; i++) {
+            tree.erase(nums[i]);
+            tree.debug();
+        }
+        cout << "\r     erase test #" << t << flush;
+    }
+    cout << "\r     erase test OK -----\n";
+}
+
 /**
  * Test the following:
  *      - Value construction and destruction for non-trivial types
@@ -809,6 +838,8 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
 }
 
 int main() {
+    insert_test();
+    erase_test();
     hint_test();
     emplace_test();
     equality_test();
