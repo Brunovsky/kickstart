@@ -22,8 +22,6 @@
  *   - Support inserters (avl_inserter_*)
  *   - Copying and moving
  *   - Define set, multiset wrappers
- *
- * TODO:
  *   - Define map, multimap wrappers
  */
 
@@ -44,7 +42,7 @@ struct bst_traits;
 template <typename T, typename Compare, bs_tree_tag tag>
 struct bs_tree;
 
-template <typename BSTree>
+template <typename T, bs_tree_tag tag>
 struct bst_node_handle_methods;
 
 template <typename T>
@@ -53,10 +51,10 @@ struct bst_iterator;
 template <typename T>
 struct bst_const_iterator;
 
-template <typename BSTree>
+template <typename T, bs_tree_tag tag>
 struct bst_node_handle;
 
-template <typename BSTree>
+template <typename T, bs_tree_tag tag>
 struct bst_insert_return_type;
 
 template <typename BSTree>
@@ -110,35 +108,25 @@ struct bst_traits<std::pair<const Key, T>, Compare, map_tag> {
  *   value(), key() and mapped()
  * needs specialization according to standard
  */
-template <typename Key, typename Compare>
-struct bst_node_handle_methods<bs_tree<Key, Compare, set_tag>> {
-  protected:
-    using BSTree = bs_tree<Key, Compare, set_tag>;
-    using self_t = bst_node_handle<bs_tree<Key, Compare, set_tag>>;
-
-  public:
-    using value_type = typename BSTree::value_type;
+template <typename T>
+struct bst_node_handle_methods<T, set_tag> {
+    using value_type = T;
 
     value_type& value() const noexcept {
-        return self_t::y->data;
+        return bst_node_handle<T, set_tag>::y->data;
     }
 };
 
-template <typename V, typename Compare>
-struct bst_node_handle_methods<bs_tree<V, Compare, map_tag>> {
-  protected:
-    using BSTree = bs_tree<V, Compare, map_tag>;
-    using self_t = bst_node_handle<bs_tree<V, Compare, map_tag>>;
-
-  public:
-    using key_type = typename BSTree::key_type;
-    using mapped_type = typename BSTree::mapped_type;
+template <typename K, typename V>
+struct bst_node_handle_methods<std::pair<const K, V>, map_tag> {
+    using key_type = K;
+    using mapped_type = V;
 
     key_type& key() const {
-        return self_t::y->data.first;
+        return const_cast<key_type&>(bst_node_handle<V, map_tag>::y->data.first);
     }
     mapped_type& mapped() const {
-        return self_t::y->data.second;
+        return bst_node_handle<V, map_tag>::y->data.second;
     }
 };
 
@@ -264,17 +252,18 @@ struct bst_const_iterator {
 /**
  * The handle abstraction for extracted nodes
  */
-template <typename BSTree>
-struct bst_node_handle : bst_node_handle_methods<BSTree> {
+template <typename T, bs_tree_tag tag>
+struct bst_node_handle : bst_node_handle_methods<T, tag> {
   private:
-    friend BSTree;
-    using node_t = typename BSTree::node_t;
-    using self_t = bst_node_handle;
+    template <typename V, typename Compare, bs_tree_tag bstag>
+    friend struct bs_tree;
+    using node_t = typename Tree<T>::node_t;
+    using self_t = bst_node_handle<T, tag>;
     node_t* y;
 
   public:
     bst_node_handle() : y(nullptr) {}
-    explicit bst_node_handle(node_t* y) : y(y) {}
+    explicit bst_node_handle(node_t* n) : y(n) {}
 
     bst_node_handle(self_t&& other) : y(other.y) {
         other.y = nullptr;
@@ -306,10 +295,10 @@ struct bst_node_handle : bst_node_handle_methods<BSTree> {
 /**
  * Return type for unique insertion using node handles
  */
-template <typename BSTree>
+template <typename T, bs_tree_tag tag>
 struct bst_insert_return_type {
-    using iterator = typename BSTree::iterator;
-    using node_type = typename BSTree::node_type;
+    using iterator = bst_iterator<T>;
+    using node_type = bst_node_handle<T, tag>;
 
     iterator position;
     bool inserted;
@@ -325,8 +314,6 @@ struct bs_tree : protected Tree<T>, public bst_traits<T, Compare, tag> {
   private:
     using Traits = bst_traits<T, Compare, tag>;
     using node_t = typename Tree<T>::node_t;
-    friend bst_node_handle<bs_tree>;
-    friend bst_insert_return_type<bs_tree>;
 
     using Traits::get_key;
     using Tree<T>::head;
@@ -364,8 +351,8 @@ struct bs_tree : protected Tree<T>, public bst_traits<T, Compare, tag> {
     using pointer = typename Traits::pointer;
     using const_pointer = typename Traits::const_pointer;
 
-    using node_type = bst_node_handle<bs_tree>;
-    using insert_return_type = bst_insert_return_type<bs_tree>;
+    using node_type = bst_node_handle<T, tag>;
+    using insert_return_type = bst_insert_return_type<T, tag>;
 
     bs_tree() {}
 
