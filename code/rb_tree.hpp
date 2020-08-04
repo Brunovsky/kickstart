@@ -169,20 +169,6 @@ struct rb_tree {
     friend inline void swap(rb_tree& lhs, rb_tree& rhs) noexcept {
         lhs.swap(rhs);
     }
-    inline void clear() noexcept {
-        delete head->link[0];
-        head->link[0] = nullptr;
-        node_count = 0;
-    }
-    inline size_t size() const noexcept {
-        return node_count;
-    }
-    inline bool empty() const noexcept {
-        return node_count == 0;
-    }
-    constexpr size_t max_size() const noexcept {
-        return std::numeric_limits<size_t>::max();
-    }
 
     inline node_t* minimum() noexcept {
         return head->link[0] ? node_t::minimum(head->link[0]) : head;
@@ -200,9 +186,6 @@ struct rb_tree {
   private:
     static inline void drop_node(node_t* node) {
         node->link[0] = node->link[1] = nullptr;
-        delete node;
-    }
-    static inline void drop_subtree(node_t* node) {
         delete node;
     }
     static inline void adopt_node(node_t* parent, node_t* child, bool is_right) {

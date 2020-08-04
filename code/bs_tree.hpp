@@ -310,13 +310,14 @@ struct bst_insert_return_type {
  * Can generate all 4 types of containers (set, multiset, map and multimap)
  */
 template <typename T, typename Compare = std::less<T>, bs_tree_tag tag = set_tag>
-struct bs_tree : protected Tree<T>, public bst_traits<T, Compare, tag> {
+struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
   private:
     using Traits = bst_traits<T, Compare, tag>;
     using node_t = typename Tree<T>::node_t;
 
     using Traits::get_key;
     using Tree<T>::head;
+    using Tree<T>::node_count;
     using Tree<T>::insert_node;
     using Tree<T>::insert_node_after;
     using Tree<T>::insert_node_before;
@@ -363,11 +364,23 @@ struct bs_tree : protected Tree<T>, public bst_traits<T, Compare, tag> {
     bs_tree& operator=(const bs_tree& other) = default;
     bs_tree& operator=(bs_tree&& other) = default;
 
-    using Tree<T>::clear;
     using Tree<T>::debug;
-    using Tree<T>::empty;
-    using Tree<T>::max_size;
-    using Tree<T>::size;
+    using Tree<T>::pretty_print;
+
+    inline void clear() noexcept {
+        delete head->link[0];
+        head->link[0] = nullptr;
+        node_count = 0;
+    }
+    inline size_type size() const noexcept {
+        return node_count;
+    }
+    inline bool empty() const noexcept {
+        return node_count == 0;
+    }
+    constexpr size_type max_size() const noexcept {
+        return std::numeric_limits<size_type>::max();
+    }
 
     void swap(bs_tree& other) {
         using std::swap;

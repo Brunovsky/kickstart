@@ -209,20 +209,6 @@ struct avl_tree {
     friend inline void swap(avl_tree& lhs, avl_tree& rhs) noexcept {
         lhs.swap(rhs);
     }
-    inline void clear() noexcept {
-        delete head->link[0];
-        head->link[0] = nullptr;
-        node_count = 0;
-    }
-    inline size_t size() const noexcept {
-        return node_count;
-    }
-    inline bool empty() const noexcept {
-        return node_count == 0;
-    }
-    constexpr size_t max_size() const noexcept {
-        return std::numeric_limits<size_t>::max();
-    }
 
     inline node_t* minimum() noexcept {
         return head->link[0] ? node_t::minimum(head->link[0]) : head;
@@ -240,9 +226,6 @@ struct avl_tree {
   private:
     static inline void drop_node(node_t* node) {
         node->link[0] = node->link[1] = nullptr;
-        delete node;
-    }
-    static inline void drop_subtree(node_t* node) {
         delete node;
     }
     static inline void adopt_node(node_t* parent, node_t* child, bool is_right) {
@@ -539,47 +522,6 @@ struct avl_tree {
         erase_node_and_rebalance(y);
         clear_node(y);
         node_count--;
-    }
-
-    /**
-     * Fork an existing node in the tree so that it becomes a child of the given node
-     * x along with z. The boolean indicates which side the existing node will go to.
-     *
-     *      yield left               yield right
-     *      |        |               |        |
-     *      y   ->   x               y   ->   x
-     *              / \      or              / \
-     *             y  [z]                  [z]  y
-     */
-    void insert_node_leaf_fork(node_t* y, node_t* x, node_t* z, bool yield_right) {
-        assert(y->is_leaf() && (!z || z->is_leaf()));
-        adopt_node(y->parent, x, y == y->parent->link[1]);
-        adopt_node(x, y, yield_right);
-        adopt_node(x, z, !yield_right);
-        rebalance_after_insert(x);
-        x->balance = z ? 0 : (yield_right ? +1 : -1);
-        node_count += 1 + !!z;
-    }
-
-    /**
-     * Contract a fork anywhere in the tree, erasing the node and one of its subtrees.
-     *
-     *       |        |                  |        |
-     *       y   ->   x                  y   ->   x
-     *      / \      / \       or       / \      / \
-     *     x   w    .. ..              w   x    .. ..
-     *    / \ / \                     / \ / \
-     *   .. ... ..                   .. ... ..
-     */
-    void contract_fork(node_t* y, bool keep_right) {
-        node_t* x = y->link[keep_right];
-        node_t* w = y->link[!keep_right];
-        bool is_right = y == y->parent->link[1];
-        adopt_node(y->parent, x, is_right);
-        rebalance_after_erase(x);
-        node_count -= 1 + w->subtree_size();
-        drop_subtree(w);
-        drop_node(y);
     }
 
     void pretty_print() const {
