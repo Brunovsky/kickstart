@@ -47,10 +47,10 @@ struct bs_tree;
 template <typename BSTree>
 struct bst_node_handle_methods;
 
-template <typename BSTree>
+template <typename T>
 struct bst_iterator;
 
-template <typename BSTree>
+template <typename T>
 struct bst_const_iterator;
 
 template <typename BSTree>
@@ -146,24 +146,25 @@ struct bst_node_handle_methods<bs_tree<V, Compare, map_tag>> {
  * Non-const iterator for bs_tree
  * Works for all 4 container types
  */
-template <typename BSTree>
+template <typename T>
 struct bst_iterator {
   private:
-    friend BSTree;
-    friend bst_const_iterator<BSTree>;
-    using node_t = typename BSTree::node_t;
-    using self_t = bst_iterator<BSTree>;
+    template <typename V, typename Compare, bs_tree_tag tag>
+    friend struct bs_tree;
+    friend bst_const_iterator<T>;
+    using node_t = typename Tree<T>::node_t;
+    using self_t = bst_iterator<T>;
     node_t* y;
 
   public:
     using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = typename BSTree::value_type;
-    using reference = typename BSTree::reference;
-    using pointer = typename BSTree::pointer;
+    using value_type = T;
+    using reference = T&;
+    using pointer = T*;
     using difference_type = ptrdiff_t;
 
     bst_iterator() : y(nullptr) {}
-    explicit bst_iterator(node_t* y) : y(y) {}
+    explicit bst_iterator(node_t* n) : y(n) {}
 
     explicit operator bool() const noexcept {
         return y != nullptr;
@@ -204,25 +205,26 @@ struct bst_iterator {
  * Const iterator for bs_tree
  * Works for all 4 container types
  */
-template <typename BSTree>
+template <typename T>
 struct bst_const_iterator {
   private:
-    friend BSTree;
-    friend bst_iterator<BSTree>;
-    using node_t = typename BSTree::node_t;
-    using self_t = bst_const_iterator<BSTree>;
+    template <typename V, typename Compare, bs_tree_tag tag>
+    friend struct bs_tree;
+    friend bst_iterator<T>;
+    using node_t = typename Tree<T>::node_t;
+    using self_t = bst_const_iterator<T>;
     const node_t* y;
 
   public:
     using iterator_category = std::bidirectional_iterator_tag;
-    using value_type = typename BSTree::value_type;
-    using reference = typename BSTree::const_reference;
-    using pointer = typename BSTree::const_pointer;
+    using value_type = T;
+    using reference = const T&;
+    using pointer = const T*;
     using difference_type = ptrdiff_t;
 
     bst_const_iterator() : y(nullptr) {}
-    explicit bst_const_iterator(const node_t* y) : y(y) {}
-    bst_const_iterator(bst_iterator<BSTree> it) : y(it.y) {}
+    explicit bst_const_iterator(const node_t* n) : y(n) {}
+    bst_const_iterator(bst_iterator<T> it) : y(it.y) {}
 
     explicit operator bool() const noexcept {
         return y != nullptr;
@@ -323,8 +325,6 @@ struct bs_tree : protected Tree<T>, public bst_traits<T, Compare, tag> {
   private:
     using Traits = bst_traits<T, Compare, tag>;
     using node_t = typename Tree<T>::node_t;
-    friend bst_iterator<bs_tree>;
-    friend bst_const_iterator<bs_tree>;
     friend bst_node_handle<bs_tree>;
     friend bst_insert_return_type<bs_tree>;
 
@@ -351,8 +351,8 @@ struct bs_tree : protected Tree<T>, public bst_traits<T, Compare, tag> {
     using key_type = typename Traits::key_type;
     using value_type = typename Traits::value_type;
 
-    using iterator = bst_iterator<bs_tree>;
-    using const_iterator = bst_const_iterator<bs_tree>;
+    using iterator = bst_iterator<T>;
+    using const_iterator = bst_const_iterator<T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 

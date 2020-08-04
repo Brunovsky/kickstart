@@ -850,9 +850,9 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
         // punchline
         assert(equal(good.begin(), good.end(), tree.begin(), tree.end()));
 
-        test_step("map "s + to_string(bti), t);
+        test_step("battle "s + to_string(bti), t);
     }
-    test_done("map " + to_string(bti));
+    test_done("battle " + to_string(bti));
 }
 
 int main() {
