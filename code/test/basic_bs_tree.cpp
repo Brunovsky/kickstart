@@ -17,6 +17,16 @@ using namespace std;
  * operations, to test new cores (avl and rb)
  */
 
+void test_step(const string& name, int t) {
+    printf("\r%13s test #%d\n", name, t);
+    fflush(stdout);
+}
+
+void test_done(const string& name) {
+    printf("\r%13s OK -----\n", name);
+    fflush(stdout);
+}
+
 template struct bs_set<int>;
 
 mt19937 mt(random_device{}());
@@ -33,9 +43,10 @@ void insert_test(int T = 3000) {
             tree.insert(distn(mt));
         }
         tree.debug();
-        cout << "\r      insert test #" << t << flush;
+
+        test_step("insert", t);
     }
-    cout << "\r      insert test OK -----\n";
+    test_done("insert");
 }
 
 void erase_test(int T = 3000) {
@@ -58,9 +69,10 @@ void erase_test(int T = 3000) {
             tree.debug();
         }
         assert(tree.empty());
-        cout << "\r       erase test #" << t << flush;
+
+        test_step("erase", t);
     }
-    cout << "\r       erase test OK -----\n";
+    test_done("erase");
 }
 
 int main() {

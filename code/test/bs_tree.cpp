@@ -44,6 +44,16 @@ ostream& operator<<(ostream& out, pair<int, int> ints) {
     return out << '(' << ints.first << ',' << ints.second << ')';
 }
 
+void test_step(const string& name, int t) {
+    printf("\r%11s test #%d", name.data(), t);
+    fflush(stdout);
+}
+
+void test_done(const string& name) {
+    printf("\r%11s test OK -----\n", name.data());
+    fflush(stdout);
+}
+
 // Make sure these can be instantianed, at least...
 template struct bs_set<int>;
 template struct bs_set<pair<int, int>>;
@@ -105,7 +115,7 @@ void merge_test(int T = 500) {
         c.merge(b);
         assert(a == c);
 
-        cout << "\r     merge test #" << t << flush;
+        test_step("merge", t);
     }
 
     // subtest 2: unique merge
@@ -151,7 +161,7 @@ void merge_test(int T = 500) {
         c.merge(b);
         assert(a == c);
 
-        cout << "\r     merge test #" << t + T << flush;
+        test_step("merge", t + T);
     }
 
     // subtest 3: extract
@@ -175,10 +185,9 @@ void merge_test(int T = 500) {
         b.debug();
         assert(b == c);
 
-        cout << "\r     merge test #" << t + 2 * T << flush;
+        test_step("merge", t + 2 * T);
     }
-
-    cout << "\r     merge test OK -----\n";
+    test_done("merge");
 }
 
 /**
@@ -223,9 +232,9 @@ void construct_test(int T = 500) {
         c.debug();
         d.debug();
 
-        cout << "\r construct test #" << t << flush;
+        test_step("construct", t);
     }
-    cout << "\r construct test OK -----\n";
+    test_done("construct");
 }
 
 /**
@@ -373,9 +382,9 @@ void iterators_test(int T = 500) {
             }
         }
 
-        cout << "\r  iterator test #" << t << flush;
+        test_step("iterator", t);
     }
-    cout << "\r  iterator test OK -----\n";
+    test_done("iterator");
 }
 
 /**
@@ -418,9 +427,9 @@ void equality_test(int T = 500) {
         assert(!(lhs < rhs));
         assert(!(lhs > rhs));
 
-        cout << "\r  equality test #" << t << flush;
+        test_step("iterator", t);
     }
-    cout << "\r  equality test OK -----\n";
+    test_done("equality");
 }
 
 /**
@@ -430,6 +439,7 @@ void equality_test(int T = 500) {
 void comparison_test(int T = 500) {
     intd dists(0, 100);
     intd distn(-500, 500);
+    test_step("comparison", 1);
 
     vector<bs_tree<int>> trees;
     vector<vector<int>> numsets;
@@ -450,7 +460,7 @@ void comparison_test(int T = 500) {
         numsets.push_back(nums);
     }
 
-    cout << "\rcomparison test SORTING";
+    test_step("comparison", 2);
     sort(begin(trees), end(trees));
     sort(begin(numsets), end(numsets));
 
@@ -468,9 +478,13 @@ void comparison_test(int T = 500) {
         }
     }
 
-    cout << "\rcomparison test OK -----\n";
+    test_done("comparison");
 }
 
+/**
+ * Test the following:
+ *      - Tree core (avl/rb) insertion
+ */
 void insert_test(int T = 500) {
     intd distn(0, 1'000);
     intd dists(0, 200);
@@ -481,11 +495,15 @@ void insert_test(int T = 500) {
             tree.insert(distn(mt));
             tree.debug();
         }
-        cout << "\r    insert test #" << t << flush;
+        test_step("insert", t);
     }
-    cout << "\r    insert test OK -----\n";
+    test_done("insert");
 }
 
+/**
+ * Test the following:
+ *      - Tree core (avl/rb) removal
+ */
 void erase_test(int T = 500) {
     intd distn(0, 1'000);
     intd dists(0, 200);
@@ -505,9 +523,9 @@ void erase_test(int T = 500) {
             tree.erase(nums[i]);
             tree.debug();
         }
-        cout << "\r     erase test #" << t << flush;
+        test_step("erase", t);
     }
-    cout << "\r     erase test OK -----\n";
+    test_done("erase");
 }
 
 /**
@@ -554,7 +572,7 @@ void memory_test() {
     atree.emplace(2, 3), atree.emplace(1, 7);
     atree.emplace(3, 4), atree.emplace(2, 1);
 
-    cout << "\r    memory test OK -----\n";
+    test_done("memory");
 }
 
 /**
@@ -600,7 +618,7 @@ void hint_test() {
 
     tree.debug();
 
-    cout << "\r      hint test OK -----\n";
+    test_done("hint");
 }
 
 /**
@@ -625,7 +643,7 @@ void emplace_test() {
     a.debug();
     b.debug();
 
-    cout << "\r   emplace test OK -----\n";
+    test_done("emplace");
 }
 
 /**
@@ -676,7 +694,7 @@ void map_test() {
     a.emplace_hint(a.end(), "500", "400");
     assert(a == b);
 
-    cout << "\r       map test OK -----\n";
+    test_done("map");
 }
 
 static int bti = 0;
@@ -832,9 +850,9 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
         // punchline
         assert(equal(good.begin(), good.end(), tree.begin(), tree.end()));
 
-        cout << "\r    battle test " << bti << " #" << t << flush;
+        test_step("map "s + to_string(bti), t);
     }
-    cout << "\r    battle test OK " << bti << " ---\n";
+    test_done("map " + to_string(bti));
 }
 
 int main() {
