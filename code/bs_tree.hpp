@@ -344,8 +344,8 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    using size_type = typename Tree<T>::size_type;
-    using difference_type = typename Tree<T>::difference_type;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
 
     using reference = typename Traits::reference;
     using const_reference = typename Traits::const_reference;

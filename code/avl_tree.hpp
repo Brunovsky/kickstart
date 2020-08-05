@@ -1,3 +1,6 @@
+#ifndef AVL_TREE_HPP
+#define AVL_TREE_HPP
+
 #include <cassert>
 #include <functional>
 #include <iostream>
@@ -155,13 +158,7 @@ struct avl_node {
  */
 template <typename T>
 struct avl_tree {
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
-    using node_type = avl_node<T>;
-    using tree_type = avl_tree<T>;
-
     using node_t = avl_node<T>;
-    using tree_t = avl_tree<T>;
 
     // The real tree's root is head->link[0]. head is never nullptr.
     node_t* head;
@@ -579,3 +576,5 @@ struct avl_tree {
         return 1 + std::max(l, r);
     }
 };
+
+#endif // AVL_TREE_HPP

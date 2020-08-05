@@ -1,3 +1,6 @@
+#ifndef RB_TREE_HPP
+#define RB_TREE_HPP
+
 #include <cassert>
 #include <functional>
 #include <iostream>
@@ -118,10 +121,7 @@ struct rb_node {
  */
 template <typename T>
 struct rb_tree {
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
     using node_t = rb_node<T>;
-    using tree_t = rb_tree<T>;
 
     // The real tree's root is head->link[0]. head is never nullptr.
     node_t* head;
@@ -593,3 +593,5 @@ struct rb_tree {
         return bhl + y->color;
     }
 };
+
+#endif // RB_TREE_HPP

@@ -697,6 +697,15 @@ void map_test() {
     test_done("map");
 }
 
+void print_example() {
+    intd distn(1, 99);
+    bs_set<int> set;
+    for (int i = 0; i < 15; i++) {
+        set.insert(distn(mt));
+    }
+    set.pretty_print();
+}
+
 static int bti = 0;
 
 /**
@@ -889,6 +898,8 @@ int main() {
                 boold(0.10), boold(0.25), boold(0.50), boold(0.30), boold(0.075));
     //               erase        emplace      multi        hint         clear
     // clang-format on
+
+    print_example();
 
     return 0;
 }
