@@ -15,6 +15,7 @@ DEPS += ../min_spanning_forest.hpp ../transportation.hpp ../linear_system.hpp
 DEPS += ../hash.hpp ../math.hpp ../sieve.hpp ../bits.hpp ../frac.hpp
 DEPS += ../kmp.hpp ../dancing_links.hpp ../avl_tree.hpp ../bs_tree.hpp
 DEPS += ../bs_set.hpp ../bs_map.hpp ../rb_tree.hpp ../splay_tree.hpp
+DEPS += ../convex_hull.hpp
 
 include ../../templates/cpp-flags.make
 
