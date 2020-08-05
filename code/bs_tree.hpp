@@ -1,10 +1,7 @@
 #ifndef BS_TREE_HPP
 #define BS_TREE_HPP
 
-#include "rb_tree.hpp"
-
-template <typename T>
-using Tree = rb_tree<T>;
+#include "tree_core.hpp"
 
 /**
  * STL-friendly tree template for (multi)sets and (multi)maps.
@@ -37,7 +34,7 @@ enum bs_tree_tag { set_tag, map_tag };
 /**
  * Forward declarations
  */
-template <typename T, typename Compare, bs_tree_tag tag>
+template <typename Key, typename Value, typename Compare, bs_tree_tag tag>
 struct bst_traits;
 
 template <typename T, typename Compare, bs_tree_tag tag>
@@ -307,11 +304,12 @@ struct bst_insert_return_type {
 };
 
 /**
- * Binary search tree built on top of the AVL tree core
+ * Binary search tree built on top of the selected tree core
  * Can generate all 4 types of containers (set, multiset, map and multimap)
  */
-template <typename T, typename Compare = std::less<T>, bs_tree_tag tag = set_tag>
-struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
+template <typename Key, typename Value, typename Get, typename Compare = std::less<Key>,
+          bs_tree_tag tag = set_tag>
+struct bs_tree : private Tree<Value>, public bst_traits<T, Compare, tag> {
   private:
     using Traits = bst_traits<T, Compare, tag>;
     using node_t = typename Tree<T>::node_t;
