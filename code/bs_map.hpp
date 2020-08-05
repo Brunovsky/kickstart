@@ -1,8 +1,6 @@
 #ifndef BS_MAP_HPP
 #define BS_MAP_HPP
 
-#include <map>
-
 #include "bs_tree.hpp"
 
 // *****

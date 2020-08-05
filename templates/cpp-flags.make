@@ -58,7 +58,7 @@ ifeq ($(COMPILER),clang)
 	WARNS += -Wduplicate-enum -Wduplicate-method-arg -Wduplicate-method-match
 	WARNS += -Wshadow -Wshadow-uncaptured-local
 	WARNS += -Wformat-non-iso -Wformat-pedantic
-	WARNS += -Wextra-semi-stmt -Wheader-hygiene -Wnewline-eof
+	WARNS += -Wextra-semi-stmt -Wnewline-eof
 	WARNS += -Widiomatic-parentheses -Wmissing-braces -Wredundant-parens
 	WARNS += -Wreorder -Wsigned-enum-bitfield -Wmissing-field-initializers
 	WARNS += -Wmethod-signatures -Wstrict-prototypes
@@ -72,6 +72,9 @@ ifeq ($(COMPILER),clang)
 	WARNS += -Wvla
 	WARNS += -Wweak-template-vtables -Wweak-vtables
 	WARNS += -Wzero-as-null-pointer-constant -Wzero-length-array
+
+    # Good warnings but disabled
+    # WARNS += -Wheader-hygiene
 endif
 
 # Not errors

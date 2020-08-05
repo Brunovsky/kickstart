@@ -3,6 +3,9 @@
 
 #include "rb_tree.hpp"
 
+template <typename T>
+using Tree = rb_tree<T>;
+
 /**
  * STL-friendly tree template for (multi)sets and (multi)maps.
  *   - Parametrized by type T and comparison functor.
@@ -10,6 +13,7 @@
  *
  *   - Red black core
  *   - AVL core
+ *   - Splay core
  *
  * Done:
  *   - Tree core
@@ -33,9 +37,6 @@ enum bs_tree_tag { set_tag, map_tag };
 /**
  * Forward declarations
  */
-template <typename T>
-using Tree = rb_tree<T>;
-
 template <typename T, typename Compare, bs_tree_tag tag>
 struct bst_traits;
 

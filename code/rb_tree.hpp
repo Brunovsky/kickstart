@@ -18,6 +18,8 @@
  * Erase:
  *   https://cs.kangwon.ac.kr/~leeck/file_processing/red_black_tree.pdf
  *   code is awful but it works and explanation is ok
+ *
+ * CLRS: nice explanations, code is ok
  */
 
 enum rb_color_t : int8_t { rb_red = 0, rb_black = 1 };
@@ -188,8 +190,8 @@ struct rb_tree {
         node->link[0] = node->link[1] = nullptr;
         delete node;
     }
-    static inline void adopt_node(node_t* parent, node_t* child, bool is_right) {
-        parent->link[is_right] = child;
+    static inline void adopt_node(node_t* parent, node_t* child, bool side) {
+        parent->link[side] = child;
         if (child)
             child->parent = parent;
     }
@@ -229,8 +231,8 @@ struct rb_tree {
      */
     void rotate_left(node_t* y) {
         node_t* x = y->link[1];
-        bool is_right = y == y->parent->link[1];
-        adopt_node(y->parent, x, is_right);
+        bool yside = y == y->parent->link[1];
+        adopt_node(y->parent, x, yside);
         adopt_node(y, x->link[0], 1);
         adopt_node(x, y, 0);
     }
@@ -244,8 +246,8 @@ struct rb_tree {
      */
     void rotate_right(node_t* y) {
         node_t* x = y->link[0];
-        bool is_right = y == y->parent->link[1];
-        adopt_node(y->parent, x, is_right);
+        bool yside = y == y->parent->link[1];
+        adopt_node(y->parent, x, yside);
         adopt_node(y, x->link[1], 0);
         adopt_node(x, y, 1);
     }
@@ -396,10 +398,10 @@ struct rb_tree {
     void erase_node_pull_left(node_t* y) {
         node_t* x = y->link[0];
         node_t* parent = y->parent;
-        bool y_is_right = y == parent->link[1];
-        adopt_node(parent, x, y_is_right);
+        bool yside = y == parent->link[1];
+        adopt_node(parent, x, yside);
         if (y->color == rb_black)
-            rebalance_after_erase(parent, y_is_right);
+            rebalance_after_erase(parent, yside);
     }
 
     /**
@@ -413,8 +415,8 @@ struct rb_tree {
     void erase_node_pull_right(node_t* y) {
         node_t* x = y->link[1];
         node_t* parent = y->parent;
-        bool y_is_right = y == parent->link[1];
-        adopt_node(parent, x, y_is_right);
+        bool yside = y == parent->link[1];
+        adopt_node(parent, x, yside);
         adopt_node(x, y->link[0], 0);
         std::swap(x->color, y->color);
         if (y->color == rb_black)
@@ -439,8 +441,8 @@ struct rb_tree {
         node_t* x = node_t::minimum(y->link[1]->link[0]);
         node_t* w = x->parent;
         node_t* parent = y->parent;
-        bool y_is_right = y == parent->link[1];
-        adopt_node(parent, x, y_is_right);
+        bool yside = y == parent->link[1];
+        adopt_node(parent, x, yside);
         adopt_node(w, x->link[1], 0);
         adopt_node(x, y->link[0], 0);
         adopt_node(x, y->link[1], 1);
@@ -470,8 +472,8 @@ struct rb_tree {
      *     /       ->     /  \         or           \    ->    /  \
      *   [l]            [l]  (y)                    [r]      (y)  [r]
      */
-    void insert_node(node_t* parent, node_t* y, bool is_right) {
-        adopt_node(parent, y, is_right);
+    void insert_node(node_t* parent, node_t* y, bool side) {
+        adopt_node(parent, y, side);
         assert(y->color == rb_red);
         rebalance_after_insert(y);
         node_count++;

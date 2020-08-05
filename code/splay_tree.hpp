@@ -173,8 +173,8 @@ struct splay_tree {
         node->link[0] = node->link[1] = nullptr;
         delete node;
     }
-    static inline void adopt_node(node_t* parent, node_t* child, bool is_right) {
-        parent->link[is_right] = child;
+    static inline void adopt_node(node_t* parent, node_t* child, bool side) {
+        parent->link[side] = child;
         if (child)
             child->parent = parent;
     }
@@ -200,8 +200,8 @@ struct splay_tree {
      */
     node_t* rotate_left(node_t* y) {
         node_t* x = y->link[1];
-        bool is_right = y == y->parent->link[1];
-        adopt_node(y->parent, x, is_right);
+        bool yside = y == y->parent->link[1];
+        adopt_node(y->parent, x, yside);
         adopt_node(y, x->link[0], 1);
         adopt_node(x, y, 0);
         return x;
@@ -216,8 +216,8 @@ struct splay_tree {
      */
     node_t* rotate_right(node_t* y) {
         node_t* x = y->link[0];
-        bool is_right = y == y->parent->link[1];
-        adopt_node(y->parent, x, is_right);
+        bool yside = y == y->parent->link[1];
+        adopt_node(y->parent, x, yside);
         adopt_node(y, x->link[1], 0);
         adopt_node(x, y, 1);
         return x;
@@ -280,8 +280,8 @@ struct splay_tree {
      *     /       ->     /  \         or           \    ->    /  \
      *   [l]            [l]   y                     [r]       y   [r]
      */
-    void insert_node(node_t* parent, node_t* y, bool is_right) {
-        adopt_node(parent, y, is_right);
+    void insert_node(node_t* parent, node_t* y, bool side) {
+        adopt_node(parent, y, side);
         splay(y);
         node_count++;
     }

@@ -229,8 +229,8 @@ struct avl_tree {
         node->link[0] = node->link[1] = nullptr;
         delete node;
     }
-    static inline void adopt_node(node_t* parent, node_t* child, bool is_right) {
-        parent->link[is_right] = child;
+    static inline void adopt_node(node_t* parent, node_t* child, bool side) {
+        parent->link[side] = child;
         if (child)
             child->parent = parent;
     }
@@ -259,8 +259,8 @@ struct avl_tree {
     node_t* rotate_left(node_t* y) {
         node_t* x = y->link[1];
         assert(y->balance >= +1 && y->balance >= x->balance);
-        bool is_right = y == y->parent->link[1];
-        adopt_node(y->parent, x, is_right);
+        bool yside = y == y->parent->link[1];
+        adopt_node(y->parent, x, yside);
         adopt_node(y, x->link[0], 1);
         adopt_node(x, y, 0);
         int xb = x->balance;
@@ -281,8 +281,8 @@ struct avl_tree {
     node_t* rotate_right(node_t* y) {
         node_t* x = y->link[0];
         assert(y->balance <= -1 && y->balance <= x->balance);
-        bool is_right = y == y->parent->link[1];
-        adopt_node(y->parent, x, is_right);
+        bool yside = y == y->parent->link[1];
+        adopt_node(y->parent, x, yside);
         adopt_node(y, x->link[1], 0);
         adopt_node(x, y, 1);
         int xb = x->balance;
@@ -332,8 +332,8 @@ struct avl_tree {
             return;
         y = rebalance(y);
         while (y->parent != head && y->balance == 0) {
-            bool is_right = y == y->parent->link[1];
-            y->parent->balance += is_right ? -1 : 1;
+            bool yside = y == y->parent->link[1];
+            y->parent->balance += yside ? -1 : +1;
             y = rebalance(y->parent);
         }
     }
@@ -345,24 +345,22 @@ struct avl_tree {
      *         l     r                   l     r                     l     r
      *        / \   / \                 / \   / \                   / \   / \
      *      +.. .. .. ..              +.. .. .. ..                +.. .. .. ..
-     * height lower in left    height lower in left      height lower in left
+     * height higher in left   height higher in left     height higher in left
      *  new balance: 0          new balance: -1           new balance: -2 -> rebalance!
      *  delta height: h->h      delta height: h->h+1      delta height: h+1->h+1 (always)
      *  overall height did not  overall height increased  overall height did not
      *  change so stop.         continue on p's parent    change so stop.
      */
     void rebalance_after_insert(node_t* y) {
-        node_t* parent = y->parent;
-        while (parent != head && parent->balance == 0) {
-            bool is_right = y == parent->link[1];
-            parent->balance = is_right ? +1 : -1;
-            y = parent;
-            parent = y->parent;
+        while (y->parent != head && y->parent->balance == 0) {
+            bool yside = y == y->parent->link[1];
+            y->parent->balance = yside ? +1 : -1;
+            y = y->parent;
         }
-        if (parent != head) {
-            bool is_right = y == parent->link[1];
-            parent->balance += is_right ? +1 : -1;
-            rebalance(parent);
+        if (y->parent != head) {
+            bool yside = y == y->parent->link[1];
+            y->parent->balance += yside ? +1 : -1;
+            rebalance(y->parent);
         }
     }
 
@@ -377,10 +375,10 @@ struct avl_tree {
     void erase_node_pull_left(node_t* y) {
         node_t* x = y->link[0];
         node_t* parent = y->parent;
-        bool y_is_right = y == parent->link[1];
-        adopt_node(parent, x, y_is_right);
+        bool yside = y == y->parent->link[1];
+        adopt_node(parent, x, yside);
         if (parent != head) {
-            parent->balance += y_is_right ? -1 : 1;
+            parent->balance += yside ? -1 : +1;
             rebalance_after_erase(parent);
         }
     }
@@ -397,8 +395,8 @@ struct avl_tree {
     void erase_node_pull_right(node_t* y) {
         node_t* x = y->link[1];
         node_t* parent = y->parent;
-        bool y_is_right = y == parent->link[1];
-        adopt_node(parent, x, y_is_right);
+        bool yside = y == parent->link[1];
+        adopt_node(parent, x, yside);
         adopt_node(x, y->link[0], 0);
         x->balance = y->balance - 1;
         rebalance_after_erase(x);
@@ -424,8 +422,8 @@ struct avl_tree {
         node_t* x = node_t::minimum(y->link[1]->link[0]);
         node_t* w = x->parent;
         node_t* parent = y->parent;
-        bool y_is_right = y == parent->link[1];
-        adopt_node(parent, x, y_is_right);
+        bool yside = y == parent->link[1];
+        adopt_node(parent, x, yside);
         adopt_node(w, x->link[1], 0);
         adopt_node(x, y->link[0], 0);
         adopt_node(x, y->link[1], 1);
@@ -455,8 +453,8 @@ struct avl_tree {
      *     /       ->     /  \         or           \    ->    /  \
      *   [l]            [l]   y                     [r]       y   [r]
      */
-    void insert_node(node_t* parent, node_t* y, bool is_right) {
-        adopt_node(parent, y, is_right);
+    void insert_node(node_t* parent, node_t* y, bool side) {
+        adopt_node(parent, y, side);
         rebalance_after_insert(y);
         node_count++;
     }
@@ -546,7 +544,7 @@ struct avl_tree {
             printf("%s %s\n", prefix.data(), line[bar]);
             return;
         }
-        printf(u8"%s % %s\n", prefix.data(), line[bar], print_node(n).data());
+        printf(u8"%s %s %s\n", prefix.data(), line[bar], print_node(n).data());
         if (n->link[0] || n->link[1]) {
             prefix += pad[bar];
             print_tree_preorder(n->link[0], prefix, true);
