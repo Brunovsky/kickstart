@@ -66,9 +66,7 @@
 /**
  * AVL node
  * This same class is used to represent the head node. The node is the tree's head
- * iff it does not hold data iff the parent pointer is nullptr.
- * We hide the head constructor to prevent default-constructed data from generating
- * head nodes
+ * iff it does not hold data iff the parent pointer is this (itself).
  */
 template <typename T>
 struct avl_node {
@@ -143,6 +141,12 @@ struct avl_node {
     }
 
   private:
+    avl_node(const avl_node&) = delete;
+    avl_node(avl_node&&) = delete;
+    avl_node& operator=(const avl_node&) = delete;
+    avl_node& operator=(avl_node&&) = delete;
+
+    // hide this to prevent default-constructed data from creating head nodes
     struct avl_head_tag_t {};
     avl_node([[maybe_unused]] avl_head_tag_t tag) : parent(this) {}
 
@@ -245,7 +249,6 @@ struct avl_tree {
         return clone;
     }
 
-  public:
     /**
      *       y                     x
      *      / \                   / \
@@ -443,6 +446,7 @@ struct avl_tree {
             erase_node_minimum(y);
     }
 
+  public:
     /**
      * Insert node y into the tree as a child of parent on the given side.
      * parent must not have a child on that side and y must be a free node.

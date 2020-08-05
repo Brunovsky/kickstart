@@ -461,16 +461,18 @@ struct rb_tree {
             erase_node_minimum(y);
     }
 
+  public:
     /**
      * Insert node y into the tree as a child of parent on the given side.
      * parent must not have a child on that side and y must be a free node.
      *
      *    parent         parent                 parent        parent
      *     /       ->     /  \         or           \    ->    /  \
-     *   [l]            [l]   y                     [r]       y   [r]
+     *   [l]            [l]  (y)                    [r]      (y)  [r]
      */
     void insert_node(node_t* parent, node_t* y, bool is_right) {
         adopt_node(parent, y, is_right);
+        assert(y->color == rb_red);
         rebalance_after_insert(y);
         node_count++;
     }
@@ -482,13 +484,13 @@ struct rb_tree {
      *
      *    parent         parent                 parent        parent
      *     /       ->     /  \         or        /  \    ->    /  \
-     *   [l]            [l]   y                [l]   r       [l]   r
+     *   [l]            [l]  (y)               [l]   r       [l]   r
      *                                              /             /
      *                                            ...           ...
      *                                            /             /
      *                              ++parent --> x             x
      *                                            \           / \
-     *                                            [r]        y  [r]
+     *                                            [r]       (y) [r]
      */
     void insert_node_after(node_t* parent, node_t* y) {
         if (parent->link[1])
@@ -504,13 +506,13 @@ struct rb_tree {
      *
      *  parent          parent                    parent          parent
      *       \    ->    /  \          or        /  \    ->    /  \
-     *       [r]       y   [r]                 l   [r]       l   [r]
+     *       [r]      (y)  [r]                 l   [r]       l   [r]
      *                                          \             \
      *                                          ...           ...
      *                                            \             \
      *                                --parent --> x             x
      *                                            /             / \
-     *                                          [l]           [l]  y
+     *                                          [l]           [l] (y)
      */
     void insert_node_before(node_t* parent, node_t* y) {
         if (parent->link[0])
