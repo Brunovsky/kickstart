@@ -18,12 +18,12 @@ using namespace std;
  */
 
 void test_step(const string& name, int t) {
-    printf("\r%13s test #%d\n", name, t);
+    printf("\r%13s test #%d", name.data(), t);
     fflush(stdout);
 }
 
 void test_done(const string& name) {
-    printf("\r%13s OK -----\n", name);
+    printf("\r%13s test OK -----\n", name.data());
     fflush(stdout);
 }
 
@@ -33,9 +33,9 @@ mt19937 mt(random_device{}());
 using intd = uniform_int_distribution<int>;
 using boold = bernoulli_distribution;
 
-void insert_test(int T = 3000) {
+void insert_test(int T = 10000) {
     intd distn(1, 999);
-    intd dists(0, 500);
+    intd dists(0, 1000);
 
     for (int t = 1; t <= T; t++) {
         bs_set<int> tree;
@@ -49,9 +49,9 @@ void insert_test(int T = 3000) {
     test_done("insert");
 }
 
-void erase_test(int T = 3000) {
+void erase_test(int T = 10000) {
     intd distn(1, 999);
-    intd dists(0, 500);
+    intd dists(0, 1000);
 
     for (int t = 1; t <= T; t++) {
         bs_set<int> tree;

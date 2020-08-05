@@ -553,14 +553,14 @@ struct rb_tree {
     }
 
   private:
-    void print_tree_preorder(node_t* n, std::string prefix, bool bar) const {
-        static const char* line[2] = {u8"└", u8"├"};
+    void print_tree_preorder(const node_t* n, std::string prefix, bool bar) const {
+        static const char* line[2] = {u8"└──", u8"├──"};
         static const char* pad[2] = {"    ", u8" |  "};
         if (!n) {
             printf("%s %s\n", prefix.data(), line[bar]);
             return;
         }
-        printf(u8"%s %s── %s\n", prefix.data(), line[bar], print_node(n).data());
+        printf(u8"%s %s %s\n", prefix.data(), line[bar], print_node(n).data());
         if (n->link[0] || n->link[1]) {
             prefix += pad[bar];
             print_tree_preorder(n->link[0], prefix, true);
@@ -568,7 +568,7 @@ struct rb_tree {
         }
     }
 
-    static inline std::string print_node(node_t* node) noexcept {
+    static inline std::string print_node(const node_t* node) noexcept {
         std::string s;
         s += std::to_string(node->data);
         if (node->color == rb_red)
