@@ -1,13 +1,10 @@
 .PHONY: new kickstart build debug clean run formatall
-.PHONY: cpp cpp-interactive
+.PHONY: cpp
 
 new kickstart: cpp
 
 cpp:
 	@./kickstart.py cpp
-
-cpp-interactive:
-	@./kickstart.py cpp-interactive
 
 build:
 	@+./all.sh BUILD
