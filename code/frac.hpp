@@ -21,7 +21,7 @@ struct frac {
         return d != 0 ? n / d : (n > 0 ? LONG_MAX : LONG_MIN);
     }
 
-private:
+  private:
     static long gcd(long a, long b) {
         while (a != 0) {
             b = b % a;

@@ -3,7 +3,7 @@
 using namespace chrono;
 
 auto read_2d_points() {
-    ifstream file("2d_points.txt");
+    ifstream file("datasets/2d_points.txt");
     assert(file.is_open());
     int N;
     file >> N >> ws;

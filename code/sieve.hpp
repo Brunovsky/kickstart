@@ -4,10 +4,8 @@ using namespace std;
 
 // *****
 
-using u64 = uint64_t;
-
-u64 N;
-vector<u64> odd_primes;
+ulong N;
+vector<ulong> odd_primes;
 
 // fill array with all odd primes until N
 void odd_sieve() {
@@ -16,14 +14,14 @@ void odd_sieve() {
 
     vector<bool> is_composite(N / 2, false);
 
-    for (u64 n = 3, i = 0; n * n <= N; i++, n += 2) {
+    for (ulong n = 3, i = 0; n * n <= N; i++, n += 2) {
         if (!is_composite[i]) {
-            for (u64 m = n * n, j = (m - 3) >> 1; m <= N; j += n, m += 2 * n) {
+            for (ulong m = n * n, j = (m - 3) >> 1; m <= N; j += n, m += 2 * n) {
                 is_composite[j] = true;
             }
         }
     }
-    for (u64 i = 0, n = 3; n <= N; i++, n += 2) {
+    for (ulong i = 0, n = 3; n <= N; i++, n += 2) {
         if (!is_composite[i]) {
             odd_primes.push_back(n);
         }
@@ -31,7 +29,7 @@ void odd_sieve() {
 }
 
 // count number of primes in range [L, R]
-u64 count_odd_primes(u64 L, u64 R) {
+ulong count_odd_primes(ulong L, ulong R) {
     assert(R <= N * N);
     L = L | 1;
     R = (R - 1) | 1;
@@ -41,18 +39,18 @@ u64 count_odd_primes(u64 L, u64 R) {
     }
     vector<bool> is_composite((R - L + 2) / 2, false);
 
-    for (u64 p : odd_primes) {
+    for (ulong p : odd_primes) {
         if (p * p > R) {
             break;
         }
-        u64 k = max((p + L - 1) / p | 1, p);
-        for (u64 n = k * p, i = (n - L) >> 1; n <= R; i += p, n += 2 * p) {
+        ulong k = max((p + L - 1) / p | 1, p);
+        for (ulong n = k * p, i = (n - L) >> 1; n <= R; i += p, n += 2 * p) {
             is_composite[i] = true;
         }
     }
 
     // alternatively, gather them up in a vector
-    u64 count = 0;
+    ulong count = 0;
     for (bool b : is_composite) {
         count += !b;
     }
