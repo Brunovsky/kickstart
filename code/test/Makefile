@@ -9,6 +9,7 @@ FILE := code.cpp
 EXE := ./hack
 
 DEPS := $(shell find .. -name '*.hpp')
+LIBS := -lfmt
 
 include ../../templates/cpp-flags.make
 
@@ -28,7 +29,7 @@ perfm: $(EXE)
 # Compilation rule
 $(EXE): $(FILE) $(DEPS)
 	@echo "CC (${COMPILER} $(MODE))  $@"
-	@$(CXX) $(FILE) $(CXXFLAGS) -o $@
+	@$(CXX) $(FILE) $(CXXFLAGS) $(LIBS) -o $@
 
 run code: debug
 	@$(EXE)
