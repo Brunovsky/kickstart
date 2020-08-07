@@ -1,6 +1,6 @@
 # Compiler, gcc or clang
 COMPILER := gcc
-CPP_STANDARD := c++14
+CPP_STANDARD := c++17
 
 # Compiler command
 CC := g++

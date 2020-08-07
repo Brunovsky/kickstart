@@ -8,7 +8,7 @@ class KMP {
     vector<int> lookup_;
     string pattern;
 
-public:
+  public:
     KMP(string pattern) : pattern(pattern) {
         int P = pattern.size();
 
@@ -29,7 +29,8 @@ public:
             }
         }
 
-        lookup_[P] = border;
+        if (P > 0)
+            lookup_[P] = border;
     }
 
     int lookup(int index) const {
@@ -47,31 +48,18 @@ public:
 
 vector<int> kmp_search(const string &text, const KMP &kmp) {
     const string &pattern = kmp.get_pattern();
-    long P = pattern.size(), T = text.size();
+    int P = pattern.size(), T = text.size();
 
     vector<int> match;
-    if (P == 0) {
-        return match;
-    }
-
-    long i = 0;
-    long j = 0;
+    int i = 0, j = 0;
 
     while (i <= T - P) {
-        while ((j < P) && (text[i + j] == pattern[j]))
+        while (j < P && text[i + j] == pattern[j])
             ++j;
-
-        if (j == P) {
-            // Matched
+        if (j == P)
             match.push_back(i);
-            i += kmp.shift(P);
-            j = kmp.lookup(P);
-        } else {
-            // Mismatched
-            i += kmp.shift(j);
-            j = kmp.lookup(j);
-        }
-
+        i += kmp.shift(j);
+        j = kmp.lookup(j);
         if (j < 0)
             j = 0;
     }
