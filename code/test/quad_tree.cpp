@@ -2,6 +2,8 @@
 
 using namespace chrono;
 
+// *****
+
 auto read_2d_points() {
     ifstream file("datasets/2d_points.txt");
     assert(file.is_open());
@@ -70,7 +72,7 @@ size_t time_tree_query(const Tree &tree, const vector<Box> &queries,
     return duration_cast<milliseconds>(steady_clock::now() - begin).count();
 }
 
-int main() {
+void test() {
     Box world = {{-1000000, -100000}, {1000000, 100000}};
     auto points = read_2d_points();
 
@@ -111,5 +113,10 @@ int main() {
     printf("size / log2^2(size): %lf\n", N / (logN * logN));
     printf("linear / tree time:  %lf\n", linear_time / double(tree_time));
     printf("quad_tree OK\n");
+    return 0;
+}
+
+int main() {
+    test();
     return 0;
 }

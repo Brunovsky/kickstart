@@ -1,7 +1,5 @@
 #include "../dancing_links.hpp"
 
-using namespace std;
-
 // *****
 
 void test() {

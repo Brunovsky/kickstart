@@ -67,7 +67,6 @@ void test_strings() {
     }
 }
 
-// 6 7 8
 void test_subset_sum() {
     vector<int> nums1 = {17, 63, 49, -71, -23, 84};
     auto sums = all_sums(nums1);

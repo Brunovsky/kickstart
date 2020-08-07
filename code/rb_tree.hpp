@@ -109,7 +109,9 @@ struct rb_node {
 
     // hide this to prevent default-constructed data from creating head nodes
     struct rb_head_tag_t {};
-    rb_node([[maybe_unused]] rb_head_tag_t tag) : parent(this) {}
+    rb_node(rb_head_tag_t _tag) : parent(this) {
+        (void)_tag;
+    }
 
   public:
     static node_t* new_empty() {

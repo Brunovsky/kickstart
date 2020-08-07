@@ -1,7 +1,4 @@
-#ifdef NDEBUG
 #undef NDEBUG
-#endif
-
 #include <algorithm>
 #include <iostream>
 #include <random>
@@ -33,7 +30,7 @@ mt19937 mt(random_device{}());
 using intd = uniform_int_distribution<int>;
 using boold = bernoulli_distribution;
 
-void insert_test(int T = 3000) {
+void insert_test(int T = 600) {
     intd distn(1, 999);
     intd dists(0, 1000);
 
@@ -49,7 +46,7 @@ void insert_test(int T = 3000) {
     test_done("insert");
 }
 
-void erase_test(int T = 3000) {
+void erase_test(int T = 600) {
     intd distn(1, 999);
     intd dists(0, 1000);
 

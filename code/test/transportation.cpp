@@ -1,7 +1,5 @@
 #include "../transportation.hpp"
 
-using namespace std;
-
 // *****
 
 void test() {

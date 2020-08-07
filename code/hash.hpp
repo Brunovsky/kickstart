@@ -24,36 +24,38 @@ struct pair_hasher {
     }
 };
 
-constexpr size_t powmod(size_t base, size_t n, size_t mod) {
-    size_t power = 1;
-    while (n) {
-        if (n & 1) {
-            power = power * base % mod;
-        }
-        n >>= 1;
-        base = base * base % mod;
-    }
-    return power;
-}
-
-template <size_t n>
 struct rolling_hasher {
-    static constexpr size_t base = 24'230'861UL;
-    static constexpr size_t mod = 189'326'923UL;
-    static constexpr size_t mul = powmod(base, n, mod);
+    static constexpr size_t base = 2001539UL;
+    static constexpr size_t mask = (1 << 26) - 1;
+    size_t n, mul;
 
-    size_t operator()(const string& s) const noexcept {
-        assert(s.size() == n);
+    rolling_hasher(size_t n) : n(n), mul(powovf(base, n) & mask) {}
+
+    size_t operator()(const char* s, const char* e) const noexcept {
         size_t seed = 0;
-        for (unsigned char c : s) {
-            seed = (seed * base + c) % mod;
+        while (s != e) {
+            seed = (seed * base + *s++) & mask;
         }
         return seed;
     }
 
+    size_t operator()(const string& s) const noexcept {
+        return (*this)(s.data(), s.data() + s.length());
+    }
+
     size_t roll(size_t seed, unsigned char out, unsigned char in) const noexcept {
-        return (seed * base + in + (mod - out) * mul) % mod;
+        return (seed * base + in + (mask + 1 - out) * mul) & mask;
+    }
+
+    constexpr size_t powovf(size_t base, size_t n) {
+        size_t power = 1;
+        while (n) {
+            if (n & 1) {
+                power = power * base;
+            }
+            n >>= 1;
+            base = base * base;
+        }
+        return power;
     }
 };
-
-// 9 8 7 6 5 4 3 2 1

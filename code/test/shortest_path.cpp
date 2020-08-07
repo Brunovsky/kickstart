@@ -1,7 +1,5 @@
 #include "../shortest_path.hpp"
 
-using namespace std;
-
 // *****
 
 // https://en.wikipedia.org/wiki/Shortest_path_problem#/media/File:Shortest_path_with_direct_weights.svg

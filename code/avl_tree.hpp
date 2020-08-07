@@ -148,7 +148,9 @@ struct avl_node {
 
     // hide this to prevent default-constructed data from creating head nodes
     struct avl_head_tag_t {};
-    avl_node([[maybe_unused]] avl_head_tag_t tag) : parent(this) {}
+    avl_node(avl_head_tag_t _tag) : parent(this) {
+        (void)_tag;
+    }
 
   public:
     static node_t* new_empty() {

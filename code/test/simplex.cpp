@@ -1,7 +1,5 @@
 #include "../simplex.hpp"
 
-using namespace std;
-
 // *****
 
 void test() {

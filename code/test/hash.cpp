@@ -1,11 +1,9 @@
 #include "../hash.hpp"
 
-using namespace std;
-
 // *****
 
 void test() {
-    rolling_hasher<10> hasher;
+    rolling_hasher hasher(10);
     string s1 = "aababbcacc";
     string s2 = "ababbcaccd";
     string s3 = "abbcaccdef";

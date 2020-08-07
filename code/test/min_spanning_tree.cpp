@@ -1,7 +1,5 @@
 #include "../min_spanning_forest.hpp"
 
-using namespace std;
-
 // *****
 
 void test() {

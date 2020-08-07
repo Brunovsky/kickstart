@@ -33,7 +33,7 @@ class KMP {
     }
 
     int lookup(int j) const {
-        return j ? table[j] : 0;
+        return table[j];
     }
     int shift(int j) const {
         return j - table[j];
@@ -78,7 +78,7 @@ vector<int> kmp_search_all(const string& text, const KMP& kmp) {
             match.push_back(i);
         }
         i += kmp.shift(j);
-        j = kmp.lookup(j);
+        j = max(0, kmp.lookup(j));
     }
 
     return match;
@@ -203,33 +203,36 @@ vector<int> boyer_moore_search_all(const string& text, const BoyerMoore& bm) {
  * https://en.wikipedia.org/wiki/Rabin-Karp_algorithm
  */
 struct rolling_hasher {
-    static constexpr size_t base = 24'230'861UL;
-    static constexpr size_t mod = 189'326'923UL;
+    static constexpr size_t base = 2001539UL;
+    static constexpr size_t mask = (1 << 26) - 1;
     size_t n, mul;
 
-    rolling_hasher(size_t n) : n(n), mul(powmod(n)) {}
+    rolling_hasher(size_t n) : n(n), mul(powovf(base, n) & mask) {}
 
     size_t operator()(const char* s, const char* e) const noexcept {
         size_t seed = 0;
         while (s != e) {
-            seed = (seed * base + *s++) % mod;
+            seed = (seed * base + *s++) & mask;
         }
         return seed;
     }
 
-    size_t roll(size_t seed, unsigned char out, unsigned char in) const noexcept {
-        return (seed * base + in + (mod - out) * mul) % mod;
+    size_t operator()(const string& s) const noexcept {
+        return (*this)(s.data(), s.data() + s.length());
     }
 
-    static constexpr size_t powmod(size_t n) {
+    size_t roll(size_t seed, unsigned char out, unsigned char in) const noexcept {
+        return (seed * base + in + (mask + 1 - out) * mul) & mask;
+    }
+
+    constexpr size_t powovf(size_t base, size_t n) {
         size_t power = 1;
-        size_t b = base;
         while (n) {
             if (n & 1) {
-                power = power * b % mod;
+                power = power * base;
             }
             n >>= 1;
-            b = b * b % mod;
+            base = base * base;
         }
         return power;
     }

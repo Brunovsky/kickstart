@@ -1,7 +1,5 @@
 #include "../lca.hpp"
 
-using namespace std;
-
 // *****
 
 // https://www.geeksforgeeks.org/depth-n-ary-tree/

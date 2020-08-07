@@ -416,6 +416,8 @@ void equality_test(int T = 500) {
 
         sort(begin(nums), end(nums));
 
+        assert(is_sorted(begin(lhs), end(lhs)));
+        assert(is_sorted(begin(rhs), end(rhs)));
         assert(equal(begin(lhs), end(lhs), begin(nums), end(nums)));
         assert(equal(begin(rhs), end(rhs), begin(nums), end(nums)));
         assert(equal(begin(lhs), end(lhs), begin(rhs), end(rhs)));

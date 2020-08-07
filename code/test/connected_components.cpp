@@ -1,7 +1,5 @@
 #include "../connected_components.hpp"
 
-using namespace std;
-
 // *****
 
 void test() {

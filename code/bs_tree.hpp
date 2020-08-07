@@ -34,7 +34,7 @@ enum bs_tree_tag { set_tag, map_tag };
 /**
  * Forward declarations
  */
-template <typename Key, typename Value, typename Compare, bs_tree_tag tag>
+template <typename T, typename Compare, bs_tree_tag tag>
 struct bst_traits;
 
 template <typename T, typename Compare, bs_tree_tag tag>
@@ -307,9 +307,8 @@ struct bst_insert_return_type {
  * Binary search tree built on top of the selected tree core
  * Can generate all 4 types of containers (set, multiset, map and multimap)
  */
-template <typename Key, typename Value, typename Get, typename Compare = std::less<Key>,
-          bs_tree_tag tag = set_tag>
-struct bs_tree : private Tree<Value>, public bst_traits<T, Compare, tag> {
+template <typename T, typename Compare = std::less<T>, bs_tree_tag tag = set_tag>
+struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
   private:
     using Traits = bst_traits<T, Compare, tag>;
     using node_t = typename Tree<T>::node_t;

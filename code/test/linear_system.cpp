@@ -1,7 +1,5 @@
 #include "../linear_system.hpp"
 
-using namespace std;
-
 // *****
 
 void test_gauss() {
