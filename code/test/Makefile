@@ -1,9 +1,9 @@
 # Compiler, gcc or clang
-COMPILER := gcc
-CPP_STANDARD := c++17
+COMPILER := clang
+CPP_STANDARD := c++14
 
 # Compiler command
-CC := g++
+CC := clang++
 
 FILE := code.cpp
 EXE := ./hack
