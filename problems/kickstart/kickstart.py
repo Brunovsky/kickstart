@@ -20,14 +20,14 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 def tryinput(str):
     try:
-        return input(str)
+        return input(str).strip()
     except EOFError as e:
         sys.exit(0)
 
 
 def read_year():
     year = tryinput("Problem Year?  ex: 2020\n> ")
-    if not re.match("20[0-9]{2}", year):
+    if not re.match("^20[0-9]{2}$", year):
         print(f"Bad input year: {year}")
         return read_year()
     return year
@@ -35,7 +35,7 @@ def read_year():
 
 def read_round():
     rnd = tryinput("Problem Round?  ex: B\n> ")
-    if not re.match("[A-Z1-9]{1,2}", rnd):
+    if not re.match("^[A-Z1-9]{1,2}$", rnd):
         print(f"Bad input round: {rnd}")
         return read_round()
     return rnd
@@ -43,7 +43,7 @@ def read_round():
 
 def read_name():
     name = tryinput("Problem Name?  ex: le-problemo\n> ")
-    if not re.match("[a-zA-Z0-9-]+", name):
+    if not re.match("^[a-zA-Z0-9-]+$", name):
         print(f"Bad input name: {name}")
         return read_name()
     return name
@@ -51,7 +51,7 @@ def read_name():
 
 def read_friendly():
     friendly = tryinput("Problem Friendly Name?  ex: Le Problemo\n> ")
-    if not re.match("[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]", friendly):
+    if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]$", friendly):
         print(f"Bad input friendly name: {friendly}")
         return read_friendly()
     return friendly
@@ -59,7 +59,7 @@ def read_friendly():
 
 def read_points(index):
     pts = tryinput(f"Problem points #{index}?  ex: 10  (as in 10pts)\n> ")
-    if not re.match("[0-9]{1,2}", pts):
+    if not re.match("^[0-9]{1,2}$", pts):
         print(f"Bad input points: {pts}")
         return read_points(index)
     return pts

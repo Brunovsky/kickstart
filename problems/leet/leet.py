@@ -20,14 +20,14 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 def tryinput(str):
     try:
-        return input(str)
+        return input(str).strip()
     except EOFError as e:
         sys.exit(0)
 
 
 def read_difficulty():
     difficulty = tryinput("Problem Difficulty?  ex: medium\n> ")
-    if not re.match("easy|medium|hard", difficulty):
+    if not re.match("^easy|medium|hard$", difficulty):
         print(f"Bad input difficulty: {difficulty}")
         return read_difficulty()
     return difficulty
@@ -35,7 +35,7 @@ def read_difficulty():
 
 def read_number():
     number = tryinput("Problem Number?  ex: 123\n> ")
-    if not re.match("[0-9]+", number):
+    if not re.match("^[0-9]+$", number):
         print(f"Bad input number: {number}")
         return read_number()
     return number
@@ -43,7 +43,7 @@ def read_number():
 
 def read_name():
     name = tryinput("Problem Name?  ex: le-problemo\n> ")
-    if not re.match("[a-zA-Z0-9-]+", name):
+    if not re.match("^[a-zA-Z0-9-]+$", name):
         print(f"Bad input name: {name}")
         return read_name()
     return name
@@ -51,7 +51,7 @@ def read_name():
 
 def read_friendly():
     friendly = tryinput("Problem Friendly Name?  ex: Le Problemo\n> ")
-    if not re.match("[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]", friendly):
+    if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]$", friendly):
         print(f"Bad input friendly name: {friendly}")
         return read_friendly()
     return friendly

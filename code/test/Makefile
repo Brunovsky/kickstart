@@ -12,6 +12,7 @@ DEPS := $(shell find .. -name '*.hpp')
 LIBS := -lfmt
 
 include ../../templates/cpp-flags.make
+CXXFLAGS += $(LIBS)
 
 # * Modes
 
@@ -29,7 +30,7 @@ perfm: $(EXE)
 # Compilation rule
 $(EXE): $(FILE) $(DEPS)
 	@echo "CC (${COMPILER} $(MODE))  $@"
-	@$(CXX) $(FILE) $(CXXFLAGS) $(LIBS) -o $@
+	@$(CXX) $(FILE) $(CXXFLAGS) -o $@
 
 run code: debug
 	@$(EXE)
