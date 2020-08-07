@@ -14,12 +14,12 @@ class KMP {
 
   public:
     KMP(string pattern) : needle(move(pattern)) {
-        int N = needle.size();
-        table.resize(N + 1);
+        int P = needle.size();
+        table.resize(P + 1);
         table[0] = -1;
 
         int b = 0;
-        for (int j = 1; j < N; ++j, ++b) {
+        for (int j = 1; j < P; ++j, ++b) {
             if (needle[j] == needle[b]) {
                 table[j] = table[b];
             } else {
@@ -29,7 +29,7 @@ class KMP {
                 } while (b >= 0 && needle[j] != needle[b]);
             }
         }
-        table[N] = b;
+        table[P] = b;
     }
 
     int lookup(int j) const {
@@ -45,16 +45,18 @@ class KMP {
 
 int kmp_search(const string& text, const KMP& kmp) {
     const string& needle = kmp.get_pattern();
-    int N = needle.size(), T = text.size();
+    int P = needle.size(), T = text.size();
 
     vector<int> match;
     int i = 0, j = 0;
 
-    while (i <= T - N) {
-        while (j < N && text[i + j] == needle[j])
-            ++j;
-        if (j == N)
+    while (i <= T - P) {
+        while (j < P && text[i + j] == needle[j]) {
+            j++;
+        }
+        if (j == P) {
             return i;
+        }
         i += kmp.shift(j);
         j = kmp.lookup(j);
     }
@@ -64,16 +66,17 @@ int kmp_search(const string& text, const KMP& kmp) {
 
 vector<int> kmp_search_all(const string& text, const KMP& kmp) {
     const string& needle = kmp.get_pattern();
-    int N = needle.size(), T = text.size();
-
-    vector<int> match;
+    int P = needle.size(), T = text.size();
     int i = 0, j = 0;
+    vector<int> match;
 
-    while (i <= T - N) {
-        while (j < N && text[i + j] == needle[j])
-            ++j;
-        if (j == N)
+    while (i <= T - P) {
+        while (j < P && text[i + j] == needle[j]) {
+            j++;
+        }
+        if (j == P) {
             match.push_back(i);
+        }
         i += kmp.shift(j);
         j = kmp.lookup(j);
     }
@@ -93,40 +96,43 @@ class BoyerMoore {
 
   public:
     BoyerMoore(string pattern) : needle(move(pattern)) {
-        int N = needle.size();
+        int P = needle.size();
         finger.assign(256, -1);
-        good.assign(N + 1, 0);
+        good.assign(P + 1, 0);
 
         // bad character rule
-        for (int i = 0; i < N; i++) {
+        for (int i = 0; i < P; i++) {
             int c = needle[i];
             if (finger[c] == -1) {
                 finger[c] = bad.size();
-                bad.emplace_back(N, 0);
+                bad.emplace_back(P, 0);
             }
-            for (int j = i + 1; j < N; j++) {
+            for (int j = i + 1; j < P; j++) {
                 bad[finger[c]][j] = i;
             }
         }
 
         // good suffix rule
-        vector<int> border(N + 1, 0);
-        int b = N + 1;
-        border[N] = b;
-        for (int i = N; i > 0; i--) {
-            while (b <= N && needle[i - 1] != needle[b - 1]) {
-                if (good[b] == 0)
+        vector<int> border(P + 1, 0);
+        int b = P + 1;
+        border[P] = b;
+        for (int i = P; i > 0; i--) {
+            while (b <= P && needle[i - 1] != needle[b - 1]) {
+                if (good[b] == 0) {
                     good[b] = b - i;
+                }
                 b = border[b];
             }
             border[i - 1] = --b;
         }
 
-        for (int i = 0; i <= N; i++) {
-            if (good[i] == 0)
+        for (int i = 0; i <= P; i++) {
+            if (good[i] == 0) {
                 good[i] = b;
-            if (i == b)
+            }
+            if (i == b) {
                 b = border[b];
+            }
         }
     }
 
@@ -149,18 +155,20 @@ class BoyerMoore {
 
 int boyer_moore_search(const string& text, const BoyerMoore& bm) {
     const string& needle = bm.get_pattern();
-    int N = needle.size(), T = text.size();
+    int P = needle.size(), T = text.size();
 
     vector<int> match;
-    int i = 0, j = N - 1;
+    int i = 0, j = P - 1;
 
-    while (i <= T - N) {
-        while ((j >= 0) && (text[i + j] == needle[j]))
+    while (i <= T - P) {
+        while ((j >= 0) && (text[i + j] == needle[j])) {
             --j;
-        if (j < 0)
+        }
+        if (j < 0) {
             return i;
+        }
         i += bm.mismatch_shift(j, text[i + j]);
-        j = N - 1;
+        j = P - 1;
     }
 
     return -1;
@@ -168,24 +176,154 @@ int boyer_moore_search(const string& text, const BoyerMoore& bm) {
 
 vector<int> boyer_moore_search_all(const string& text, const BoyerMoore& bm) {
     const string& needle = bm.get_pattern();
-    int N = needle.size(), T = text.size();
-
+    int P = needle.size(), T = text.size();
+    int i = 0, j = P - 1, g = 0;
     vector<int> match;
-    int i = 0, j = N - 1, g = 0;
 
-    while (i <= T - N) {
-        while (j >= g && text[i + j] == needle[j])
+    while (i <= T - P) {
+        while (j >= g && text[i + j] == needle[j]) {
             --j;
+        }
         if (j < g) {
             match.push_back(i);
             i += bm.match_shift();
-            g = N - bm.match_shift();
+            g = P - bm.match_shift();
         } else {
             i += bm.mismatch_shift(j, text[i + j]);
             g = 0;
         }
-        j = N - 1;
+        j = P - 1;
     }
 
+    return match;
+}
+
+/**
+ * Rabin Karp
+ * https://en.wikipedia.org/wiki/Rabin-Karp_algorithm
+ */
+struct rolling_hasher {
+    static constexpr size_t base = 24'230'861UL;
+    static constexpr size_t mod = 189'326'923UL;
+    size_t n, mul;
+
+    rolling_hasher(size_t n) : n(n), mul(powmod(n)) {}
+
+    size_t operator()(const char* s, const char* e) const noexcept {
+        size_t seed = 0;
+        while (s != e) {
+            seed = (seed * base + *s++) % mod;
+        }
+        return seed;
+    }
+
+    size_t roll(size_t seed, unsigned char out, unsigned char in) const noexcept {
+        return (seed * base + in + (mod - out) * mul) % mod;
+    }
+
+    static constexpr size_t powmod(size_t n) {
+        size_t power = 1;
+        size_t b = base;
+        while (n) {
+            if (n & 1) {
+                power = power * b % mod;
+            }
+            n >>= 1;
+            b = b * b % mod;
+        }
+        return power;
+    }
+};
+
+int rabin_karp_search(const string& text, const string& needle) {
+    int T = text.size(), P = needle.size();
+    const char *pp = needle.data(), *tp = text.data();
+    if (T < P)
+        return -1;
+
+    rolling_hasher hash(needle.size());
+    size_t ph = hash(pp, pp + P), th = hash(tp, tp + P);
+
+    for (int i = 0; i <= T - P; i++) {
+        if (i > 0) {
+            th = hash.roll(th, tp[i - 1], tp[i + P - 1]);
+        }
+        if (ph == th && equal(pp, pp + P, tp + i)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+vector<int> rabin_karp_search_all(const string& text, const string& needle) {
+    int T = text.size(), P = needle.size();
+    const char *pp = needle.data(), *tp = text.data();
+    if (T < P)
+        return {};
+
+    rolling_hasher hash(needle.size());
+    size_t ph = hash(pp, pp + P), th = hash(tp, tp + P);
+    vector<int> match;
+
+    for (int i = 0; i <= T - P; i++) {
+        if (i > 0) {
+            th = hash.roll(th, tp[i - 1], tp[i + P - 1]);
+        }
+        if (ph == th && equal(pp, pp + P, tp + i)) {
+            match.push_back(i);
+        }
+    }
+    return match;
+}
+
+/**
+ * Z algorithm (prefix length array)
+ * https://www.hackerearth.com/practice/algorithms/string-algorithm/z-algorithm/tutorial
+ */
+int z_search(const string& text, const string& needle, char null = '\0') {
+    string s = needle + null + text;
+    int P = needle.size(), S = s.size();
+    vector<int> z(S);
+    int L = 0, R = 0;
+    for (int i = 1; i < S; i++) {
+        if (i < R && z[i - L] < R - i) {
+            z[i] = z[i - L];
+        } else {
+            L = i;
+            R = max(R, i);
+            while (R < S && s[R - L] == s[R]) {
+                R++;
+            }
+            z[i] = R - L;
+        }
+        if (i > P && z[i] == P) {
+            return i - (P + 1);
+        }
+    }
+    return -1;
+}
+
+vector<int> z_search_all(const string& text, const string& needle, char null = '\0') {
+    string s = needle + null + text;
+    int P = needle.size(), S = s.size();
+    vector<int> z(S);
+    int L = 0, R = 0;
+    vector<int> match;
+
+    for (int i = 1; i < S; i++) {
+        if (i < R && z[i - L] < R - i) {
+            z[i] = z[i - L];
+        } else {
+            L = i;
+            R = max(R, i);
+            while (R < S && s[R - L] == s[R]) {
+                R++;
+            }
+            z[i] = R - L;
+        }
+        if (i > P && z[i] == P) {
+            match.push_back(i - (P + 1));
+        }
+    }
     return match;
 }

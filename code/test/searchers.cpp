@@ -73,13 +73,13 @@ void test() {
     add(needles, {"accbcc", "accbccacbc", "accbccaccbcc", "acbcacbc"});
     add(needles, {".", ",!?#:", "aa.bb", "a,", ",a"});
     add(needles, generate_any_strings(3, 37, 6, 15));
-    add(needles, generate_any_strings(3, 20, 30, 40));
+    add(needles, generate_any_strings(3, 20, 16, 40));
     add(haystacks, {"...", "#?!", "?!", "   ", "abcdabc", ",bab,", ",aba,"});
     add(haystacks, generate_all_strings(3, 0, 7));
-    add(haystacks, generate_any_strings(3, 5'000, 8, 15));
-    add(haystacks, generate_any_strings(3, 2'000, 16, 70));
-    add(haystacks, generate_any_strings(3, 500, 71, 1000));
-    add(haystacks, generate_any_strings(3, 100, 1001, 10000));
+    add(haystacks, generate_any_strings(3, 3'000, 8, 15));
+    add(haystacks, generate_any_strings(3, 1'000, 16, 70));
+    add(haystacks, generate_any_strings(3, 100, 71, 1000));
+    add(haystacks, generate_any_strings(3, 20, 1001, 10000));
 
     int N = needles.size(), H = haystacks.size();
     printf("# needles: %d\n", N);
@@ -92,8 +92,12 @@ void test() {
             auto i1 = naive_search_all(haystack, needle);
             auto i2 = kmp_search_all(haystack, kmp);
             auto i3 = boyer_moore_search_all(haystack, bm);
+            auto i4 = rabin_karp_search_all(haystack, needle);
+            auto i5 = z_search_all(haystack, needle);
             assert(i1 == i2);
             assert(i1 == i3);
+            assert(i1 == i4);
+            assert(i1 == i5);
         }
         printf("OK  %s\n", needle.data());
     }
