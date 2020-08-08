@@ -1,6 +1,6 @@
 # Compiler, gcc or clang
 COMPILER := gcc
-CPP_STANDARD := c++20
+CPP_STANDARD := c++17
 
 # Compiler command
 CC := g++
@@ -19,7 +19,7 @@ CXXFLAGS += $(LIBS)
 .PHONY: perfm debug
 .PHONY: run code valgrind fast clean
 
-all: perfm
+all: debug
 	@true
 
 perfm: MODE := performance
@@ -34,8 +34,11 @@ $(EXE): $(CODE)
 	@echo "CC (${COMPILER} $(MODE))  $@"
 	@$(CXX) $(CODE) $(CXXFLAGS) -o $@
 
-# Compile and run, build in performance mode by default
-run code fast: perfm
+# Compile and run, build in debug mode by default
+run code: debug
+	@$(RUN)
+
+fast: perfm
 	@$(RUN)
 
 # Build in debug mode and run under valgrind
