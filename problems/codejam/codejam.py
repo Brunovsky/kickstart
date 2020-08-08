@@ -51,7 +51,7 @@ def read_name():
 
 def read_friendly():
     friendly = tryinput("Problem Friendly Name?  ex: Le Problemo\n> ")
-    if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]$", friendly):
+    if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]+$", friendly):
         print(f"Bad input friendly name: {friendly}")
         return read_friendly()
     return friendly
@@ -59,7 +59,7 @@ def read_friendly():
 
 def read_points():
     pts = tryinput(f"Problem points?  ex: 10pts, 12pts\n> ")
-    if not re.match("^[0-9]{1,2}$", pts):
+    if not re.match("^(?:[0-9]{1,2}pts,? ?){1,3}$", pts):
         print(f"Bad input points: {pts}")
         return read_points()
     return pts

@@ -51,7 +51,7 @@ def read_name():
 
 def read_friendly():
     friendly = tryinput("Problem Friendly Name?  ex: Le Problemo\n> ")
-    if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]$", friendly):
+    if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]+$", friendly):
         print(f"Bad input friendly name: {friendly}")
         return read_friendly()
     return friendly
