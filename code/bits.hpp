@@ -22,11 +22,27 @@ inline void reverse_bits(uint& v) {
     // v = (v >> 32) | (v << 32);
 }
 
-#define FOR_EACH_BIT(mask, n, bit)                                                 \
-    for (uint _##n_##bit = (mask), bit = (mask) & -(mask), n = __builtin_ctz(bit); \
-         _##n_##bit; _##n_##bit ^= bit,                                            \
+/**
+ * Iterate through the set bits of an unsigned integer mask
+ * mask: an unsigned integer expression
+ * n: name for variable holding the set bit index
+ * bit: name for variable holding the shifted bit (1 << n)
+ * mask should not be 0.
+ */
+#define FOR_EACH_BIT(mask, n, bit)                                     \
+    for (uint _##n_##bit = (mask), bit = (_##n_##bit) & -(_##n_##bit), \
+              n = __builtin_ctz(bit);                                  \
+         _##n_##bit; _##n_##bit ^= bit,                                \
               _##n_##bit && (bit = _##n_##bit & -_##n_##bit, (n = __builtin_ctz(bit))))
 
-#define FOR_EACH_MASK(mask, size, max_size)                                            \
-    for (uint mask = (1 << size) - 1, _max_##mask = 1 << max_size; mask < _max_##mask; \
+/**
+ * Iterate through the unsigned integer masks with 'size' set bits using the lowest
+ * 'max_size' bits only.
+ * mask: name for variable holding the generated mask
+ * size: number of set bits in mask.
+ * max_size: how many bit positions to iterate through
+ * size and max_size should not be 0.
+ */
+#define FOR_EACH_MASK(mask, size, max_size)                                              \
+    for (uint mask = (1 << (size)) - 1, max_##mask = 1 << (max_size); mask < max_##mask; \
          next_lexicographical_mask(mask))

@@ -2,13 +2,19 @@
 
 // *****
 
+/**
+ * Held-Karp dynamic programming exact algorithm
+ * Complexity: O(V^2 2^V)
+ * Memory: O(V 2^V)
+ */
 struct travelling_salesman {
     int V;
-    vector<vector<long>> dist; // dist[u][v]: from u to v
+    vector<vector<int>> dist;
 
-    pair<long, vector<int>> compute() {
+    pair<int, vector<int>> compute() {
+        static constexpr int inf = INT_MAX / 2;
         int n = V - 1;
-        vector<vector<long>> cost(1 << n, vector<long>(n, INT_MAX));
+        vector<vector<int>> cost(1 << n, vector<int>(n, inf));
         for (int i = 0; i < n; i++) {
             cost[1 << i][i] = dist[n][i];
         }
@@ -23,7 +29,8 @@ struct travelling_salesman {
             }
         }
         // find the optimum and recover the path
-        long optimum = INT_MAX, set = (1 << n) - 1, k = n;
+        int optimum = inf;
+        int set = (1 << n) - 1, k = n;
         for (int i = 0; i < n; i++) {
             if (optimum > cost[set][i] + dist[i][n]) {
                 optimum = cost[set][i] + dist[i][n];
@@ -45,6 +52,7 @@ struct travelling_salesman {
         }
         path.push_back(n);
         reverse(begin(path), end(path));
+        rotate(begin(path), find(begin(path), end(path), 0), end(path));
         return {optimum, path};
     }
 };
