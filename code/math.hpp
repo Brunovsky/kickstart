@@ -121,24 +121,6 @@ long chinese(int n, long remainders[], long primes[]) {
 }
 
 /**
- * Compute primes dividing n
- */
-map<ulong, int> factorize(ulong n) {
-    map<ulong, int> primes;
-    while ((n & 1) == 0) {
-        primes[2]++;
-        n >>= 1;
-    }
-    for (int p = 3; n > 1; p += 2) {
-        while ((n % p) == 0) {
-            primes[p]++;
-            n = n / p;
-        }
-    }
-    return primes;
-}
-
-/**
  * Compute phi(n) (totient function), naively
  */
 ulong totient(ulong n) {
