@@ -37,6 +37,6 @@ int main() {
     dq.push_back(dq.front());
     dq.pop_front();
   }
-  cout << dq.front();
+  cout << dq.front() << endl;
   return 0;
 }
