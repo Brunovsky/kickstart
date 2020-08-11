@@ -20,13 +20,13 @@ include ../../../../templates/cpp-flags.make
 .PHONY: perfm debug build_naive build_generate
 .PHONY: run code valgrind fast test naive generate clean
 
-perfm: MODE := performance
-perfm: CXXFLAGS += $(OPTIM)
-perfm: $(EXE)
-
 debug: MODE := debug
 debug: CXXFLAGS += $(DEBUG)
 debug: $(EXE)
+
+perfm: MODE := performance
+perfm: CXXFLAGS += $(OPTIM)
+perfm: $(EXE)
 
 build_naive: MODE := performance
 build_naive: CXXFLAGS += $(OPTIM)
