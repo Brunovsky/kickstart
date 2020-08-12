@@ -9,9 +9,7 @@ inline void next_lexicographical_mask(uint& v) {
     v = (t + 1) | (((~t & -~t) - 1) >> (__builtin_ctz(v) + 1));
 }
 
-inline bool is_power_of_two(uint v) {
-    return v && !(v & (v - 1));
-}
+inline bool is_power_of_two(uint v) { return v && !(v & (v - 1)); }
 
 inline void reverse_bits(uint& v) {
     v = ((v >> 1) & 0x55555555) | ((v & 0x55555555) << 1);
@@ -46,3 +44,9 @@ inline void reverse_bits(uint& v) {
 #define FOR_EACH_MASK(mask, size, max_size)                                              \
     for (uint mask = (1 << (size)) - 1, max_##mask = 1 << (max_size); mask < max_##mask; \
          next_lexicographical_mask(mask))
+
+inline string lsbits(uint v, uint bits = 32) {
+    string s(bits, '0');
+    FOR_EACH_BIT(v, n, bit) if (n < bits) s[n] = '1';
+    return s;
+}
