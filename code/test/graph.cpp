@@ -32,11 +32,46 @@ void test_isomorphic() {
     assert(vhash1[8] == vhash2[c]);
     assert(vhash1[0] == vhash2[0]);
 
-    printf("graph hash: %lu\n", h1);
+    printf("graph hash: %20lu\n", h1);
     for (int u = 0; u < 9; u++) {
-        printf("hash[%d] = %lu\n", u, vhash1[u]);
+        printf("hash[%d] = %20lu\n", u, vhash1[u]);
     }
-    fflush(stdout);
+    printf("\n");
+}
+
+// tough case
+void test_3regular() {
+    auto add = [&](graph& g, int u, int v) {
+        g.add(u, v);
+        g.add(v, u);
+    };
+
+    graph g1(6), g2(6);
+    add(g1, 0, 1), add(g1, 1, 2), add(g1, 2, 3);
+    add(g1, 3, 4), add(g1, 4, 5), add(g1, 5, 0);
+    add(g2, 0, 1), add(g2, 1, 2), add(g2, 2, 3);
+    add(g2, 3, 4), add(g2, 4, 5), add(g2, 5, 0);
+
+    add(g1, 1, 4), add(g1, 2, 5), add(g1, 3, 0);
+    add(g2, 1, 5), add(g2, 2, 4), add(g2, 3, 0);
+
+    assert(!isomorphic(g1, g2));
+    auto vhash1 = hash_graph_vertices(g1);
+    auto vhash2 = hash_graph_vertices(g2);
+    auto h1 = hash_graph(g1);
+    auto h2 = hash_graph(g2);
+    printf("graph 1: %20lu\n", h1);
+    printf("graph 2: %20lu\n", h2);
+    for (int u = 0; u < 6; u++) {
+        printf("hash[%d] = %20lu | %20lu\n", u, vhash1[u], vhash2[u]);
+    }
+    printf("\n");
+    assert(h1 != h2);
+    vhash1.erase(unique(begin(vhash1), end(vhash1)), end(vhash1));
+    vhash2.erase(unique(begin(vhash2), end(vhash2)), end(vhash2));
+    // these two graphs have undistinguishable nodes
+    assert(vhash1.size() == 1U && vhash2.size() == 1U);
+    assert(vhash1[0] != vhash2[0]);
 }
 
 void test_generator() {
@@ -46,24 +81,25 @@ void test_generator() {
     cout << g2 << endl;
     auto g3 = generate_uniform(12, 0.2);
     cout << g3 << endl;
-    auto g4 = generate_uniform_dag(13, 0.3);
+    auto g4 = generate_uniform_dag(13, 0.4);
     cout << g4 << endl;
     cout << reverse(g4) << endl;
     cout << relabel(g4) << endl;
     cout << join(g3, reverse(g4)) << endl;
-    cout << generate_scc_uniform_expansion(g4, 5, 0.3) << endl;
+    cout << generate_scc_uniform_expansion(g4, 5, 0.25) << endl;
 }
 
 void test_dot() {
-    auto g1 = generate_uniform_dag(15, 0.2);
+    auto g1 = generate_uniform_dag(15, 0.3);
     ofstream file("datasets/dag.dot");
     assert(file.is_open());
     file << to_dot(g1, true);
 }
 
 int main() {
-    test_isomorphic();
     test_generator();
     test_dot();
+    test_isomorphic();
+    test_3regular();
     return 0;
 }
