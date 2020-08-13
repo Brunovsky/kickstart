@@ -5,38 +5,37 @@ using namespace std;
 // *****
 
 /**
- * Compute b^e (mod m)
+ * Compute b^e
  */
-long power(long base, long exp, long mod) {
+long intpow(long b, long e) {
     long power = 1;
-    base = base % mod;
-    while (exp > 0) {
-        if (exp & 1) {
-            power = (power * base) % mod;
+    while (e > 0) {
+        if (e & 1) {
+            power = power * b;
         }
-        exp >>= 1;
-        base = (base * base) % mod;
+        e >>= 1;
+        b = b * b;
     }
     return power;
 }
 
 /**
- * Compute b^e
+ * Compute b^e (mod m)
  */
-long power(long base, long exp) {
+long modpow(long b, long e, long m) {
     long power = 1;
-    while (exp > 0) {
-        if (exp & 1) {
-            power = power * base;
-        }
-        exp >>= 1;
-        base = base * base;
+    b = b % m;
+    while (e > 0) {
+        if (e & 1)
+            power = (power * b) % m;
+        e >>= 1;
+        b = (b * b) % m;
     }
     return power;
 }
 
 // Compute n!
-ulong factorial(ulong n) {
+ulong intfac(ulong n) {
     ulong f = 1;
     while (n > 1) {
         f = f * n--;
@@ -45,10 +44,10 @@ ulong factorial(ulong n) {
 }
 
 // Compute n! (mod m)
-ulong factorial(ulong n, ulong mod) {
+ulong modfac(ulong n, ulong m) {
     ulong f = 1;
     while (n > 1) {
-        f = (f * n--) % mod;
+        f = (f * n--) % m;
     }
     return f;
 }
@@ -56,7 +55,7 @@ ulong factorial(ulong n, ulong mod) {
 /**
  * Compute x, y such that ax + by = gcd(a,b)
  */
-long gcd(long a, long b, long &x, long &y) {
+long gcd(long a, long b, long& x, long& y) {
     long xn = 1, yn = 0;
     x = 0, y = 1;
     while (a != 0) {
@@ -77,12 +76,12 @@ long gcd(long a, long b, long &x, long &y) {
 /**
  * Compute x such that ax = 1 (mod m) (modular multiplicative inverse)
  */
-long invmod(long a, long mod) {
+long invmod(long a, long m) {
     long x, y;
-    auto g = gcd(a, mod, x, y);
-    assert(g == 1);
-    x = x % mod;
-    return x >= 0 ? x : x + mod;
+    auto g = gcd(a, m, x, y);
+    (void)g, assert(g == 1);
+    x = x % m;
+    return x >= 0 ? x : x + m;
 }
 
 /**
@@ -99,23 +98,77 @@ long gcd(long a, long b) {
 /**
  * Compute lcm(a,b)
  */
-ulong lcm(ulong a, ulong b) {
-    return a * (b / gcd(a, b));
+ulong lcm(ulong a, ulong b) { return a * (b / gcd(a, b)); }
+
+/**
+ * Compute the smallest exponent x such that a^x = b (mod m)
+ * Complexity: O(sqrt(m)), uses square root decomposition
+ * Source: kth (https://github.com/kth-competitive-programming/kactl)
+ */
+long modlog(long a, long b, long m) {
+    long n = long(sqrt(m)) + 1, x = 1, f = 1, j = 1;
+    unordered_map<long, long> A;
+    while (j <= n && (x = f = x * a % m) != b % m)
+        A[x * b % m] = j++;
+    if (x == b % m)
+        return j;
+    if (__gcd(m, x) == __gcd(m, b))
+        for (int i = 2; i < n + 2; i++)
+            if (A.count(x = x * f % m))
+                return n * i - A[x];
+    return -1;
+}
+
+/**
+ * Compute x such that x^2 = a (mod p) where p is prime
+ * Complexity: O(log^2 p) heavy
+ * Source: kth (https://github.com/kth-competitive-programming/kactl)
+ */
+long modsqrt(long a, long p) {
+    a = a % p, a = a >= 0 ? a : a + p;
+    if (a == 0)
+        return 0;
+    if (modpow(a, (p - 1) / 2, p) != 1)
+        return -1; // not a quadratic residue
+    if (p % 4 == 3)
+        return modpow(a, (p + 1) / 4, p);
+    // a^(n+3)/8 or 2^(n+3)/8 * 2^(n-1)/4 works if p % 8 == 5
+    long s = p - 1, n = 2;
+    int r = 0, m;
+    while (s % 2 == 0)
+        ++r, s /= 2;
+    /// find a non-square mod p
+    while (modpow(n, (p - 1) / 2, p) != p - 1)
+        ++n;
+    long x = modpow(a, (s + 1) / 2, p);
+    long b = modpow(a, s, p), g = modpow(n, s, p);
+    for (;; r = m) {
+        long t = b;
+        for (m = 0; m < r && t != 1; ++m)
+            t = t * t % p;
+        if (m == 0)
+            return x;
+        long gs = modpow(g, 1L << (r - m - 1), p);
+        g = gs * gs % p;
+        x = x * gs % p;
+        b = b * g % p;
+    }
 }
 
 /**
  * Solve the system a = b[i] (mod p[i]), i = 0,...,n-1
+ * Complexity: O(n log p)
  */
 long chinese(int n, long remainders[], long primes[]) {
     long p = 1, a = 0;
     for (int i = 0; i < n; i++) {
         long q = primes[i], b = remainders[i];
         long x, y;
-        gcd(p, q, x, y);
+        long g = gcd(p, q, x, y);
+        (void)g, assert(g == 1);
         a = a * q * y + b * p * x;
         p = p * q;
-        a = a % p;
-        a = a < 0 ? a + p : a;
+        a = a % p, a = a >= 0 ? a : a + p;
     }
     return a;
 }
@@ -148,14 +201,52 @@ ulong totient(ulong n) {
 /**
  * Compute (n choose k)
  */
-ulong choose(ulong n, ulong k) {
-    assert(k <= n);
+long choose(long n, long k) {
+    if (k < 0 || k > n)
+        return 0;
     k = min(k, n - k);
     n = n - k + 1;
-    ulong binom = 1;
-    ulong i = 1;
+    long binom = 1;
+    long i = 1;
     while (i <= k) {
         binom = (binom * n++) / i++;
     }
     return binom;
 }
+
+/**
+ * Compute (n choose k) (mod m)
+ */
+long choosemod(long n, long k, long m) {
+    if (k < 0 || k > n)
+        return 0;
+    k = min(k, n - k);
+    n = n - k + 1;
+    long binom = 1;
+    long i = 1;
+    while (i <= k) {
+        binom = (binom * n++ % m) * invmod(i++, m) % m;
+    }
+    return binom;
+}
+
+template <long mod>
+struct modnum {
+    long n;
+
+    static long fit(long v) { return v >= mod ? v - mod : (v < 0 ? v + mod : v); }
+
+    modnum() : n(0) {}
+    modnum(long v) : n(fit(v % mod)) {}
+    explicit operator long() const { return n; }
+    modnum& operator+=(modnum v) { return n = fit(n + v.n), *this; }
+    modnum& operator-=(modnum v) { return n = fit(n - v.n), *this; }
+    modnum& operator*=(modnum v) { return n = (n * v.n) % mod, *this; }
+    modnum& operator/=(modnum v) { return n = (n * invmod(v.n, mod)) % mod, *this; }
+    friend modnum operator+(modnum lhs, modnum rhs) { return lhs += rhs; }
+    friend modnum operator-(modnum lhs, modnum rhs) { return lhs -= rhs; }
+    friend modnum operator*(modnum lhs, modnum rhs) { return lhs *= rhs; }
+    friend modnum operator/(modnum lhs, modnum rhs) { return lhs /= rhs; }
+    friend bool operator==(modnum lhs, modnum rhs) { return lhs.n == rhs.n; }
+    friend bool operator!=(modnum lhs, modnum rhs) { return lhs.n != rhs.n; }
+};
