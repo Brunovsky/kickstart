@@ -216,18 +216,32 @@ long choose(long n, long k) {
 
 /**
  * Compute (n choose k) (mod m)
+ * k! and (n-k)! should be coprime with m (preferably m prime)
  */
 long choosemod(long n, long k, long m) {
     if (k < 0 || k > n)
         return 0;
-    k = min(k, n - k);
-    n = n - k + 1;
-    long binom = 1;
-    long i = 1;
-    while (i <= k) {
-        binom = (binom * n++ % m) * invmod(i++, m) % m;
+    long x = modfac(n, m);
+    x = x * invmod(modfac(n - k, m), m) % m;
+    x = x * invmod(modfac(k, m), m) % m;
+    return x;
+}
+
+/**
+ * Partitions of an integer n.
+ */
+long partitions(long n) {
+    static int m = 5;
+    static long table[121] = {1, 1, 2, 3, 5, 7};
+    assert(n <= 120);
+    while (m < n) {
+        m++;
+        for (int k = 1, t = 1; k * (3 * k - 1) / 2 <= m; k++, t = -t)
+            table[m] += t * table[m - k * (3 * k - 1) / 2];
+        for (int k = -1, t = 1; k * (3 * k - 1) / 2 <= m; k--, t = -t)
+            table[m] += t * table[m - k * (3 * k - 1) / 2];
     }
-    return binom;
+    return table[n];
 }
 
 template <long mod>

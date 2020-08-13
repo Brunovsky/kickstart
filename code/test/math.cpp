@@ -42,6 +42,9 @@ void test_others() {
     assert(choose(3, 1) == 3);
     assert(choose(43, 18) == 608359048206);
     assert(choose(58, 13) == 3155581562280);
+    assert(choosemod(58, 13, 61) == 17);
+    assert(partitions(20) == 627);
+    assert(partitions(120) == 1844349560);
 }
 
 void test_modlog() {
