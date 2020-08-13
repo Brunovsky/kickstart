@@ -103,3 +103,22 @@ struct strongly_connected_components {
         }
     }
 };
+
+string to_dot(const strongly_connected_components& g) {
+    stringstream ss;
+    ss << "strict digraph {\n";
+    for (int c = 0; c < g.C; c++) {
+        ss << "\tsubgraph " << c << " {";
+        for (int u : g.cset[c]) {
+            ss << ' ' << u;
+        }
+        ss << " }\n";
+    }
+    for (int u = 0; u < g.V; u++) {
+        for (int v : g.adj[u]) {
+            ss << '\t' << setw(2) << u << " -> " << setw(2) << v << " ;\n";
+        }
+    }
+    ss << "}\n";
+    return ss.str();
+}

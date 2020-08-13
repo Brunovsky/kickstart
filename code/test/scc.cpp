@@ -1,4 +1,4 @@
-#include "../connected_components.hpp"
+#include "../scc.hpp"
 
 // *****
 
@@ -41,6 +41,9 @@ void test() {
     assert(scc.cadjout[2] == vi({1}) && scc.cadjin[2] == vi({3, 4}));
     assert(scc.cadjout[3] == vi({1, 2}) && scc.cadjin[3] == vi({4}));
     assert(scc.cadjout[4] == vi({2, 3}) && scc.cadjin[4] == vi());
+
+    ofstream file("datasets/scc.dot");
+    file << to_dot(scc);
 }
 
 int main() {
