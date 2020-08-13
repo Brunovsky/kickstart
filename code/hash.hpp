@@ -7,6 +7,7 @@ using namespace std;
 struct vec_hasher {
     template <template <typename...> class Container, typename V, typename... T>
     size_t operator()(const Container<V, T...>& vec) const noexcept {
+        using std::hash;
         hash<V> hasher;
         size_t seed = distance(begin(vec), end(vec));
         for (auto n : vec) {
