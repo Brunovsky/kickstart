@@ -2,6 +2,24 @@
 
 // *****
 
+ostream& operator<<(ostream& out, const vector<vector<frac>>& tab) {
+    int m = tab.size() - 1;
+    int n = tab[0].size() - m - 1;
+    vector<size_t> width(n + m + 1);
+    for (int i = 0; i <= m; i++) {
+        for (int j = 0; j <= n + m; j++) {
+            width[j] = max(width[j], 1 + to_string(tab[i][j]).length());
+        }
+    }
+    for (int i = 0; i <= m; i++) {
+        for (int j = 0; j <= n + m; j++) {
+            out << setw(width[j]) << tab[i][j] << ' ';
+        }
+        out << '\n';
+    }
+    return out << '\n';
+}
+
 void test() {
     simplex smp(2);
     smp.set_objective({4, 3});
@@ -47,6 +65,10 @@ void test() {
     assert(optimum == frac(345, 4));
 
     cout << smp.tab;
+    vector<frac> sol = {
+        0, 0, 9_q / 4_q, frac(3, 2), frac(1, 2), 0, frac(37, 4), 8, frac(17, 2), 0,
+    };
+    assert(smp.x == sol);
 }
 
 int main() {

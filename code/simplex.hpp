@@ -6,6 +6,8 @@ using namespace std;
 
 // *****
 
+static const frac inf(1, 0);
+
 /**
  * maximize f(x)
  * subject to
@@ -21,6 +23,7 @@ struct simplex {
     vector<frac> f;
     vector<vector<frac>> A;
     vector<frac> b;
+    vector<frac> x;
 
     simplex(int n) : n(n), m(0) {}
 
@@ -38,7 +41,6 @@ struct simplex {
 
     vector<vector<frac>> tab;
     enum State { FOUND = 0, OPTIMAL = 1, UNBOUNDED = 2 };
-    static const frac inf;
 
     void make_tableau() {
         tab.assign(m + 1, vector<frac>(n + m + 1, 0L));
@@ -111,25 +113,17 @@ struct simplex {
                 break;
             }
         } while (true);
+        x.assign(n + m, 0);
+        for (int j = 1; j <= n + m; j++) {
+            if (tab[0][j] == 0L) {
+                for (int i = 1; i <= m; i++) {
+                    if (tab[i][j] == 1L) {
+                        x[j - 1] = tab[i][0];
+                        break;
+                    }
+                }
+            }
+        }
         return tab[0][0];
     }
 };
-const frac simplex::inf(1, 0);
-
-ostream& operator<<(ostream& out, const vector<vector<frac>>& tab) {
-    int m = tab.size() - 1;
-    int n = tab[0].size() - m - 1;
-    vector<size_t> width(n + m + 1);
-    for (int i = 0; i <= m; i++) {
-        for (int j = 0; j <= n + m; j++) {
-            width[j] = max(width[j], 1 + to_string(tab[i][j]).length());
-        }
-    }
-    for (int i = 0; i <= m; i++) {
-        for (int j = 0; j <= n + m; j++) {
-            out << setw(width[j]) << tab[i][j] << ' ';
-        }
-        out << '\n';
-    }
-    return out << '\n';
-}
