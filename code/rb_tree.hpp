@@ -109,14 +109,10 @@ struct rb_node {
 
     // hide this to prevent default-constructed data from creating head nodes
     struct rb_head_tag_t {};
-    rb_node(rb_head_tag_t _tag) : parent(this) {
-        (void)_tag;
-    }
+    rb_node(rb_head_tag_t _tag) : parent(this) { (void)_tag; }
 
   public:
-    static node_t* new_empty() {
-        return new node_t(rb_head_tag_t{});
-    }
+    static node_t* new_empty() { return new node_t(rb_head_tag_t{}); }
 };
 
 /**
@@ -162,17 +158,13 @@ struct rb_tree {
         return *this;
     }
 
-    ~rb_tree() noexcept {
-        delete head;
-    }
+    ~rb_tree() noexcept { delete head; }
 
     inline void swap(rb_tree& other) noexcept {
         std::swap(head, other.head);
         std::swap(node_count, other.node_count);
     }
-    friend inline void swap(rb_tree& lhs, rb_tree& rhs) noexcept {
-        lhs.swap(rhs);
-    }
+    friend inline void swap(rb_tree& lhs, rb_tree& rhs) noexcept { lhs.swap(rhs); }
 
     inline node_t* minimum() noexcept {
         return head->link[0] ? node_t::minimum(head->link[0]) : head;

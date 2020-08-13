@@ -110,9 +110,7 @@ template <typename T>
 struct bst_node_handle_methods<T, set_tag> {
     using value_type = T;
 
-    value_type& value() const noexcept {
-        return bst_node_handle<T, set_tag>::y->data;
-    }
+    value_type& value() const noexcept { return bst_node_handle<T, set_tag>::y->data; }
 };
 
 template <typename K, typename V>
@@ -123,9 +121,7 @@ struct bst_node_handle_methods<std::pair<const K, V>, map_tag> {
     key_type& key() const {
         return const_cast<key_type&>(bst_node_handle<V, map_tag>::y->data.first);
     }
-    mapped_type& mapped() const {
-        return bst_node_handle<V, map_tag>::y->data.second;
-    }
+    mapped_type& mapped() const { return bst_node_handle<V, map_tag>::y->data.second; }
 };
 
 /**
@@ -152,15 +148,9 @@ struct bst_iterator {
     bst_iterator() : y(nullptr) {}
     explicit bst_iterator(node_t* n) : y(n) {}
 
-    explicit operator bool() const noexcept {
-        return y != nullptr;
-    }
-    reference operator*() const noexcept {
-        return y->data;
-    }
-    pointer operator->() const noexcept {
-        return &y->data;
-    }
+    explicit operator bool() const noexcept { return y != nullptr; }
+    reference operator*() const noexcept { return y->data; }
+    pointer operator->() const noexcept { return &y->data; }
     self_t& operator++() noexcept {
         y = node_t::increment(y);
         return *this;
@@ -212,15 +202,9 @@ struct bst_const_iterator {
     explicit bst_const_iterator(const node_t* n) : y(n) {}
     bst_const_iterator(bst_iterator<T> it) : y(it.y) {}
 
-    explicit operator bool() const noexcept {
-        return y != nullptr;
-    }
-    reference operator*() const noexcept {
-        return y->data;
-    }
-    pointer operator->() const noexcept {
-        return &y->data;
-    }
+    explicit operator bool() const noexcept { return y != nullptr; }
+    reference operator*() const noexcept { return y->data; }
+    pointer operator->() const noexcept { return &y->data; }
     self_t& operator++() noexcept {
         y = node_t::increment(y);
         return *this;
@@ -263,31 +247,19 @@ struct bst_node_handle : bst_node_handle_methods<T, tag> {
     bst_node_handle() : y(nullptr) {}
     explicit bst_node_handle(node_t* n) : y(n) {}
 
-    bst_node_handle(self_t&& other) : y(other.y) {
-        other.y = nullptr;
-    }
+    bst_node_handle(self_t&& other) : y(other.y) { other.y = nullptr; }
     bst_node_handle& operator=(self_t&& other) {
         delete y;
         y = other.y;
         other.y = nullptr;
     }
 
-    ~bst_node_handle() {
-        delete y;
-    }
+    ~bst_node_handle() { delete y; }
 
-    bool empty() const noexcept {
-        return y == nullptr;
-    }
-    explicit operator bool() const noexcept {
-        return y != nullptr;
-    }
-    void swap(self_t& other) noexcept {
-        swap(y, other.y);
-    }
-    friend void swap(self_t& lhs, self_t& rhs) noexcept {
-        lhs.swap(rhs);
-    }
+    bool empty() const noexcept { return y == nullptr; }
+    explicit operator bool() const noexcept { return y != nullptr; }
+    void swap(self_t& other) noexcept { swap(y, other.y); }
+    friend void swap(self_t& lhs, self_t& rhs) noexcept { lhs.swap(rhs); }
 };
 
 /**
@@ -370,12 +342,8 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
         head->link[0] = nullptr;
         node_count = 0;
     }
-    inline size_type size() const noexcept {
-        return node_count;
-    }
-    inline bool empty() const noexcept {
-        return node_count == 0;
-    }
+    inline size_type size() const noexcept { return node_count; }
+    inline bool empty() const noexcept { return node_count == 0; }
     constexpr size_type max_size() const noexcept {
         return std::numeric_limits<size_type>::max();
     }
@@ -385,34 +353,16 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
         Tree<T>::swap(other);
         swap(comp, other.comp);
     }
-    friend inline void swap(bs_tree& lhs, bs_tree& rhs) noexcept {
-        lhs.swap(rhs);
-    }
+    friend inline void swap(bs_tree& lhs, bs_tree& rhs) noexcept { lhs.swap(rhs); }
 
-    inline iterator begin() noexcept {
-        return iterator(minimum());
-    }
-    inline iterator end() noexcept {
-        return iterator(head);
-    }
-    inline const_iterator begin() const noexcept {
-        return const_iterator(minimum());
-    }
-    inline const_iterator end() const noexcept {
-        return const_iterator(head);
-    }
-    inline const_iterator cbegin() const noexcept {
-        return const_iterator(minimum());
-    }
-    inline const_iterator cend() const noexcept {
-        return const_iterator(head);
-    }
-    inline reverse_iterator rbegin() noexcept {
-        return reverse_iterator(end());
-    }
-    inline reverse_iterator rend() noexcept {
-        return reverse_iterator(begin());
-    }
+    inline iterator begin() noexcept { return iterator(minimum()); }
+    inline iterator end() noexcept { return iterator(head); }
+    inline const_iterator begin() const noexcept { return const_iterator(minimum()); }
+    inline const_iterator end() const noexcept { return const_iterator(head); }
+    inline const_iterator cbegin() const noexcept { return const_iterator(minimum()); }
+    inline const_iterator cend() const noexcept { return const_iterator(head); }
+    inline reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    inline reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
     inline const_reverse_iterator rbegin() const noexcept {
         return const_reverse_iterator(end());
     }
@@ -955,15 +905,9 @@ struct bst_inserter_unique_iterator {
 
     bst_inserter_unique_iterator(container_type& tree) : tree(&tree) {}
 
-    self_t& operator*() {
-        return *this;
-    }
-    self_t& operator++() {
-        return *this;
-    }
-    self_t& operator++(int) {
-        return *this;
-    }
+    self_t& operator*() { return *this; }
+    self_t& operator++() { return *this; }
+    self_t& operator++(int) { return *this; }
     self_t& operator=(const T& value) {
         tree->insert_unique(value);
         return *this;
@@ -991,15 +935,9 @@ struct bst_inserter_multi_iterator {
 
     bst_inserter_multi_iterator(container_type& tree) : tree(&tree) {}
 
-    self_t& operator*() {
-        return *this;
-    }
-    self_t& operator++() {
-        return *this;
-    }
-    self_t& operator++(int) {
-        return *this;
-    }
+    self_t& operator*() { return *this; }
+    self_t& operator++() { return *this; }
+    self_t& operator++(int) { return *this; }
     self_t& operator=(const T& value) {
         tree->insert_multi(value);
         return *this;

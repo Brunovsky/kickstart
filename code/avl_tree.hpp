@@ -148,14 +148,10 @@ struct avl_node {
 
     // hide this to prevent default-constructed data from creating head nodes
     struct avl_head_tag_t {};
-    avl_node(avl_head_tag_t _tag) : parent(this) {
-        (void)_tag;
-    }
+    avl_node(avl_head_tag_t _tag) : parent(this) { (void)_tag; }
 
   public:
-    static node_t* new_empty() {
-        return new node_t(avl_head_tag_t{});
-    }
+    static node_t* new_empty() { return new node_t(avl_head_tag_t{}); }
 };
 
 /**
@@ -201,17 +197,13 @@ struct avl_tree {
         return *this;
     }
 
-    ~avl_tree() noexcept {
-        delete head;
-    }
+    ~avl_tree() noexcept { delete head; }
 
     inline void swap(avl_tree& other) noexcept {
         std::swap(head, other.head);
         std::swap(node_count, other.node_count);
     }
-    friend inline void swap(avl_tree& lhs, avl_tree& rhs) noexcept {
-        lhs.swap(rhs);
-    }
+    friend inline void swap(avl_tree& lhs, avl_tree& rhs) noexcept { lhs.swap(rhs); }
 
     inline node_t* minimum() noexcept {
         return head->link[0] ? node_t::minimum(head->link[0]) : head;

@@ -57,9 +57,7 @@ struct bs_map : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
         return *this;
     }
 
-    size_t count(const Key& key) const noexcept {
-        return bst::contains(key);
-    }
+    size_t count(const Key& key) const noexcept { return bst::contains(key); }
 
     insert_return_type insert(node_type&& nh) {
         return bst::insert_unique(std::move(nh));
@@ -67,9 +65,7 @@ struct bs_map : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
     iterator insert(const_iterator hint, node_type&& nh) {
         return bst::insert_hint_unique(hint, std::move(nh));
     }
-    std::pair<iterator, bool> insert(const T& data) {
-        return bst::insert_unique(data);
-    }
+    std::pair<iterator, bool> insert(const T& data) { return bst::insert_unique(data); }
     iterator insert(const_iterator hint, const T& data) {
         return bst::insert_hint_unique(hint, data);
     }
@@ -173,9 +169,7 @@ struct bs_map : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
     }
 
     using bst::erase;
-    bool erase(const Key& key) {
-        return bst::erase_unique(key);
-    }
+    bool erase(const Key& key) { return bst::erase_unique(key); }
 
     template <typename Compare2>
     void merge(bs_map<Key, Compare2>& src) {
@@ -240,21 +234,15 @@ struct bs_multimap : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
         return *this;
     }
 
-    iterator insert(node_type&& nh) {
-        return bst::insert_multi(std::move(nh));
-    }
+    iterator insert(node_type&& nh) { return bst::insert_multi(std::move(nh)); }
     iterator insert(const_iterator hint, node_type&& nh) {
         return bst::insert_hint_multi(hint, std::move(nh));
     }
-    iterator insert(const T& data) {
-        return bst::insert_multi(data);
-    }
+    iterator insert(const T& data) { return bst::insert_multi(data); }
     iterator insert(const_iterator hint, const T& data) {
         return bst::insert_hint_multi(hint, data);
     }
-    iterator insert(T&& data) {
-        return bst::insert_multi(std::move(data));
-    }
+    iterator insert(T&& data) { return bst::insert_multi(std::move(data)); }
     iterator insert(const_iterator hint, T&& data) {
         return bst::insert_hint_multi(hint, std::move(data));
     }
@@ -275,9 +263,7 @@ struct bs_multimap : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
     }
 
     using bst::erase;
-    bool erase(const Key& key) {
-        return bst::erase_multi(key);
-    }
+    bool erase(const Key& key) { return bst::erase_multi(key); }
 
     template <typename Compare2>
     void merge(bs_multimap<Key, Compare2>& src) {
