@@ -13,57 +13,35 @@ struct frac {
         if (d < 0) {
             n = -n, d = -d;
         }
-        long g = frac::gcd(n, d);
+        long g = abs(__gcd(n, d));
         n /= g, d /= g;
     }
 
-    operator long() const {
-        return d != 0 ? n / d : (n > 0 ? LONG_MAX : LONG_MIN);
-    }
-
-  private:
-    static long gcd(long a, long b) {
-        while (a != 0) {
-            b = b % a;
-            swap(a, b);
-        }
-        return abs(b);
-    }
+    operator long() const { return d != 0 ? n / d : (n > 0 ? LONG_MAX : LONG_MIN); }
 };
 
-frac inv(const frac& f) {
-    return f.n >= 0 ? frac(f.d, f.n) : frac(-f.d, -f.n);
-}
+frac inv(frac f) { return f.n >= 0 ? frac(f.d, f.n) : frac(-f.d, -f.n); }
+frac abs(frac f) { return frac(abs(f.n), f.d); }
+frac operator-(frac f) { return frac(-f.n, f.d); }
+frac operator!(frac f) { return f.n == 0 ? 1L : 0L; }
 
-frac abs(const frac& f) {
-    return frac(abs(f.n), f.d);
-}
-
-long floor(const frac& f) {
+long floor(frac f) {
     if (f.d == 0) {
         return f;
     }
     return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d;
 }
 
-long ceil(const frac& f) {
+long ceil(frac f) {
     if (f.d == 0) {
         return f;
     }
     return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d;
 }
 
-frac operator-(const frac& f) {
-    return frac(-f.n, f.d);
-}
-
-frac operator!(const frac& f) {
-    return f.n == 0;
-}
-
-string to_string(const frac& f) {
+string to_string(frac f) {
     if (f.d == 0) {
-        return (f.n > 0 ? '+' : '-') + "inf"s;
+        return f.n > 0 ? "inf" : "-inf";
     } else if (f.d == 1) {
         return to_string(f.n);
     } else {
@@ -71,141 +49,53 @@ string to_string(const frac& f) {
     }
 }
 
-ostream& operator<<(ostream& out, const frac& f) {
-    return out << to_string(f);
-}
+ostream& operator<<(ostream& out, const frac& f) { return out << to_string(f); }
 
-bool operator==(const frac& a, const frac& b) {
-    return a.n == b.n && a.d == b.d;
-}
-bool operator!=(const frac& a, const frac& b) {
-    return a.n != b.n || a.d != b.d;
-}
-bool operator<(const frac& a, const frac& b) {
-    return a.n * b.d < b.n * a.d;
-}
-bool operator>(const frac& a, const frac& b) {
-    return a.n * b.d > b.n * a.d;
-}
-bool operator<=(const frac& a, const frac& b) {
-    return a.n * b.d <= b.n * a.d;
-}
-bool operator>=(const frac& a, const frac& b) {
-    return a.n * b.d >= b.n * a.d;
-}
-bool operator==(const frac& a, long b) {
-    return a.n == b && a.d == 1;
-}
-bool operator!=(const frac& a, long b) {
-    return a.n != b || a.d != 1;
-}
-bool operator<(const frac& a, long b) {
-    return a.n < b * a.d;
-}
-bool operator>(const frac& a, long b) {
-    return a.n > b * a.d;
-}
-bool operator<=(const frac& a, long b) {
-    return a.n <= b * a.d;
-}
-bool operator>=(const frac& a, long b) {
-    return a.n >= b * a.d;
-}
-bool operator==(long b, const frac& a) {
-    return a.n == b && a.d == 1;
-}
-bool operator!=(long b, const frac& a) {
-    return a.n != b || a.d != 1;
-}
-bool operator<(long b, const frac& a) {
-    return b * a.d < a.n;
-}
-bool operator>(long b, const frac& a) {
-    return b * a.d > a.n;
-}
-bool operator<=(long b, const frac& a) {
-    return b * a.d <= a.n;
-}
-bool operator>=(long b, const frac& a) {
-    return b * a.d >= a.n;
-}
+bool operator==(frac a, frac b) { return a.n == b.n && a.d == b.d; }
+bool operator!=(frac a, frac b) { return a.n != b.n || a.d != b.d; }
+bool operator<(frac a, frac b) { return a.n * b.d < b.n * a.d; }
+bool operator>(frac a, frac b) { return a.n * b.d > b.n * a.d; }
+bool operator<=(frac a, frac b) { return a.n * b.d <= b.n * a.d; }
+bool operator>=(frac a, frac b) { return a.n * b.d >= b.n * a.d; }
+bool operator==(frac a, long b) { return a.n == b && a.d == 1; }
+bool operator!=(frac a, long b) { return a.n != b || a.d != 1; }
+bool operator<(frac a, long b) { return a.n < b * a.d; }
+bool operator>(frac a, long b) { return a.n > b * a.d; }
+bool operator<=(frac a, long b) { return a.n <= b * a.d; }
+bool operator>=(frac a, long b) { return a.n >= b * a.d; }
+bool operator==(long b, frac a) { return a.n == b && a.d == 1; }
+bool operator!=(long b, frac a) { return a.n != b || a.d != 1; }
+bool operator<(long b, frac a) { return b * a.d < a.n; }
+bool operator>(long b, frac a) { return b * a.d > a.n; }
+bool operator<=(long b, frac a) { return b * a.d <= a.n; }
+bool operator>=(long b, frac a) { return b * a.d >= a.n; }
 
-frac operator+(const frac& a, long b) {
-    return frac(a.n + b * a.d, a.d);
-}
-frac operator-(const frac& a, long b) {
-    return frac(a.n - b * a.d, a.d);
-}
-frac operator*(const frac& a, long b) {
-    return frac(a.n * b, a.d);
-}
-frac operator/(const frac& a, long b) {
-    return frac(a.n, a.d * b);
-}
-frac operator%(const frac& a, long b) {
-    return a - b * long(a / b);
-}
-frac operator+(long b, const frac& a) {
-    return frac(a.n + b * a.d, a.d);
-}
-frac operator-(long b, const frac& a) {
-    return frac(a.n - b * a.d, a.d);
-}
-frac operator*(long b, const frac& a) {
-    return frac(a.n * b, a.d);
-}
-frac operator/(long b, const frac& a) {
-    return frac(a.n, a.d * b);
-}
-frac operator%(long b, const frac& a) {
-    return b - long(b / a) * a;
-}
-frac& operator+=(frac& a, long b) {
-    return a = a + b;
-}
-frac& operator-=(frac& a, long b) {
-    return a = a - b;
-}
-frac& operator*=(frac& a, long b) {
-    return a = a * b;
-}
-frac& operator/=(frac& a, long b) {
-    return a = a / b;
-}
-frac& operator%=(frac& a, long b) {
-    return a = a % b;
-}
+frac operator+(frac a, long b) { return frac(a.n + b * a.d, a.d); }
+frac operator-(frac a, long b) { return frac(a.n - b * a.d, a.d); }
+frac operator*(frac a, long b) { return frac(a.n * b, a.d); }
+frac operator/(frac a, long b) { return frac(a.n, a.d * b); }
+frac operator%(frac a, long b) { return a - b * long(a / b); }
+frac operator+(long b, frac a) { return frac(b * a.d + a.n, a.d); }
+frac operator-(long b, frac a) { return frac(b * a.d - a.n, a.d); }
+frac operator*(long b, frac a) { return frac(b * a.n, a.d); }
+frac operator/(long b, frac a) { return frac(b * a.d, a.n); }
+frac operator%(long b, frac a) { return b - long(b / a) * a; }
+frac& operator+=(frac& a, long b) { return a = a + b; }
+frac& operator-=(frac& a, long b) { return a = a - b; }
+frac& operator*=(frac& a, long b) { return a = a * b; }
+frac& operator/=(frac& a, long b) { return a = a / b; }
+frac& operator%=(frac& a, long b) { return a = a % b; }
 
-frac operator+(const frac& a, const frac& b) {
-    return frac(a.n * b.d + b.n * a.d, a.d * b.d);
-}
-frac operator-(const frac& a, const frac& b) {
-    return frac(a.n * b.d - b.n * a.d, a.d * b.d);
-}
-frac operator*(const frac& a, const frac& b) {
-    return frac(a.n * b.n, a.d * b.d);
-}
-frac operator/(const frac& a, const frac& b) {
-    return frac(a.n * b.d, a.d * b.n);
-}
-frac operator%(const frac& a, const frac& b) {
-    return a - long(a / b) * b;
-}
-frac& operator+=(frac& a, const frac& b) {
-    return a = a + b;
-}
-frac& operator-=(frac& a, const frac& b) {
-    return a = a - b;
-}
-frac& operator*=(frac& a, const frac& b) {
-    return a = a * b;
-}
-frac& operator/=(frac& a, const frac& b) {
-    return a = a / b;
-}
-frac& operator%=(frac& a, const frac& b) {
-    return a = a % b;
-}
+frac operator+(frac a, frac b) { return frac(a.n * b.d + b.n * a.d, a.d * b.d); }
+frac operator-(frac a, frac b) { return frac(a.n * b.d - b.n * a.d, a.d * b.d); }
+frac operator*(frac a, frac b) { return frac(a.n * b.n, a.d * b.d); }
+frac operator/(frac a, frac b) { return frac(a.n * b.d, a.d * b.n); }
+frac operator%(frac a, frac b) { return a - long(a / b) * b; }
+frac& operator+=(frac& a, frac b) { return a = a + b; }
+frac& operator-=(frac& a, frac b) { return a = a - b; }
+frac& operator*=(frac& a, frac b) { return a = a * b; }
+frac& operator/=(frac& a, frac b) { return a = a / b; }
+frac& operator%=(frac& a, frac b) { return a = a % b; }
 
 // fraction closest to f with denominator at most maxd
 frac closest(frac f, long maxd) {

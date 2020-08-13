@@ -26,6 +26,13 @@ void test_ops() {
     assert(abs(frac(2, 3) - frac(3, 4)) == frac(1, 12));
     assert(frac(3, 7) * frac(7, 8) == frac(3, 8));
     assert(frac(1, 2) / frac(1, 7) == frac(7, 2));
+    assert(3L / frac(7, 2) == frac(6, 7));
+    assert(4L * frac(7, 9) == frac(28, 9));
+    assert(2L + frac(7, 9) == frac(25, 9));
+    assert(1L - frac(7, 9) == frac(2, 9));
+    assert(2L % frac(7, 9) == frac(4, 9));
+    assert(frac(9, 2) / 3L == frac(3, 2));
+    assert(frac(9, 2) / 4L == frac(9, 8));
 
     assert(frac(7, 3) % 2L == frac(1, 3));
     assert(frac(29, 9) % frac(6, 7) == frac(41, 63));
