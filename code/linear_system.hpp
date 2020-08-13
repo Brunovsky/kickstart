@@ -1,8 +1,4 @@
-#include <bits/stdc++.h>
-
 #include "frac.hpp"
-
-using namespace std;
 
 // *****
 

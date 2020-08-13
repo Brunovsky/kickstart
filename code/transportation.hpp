@@ -4,6 +4,12 @@ using namespace std;
 
 // *****
 
+constexpr int nil = INT_MIN;
+
+/**
+ * Transportation solver
+ * Complexity: O(S * D * #pivots)
+ */
 struct transportation {
     vector<int> supply;
     vector<int> demand;
@@ -20,7 +26,6 @@ struct transportation {
     vector<bool> col_vis;
     vector<vector<int>> tp; // transport
     enum State { FOUND = 0, OPTIMAL = 1 };
-    static constexpr int nil = INT_MIN;
 
     void potential_dfs_row(int r) {
         assert(u[r] != nil);
@@ -164,22 +169,3 @@ struct transportation {
         }
     }
 };
-constexpr int transportation::nil;
-
-template <typename N>
-string to_string(const vector<vector<N>>& tab) {
-    vector<size_t> width(tab[0].size());
-    for (uint i = 0; i < tab.size(); i++) {
-        for (uint j = 0; j < tab[i].size(); j++) {
-            width[j] = max(width[j], 1 + to_string(tab[i][j]).length());
-        }
-    }
-    stringstream ss;
-    for (uint i = 0; i < tab.size(); i++) {
-        for (uint j = 0; j < tab[i].size(); j++) {
-            ss << setw(width[j]) << to_string(tab[i][j]) << ' ';
-        }
-        ss << '\n';
-    }
-    return ss.str();
-}

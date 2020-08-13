@@ -16,25 +16,11 @@ struct Box {
 
 using PointIt = vector<Point>::iterator;
 
-inline bool operator==(Point lhs, Point rhs) {
-    return tie(lhs.x, lhs.y) == tie(rhs.x, rhs.y);
-}
-
-inline bool operator<(Point lhs, Point rhs) {
-    return tie(lhs.x, lhs.y) < tie(rhs.x, rhs.y);
-}
-
-inline bool ordered(Point lo, Point hi) {
-    return lo.x <= hi.x && lo.y <= hi.y;
-}
-
-bool cmp_x(Point lhs, Point rhs) {
-    return lhs.x < rhs.x;
-}
-
-bool cmp_y(Point lhs, Point rhs) {
-    return lhs.y < rhs.y;
-}
+inline bool operator==(Point a, Point b) { return tie(a.x, a.y) == tie(b.x, b.y); }
+inline bool operator<(Point a, Point b) { return tie(a.x, a.y) < tie(b.x, b.y); }
+inline bool ordered(Point lo, Point hi) { return lo.x <= hi.x && lo.y <= hi.y; }
+bool cmp_x(Point a, Point b) { return a.x < b.x; }
+bool cmp_y(Point a, Point b) { return a.y < b.y; }
 
 PointIt partition_x(PointIt first, PointIt last, int x) {
     while (first != last && first->x < x)
@@ -87,13 +73,9 @@ struct quad_tree {
     size_t size = 0;
     vector<Point> points;
 
-    bool is_partitioned() const noexcept {
-        return bool(children[0]);
-    }
+    bool is_partitioned() const noexcept { return bool(children[0]); }
 
-    bool is_singular() const noexcept {
-        return box.min == box.max;
-    }
+    bool is_singular() const noexcept { return box.min == box.max; }
 
     Point root_point() const noexcept {
         return {(box.min.x + box.max.x + 1) >> 1, (box.min.y + box.max.y + 1) >> 1};
@@ -179,9 +161,7 @@ struct quad_tree {
         return count;
     }
 
-    size_t tree_size() const noexcept {
-        return size;
-    }
+    size_t tree_size() const noexcept { return size; }
 
     size_t depth() const noexcept {
         if (is_partitioned()) {

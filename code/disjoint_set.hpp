@@ -5,12 +5,14 @@ using namespace std;
 // *****
 
 struct disjoint_set {
-    int N;
-    vector<int> next, rank;
+    int N, S;
+    vector<int> next, size;
 
-    disjoint_set(int N) : N(N), next(N), rank(N, 0) {
+    disjoint_set(int N) : N(N), S(N), next(N), size(N, 1) {
         iota(begin(next), end(next), 0);
     }
+
+    bool same(int i, int j) { return find(i) == find(j); }
 
     int find(int i) {
         while (i != next[i]) {
@@ -23,11 +25,12 @@ struct disjoint_set {
         i = find(i);
         j = find(j);
         if (i != j) {
-            if (rank[i] < rank[j]) {
+            if (size[i] < size[j]) {
                 swap(i, j);
             }
             next[j] = i;
-            rank[i] += rank[i] == rank[j];
+            size[i] += size[j];
+            S--;
         }
     }
 };

@@ -8,7 +8,7 @@ using namespace std;
  * Longest common subsequence of two strings a and b
  * O(ab) time, O(ab) memory to recover subsequence
  */
-string longest_common_subsequence(string a, string b) {
+string longest_common_subsequence(const string& a, const string& b) {
     int A = a.size(), B = b.size();
     vector<vector<int>> dp(A + 1, vector<int>(B + 1, 0));
 
@@ -39,7 +39,7 @@ string longest_common_subsequence(string a, string b) {
  * Longest common substring of two strings a and b
  * O(ab) time, O(b) memory
  */
-string longest_common_substring(string a, string b) {
+string longest_common_substring(const string& a, const string& b) {
     int A = a.size(), B = b.size();
     vector<int> prev(B + 1, 0);
     vector<int> next(B + 1, 0);
@@ -70,7 +70,7 @@ string longest_common_substring(string a, string b) {
  * sub: cost of substitution of one character
  * O(ab) time, O(b) memory without recovery
  */
-int levenshtein_distance(string a, string b, int del, int ins, int sub) {
+int levenshtein_distance(const string& a, const string& b, int del, int ins, int sub) {
     int A = a.size(), B = b.size();
     vector<int> prev(B + 1, 0);
     vector<int> next(B + 1, 0);
@@ -101,7 +101,8 @@ int levenshtein_distance(string a, string b, int del, int ins, int sub) {
  * tra: cost of transposition of two characters (in a)
  * O(ab) time, O(b) memory without recovery
  */
-int simple_damerau_distance(string a, string b, int del, int ins, int sub, int tra) {
+int simple_damerau_distance(const string& a, const string& b, int del, int ins, int sub,
+                            int tra) {
     int A = a.size(), B = b.size();
     vector<int> tran(B + 1, 0);
     vector<int> prev(B + 1, 0);
@@ -142,7 +143,8 @@ int simple_damerau_distance(string a, string b, int del, int ins, int sub, int t
  * tra: cost of transposition of two characters (in a)
  * O(ab) time, O(ab) memory
  */
-int damerau_distance(string a, string b, int del, int ins, int sub, int tra) {
+int damerau_distance(const string& a, const string& b, int del, int ins, int sub,
+                     int tra) {
     int A = a.size(), B = b.size();
     vector<vector<int>> dp(A + 2, vector<int>(B + 2, 0));
     array<int, 256> finger = {};
@@ -179,7 +181,7 @@ int damerau_distance(string a, string b, int del, int ins, int sub, int tra) {
  * Whether there exists a subset with target sum
  * O(ns) time, where s is the total range of sums.
  */
-bool subset_sum(vector<int> nums, int target) {
+bool subset_sum(const vector<int>& nums, int target) {
     int N = nums.size();
     int neg = 0, pos = 0;
     for (int i = 0; i < N; i++)
@@ -213,14 +215,15 @@ bool subset_sum(vector<int> nums, int target) {
 
 /**
  * Maximum value repeated knapsack
- * O(nW) time, O(W) space
+ * O(nW) time, O(cap) space
  */
-vector<int> repeated_knapsack(int W, vector<int> weight, vector<int> value) {
+vector<int> repeated_knapsack(int cap, const vector<int>& weight,
+                              const vector<int>& value) {
     int N = weight.size();
-    vector<int> dp(W + 1, 0);
-    vector<int> pred(W + 1, -1);
+    vector<int> dp(cap + 1, 0);
+    vector<int> pred(cap + 1, -1);
 
-    for (int w = 1; w <= W; w++) {
+    for (int w = 1; w <= cap; w++) {
         for (int i = 0; i < N; i++) {
             if (weight[i] <= w && dp[w] < dp[w - weight[i]] + value[i]) {
                 dp[w] = dp[w - weight[i]] + value[i];
@@ -230,7 +233,7 @@ vector<int> repeated_knapsack(int W, vector<int> weight, vector<int> value) {
     }
 
     vector<int> quantity(N, 0);
-    int w = W;
+    int w = cap;
     while (pred[w] != -1) {
         quantity[pred[w]]++;
         w -= weight[pred[w]];
@@ -240,23 +243,23 @@ vector<int> repeated_knapsack(int W, vector<int> weight, vector<int> value) {
 
 /**
  * Maximum value 0-1 knapsack
- * O(nW) time, O(W) space
+ * O(nW) time, O(cap) space
  */
-vector<bool> unit_knapsack(int W, vector<int> weight, vector<int> value) {
+vector<bool> unit_knapsack(int cap, const vector<int>& weight, const vector<int>& value) {
     int N = weight.size();
-    vector<vector<int>> dp(N + 1, vector<int>(W + 1, 0));
+    vector<vector<int>> dp(N + 1, vector<int>(cap + 1, 0));
 
     for (int i = 0; i < N; i++) {
         for (int w = 0; w < weight[i]; w++) {
             dp[i + 1][w] = dp[i][w];
         }
-        for (int w = weight[i]; w <= W; w++) {
+        for (int w = weight[i]; w <= cap; w++) {
             dp[i + 1][w] = max(dp[i][w], dp[i][w - weight[i]] + value[i]);
         }
     }
 
     vector<bool> quantity(N, false);
-    for (int w = W, i = N - 1; w && i >= 0; i--) {
+    for (int w = cap, i = N - 1; w && i >= 0; i--) {
         if (dp[i + 1][w] != dp[i][w]) {
             quantity[i] = true;
             w -= weight[i];
@@ -269,7 +272,7 @@ vector<bool> unit_knapsack(int W, vector<int> weight, vector<int> value) {
  * Longest increasing subsequence of one list
  * O(n log n) time, O(n) space
  */
-vector<int> longest_increasing_subsequence(vector<int> nums) {
+vector<int> longest_increasing_subsequence(const vector<int>& nums) {
     int N = nums.size();
     vector<int> P(N, 0);
     vector<int> M(N + 1, 0);

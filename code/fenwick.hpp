@@ -77,7 +77,3 @@ struct fenwick2d {
         }
     }
 };
-
-// *****
-
-void driver() { fenwick<30000> fw(30000); }

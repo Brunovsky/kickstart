@@ -6,6 +6,10 @@ using namespace std;
 
 static constexpr int nil = -1, inf = INT_MAX;
 
+/**
+ * Edmond-Karp maximum flow
+ * Complexity: O(VE^2), not good
+ */
 struct maximum_flow {
     int V, E;
     vector<vector<int>> adj;
@@ -65,6 +69,10 @@ struct maximum_flow {
     }
 };
 
+/**
+ * Dinic's blocking flow algorithm for max flow
+ * Complexity: O(V^2E)
+ */
 struct maximum_flow_dinic {
     int V, E;
     vector<vector<int>> adj;
@@ -144,6 +152,11 @@ struct maximum_flow_dinic {
     }
 };
 
+/**
+ * General push relabel (with fifo selection rule)
+ * Complexity: O(V^3)
+ * Computes graph partitioning directly as a byproduct, and mincut easily follows
+ */
 struct maximum_flow_push_relabel {
     int V, E;
     vector<vector<int>> adj;
@@ -152,7 +165,6 @@ struct maximum_flow_push_relabel {
     vector<int> cap;
     vector<int> flow;
     vector<int> mincut;
-    vector<bool> cutside;
 
     maximum_flow_push_relabel(int V) : V(V), E(0) { adj.resize(V, {}); }
 

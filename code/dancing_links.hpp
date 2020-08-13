@@ -4,7 +4,7 @@ using namespace std;
 
 // *****
 
-using int2 = pair<int, int>;
+using int2 = array<int, 2>;
 
 // 2d dancing links, non-wrapping
 struct dancing_links_matrix {
@@ -27,7 +27,7 @@ struct dancing_links_matrix {
     }
 
     void insert(int2 p) {
-        int r = p.first, c = p.second;
+        int r = p[0], c = p[1];
         E[r][W[r][c]] = c;
         W[r][E[r][c]] = c;
         S[N[r][c]][c] = r;
@@ -35,7 +35,7 @@ struct dancing_links_matrix {
     }
 
     void remove(int2 p) {
-        int r = p.first, c = p.second;
+        int r = p[0], c = p[1];
         E[r][W[r][c]] = E[r][c];
         W[r][E[r][c]] = W[r][c];
         S[N[r][c]][c] = S[r][c];
@@ -43,22 +43,22 @@ struct dancing_links_matrix {
     }
 
     int2 south(int2 p) const {
-        int r = p.first, c = p.second;
+        int r = p[0], c = p[1];
         return {S[r][c], c};
     }
 
     int2 north(int2 p) const {
-        int r = p.first, c = p.second;
+        int r = p[0], c = p[1];
         return {N[r][c], c};
     }
 
     int2 east(int2 p) const {
-        int r = p.first, c = p.second;
+        int r = p[0], c = p[1];
         return {r, E[r][c]};
     }
 
     int2 west(int2 p) const {
-        int r = p.first, c = p.second;
+        int r = p[0], c = p[1];
         return {r, W[r][c]};
     }
 };

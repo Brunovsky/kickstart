@@ -4,7 +4,13 @@ using namespace std;
 
 // *****
 
-// based on https://www.youtube.com/watch?v=Wq2tkITYYHE
+constexpr int nil = 0, inf = INT_MAX;
+
+/**
+ * Min-cost perfect matching (hungarian)
+ * Complexity: O(UVE)
+ * Based on https://www.youtube.com/watch?v=Wq2tkITYYHE
+ */
 struct mincost_matching {
     int U, V, E;
     vector<vector<int>> adj;
@@ -12,9 +18,7 @@ struct mincost_matching {
     vector<int> target;
     vector<int> cost;
 
-    mincost_matching(int U, int V) : U(U), V(V), E(0) {
-        adj.assign(U + 1, {});
-    }
+    mincost_matching(int U, int V) : U(U), V(V), E(0) { adj.assign(U + 1, {}); }
 
     void add(int u, int v, int w) {
         assert(0 <= u && u < U && 0 <= v && v < V && w >= 0);
@@ -32,7 +36,6 @@ struct mincost_matching {
     vector<int> dist; // dist[u]: distance of u to s
     vector<int> vis;  // vis[u]: last iteration that u was visited
     int iteration;
-    static constexpr int nil = 0, inf = INT_MAX;
 
     bool bfs() {
         queue<int> Q;
@@ -137,4 +140,3 @@ struct mincost_matching {
         return min_cost;
     }
 };
-constexpr int mincost_matching::nil, mincost_matching::inf;

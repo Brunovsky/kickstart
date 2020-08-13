@@ -4,14 +4,15 @@ using namespace std;
 
 // *****
 
-// hungarian version
+/**
+ * Simple maximal matching algorithm
+ * Complexity: O(VE)
+ */
 struct maximal_matching {
     int U, V;
     vector<vector<int>> adj;
 
-    maximal_matching(int U, int V) : U(U), V(V) {
-        adj.assign(U, {});
-    }
+    maximal_matching(int U, int V) : U(U), V(V) { adj.assign(U, {}); }
 
     void add(int u, int v) {
         assert(0 <= u && u < U && 0 <= v && v < V);
@@ -22,7 +23,6 @@ struct maximal_matching {
     vector<int> mv;  // mv[v]=u where the mapping is u<->v, nil if v is unmatched
     vector<int> vis; // vis[u]: last iteration that u was visited
     int iteration;
-    static constexpr int nil = -1;
 
     bool dfs(int u) {
         vis[u] = iteration;
@@ -62,17 +62,20 @@ struct maximal_matching {
         } while (new_matchings);
         return matchings;
     }
-};
-constexpr int maximal_matching::nil;
 
-// hopcroft karp version
+  private:
+    int nil = -1;
+};
+
+/**
+ * Hopcroft-Karp maximal matching
+ * Complexity: O(V^1/2 E)
+ */
 struct maximal_matching_big {
     int U, V;
     vector<vector<int>> adj;
 
-    maximal_matching_big(int U, int V) : U(U), V(V) {
-        adj.assign(U + 1, {});
-    }
+    maximal_matching_big(int U, int V) : U(U), V(V) { adj.assign(U + 1, {}); }
 
     void add(int u, int v) {
         assert(0 <= u && u < U && 0 <= v && v < V);
@@ -84,7 +87,6 @@ struct maximal_matching_big {
     vector<int> vis;  // vis[u]: last iteration that u was visited
     vector<int> dist; // dist[u]: distance of u to s
     int iteration;
-    static constexpr int nil = 0, inf = INT_MAX;
 
     bool bfs() {
         queue<int> Q;
@@ -148,5 +150,7 @@ struct maximal_matching_big {
         }
         return matching;
     }
+
+  private:
+    int nil = 0, inf = INT_MAX;
 };
-constexpr int maximal_matching_big::nil, maximal_matching_big::inf;

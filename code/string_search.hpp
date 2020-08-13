@@ -32,15 +32,9 @@ class KMP {
         table[P] = b;
     }
 
-    int lookup(int j) const {
-        return table[j];
-    }
-    int shift(int j) const {
-        return j - table[j];
-    }
-    const string& get_pattern() const {
-        return needle;
-    }
+    int lookup(int j) const { return table[j]; }
+    int shift(int j) const { return j - table[j]; }
+    const string& get_pattern() const { return needle; }
 };
 
 int kmp_search(const string& text, const KMP& kmp) {
@@ -139,18 +133,12 @@ class BoyerMoore {
     int mismatch_shift(int j, char c) const {
         return max(bad_shift(j, c), good_shift(j));
     }
-    int match_shift() const {
-        return good[0];
-    }
+    int match_shift() const { return good[0]; }
     int bad_shift(int j, char c) const {
         return finger[c] == -1 ? j + 1 : j - bad[finger[c]][j];
     }
-    int good_shift(int j) const {
-        return good[j + 1];
-    }
-    const string& get_pattern() const {
-        return needle;
-    }
+    int good_shift(int j) const { return good[j + 1]; }
+    const string& get_pattern() const { return needle; }
 };
 
 int boyer_moore_search(const string& text, const BoyerMoore& bm) {

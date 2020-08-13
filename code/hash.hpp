@@ -5,10 +5,11 @@ using namespace std;
 // *****
 
 struct vec_hasher {
-    template <template <typename...> class Container, typename V, typename... T>
-    size_t operator()(const Container<V, T...>& vec) const noexcept {
+    template <typename Container>
+    size_t operator()(const Container& vec) const noexcept {
         using std::hash;
-        hash<V> hasher;
+        using T = typename Container::value_type;
+        hash<T> hasher;
         size_t seed = distance(begin(vec), end(vec));
         for (auto n : vec) {
             seed ^= hasher(n) + 0x9e3779b9 + (seed << 6) + (seed >> 2);

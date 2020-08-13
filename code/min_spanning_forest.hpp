@@ -1,11 +1,11 @@
-#include <bits/stdc++.h>
-
 #include "disjoint_set.hpp"
-
-using namespace std;
 
 // *****
 
+/**
+ * Kruskal's algorithm for minimum spanning forest
+ * Complexity: O(E log E)
+ */
 struct min_spanning_forest {
     int V, E;
     vector<int> source;

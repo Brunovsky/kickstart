@@ -8,7 +8,8 @@ using namespace std;
 struct frac {
     long n, d;
 
-    frac(long num) : n(num), d(1) {}
+    constexpr frac() : n(0), d(1) {}
+    constexpr frac(long num) : n(num), d(1) {}
     frac(long num, long den) : n(num), d(den) {
         if (d < 0) {
             n = -n, d = -d;
@@ -17,9 +18,14 @@ struct frac {
         n /= g, d /= g;
     }
 
-    operator long() const { return d != 0 ? n / d : (n > 0 ? LONG_MAX : LONG_MIN); }
+    explicit operator long() const noexcept {
+        return d != 0 ? n / d : (n > 0 ? LONG_MAX : LONG_MIN);
+    }
 };
 
+frac operator""_f(unsigned long long n) { return frac(n); }
+frac operator""_n(unsigned long long n) { return frac(n, 1); }
+frac operator""_d(unsigned long long n) { return frac(1, n); }
 frac inv(frac f) { return f.n >= 0 ? frac(f.d, f.n) : frac(-f.d, -f.n); }
 frac abs(frac f) { return frac(abs(f.n), f.d); }
 frac operator-(frac f) { return frac(-f.n, f.d); }
@@ -27,14 +33,14 @@ frac operator!(frac f) { return f.n == 0 ? 1L : 0L; }
 
 long floor(frac f) {
     if (f.d == 0) {
-        return f;
+        return long(f);
     }
     return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d;
 }
 
 long ceil(frac f) {
     if (f.d == 0) {
-        return f;
+        return long(f);
     }
     return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d;
 }
@@ -161,13 +167,13 @@ frac compute_fraction(const cf_t& cf) {
 // from codejam: compute fraction between lo and hi with smallest possible denominator
 frac cf_search(frac lo, frac hi) {
     assert(lo < hi);
-    long a = lo;
+    long a = floor(lo);
     if (hi > a + 1) {
         return a + 1;
     }
     frac fa = frac(a);
     if (lo.d == 1) {
-        return fa + inv(inv(hi - fa) + 1L);
+        return fa + inv(inv(hi - fa) + 1);
     } else {
         return fa + inv(cf_search(inv(hi - fa), inv(lo - fa)));
     }
