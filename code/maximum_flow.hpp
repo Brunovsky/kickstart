@@ -4,16 +4,17 @@ using namespace std;
 
 // *****
 
+static constexpr int nil = -1, inf = INT_MAX;
+
 struct maximum_flow {
     int V, E;
     vector<vector<int>> adj;
     vector<int> source;
     vector<int> target;
     vector<int> cap;
+    vector<int> flow;
 
-    maximum_flow(int V) : V(V), E(0) {
-        adj.resize(V, {});
-    }
+    maximum_flow(int V) : V(V), E(0) { adj.resize(V, {}); }
 
     // normal nodes are 1..V
     void add(int u, int v, int capacity) {
@@ -29,10 +30,8 @@ struct maximum_flow {
         adj[v].push_back(vu);
     }
 
-    static constexpr int nil = -1, inf = INT_MAX;
-
     int compute(int s, int t) {
-        vector<int> flow(E, 0);
+        flow.assign(E, 0);
         int max_flow = 0;
         do {
             vector<int> pred(V + 2, nil);
@@ -65,7 +64,6 @@ struct maximum_flow {
         return max_flow;
     }
 };
-constexpr int maximum_flow::nil, maximum_flow::inf;
 
 struct maximum_flow_dinic {
     int V, E;
@@ -73,10 +71,9 @@ struct maximum_flow_dinic {
     vector<int> source;
     vector<int> target;
     vector<int> cap;
+    vector<int> flow;
 
-    maximum_flow_dinic(int V) : V(V), E(0) {
-        adj.resize(V, {});
-    }
+    maximum_flow_dinic(int V) : V(V), E(0) { adj.resize(V, {}); }
 
     // normal nodes are 1..V
     void add(int u, int v, int capacity) {
@@ -92,10 +89,8 @@ struct maximum_flow_dinic {
         adj[v].push_back(vu);
     }
 
-    vector<int> flow;
     vector<int> level;
     vector<int> arc;
-    static constexpr int nil = -1, inf = INT_MAX;
 
     bool bfs(int s, int t) {
         level.assign(V + 2, nil);
@@ -148,7 +143,6 @@ struct maximum_flow_dinic {
         return max_flow;
     }
 };
-constexpr int maximum_flow_dinic::nil, maximum_flow_dinic::inf;
 
 struct maximum_flow_push_relabel {
     int V, E;
@@ -156,10 +150,11 @@ struct maximum_flow_push_relabel {
     vector<int> source;
     vector<int> target;
     vector<int> cap;
+    vector<int> flow;
+    vector<int> mincut;
+    vector<bool> cutside;
 
-    maximum_flow_push_relabel(int V) : V(V), E(0) {
-        adj.resize(V, {});
-    }
+    maximum_flow_push_relabel(int V) : V(V), E(0) { adj.resize(V, {}); }
 
     // normal nodes are 1..V
     void add(int u, int v, int capacity) {
@@ -178,9 +173,7 @@ struct maximum_flow_push_relabel {
     vector<int> excess;
     vector<int> height;
     vector<int> arc;
-    vector<int> flow;
     queue<int> active; // fifo selection, O(V^3)
-    static constexpr int nil = -1, inf = INT_MAX;
 
     void push(int e) {
         int u = source[e], v = target[e];
@@ -231,8 +224,8 @@ struct maximum_flow_push_relabel {
         flow.assign(E, 0);
 
         height[s] = V;
+        excess[s] = inf;
         for (int e : adj[s]) {
-            excess[s] = inf; // recharge s to handle supersources
             push(e);
             active.push(target[e]);
         }
@@ -251,5 +244,20 @@ struct maximum_flow_push_relabel {
         }
         return max_flow;
     }
+
+    bool left_of_mincut(int u) const { return height[u] >= V; }
+
+    void compute_mincut() {
+        mincut.clear();
+        for (int u = 0; u < V; u++) {
+            if (left_of_mincut(u)) {
+                for (int e : adj[u]) {
+                    int v = target[e];
+                    if (cap[e] > 0 && !left_of_mincut(v)) {
+                        mincut.push_back(e);
+                    }
+                }
+            }
+        }
+    }
 };
-constexpr int maximum_flow_push_relabel::nil, maximum_flow_push_relabel::inf;
