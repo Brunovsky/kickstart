@@ -127,23 +127,25 @@ vector<ulong> factor_simple(ulong n) {
 }
 
 /**
- * Compute a prime factor of composite n with pollard-rho
- * Complexity: O(n^1/4) worst-case
- * Source: kth (https://github.com/kth-competitive-programming/kactl)
+ * Compute a prime factor of composite n.
+ * Uses polynomial x^2 + c and retries with a different c if it doesn't find an
+ * answer quickly enough. Obviously fails if n is prime but might fail too if n is
+ * composite.
+ * Complexity: O(n^1/8 x trials), can be reduced with more square roots.
+ * Returns 0 on failure.
  */
-ulong pollard(ulong n) {
-    auto f = [n](ulong x) {
-        return (x * x % n) + 1;
+ulong pollard(ulong n, ulong c = 1) {
+    static const ulong cmax = 17;
+    int i = 1, iterations = 37 + ceil(sqrt(sqrt(sqrt(n))));
+    auto f = [n, c](ulong x) {
+        return ((x * x + c) % n) + 1;
     };
-    ulong x = 0, y = 0, t = 0, prd = 2, i = 1, q;
-    while (t++ % 40 || __gcd(prd, n) == 1) {
-        if (x == y)
-            x = ++i, y = f(x);
-        if ((q = (prd * (max(x, y) - min(x, y))) % n))
-            prd = q;
+    ulong x = 2, y = 2, g = 1;
+    do {
         x = f(x), y = f(f(y));
-    }
-    return __gcd(prd, n);
+        g = __gcd(max(x, y) - min(x, y), n);
+    } while (i++ <= iterations && g == 1);
+    return (1 < g && g < n) ? g : (c < cmax ? pollard(n, c + 2) : 0);
 }
 
 /**
