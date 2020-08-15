@@ -80,7 +80,6 @@ struct segment_tree {
         tree[i].downlazy = 0;
     }
 
-    // query a range
     auto query_range(int i, range_t range) {
         if (OVERLAPS(range, tree[i])) {
             if (CONTAINS(range, tree[i])) {
@@ -99,7 +98,6 @@ struct segment_tree {
         return 0;
     }
 
-    // update a range
     void update_range(int i, range_t range, int data) {
         if (OVERLAPS(range, tree[i])) {
             if (CONTAINS(range, tree[i])) {
