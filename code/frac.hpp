@@ -23,39 +23,10 @@ struct frac {
     }
 };
 
-frac operator""_f(unsigned long long n) { return frac(n); }
-frac operator""_n(unsigned long long n) { return frac(n, 1); }
-frac operator""_d(unsigned long long n) { return frac(1, n); }
 frac inv(frac f) { return f.n >= 0 ? frac(f.d, f.n) : frac(-f.d, -f.n); }
 frac abs(frac f) { return frac(abs(f.n), f.d); }
 frac operator-(frac f) { return frac(-f.n, f.d); }
-frac operator!(frac f) { return f.n == 0 ? 1L : 0L; }
-
-long floor(frac f) {
-    if (f.d == 0) {
-        return long(f);
-    }
-    return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d;
-}
-
-long ceil(frac f) {
-    if (f.d == 0) {
-        return long(f);
-    }
-    return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d;
-}
-
-string to_string(frac f) {
-    if (f.d == 0) {
-        return f.n > 0 ? "inf" : "-inf";
-    } else if (f.d == 1) {
-        return to_string(f.n);
-    } else {
-        return to_string(f.n) + '/' + to_string(f.d);
-    }
-}
-
-ostream& operator<<(ostream& out, const frac& f) { return out << to_string(f); }
+bool operator!(frac f) { return f.n == 0 ? 1L : 0L; }
 
 bool operator==(frac a, frac b) { return a.n == b.n && a.d == b.d; }
 bool operator!=(frac a, frac b) { return a.n != b.n || a.d != b.d; }
@@ -102,6 +73,32 @@ frac& operator-=(frac& a, frac b) { return a = a - b; }
 frac& operator*=(frac& a, frac b) { return a = a * b; }
 frac& operator/=(frac& a, frac b) { return a = a / b; }
 frac& operator%=(frac& a, frac b) { return a = a % b; }
+
+frac operator""_f(unsigned long long n) { return frac(n); }
+frac operator""_n(unsigned long long n) { return frac(n, 1); }
+frac operator""_d(unsigned long long n) { return frac(1, n); }
+long floor(frac f) {
+    if (f.d == 0) {
+        return long(f);
+    }
+    return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d;
+}
+long ceil(frac f) {
+    if (f.d == 0) {
+        return long(f);
+    }
+    return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d;
+}
+string to_string(frac f) {
+    if (f.d == 0) {
+        return f.n > 0 ? "inf" : "-inf";
+    } else if (f.d == 1) {
+        return to_string(f.n);
+    } else {
+        return to_string(f.n) + '/' + to_string(f.d);
+    }
+}
+ostream& operator<<(ostream& out, const frac& f) { return out << to_string(f); }
 
 // fraction closest to f with denominator at most maxd
 frac closest(frac f, long maxd) {
