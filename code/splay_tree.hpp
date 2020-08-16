@@ -24,10 +24,6 @@ struct splay_node {
         T data;
     };
 
-    splay_node(T data) : data(std::move(data)) {}
-    template <typename... Args>
-    splay_node(Args&&... args) : data(std::forward<Args>(args)...) {}
-
     ~splay_node() {
         delete link[0];
         delete link[1];
@@ -91,14 +87,19 @@ struct splay_node {
     splay_node& operator=(splay_node&&) = delete;
 
     // hide this to prevent default-constructed data from creating head nodes
-    struct rb_head_tag_t {};
-    splay_node(rb_head_tag_t _tag) : parent(this) {
-        (void)_tag;
-    }
+    struct splay_head_tag_t {};
+    splay_node(splay_head_tag_t _tag) : parent(this) { (void)_tag; }
+
+    splay_node(T data) : data(std::move(data)) {}
+    template <typename... Args>
+    splay_node(Args&&... args) : data(std::forward<Args>(args)...) {}
 
   public:
-    static node_t* new_empty() {
-        return new node_t(rb_head_tag_t{});
+    static node_t* new_empty() { return new splay_node(splay_head_tag_t{}); }
+
+    template <typename... Args>
+    static node_t* make(Args&&... args) {
+        return new splay_node(std::forward<Args>(args)...);
     }
 };
 
@@ -112,65 +113,66 @@ struct splay_tree {
 
     // The real tree's root is head->link[0]. head is never nullptr.
     node_t* head;
+    node_t* min_node;
+    node_t* max_node;
     size_t node_count;
 
-    splay_tree() noexcept : head(node_t::new_empty()), node_count(0) {}
+    splay_tree() noexcept
+        : head(node_t::new_empty()), min_node(head), max_node(head), node_count(0) {}
 
     // Move constructor
-    splay_tree(splay_tree&& other) noexcept
-        : head(node_t::new_empty()), node_count(other.node_count) {
-        adopt_node(head, other.head->link[0], 0);
-        other.head->link[0] = nullptr;
-        other.node_count = 0;
-    }
+    splay_tree(splay_tree&& other) noexcept : splay_tree() { swap(other); }
     // Copy constructor
     splay_tree(const splay_tree& other) noexcept
         : head(node_t::new_empty()), node_count(other.node_count) {
         adopt_node(head, deep_clone_node(other.head->link[0]), 0);
+        update_minmax();
     }
     // Move assignment
     splay_tree& operator=(splay_tree&& other) noexcept {
-        delete head->link[0];
-        adopt_node(head, other.head->link[0], 0);
-        node_count = other.node_count;
-        other.head->link[0] = nullptr;
-        other.node_count = 0;
+        clear();
+        swap(other);
         return *this;
     }
     // Copy assignment
     splay_tree& operator=(const splay_tree& other) noexcept {
         delete head->link[0];
         adopt_node(head, deep_clone_node(other.head->link[0]), 0);
+        update_minmax();
         node_count = other.node_count;
         return *this;
     }
 
-    ~splay_tree() noexcept {
-        delete head;
-    }
+    ~splay_tree() noexcept { delete head; }
 
+    inline void clear() noexcept {
+        delete head->link[0];
+        head->link[0] = nullptr;
+        min_node = max_node = head;
+        node_count = 0;
+    }
     inline void swap(splay_tree& other) noexcept {
         std::swap(head, other.head);
+        std::swap(min_node, other.min_node);
+        std::swap(max_node, other.max_node);
         std::swap(node_count, other.node_count);
     }
-    friend inline void swap(splay_tree& lhs, splay_tree& rhs) noexcept {
-        lhs.swap(rhs);
-    }
+    friend inline void swap(splay_tree& lhs, splay_tree& rhs) noexcept { lhs.swap(rhs); }
 
-    inline node_t* minimum() noexcept {
-        return head->link[0] ? node_t::minimum(head->link[0]) : head;
-    }
-    inline const node_t* minimum() const noexcept {
-        return head->link[0] ? node_t::minimum(head->link[0]) : head;
-    }
-    inline node_t* maximum() noexcept {
-        return head->link[0] ? node_t::maximum(head->link[0]) : head;
-    }
-    inline const node_t* maximum() const noexcept {
-        return head->link[0] ? node_t::maximum(head->link[0]) : head;
-    }
+    inline node_t* minimum() noexcept { return min_node; }
+    inline const node_t* minimum() const noexcept { return min_node; }
+    inline node_t* maximum() noexcept { return max_node; }
+    inline const node_t* maximum() const noexcept { return max_node; }
 
   private:
+    inline void update_minmax() {
+        if (head->link[0]) {
+            min_node = node_t::minimum(head->link[0]);
+            max_node = node_t::maximum(head->link[0]);
+        } else {
+            min_node = max_node = head;
+        }
+    }
     static inline void drop_node(node_t* node) {
         node->link[0] = node->link[1] = nullptr;
         delete node;
@@ -187,7 +189,7 @@ struct splay_tree {
     static node_t* deep_clone_node(const node_t* node) {
         if (!node)
             return nullptr;
-        node_t* clone = new node_t(node->data);
+        node_t* clone = node_t::make(node->data);
         adopt_node(clone, deep_clone_node(node->link[0]), 0);
         adopt_node(clone, deep_clone_node(node->link[1]), 1);
         return clone;
@@ -273,6 +275,34 @@ struct splay_tree {
         }
     }
 
+    /**
+     * Update min max pointers before insert
+     */
+    void insert_minmax(node_t* parent, node_t* y, bool side) {
+        if (node_count > 0) {
+            if (!side && parent == min_node)
+                min_node = y;
+            else if (side && parent == max_node)
+                max_node = y;
+        } else {
+            min_node = max_node = y;
+        }
+    }
+
+    /**
+     * Update min max pointers before erase
+     */
+    void erase_minmax(node_t* y) {
+        if (node_count > 1) {
+            if (y == min_node)
+                min_node = y->link[1] ? y->link[1] : y->parent;
+            else if (y == max_node)
+                max_node = y->link[0] ? y->link[0] : y->parent;
+        } else {
+            min_node = max_node = head;
+        }
+    }
+
   public:
     /**
      * Insert node y into the tree as a child of parent on the given side.
@@ -283,6 +313,7 @@ struct splay_tree {
      *   [l]            [l]   y                     [r]       y   [r]
      */
     void insert_node(node_t* parent, node_t* y, bool side) {
+        insert_minmax(parent, y, side);
         adopt_node(parent, y, side);
         splay(y);
         node_count++;
@@ -336,6 +367,7 @@ struct splay_tree {
      * Remove node y from the tree and destroy it.
      */
     void erase_node(node_t* y) {
+        erase_minmax(y);
         splay(y);
         splice();
         drop_node(y);
@@ -346,6 +378,7 @@ struct splay_tree {
      * Remove node y from the tree but do not destroy it.
      */
     void yank_node(node_t* y) {
+        erase_minmax(y);
         splay(y);
         splice();
         clear_node(y);
@@ -361,6 +394,8 @@ struct splay_tree {
 
     void debug() const {
         assert(head && !head->link[1] && head->parent == head);
+        // assert(min_node == node_t::minimum(head));
+        // assert(max_node == (head->link[0] ? node_t::maximum(head->link[0]) : head));
         size_t cnt = 0;
         debug_node(head->link[0], head, cnt);
         assert(cnt == node_count);
@@ -383,15 +418,16 @@ struct splay_tree {
     }
 
     static inline std::string print_node(const node_t* node) noexcept {
+        using std::to_string;
         std::string s;
-        s += std::to_string(node->data);
+        s += to_string(node->data);
         s += u8"  ╴  ╴  ╴  ╴ ";
         if (node->parent != node->parent->parent)
-            s += "  ^(" + std::to_string(node->parent->data) + ")";
+            s += "  ^(" + to_string(node->parent->data) + ")";
         if (node->link[0])
-            s += "  <(" + std::to_string(node->link[0]->data) + ")";
+            s += "  <(" + to_string(node->link[0]->data) + ")";
         if (node->link[1])
-            s += "  >(" + std::to_string(node->link[1]->data) + ")";
+            s += "  >(" + to_string(node->link[1]->data) + ")";
         return s;
     }
 
@@ -399,7 +435,7 @@ struct splay_tree {
         if (!y)
             return 0;
         cnt++;
-        assert(y->parent == parent);
+        (void)parent, assert(y->parent == parent);
         int hl = debug_node(y->link[0], y, cnt);
         int hr = debug_node(y->link[1], y, cnt);
         return 1 + std::max(hl, hr);

@@ -24,6 +24,7 @@
  *   - Copying and moving
  *   - Define set, multiset wrappers
  *   - Define map, multimap wrappers
+ *   - Support constant time .begin() and .rbegin()
  */
 
 /**
@@ -130,7 +131,7 @@ struct bst_node_handle_methods<std::pair<const K, V>, map_tag> {
  */
 template <typename T>
 struct bst_iterator {
-  private:
+  protected:
     template <typename V, typename Compare, bs_tree_tag tag>
     friend struct bs_tree;
     friend bst_const_iterator<T>;
@@ -183,7 +184,7 @@ struct bst_iterator {
  */
 template <typename T>
 struct bst_const_iterator {
-  private:
+  protected:
     template <typename V, typename Compare, bs_tree_tag tag>
     friend struct bs_tree;
     friend bst_iterator<T>;
@@ -228,6 +229,70 @@ struct bst_const_iterator {
     }
     friend bool operator!=(const self_t& lhs, const self_t& rhs) noexcept {
         return lhs.y != rhs.y;
+    }
+};
+
+template <typename T>
+struct bst_reverse_iterator : bst_iterator<T> {
+  private:
+    using node_t = typename Tree<T>::node_t;
+    using self_t = bst_reverse_iterator<T>;
+    using forward_t = bst_iterator<T>;
+    using bst_iterator<T>::y;
+
+  public:
+    using forward_t::forward_t;
+    bst_reverse_iterator(forward_t it) : forward_t(it.y) {}
+
+    self_t& operator++() noexcept {
+        y = node_t::decrement(y);
+        return *this;
+    }
+    self_t operator++(int) noexcept {
+        self_t z = *this;
+        y = node_t::decrement(y);
+        return z;
+    }
+    self_t& operator--() noexcept {
+        y = node_t::increment(y);
+        return *this;
+    }
+    self_t operator--(int) noexcept {
+        self_t z = *this;
+        y = node_t::increment(y);
+        return z;
+    }
+};
+
+template <typename T>
+struct bst_const_reverse_iterator : private bst_const_iterator<T> {
+  private:
+    using node_t = typename Tree<T>::node_t;
+    using self_t = bst_const_reverse_iterator<T>;
+    using forward_t = bst_const_iterator<T>;
+    using forward_t::y;
+
+  public:
+    using forward_t::forward_t;
+    bst_const_reverse_iterator(forward_t it) : forward_t(it.y) {}
+
+    self_t& operator++() noexcept {
+        y = node_t::decrement(y);
+        return *this;
+    }
+    self_t operator++(int) noexcept {
+        self_t z = *this;
+        y = node_t::decrement(y);
+        return z;
+    }
+    self_t& operator--() noexcept {
+        y = node_t::increment(y);
+        return *this;
+    }
+    self_t operator--(int) noexcept {
+        self_t z = *this;
+        y = node_t::increment(y);
+        return z;
     }
 };
 
@@ -311,8 +376,8 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
 
     using iterator = bst_iterator<T>;
     using const_iterator = bst_const_iterator<T>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+    using reverse_iterator = bst_reverse_iterator<T>;
+    using const_reverse_iterator = bst_const_reverse_iterator<T>;
 
     using size_type = size_t;
     using difference_type = ptrdiff_t;
@@ -336,12 +401,8 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
 
     using Tree<T>::debug;
     using Tree<T>::pretty_print;
+    using Tree<T>::clear;
 
-    inline void clear() noexcept {
-        delete head->link[0];
-        head->link[0] = nullptr;
-        node_count = 0;
-    }
     inline size_type size() const noexcept { return node_count; }
     inline bool empty() const noexcept { return node_count == 0; }
     constexpr size_type max_size() const noexcept {
@@ -361,19 +422,19 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
     inline const_iterator end() const noexcept { return const_iterator(head); }
     inline const_iterator cbegin() const noexcept { return const_iterator(minimum()); }
     inline const_iterator cend() const noexcept { return const_iterator(head); }
-    inline reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-    inline reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    inline reverse_iterator rbegin() noexcept { return reverse_iterator(maximum()); }
+    inline reverse_iterator rend() noexcept { return reverse_iterator(head); }
     inline const_reverse_iterator rbegin() const noexcept {
-        return const_reverse_iterator(end());
+        return const_reverse_iterator(maximum());
     }
     inline const_reverse_iterator rend() const noexcept {
-        return const_reverse_iterator(begin());
+        return const_reverse_iterator(head);
     }
     inline const_reverse_iterator crbegin() const noexcept {
-        return const_reverse_iterator(end());
+        return const_reverse_iterator(maximum());
     }
     inline const_reverse_iterator crend() const noexcept {
-        return const_reverse_iterator(begin());
+        return const_reverse_iterator(head);
     }
 
     friend bool operator==(const bs_tree& lhs, const bs_tree& rhs) noexcept {
@@ -607,28 +668,36 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
         return res;
     }
     std::pair<iterator, bool> try_insert_node_hint_unique(node_t* node, node_t* hint) {
+        const auto& key = get_key(node->data);
+        const auto& hint_key = get_key(hint->data);
         if (hint == head) {
-            if (size() > 0 && compare(get_key(maximum()->data), get_key(node->data))) {
-                insert_node(maximum(), node, 1);
+            if (size() == 0) {
+                insert_node(hint, node, 0);
                 return {iterator(node), true};
             }
-            return try_insert_node_unique(node); // bad hint
-        } else if (compare(get_key(node->data), get_key(hint->data))) {
+            if (compare(get_key(maximum()->data), key)) {
+                insert_node(maximum(), node, 1);
+                return {iterator(node), true};
+            } else if (compare(key, get_key(maximum()->data))) {
+                return try_insert_node_unique(node); // bad hint
+            } else {
+                return {iterator(maximum()), false};
+            }
+        } else if (compare(key, hint_key)) {
             if (hint == minimum()) {
                 insert_node(minimum(), node, 0);
                 return {iterator(node), true};
             }
             node_t* prev = node_t::decrement(hint);
-            if (compare(get_key(prev->data), get_key(node->data))) {
+            if (compare(get_key(prev->data), key)) {
                 insert_node_before(hint, node);
                 return {iterator(node), true};
             }
             return try_insert_node_unique(node); // bad hint
-        } else if (compare(get_key(hint->data), get_key(node->data))) {
+        } else if (compare(hint_key, key)) {
             return try_insert_node_unique(node); // bad hint
-        } else {
-            return {iterator(hint), false};
         }
+        return {iterator(hint), false};
     }
     std::pair<iterator, bool> insert_node_hint_unique(node_t* node, node_t* hint) {
         auto res = try_insert_node_hint_unique(node, hint);
@@ -649,29 +718,33 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
         return iterator(node);
     }
     iterator insert_node_hint_multi(node_t* node, node_t* hint) {
+        const auto& key = get_key(node->data);
+        const auto& hint_key = get_key(hint->data);
         if (hint == head) {
-            if (size() > 0 && compare(get_key(maximum()->data), get_key(node->data))) {
+            if (size() == 0) {
+                insert_node(hint, node, 0);
+                return iterator(node);
+            } else if (!compare(key, get_key(maximum()->data))) {
                 insert_node(maximum(), node, 1);
                 return iterator(node);
             }
             return insert_node_multi(node); // bad hint
-        } else if (compare(get_key(node->data), get_key(hint->data))) {
+        } else if (!compare(hint_key, key)) {
             if (hint == minimum()) {
                 insert_node(minimum(), node, 0);
                 return iterator(node);
             }
             node_t* prev = node_t::decrement(hint);
-            if (compare(get_key(prev->data), get_key(node->data))) {
+            if (!compare(key, get_key(prev->data))) {
                 insert_node_before(hint, node);
                 return iterator(node);
             }
             return insert_node_multi(node);
-        } else if (compare(get_key(hint->data), get_key(node->data))) {
+        } else if (!compare(key, hint_key)) {
             return insert_node_multi(node);
-        } else {
-            insert_node_before(hint, node);
-            return iterator(node);
         }
+        insert_node_before(hint, node);
+        return iterator(node);
     }
 
   public:
@@ -693,20 +766,20 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
         return res.first;
     }
     std::pair<iterator, bool> insert_unique(const T& data) {
-        node_t* node = new node_t(data);
+        node_t* node = node_t::make(data);
         return insert_node_unique(node);
     }
     iterator insert_hint_unique(const_iterator hint, const T& data) {
-        node_t* node = new node_t(data);
+        node_t* node = node_t::make(data);
         node_t* hint_node = const_cast<node_t*>(hint.y);
         return insert_node_hint_unique(node, hint_node).first;
     }
     std::pair<iterator, bool> insert_unique(T&& data) {
-        node_t* node = new node_t(std::move(data));
+        node_t* node = node_t::make(std::move(data));
         return insert_node_unique(node);
     }
     iterator insert_hint_unique(const_iterator hint, T&& data) {
-        node_t* node = new node_t(std::move(data));
+        node_t* node = node_t::make(std::move(data));
         node_t* hint_node = const_cast<node_t*>(hint.y);
         return insert_node_hint_unique(node, hint_node).first;
     }
@@ -734,20 +807,20 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
         return it;
     }
     iterator insert_multi(const T& data) {
-        node_t* node = new node_t(data);
+        node_t* node = node_t::make(data);
         return insert_node_multi(node);
     }
     iterator insert_hint_multi(const_iterator hint, const T& data) {
-        node_t* node = new node_t(data);
+        node_t* node = node_t::make(data);
         node_t* hint_node = const_cast<node_t*>(hint.y);
         return insert_node_hint_multi(node, hint_node);
     }
     iterator insert_multi(T&& data) {
-        node_t* node = new node_t(std::move(data));
+        node_t* node = node_t::make(std::move(data));
         return insert_node_multi(node);
     }
     iterator insert_hint_multi(const_iterator hint, T&& data) {
-        node_t* node = new node_t(std::move(data));
+        node_t* node = node_t::make(std::move(data));
         node_t* hint_node = const_cast<node_t*>(hint.y);
         return insert_node_hint_multi(node, hint_node);
     }
@@ -763,24 +836,24 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
 
     template <typename... Args>
     std::pair<iterator, bool> emplace_unique(Args&&... args) {
-        node_t* node = new node_t(std::forward<Args>(args)...);
+        node_t* node = node_t::make(std::forward<Args>(args)...);
         return insert_node_unique(node);
     }
     template <typename... Args>
     iterator emplace_hint_unique(const_iterator hint, Args&&... args) {
-        node_t* node = new node_t(std::forward<Args>(args)...);
+        node_t* node = node_t::make(std::forward<Args>(args)...);
         node_t* hint_node = const_cast<node_t*>(hint.y);
         return insert_node_hint_unique(node, hint_node).first;
     }
 
     template <typename... Args>
     iterator emplace_multi(Args&&... args) {
-        node_t* node = new node_t(std::forward<Args>(args)...);
+        node_t* node = node_t::make(std::forward<Args>(args)...);
         return insert_node_multi(node);
     }
     template <typename... Args>
     iterator emplace_hint_multi(const_iterator hint, Args&&... args) {
-        node_t* node = new node_t(std::forward<Args>(args)...);
+        node_t* node = node_t::make(std::forward<Args>(args)...);
         node_t* hint_node = const_cast<node_t*>(hint.y);
         return insert_node_hint_multi(node, hint_node);
     }

@@ -36,19 +36,49 @@ struct unordered_insert_int_test {
         intd distn(0, M);
 
         auto now = high_resolution_clock::now();
+        size_t size = 0;
         for (int t = 1; t <= T; t++) {
             Set set;
             for (int i = 0; i < f * t; i++) {
                 set.insert(distn(mt));
             }
+            size += set.size();
         }
         auto time = duration_cast<ms>(high_resolution_clock::now() - now);
 
-        printf(" %12s   %ldms\n", name.data(), time.count());
+        double avg_size = 1.0 * size / T;
+        printf(" %12s   %ldms  (size: %.1lf)\n", name.data(), time.count(), avg_size);
     }
 };
 
-struct ordered_insert_hint_int_test {
+struct ordered_insert_hint_begin_int_test {
+    template <typename Set>
+    static void run(const string& name, int M, int T, int f) {
+        intd distn(0, M);
+        vector<int> nums(T * f);
+        for (int i = 0; i < T * f; i++) {
+            nums[i] = distn(mt);
+        }
+        sort(begin(nums), end(nums), greater<int>{});
+
+        auto now = high_resolution_clock::now();
+        size_t size = 0;
+        for (int t = 1; t <= T; t++) {
+            Set set;
+            for (int i = 0; i < f * t; i++) {
+                assert(!i || nums[i] <= *set.begin());
+                set.insert(set.begin(), nums[i]);
+            }
+            size += set.size();
+        }
+        auto time = duration_cast<ms>(high_resolution_clock::now() - now);
+
+        double avg_size = 1.0 * size / T;
+        printf(" %12s   %ldms  (size: %.1lf)\n", name.data(), time.count(), avg_size);
+    }
+};
+
+struct ordered_insert_hint_end_int_test {
     template <typename Set>
     static void run(const string& name, int M, int T, int f) {
         intd distn(0, M);
@@ -59,15 +89,19 @@ struct ordered_insert_hint_int_test {
         sort(begin(nums), end(nums));
 
         auto now = high_resolution_clock::now();
+        size_t size = 0;
         for (int t = 1; t <= T; t++) {
             Set set;
             for (int i = 0; i < f * t; i++) {
+                assert(!i || *set.rbegin() <= nums[i]);
                 set.insert(set.end(), nums[i]);
             }
+            size += set.size();
         }
         auto time = duration_cast<ms>(high_resolution_clock::now() - now);
 
-        printf(" %12s   %ldms\n", name.data(), time.count());
+        double avg_size = 1.0 * size / T;
+        printf(" %12s   %ldms  (size: %.1lf)\n", name.data(), time.count(), avg_size);
     }
 };
 
@@ -153,6 +187,36 @@ struct perfect_unordered_erase_test {
     }
 };
 
+struct minmax_test {
+    template <typename Set>
+    static void run(const string& name, int M, int T, int f, int q) {
+        intd distn(0, M);
+
+        auto now = high_resolution_clock::now();
+        size_t count = 0;
+        long sum = 0;
+        for (int t = 0; t < T; t++) {
+            Set set;
+            for (int i = 0; i < t; i++) {
+                for (int j = 0; j < f; j++) {
+                    set.insert(distn(mt));
+                }
+                for (int j = 0; j < q; j++) {
+                    count += distn(mt) < *set.begin();
+                }
+                for (int j = 0; j < q; j++) {
+                    count += *set.rbegin() < distn(mt);
+                }
+                sum += accumulate(begin(set), end(set), 0L);
+            }
+        }
+        auto time = duration_cast<ms>(high_resolution_clock::now() - now);
+
+        printf(" %12s   %ldms  (count: %lu)  (sum: %ld)\n", name.data(), time.count(),
+               count, sum);
+    }
+};
+
 template <typename Fn, typename... Args>
 void run(Args&&... args) {
     Fn::template run<set<int>>("set"s, args...);
@@ -162,6 +226,24 @@ void run(Args&&... args) {
 }
 
 int main() {
+    printf("# minmax compare and accumulate (int) low inserts -----\n");
+    run<minmax_test>(1'000'000, 1000, 2, 50);
+
+    printf("# minmax compare and accumulate (int) many inserts -----\n");
+    run<minmax_test>(1'000'000, 500, 10, 20);
+
+    printf("# ordered hinted insertion begin (int) few collisions -----\n");
+    run<ordered_insert_hint_begin_int_test>(1'000'000, 2000, 20);
+
+    printf("# ordered hinted insertion begin (int) many collisions -----\n");
+    run<ordered_insert_hint_begin_int_test>(1'000, 2000, 20);
+
+    printf("# ordered hinted insertion end (int) few collisions -----\n");
+    run<ordered_insert_hint_end_int_test>(1'000'000, 2000, 20);
+
+    printf("# ordered hinted insertion end (int) many collisions -----\n");
+    run<ordered_insert_hint_end_int_test>(1'000, 2000, 20);
+
     printf("# unordered insertion (int) few collisions -----\n");
     run<unordered_insert_int_test>(1'000'000, 1000, 20);
 
@@ -170,12 +252,6 @@ int main() {
 
     printf("# unordered insertion (int) many collisions -----\n");
     run<unordered_insert_int_test>(1'000, 1000, 20);
-
-    printf("# ordered hinted insertion (int) few collisions -----\n");
-    run<ordered_insert_hint_int_test>(1'000'000, 2000, 20);
-
-    printf("# ordered hinted insertion (int) many collisions -----\n");
-    run<ordered_insert_hint_int_test>(1'000, 2000, 20);
 
     printf("# count query (int) unlikely -----\n");
     run<count_query_test>(1'000'000, 500, 20, 100);

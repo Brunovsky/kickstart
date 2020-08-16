@@ -14,6 +14,9 @@ using namespace std;
 
 // *****
 
+#define ALL(set)  begin(set), end(set)
+#define RALL(set) rbegin(set), rend(set)
+
 /**
  * Non-copyable, non-movable, non-default-constructible type
  * that always allocates memory.
@@ -88,11 +91,11 @@ void merge_test(int T = 500) {
         assert(as == a.size() && bs == b.size());
 
         bs_multiset<int> uni, difab, difba, itr, sym;
-        set_union(begin(a), end(a), begin(b), end(b), inserter(uni));
-        set_difference(begin(a), end(a), begin(b), end(b), inserter(difab));
-        set_difference(begin(b), end(b), begin(a), end(a), inserter(difba));
-        set_intersection(begin(a), end(a), begin(b), end(b), inserter(itr));
-        set_symmetric_difference(begin(a), end(a), begin(b), end(b), inserter(sym));
+        set_union(ALL(a), ALL(b), inserter(uni));
+        set_difference(ALL(a), ALL(b), inserter(difab));
+        set_difference(ALL(b), ALL(a), inserter(difba));
+        set_intersection(ALL(a), ALL(b), inserter(itr));
+        set_symmetric_difference(ALL(a), ALL(b), inserter(sym));
 
         a.merge(b);
         a.debug();
@@ -133,20 +136,23 @@ void merge_test(int T = 500) {
         as = a.size(), bs = b.size();
 
         bs_set<int> uni, difab, difba, itr, sym;
-        set_union(begin(a), end(a), begin(b), end(b), inserter(uni));
-        set_difference(begin(a), end(a), begin(b), end(b), inserter(difab));
-        set_difference(begin(b), end(b), begin(a), end(a), inserter(difba));
-        set_intersection(begin(a), end(a), begin(b), end(b), inserter(itr));
-        set_symmetric_difference(begin(a), end(a), begin(b), end(b), inserter(sym));
+        set_union(ALL(a), ALL(b), inserter(uni));
+        set_difference(ALL(a), ALL(b), inserter(difab));
+        set_difference(ALL(b), ALL(a), inserter(difba));
+        set_intersection(ALL(a), ALL(b), inserter(itr));
+        set_symmetric_difference(ALL(a), ALL(b), inserter(sym));
 
         a.merge(b);
         a.debug();
         b.debug();
+        assert(is_sorted(ALL(a)));
+        assert(is_sorted(ALL(b)));
 
         assert(b.size() <= bs && as <= a.size());
         assert(a.size() + b.size() == as + bs);
 
         assert(uni.size() == a.size());
+        assert(itr.size() == b.size());
         assert(uni.size() == itr.size() + sym.size());
         assert(sym.size() == difab.size() + difba.size());
         uni.debug();
@@ -159,6 +165,8 @@ void merge_test(int T = 500) {
         bs_set<int> c = a;
         b.merge(c);
         c.merge(b);
+        b.debug();
+        c.debug();
         assert(a == c);
 
         test_step("merge", t + T);
@@ -263,15 +271,15 @@ void iterators_test(int T = 500) {
             auto it = tree.insert(n);
             assert(it != tree.end() && *it == n);
         }
-        sort(begin(nums), end(nums));
+        sort(ALL(nums));
         assert(tree.size() == nums.size());
         tree.debug();
 
         // 1: test iteration
-        assert(equal(begin(nums), end(nums), begin(tree), end(tree)));
-        assert(equal(rbegin(nums), rend(nums), rbegin(tree), rend(tree)));
-        assert(is_sorted(begin(tree), end(tree)));
-        assert(is_sorted(rbegin(tree), rend(tree), greater<int>{}));
+        assert(equal(ALL(nums), ALL(tree)));
+        assert(equal(RALL(nums), RALL(tree)));
+        assert(is_sorted(ALL(tree)));
+        assert(is_sorted(RALL(tree), greater<int>{}));
 
         if (s == 0) {
             // 2: test minimum(), maximum()
@@ -289,8 +297,8 @@ void iterators_test(int T = 500) {
             int i = disti(mt);
             int n = nums[i];
 
-            auto nbegin = lower_bound(begin(nums), end(nums), n);
-            auto nend = upper_bound(begin(nums), end(nums), n);
+            auto nbegin = lower_bound(ALL(nums), n);
+            auto nend = upper_bound(ALL(nums), n);
             auto ntotal = nend - nbegin;
 
             auto tbegin = tree.lower_bound(n);
@@ -319,8 +327,8 @@ void iterators_test(int T = 500) {
                 swap(i, j);
             int n = nums[i], m = nums[j];
 
-            auto nbegin = lower_bound(begin(nums), end(nums), n);
-            auto nend = upper_bound(begin(nums), end(nums), m);
+            auto nbegin = lower_bound(ALL(nums), n);
+            auto nend = upper_bound(ALL(nums), m);
             auto ntotal = nend - nbegin;
 
             auto tbegin = tree.lower_bound(n);
@@ -344,8 +352,8 @@ void iterators_test(int T = 500) {
         for (int l = 0; l < 20; l++) {
             int n = distn(mt);
 
-            auto nbegin = lower_bound(begin(nums), end(nums), n);
-            auto nend = upper_bound(begin(nums), end(nums), n);
+            auto nbegin = lower_bound(ALL(nums), n);
+            auto nend = upper_bound(ALL(nums), n);
             auto ntotal = nend - nbegin;
 
             auto tbegin = tree.lower_bound(n);
@@ -367,8 +375,8 @@ void iterators_test(int T = 500) {
             if (n > m)
                 swap(n, m);
 
-            auto nbegin = lower_bound(begin(nums), end(nums), n);
-            auto nend = upper_bound(begin(nums), end(nums), m);
+            auto nbegin = lower_bound(ALL(nums), n);
+            auto nend = upper_bound(ALL(nums), m);
             auto ntotal = nend - nbegin;
 
             auto tbegin = tree.lower_bound(n);
@@ -407,20 +415,20 @@ void equality_test(int T = 500) {
             lhs.insert(n);
         }
         // ... and into rhs in another
-        shuffle(begin(nums), end(nums), mt);
+        shuffle(ALL(nums), mt);
         for (int n : nums) {
             rhs.insert(n);
         }
         lhs.debug();
         rhs.debug();
 
-        sort(begin(nums), end(nums));
+        sort(ALL(nums));
 
-        assert(is_sorted(begin(lhs), end(lhs)));
-        assert(is_sorted(begin(rhs), end(rhs)));
-        assert(equal(begin(lhs), end(lhs), begin(nums), end(nums)));
-        assert(equal(begin(rhs), end(rhs), begin(nums), end(nums)));
-        assert(equal(begin(lhs), end(lhs), begin(rhs), end(rhs)));
+        assert(is_sorted(ALL(lhs)));
+        assert(is_sorted(ALL(rhs)));
+        assert(equal(ALL(lhs), ALL(nums)));
+        assert(equal(ALL(rhs), ALL(nums)));
+        assert(equal(ALL(lhs), ALL(rhs)));
         assert(lhs.size() == nums.size());
         assert(rhs.size() == nums.size());
         assert(lhs == rhs);
@@ -429,7 +437,7 @@ void equality_test(int T = 500) {
         assert(!(lhs < rhs));
         assert(!(lhs > rhs));
 
-        test_step("iterator", t);
+        test_step("equality", t);
     }
     test_done("equality");
 }
@@ -458,19 +466,19 @@ void comparison_test(int T = 500) {
             tree.insert(n);
         }
         trees.push_back(tree);
-        sort(begin(nums), end(nums));
+        sort(ALL(nums));
         numsets.push_back(nums);
     }
 
     test_step("comparison", 2);
-    sort(begin(trees), end(trees));
-    sort(begin(numsets), end(numsets));
+    sort(ALL(trees));
+    sort(ALL(numsets));
 
     for (int i = 0; i < T; i++) {
         const auto& tree = trees[i];
         const auto& nums = numsets[i];
         tree.debug();
-        assert(equal(begin(tree), end(tree), begin(nums), end(nums)));
+        assert(equal(ALL(tree), ALL(nums)));
     }
     for (int i = 0; i + 1 < T; i++) {
         assert(trees[i] <= trees[i + 1]);
@@ -520,7 +528,7 @@ void erase_test(int T = 500) {
             tree.insert(n);
         }
         tree.debug();
-        shuffle(begin(nums), end(nums), mt);
+        shuffle(ALL(nums), mt);
         for (int i = 0; i < s; i++) {
             tree.erase(nums[i]);
             tree.debug();
@@ -842,7 +850,7 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
             }
         }
 
-        assert(is_sorted(tree.begin(), tree.end(), Compare{}));
+        assert(is_sorted(ALL(tree), Compare{}));
 
         // validate all iterators, in both directions
         vector<pair_t> collector;
@@ -850,18 +858,18 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
             collector.push_back(*it);
         }
         assert(collector.size() == tree.size());
-        assert(equal(begin(collector), end(collector), begin(good), end(good)));
+        assert(equal(ALL(collector), ALL(good)));
         collector.clear();
         for (auto it = tree.rbegin(); it != tree.rend(); it++) {
             collector.push_back(*it);
         }
         assert(collector.size() == tree.size());
-        assert(equal(rbegin(collector), rend(collector), begin(good), end(good)));
+        assert(equal(RALL(collector), ALL(good)));
 
         // punchline
-        assert(equal(good.begin(), good.end(), tree.begin(), tree.end()));
+        assert(equal(ALL(good), ALL(tree)));
 
-        test_step("battle "s + to_string(bti), t);
+        test_step("battle " + to_string(bti), t);
     }
     test_done("battle " + to_string(bti));
 }
@@ -872,10 +880,10 @@ int main() {
     hint_test();
     emplace_test();
     equality_test();
-    comparison_test();
     memory_test();
     iterators_test();
     construct_test();
+    comparison_test();
     merge_test();
     map_test();
 

@@ -12,6 +12,6 @@ template struct rb_tree<int>;
 template struct splay_tree<int>;
 
 template <typename T>
-using Tree = avl_tree<T>;
+using Tree = rb_tree<T>;
 
 #endif // TREE_CORE_HPP
