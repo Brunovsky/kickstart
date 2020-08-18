@@ -4,7 +4,7 @@
 
 int N;
 vector<string> names;
-vector<boyer_myrvold> graphs;
+vector<left_right> graphs;
 vector<string> planarity;
 
 void read() {
@@ -20,7 +20,7 @@ void read() {
         getline(file, names[i]);
         file >> V >> E >> planarity[i] >> ws;
 
-        boyer_myrvold g(V);
+        left_right g(V);
         for (int e = 0; e < E; e++) {
             int u, v;
             file >> u >> v >> ws;
@@ -31,7 +31,8 @@ void read() {
 }
 
 void test() {
-    printf(" verdict  |  actual\n");
+    printf("===== PLANARITY TESTS =====\n verdict  |  actual\n");
+
     for (int i = 0; i < N; i++) {
         bool is_planar = graphs[i].is_planar();
         string verdict = is_planar ? "planar" : "nonplanar";
