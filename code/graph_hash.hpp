@@ -1,4 +1,5 @@
 #include "graph.hpp"
+#include "hash.hpp"
 
 // *****
 

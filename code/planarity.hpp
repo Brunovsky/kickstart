@@ -83,7 +83,7 @@ struct boyer_myrvold {
 
 /**
  * Left right planarity test
- * Complexity: O(V)
+ * Complexity: O(V) expensive
  * Based on: The Left-Right Planarity Test, Ulrik Brandes
  */
 struct left_right {
@@ -148,7 +148,6 @@ struct left_right {
             vis[vw] = true;
             dfs_adj[v].push_back(vw);
             int w = other(vw, v);
-            assert(v != w);
             source[vw] = v, target[vw] = w;
             lowpoint[vw] = lowpoint2[vw] = height[v];
 

@@ -1,3 +1,4 @@
+#include "../graph.hpp"
 #include "../planarity.hpp"
 
 // *****
