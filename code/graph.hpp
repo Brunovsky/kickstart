@@ -13,7 +13,7 @@ struct graph {
     int V, E;
     vector<vector<int>> adj;
 
-    graph(int V = 0) : V(V), E(0), adj(V) {}
+    explicit graph(int V = 0) : V(V), E(0), adj(V) {}
 
     void add(int u, int v) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v);
@@ -28,7 +28,7 @@ struct digraph {
     int V, E;
     vector<vector<int>> adj, rev;
 
-    digraph(int V = 0) : V(V), E(0), adj(V), rev(V) {}
+    explicit digraph(int V = 0) : V(V), E(0), adj(V), rev(V) {}
 
     void add(int u, int v) {
         assert(0 <= u && u < V && 0 <= v && v < V);
@@ -44,7 +44,7 @@ struct edge_graph {
     vector<vector<int>> adj;
     vector<int> source, target;
 
-    edge_graph(int V = 0) : V(V), E(0), adj(V) {}
+    explicit edge_graph(int V = 0) : V(V), E(0), adj(V) {}
 
     int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
 
@@ -64,7 +64,7 @@ struct edge_digraph {
     vector<vector<int>> adj, rev;
     vector<int> source, target;
 
-    edge_digraph(int V = 0) : V(V), E(0), adj(V), rev(V) {}
+    explicit edge_digraph(int V = 0) : V(V), E(0), adj(V), rev(V) {}
 
     int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
 
@@ -85,7 +85,7 @@ struct weight_graph {
     vector<int> source, target;
     vector<long> weight;
 
-    weight_graph(int V = 0) : V(V), E(0), adj(V) {}
+    explicit weight_graph(int V = 0) : V(V), E(0), adj(V) {}
 
     int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
 
@@ -107,7 +107,7 @@ struct weight_digraph {
     vector<int> source, target;
     vector<long> weight;
 
-    weight_digraph(int V = 0) : V(V), E(0), adj(V), rev(V) {}
+    explicit weight_digraph(int V = 0) : V(V), E(0), adj(V), rev(V) {}
 
     int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
 
@@ -129,7 +129,7 @@ struct flow_graph {
     vector<int> source, target;
     vector<long> flow, cap;
 
-    flow_graph(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
+    explicit flow_graph(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
 
     int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
 
@@ -156,7 +156,7 @@ struct weight_flow_graph {
     vector<int> source, target;
     vector<long> flow, cap, weight;
 
-    weight_flow_graph(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
+    explicit weight_flow_graph(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
 
     int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
 
@@ -182,7 +182,7 @@ struct bipartite_graph {
     int U, V, E;
     vector<vector<int>> adj, rev;
 
-    bipartite_graph(int U = 0, int V = 0) : U(U), V(V), E(0), adj(U), rev(V) {}
+    explicit bipartite_graph(int U = 0, int V = 0) : U(U), V(V), E(0), adj(U), rev(V) {}
 
     void add(int u, int v) {
         assert(0 <= u && u < U && 0 <= v && v < V);
@@ -198,7 +198,8 @@ struct bipartite_edge_graph {
     vector<vector<int>> adj, rev;
     vector<int> source, target;
 
-    bipartite_edge_graph(int U = 0, int V = 0) : U(U), V(V), E(0), adj(U), rev(V) {}
+    explicit bipartite_edge_graph(int U = 0, int V = 0)
+        : U(U), V(V), E(0), adj(U), rev(V) {}
 
     int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
 
@@ -219,7 +220,8 @@ struct weight_bipartite_graph {
     vector<int> source, target;
     vector<long> weight;
 
-    weight_bipartite_graph(int U = 0, int V = 0) : U(U), V(V), E(0), adj(U), rev(V) {}
+    explicit weight_bipartite_graph(int U = 0, int V = 0)
+        : U(U), V(V), E(0), adj(U), rev(V) {}
 
     void add(int u, int v, long w) {
         assert(0 <= u && u < U && 0 <= v && v < V && w >= 0);

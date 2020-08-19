@@ -4,7 +4,8 @@ using namespace std;
 
 // *****
 
-static constexpr int nil = -1, inf = INT_MAX;
+static constexpr int nil = -1;
+static constexpr long inf = LONG_MAX / 2;
 
 /**
  * Edmond-Karp maximum flow
@@ -15,13 +16,13 @@ struct maximum_flow {
     vector<vector<int>> adj;
     vector<int> source;
     vector<int> target;
-    vector<int> cap;
-    vector<int> flow;
+    vector<long> cap;
+    vector<long> flow;
 
     maximum_flow(int V) : V(V), E(0) { adj.resize(V, {}); }
 
     // normal nodes are 1..V
-    void add(int u, int v, int capacity) {
+    void add(int u, int v, long capacity) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0);
         int uv = E++;
         int vu = E++;
@@ -36,7 +37,7 @@ struct maximum_flow {
 
     int compute(int s, int t) {
         flow.assign(E, 0);
-        int max_flow = 0;
+        long max_flow = 0;
         do {
             vector<int> pred(V + 2, nil);
             queue<int> Q;
@@ -55,7 +56,7 @@ struct maximum_flow {
             if (pred[t] == nil) {
                 break;
             }
-            int df = inf;
+            long df = inf;
             for (int e = pred[t]; e != nil; e = pred[source[e]]) {
                 df = min(df, cap[e] - flow[e]);
             }
@@ -78,13 +79,13 @@ struct maximum_flow_dinic {
     vector<vector<int>> adj;
     vector<int> source;
     vector<int> target;
-    vector<int> cap;
-    vector<int> flow;
+    vector<long> cap;
+    vector<long> flow;
 
     maximum_flow_dinic(int V) : V(V), E(0) { adj.resize(V, {}); }
 
     // normal nodes are 1..V
-    void add(int u, int v, int capacity) {
+    void add(int u, int v, long capacity) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0);
         int uv = E++;
         int vu = E++;
@@ -119,7 +120,7 @@ struct maximum_flow_dinic {
         return level[t] != nil;
     }
 
-    int dfs(int u, int t, int f) {
+    long dfs(int u, int t, long f) {
         if (u == t) {
             return f;
         }
@@ -127,7 +128,7 @@ struct maximum_flow_dinic {
             int e = adj[u][i];
             int v = target[e];
             if (cap[e] > flow[e] && level[u] < level[v]) {
-                int df = dfs(v, t, min(f, cap[e] - flow[e]));
+                long df = dfs(v, t, min(f, cap[e] - flow[e]));
                 if (df > 0) {
                     flow[e] += df;
                     flow[e ^ 1] -= df;
@@ -140,10 +141,10 @@ struct maximum_flow_dinic {
 
     int compute(int s, int t) {
         flow.assign(E, 0);
-        int max_flow = 0;
+        long max_flow = 0;
         while (bfs(s, t)) {
             arc.assign(V, 0);
-            int dfs_flow = 0;
+            long dfs_flow = 0;
             while ((dfs_flow = dfs(s, t, inf))) {
                 max_flow += dfs_flow;
             }
@@ -153,23 +154,23 @@ struct maximum_flow_dinic {
 };
 
 /**
- * General push relabel (with fifo selection rule)
- * Complexity: O(V^3)
- * Computes graph partitioning directly as a byproduct, and mincut easily follows
+ * Push relabel with highest label selection rule, gap heuristic and reverse bfs
+ * Complexity: O(V^2 E^1/2)
+ * Constant factor is smaller for large graphs if edges are represented locally.
  */
 struct maximum_flow_push_relabel {
     int V, E;
-    vector<vector<int>> adj;
+    vector<vector<int>> adj, rev;
     vector<int> source;
     vector<int> target;
-    vector<int> cap;
-    vector<int> flow;
+    vector<long> cap;
+    vector<long> flow;
     vector<int> mincut;
 
-    maximum_flow_push_relabel(int V) : V(V), E(0) { adj.resize(V, {}); }
+    maximum_flow_push_relabel(int V) : V(V), E(0), adj(V), rev(V) {}
 
     // normal nodes are 1..V
-    void add(int u, int v, int capacity) {
+    void add(int u, int v, long capacity) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0);
         int uv = E++;
         int vu = E++;
@@ -180,33 +181,49 @@ struct maximum_flow_push_relabel {
         cap[vu] = 0;
         adj[u].push_back(uv);
         adj[v].push_back(vu);
+        rev[v].push_back(u);
     }
 
-    vector<int> excess;
+    vector<long> excess;
     vector<int> height;
     vector<int> arc;
-    queue<int> active; // fifo selection, O(V^3)
+    vector<vector<int>> active;
+    vector<int> labeled;
+    int b;
 
     void push(int e) {
         int u = source[e], v = target[e];
-        int send = min(excess[u], cap[e] - flow[e]);
+        long send = min(excess[u], cap[e] - flow[e]);
+        if (flow[e] < cap[e] && excess[v] == 0) {
+            active[height[v]].push_back(v);
+        }
         flow[e] += send;
         flow[e ^ 1] -= send;
         excess[u] -= send;
         excess[v] += send;
-        if (excess[v] == send) {
-            active.push(v);
-        }
     }
 
     void relabel(int u) {
-        int min_height = inf;
-        for (int e : adj[u]) {
-            if (cap[e] > flow[e]) {
-                min_height = min(min_height, height[target[e]]);
-                height[u] = min_height + 1;
+        labeled[height[u]]--;
+        height[u] = 2 * V;
+        int vsize = adj[u].size();
+        for (int i = 0; i < vsize; i++) {
+            int e = adj[u][i], v = target[e];
+            if (flow[e] < cap[e] && height[u] > height[v] + 1) {
+                height[u] = height[v] + 1;
+                // arc[u] = i;
             }
         }
+        labeled[height[u]]++;
+        if (b < V && !labeled[b]) {
+            for (int v = 0; v < V; v++) {
+                if (b < height[v] && height[v] < V) {
+                    labeled[height[v]]--;
+                    height[v] = V + 1;
+                }
+            }
+        }
+        b = height[u];
     }
 
     void discharge(int u) {
@@ -219,13 +236,11 @@ struct maximum_flow_push_relabel {
             }
             int e = adj[u][i];
             int v = target[e];
-            if (cap[e] > flow[e] && height[u] > height[v]) {
-                assert(height[u] == height[v] + 1);
+            if (flow[e] < cap[e] && height[u] > height[v]) {
+                // assert(height[u] == height[v] + 1);
                 push(e);
-                i += excess[u] > 0;
-            } else {
-                i++;
             }
+            i += excess[u] > 0;
         }
     }
 
@@ -234,42 +249,47 @@ struct maximum_flow_push_relabel {
         height.assign(V, 0);
         arc.assign(V, 0);
         flow.assign(E, 0);
+        active.assign(2 * V, {});
+        labeled.assign(2 * V, 0);
+        height[s] = V, height[t] = 0;
+        b = V - 1;
+        assert(s != t);
 
-        height[s] = V;
-        excess[s] = inf;
-        for (int e : adj[s]) {
-            push(e);
-            active.push(target[e]);
-        }
-
-        while (!active.empty()) {
-            int u = active.front();
-            active.pop();
-            if (u != s && u != t) {
-                discharge(u);
-            }
-        }
-
-        int max_flow = 0;
-        for (int e : adj[s]) {
-            max_flow += flow[e];
-        }
-        return max_flow;
-    }
-
-    bool left_of_mincut(int u) const { return height[u] >= V; }
-
-    void compute_mincut() {
-        mincut.clear();
-        for (int u = 0; u < V; u++) {
-            if (left_of_mincut(u)) {
-                for (int e : adj[u]) {
-                    int v = target[e];
-                    if (cap[e] > 0 && !left_of_mincut(v)) {
-                        mincut.push_back(e);
-                    }
+        vector<int> bfs{t};
+        int i = 0, S = 1;
+        while (i++ < S) {
+            int v = bfs[i - 1];
+            for (int u : rev[v]) {
+                if (u != t && height[u] == 0) {
+                    height[u] = height[v] + 1;
+                    bfs.push_back(u), S++;
+                } else if (u != s) {
+                    height[u] = min(height[u], height[v] + 1);
                 }
             }
         }
+        for (int u = 0; u < V; u++) {
+            labeled[height[u]]++;
+        }
+
+        excess[s] = inf;
+        for (int e : adj[s]) {
+            push(e);
+        }
+
+        while (true) {
+            while (b >= 0 && active[b].empty())
+                b--;
+            if (b < 0)
+                break;
+            int u = active[b].back();
+            active[b].pop_back();
+            if (u != s && u != t)
+                discharge(u);
+        }
+
+        return inf - excess[s];
     }
+
+    bool left_of_mincut(int u) const { return height[u] >= V; }
 };
