@@ -11,13 +11,13 @@ constexpr int T = 8, D = 4, A = 4, R = 2000;
 string names[T] = {"sparse dags",        "dense dags",         "very dense dags",
                    "huge sparse dags",   "sparse general",     "dense general",
                    "very dense general", "huge sparse general"};
-int quantity[T] = {250, 150, 75, 40, 250, 150, 75, 40};
+int quantity[T] = {1000, 500, 200, 60, 1000, 500, 200, 60};
 vector<flow_graph> graphs[T];
 vector<long> flows[A];
 
 void generate_randoms() {
-    intd distV(20, 600);
-    intd hugeV(2000, 8000);
+    intd distV(10, 200);
+    intd hugeV(900, 2000);
     reald sparse(3.0, 7.0);
     for (int t = 0; t < quantity[0]; t++) {
         printf("\rGenerating sparse dag %d...", t + 1);
@@ -84,7 +84,7 @@ void speed_test(const string& name, int t) {
                 mf.add(u, f.target[e], f.cap[e]);
             }
         }
-        long max_flow = mf.compute(0, V - 1);
+        long max_flow = mf.maxflow(0, V - 1);
         flows[k].push_back(max_flow);
         printf("%ld\r", max_flow);
     }
@@ -97,9 +97,9 @@ void test_speed(int S = T) {
     generate_randoms();
     for (int t = 0; t < S; t++) {
         printf("--- %d  %s\n", t, names[t].data());
-        speed_test<maximum_flow, 0>("edmonds karp", t);
-        speed_test<maximum_flow_dinic, 1>("dinic", t);
-        speed_test<maximum_flow_push_relabel, 2>("push relabel", t);
+        speed_test<edmonds_karp, 0>("edmonds karp", t);
+        speed_test<dinic_flow, 1>("dinic", t);
+        speed_test<push_relabel, 2>("push relabel", t);
         printf("\n");
     }
 }
@@ -110,9 +110,9 @@ void test_equal() {
     flow_graph f = generate_dag_flow_graph(V, 5.0 / V, 100000);
 
     naive_flow flow1(V);
-    maximum_flow flow2(V);
-    maximum_flow_dinic flow3(V);
-    maximum_flow_push_relabel flow4(V);
+    edmonds_karp flow2(V);
+    dinic_flow flow3(V);
+    push_relabel flow4(V);
 
     for (int u = 0; u < V; u++) {
         for (int e : f.adj[u]) {
@@ -123,10 +123,10 @@ void test_equal() {
         }
     }
 
-    long mf1 = flow1.compute(0, V - 1);
-    long mf2 = flow2.compute(0, V - 1);
-    long mf3 = flow3.compute(0, V - 1);
-    long mf4 = flow4.compute(0, V - 1);
+    long mf1 = flow1.maxflow(0, V - 1);
+    long mf2 = flow2.maxflow(0, V - 1);
+    long mf3 = flow3.maxflow(0, V - 1);
+    long mf4 = flow4.maxflow(0, V - 1);
     assert(mf1 != 0);
 
     printf("%7ld %7ld %7ld %7ld", mf1, mf2, mf3, mf4);
@@ -149,5 +149,6 @@ int main() {
     setbuf(stdout, nullptr);
     test_equals();
     test_speed(T);
+    (void)T, (void)D;
     return 0;
 }
