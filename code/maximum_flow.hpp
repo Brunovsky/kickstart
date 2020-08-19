@@ -143,9 +143,9 @@ struct maximum_flow_dinic {
         int max_flow = 0;
         while (bfs(s, t)) {
             arc.assign(V, 0);
-            int flow = 0;
-            while ((flow = dfs(s, t, inf))) {
-                max_flow += flow;
+            int dfs_flow = 0;
+            while ((dfs_flow = dfs(s, t, inf))) {
+                max_flow += dfs_flow;
             }
         }
         return max_flow;
@@ -211,7 +211,7 @@ struct maximum_flow_push_relabel {
 
     void discharge(int u) {
         int vsize = adj[u].size();
-        int &i = arc[u];
+        int& i = arc[u];
         while (excess[u] > 0) {
             if (i == vsize) {
                 relabel(u);
