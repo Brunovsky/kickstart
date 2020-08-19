@@ -2,37 +2,28 @@
 
 // *****
 
-static mt19937 mt(random_device{}());
+mt19937 mt(random_device{}());
 using intd = uniform_int_distribution<int>;
 using boold = bernoulli_distribution;
 
 /**
  * Reverse the edges of the graph, and return a new graph.
- * Complexity: O(V + E)
  */
 digraph reverse(const digraph& g) {
-    int V = g.V;
-    digraph rev(V);
-    for (int u = 0; u < V; u++) {
-        for (int v : g.adj[u]) {
-            rev.add(v, u);
-        }
-    }
+    digraph rev(g);
+    swap(rev.adj, rev.rev);
     return rev;
 }
 
 /**
  * Relabel the nodes of this graph randomly, and return a new graph.
- * Complexity: O(V + E)
  */
-template <typename Graph>
-Graph relabel(const Graph& g) {
-    int V = g.V;
-    vector<int> label(V);
+graph relabel(const graph& g) {
+    vector<int> label(g.V);
     iota(begin(label), end(label), 0);
     shuffle(begin(label), end(label), mt);
-    Graph h(V);
-    for (int u = 0; u < V; u++) {
+    graph h(g.V);
+    for (int u = 0; u < g.V; u++) {
         for (int v : g.adj[u]) {
             h.adj[label[u]].push_back(label[v]);
         }
@@ -41,54 +32,77 @@ Graph relabel(const Graph& g) {
     return h;
 }
 
+digraph relabel(const digraph& g) {
+    vector<int> label(g.V);
+    iota(begin(label), end(label), 0);
+    shuffle(begin(label), end(label), mt);
+    digraph h(g.V);
+    for (int u = 0; u < g.V; u++) {
+        for (int v : g.adj[u]) {
+            h.add(label[u], label[v]);
+        }
+    }
+    h.E = g.E;
+    return h;
+}
+
 /**
- * Check whether the entire graph is reachable from one of its vertices s.
- * Complexity: O(V + E)
+ * Check if a graph is (strongly) connected
  */
 template <typename Graph>
-bool is_connected_bfs(const Graph& g, int s = 0) {
-    if (g.V == 0)
-        return true;
-    uint i = 0, V = g.V;
+vector<int> reachable(const Graph& g, int s = 0) {
+    uint i = 0, V = g.V, S = 1;
     vector<bool> vis(V, false);
     vector<int> bfs{s};
     vis[s] = true;
-    while (i++ < bfs.size()) {
+    while (i++ < S && S < V) {
         for (int v : g.adj[bfs[i - 1]]) {
             if (!vis[v]) {
-                vis[v] = true;
+                vis[v] = true, S++;
                 bfs.push_back(v);
             }
         }
     }
-    return bfs.size() == V;
+    return bfs;
 }
 
-/**
- * Determine if a graph is (strongly) connected.
- * To check strong connectivity in directed graphs we must check the reverse of g too.
- * Complexity: O(V + E)
- */
-bool is_connected(const graph& g) { // undirected
-    return is_connected_bfs(g);
+bool is_connected(const graph& g) {
+    if (g.V == 0)
+        return true;
+    return int(reachable(g).size()) == g.V;
 }
-bool is_connected(const digraph& g) { // directed strongly connected
-    return is_connected_bfs(g) && is_connected_bfs(reverse(g));
+
+bool is_connected(const digraph& g) {
+    if (g.V == 0)
+        return true;
+    return int(reachable(g).size()) == g.V && int(reachable(reverse(g)).size()) == g.V;
 }
 
 /**
  * Join two graphs together.
  * The new graph has the two graphs joined as disconnected subgraphs.
- * Complexity: O(V + E)
  */
-template <typename Graph>
-Graph& join(Graph& g, const Graph& h) {
+graph& join(graph& g, const graph& h) {
     int n = g.V, V = g.V + h.V, E = g.E + h.E;
     g.V = V, g.E = E;
     g.adj.resize(V);
     for (int u = 0; u < h.V; u++) {
         for (int v : h.adj[u]) {
             g.adj[u + n].push_back(v + n);
+        }
+    }
+    return g;
+}
+
+digraph& join(digraph& g, const digraph& h) {
+    int n = g.V, V = g.V + h.V, E = g.E + h.E;
+    g.V = V, g.E = E;
+    g.adj.resize(V);
+    g.rev.resize(V);
+    for (int u = 0; u < h.V; u++) {
+        for (int v : h.adj[u]) {
+            g.adj[u + n].push_back(v + n);
+            g.rev[v + n].push_back(u + n);
         }
     }
     return g;
@@ -268,7 +282,7 @@ digraph generate_scc_uniform_expansion(const digraph& dag, int k, double p) {
         return g;
     };
     auto h = [&](int u, int v) {
-        return ceil(sqrt(cnt[u] * cnt[v]));
+        return int(ceil(sqrt(cnt[u] * cnt[v])));
     };
     return generate_scc_expansion(dag, f, h);
 }
