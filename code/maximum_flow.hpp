@@ -102,7 +102,7 @@ struct maximum_flow_dinic {
     vector<int> arc;
 
     bool bfs(int s, int t) {
-        level.assign(V + 2, nil);
+        fill(begin(level), end(level), nil);
         level[s] = 0;
         queue<int> Q;
         Q.push(s);
@@ -111,7 +111,7 @@ struct maximum_flow_dinic {
             Q.pop();
             for (int e : adj[u]) {
                 int v = target[e];
-                if (level[v] == nil && cap[e] > flow[e]) {
+                if (level[v] == nil && flow[e] < cap[e]) {
                     level[v] = level[u] + 1;
                     Q.push(v);
                 }
@@ -124,30 +124,29 @@ struct maximum_flow_dinic {
         if (u == t) {
             return f;
         }
+        long preflow = 0;
         for (int &i = arc[u], end = adj[u].size(); i < end; i++) {
-            int e = adj[u][i];
-            int v = target[e];
-            if (cap[e] > flow[e] && level[u] < level[v]) {
-                long df = dfs(v, t, min(f, cap[e] - flow[e]));
-                if (df > 0) {
-                    flow[e] += df;
-                    flow[e ^ 1] -= df;
-                    return df;
-                }
+            int e = adj[u][i], v = target[e];
+            if (flow[e] < cap[e] && level[u] < level[v]) {
+                long df = dfs(v, t, min(f - preflow, cap[e] - flow[e]));
+                flow[e] += df;
+                flow[e ^ 1] -= df;
+                preflow += df;
+                if (preflow == f)
+                    break;
             }
         }
-        return 0;
+        return preflow;
     }
 
     int compute(int s, int t) {
         flow.assign(E, 0);
+        level.assign(V + 2, 0);
+        arc.assign(V, 0);
         long max_flow = 0;
         while (bfs(s, t)) {
-            arc.assign(V, 0);
-            long dfs_flow = 0;
-            while ((dfs_flow = dfs(s, t, inf))) {
-                max_flow += dfs_flow;
-            }
+            max_flow += dfs(s, t, inf);
+            fill(begin(arc), end(arc), 0);
         }
         return max_flow;
     }
@@ -228,7 +227,7 @@ struct maximum_flow_push_relabel {
 
     void discharge(int u) {
         int vsize = adj[u].size();
-        int& i = arc[u];
+        int &i = arc[u];
         while (excess[u] > 0) {
             if (i == vsize) {
                 relabel(u);
@@ -292,4 +291,75 @@ struct maximum_flow_push_relabel {
     }
 
     bool left_of_mincut(int u) const { return height[u] >= V; }
+};
+
+/**
+ * Simple, exponential complexity max flow algorithm
+ * Complexity: O(2^E f) where f is the maximum flow
+ */
+struct naive_flow {
+    int V, E;
+    vector<vector<int>> adj, rev, res;
+    vector<int> source, target;
+    vector<long> flow, cap;
+
+    naive_flow(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
+
+    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+
+    void add(int u, int v, long c = 1) {
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
+        int uv = 2 * E;
+        int vu = 2 * E + 1;
+        adj[u].push_back(uv);
+        rev[v].push_back(uv);
+        res[u].push_back(uv), res[v].push_back(vu);
+        source.push_back(u), source.push_back(v);
+        target.push_back(v), target.push_back(u);
+        flow.push_back(0), flow.push_back(0);
+        cap.push_back(c), cap.push_back(0);
+        E++;
+    }
+
+    int compute(int s, int t) {
+        vis.assign(V, false);
+        return dfs(s, t, LONG_MAX / 2);
+    }
+
+    vector<bool> vis;
+
+    int dfs(int u, int t, long mincap) {
+        if (u == t) {
+            return mincap;
+        }
+        long preflow = 0;
+        vis[u] = true;
+        vector<int> seen;
+
+        for (int e : res[u]) {
+            int v = target[e];
+
+            if (!vis[v] && flow[e] < cap[e]) {
+                int pathflow = dfs(v, t, min(mincap - preflow, cap[e] - flow[e]));
+                if (pathflow == 0) {
+                    vis[v] = true;
+                    seen.push_back(v);
+                } else {
+                    flow[e] += pathflow;
+                    flow[e ^ 1] -= pathflow;
+                    preflow += pathflow;
+                    if (preflow == mincap)
+                        break;
+                }
+            }
+        }
+
+        for (int v : seen) {
+            vis[v] = false;
+        }
+
+        // printf("OUT %d   mincap=%ld  preflow=%ld\n", u, mincap, preflow);
+        vis[u] = false;
+        return preflow;
+    }
 };
