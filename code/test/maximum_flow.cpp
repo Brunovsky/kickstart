@@ -98,8 +98,9 @@ void test_speed(int S = T) {
     for (int t = 0; t < S; t++) {
         printf("--- %d  %s\n", t, names[t].data());
         speed_test<edmonds_karp, 0>("edmonds karp", t);
-        speed_test<dinic_flow, 1>("dinic", t);
+        speed_test<dinitz_flow, 1>("dinitz", t);
         speed_test<push_relabel, 2>("push relabel", t);
+        speed_test<tidal_flow, 3>("tidal flow", t);
         printf("\n");
     }
 }
@@ -109,9 +110,9 @@ void test_equal() {
     int V = distV(mt);
     flow_graph f = generate_dag_flow_graph(V, 5.0 / V, 100000);
 
-    naive_flow flow1(V);
+    tidal_flow flow1(V);
     edmonds_karp flow2(V);
-    dinic_flow flow3(V);
+    dinitz_flow flow3(V);
     push_relabel flow4(V);
 
     for (int u = 0; u < V; u++) {

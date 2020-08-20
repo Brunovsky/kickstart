@@ -7,7 +7,7 @@ using namespace std;
 static constexpr long inf = LONG_MAX / 2;
 
 /**
- * Edmond-Karp maximum flow
+ * Edmond-Karp augmenting paths
  * Complexity: O(VE^2), not good
  */
 struct edmonds_karp {
@@ -76,16 +76,16 @@ struct edmonds_karp {
 };
 
 /**
- * Dinic's blocking flow algorithm for max flow
+ * Dinitz's blocking flows
  * Complexity: O(V^2 E), close to push relabel in practice
  */
-struct dinic_flow {
+struct dinitz_flow {
     int V, E;
     vector<vector<int>> adj, rev, res;
     vector<int> source, target;
     vector<long> flow, cap;
 
-    explicit dinic_flow(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
+    explicit dinitz_flow(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
 
     int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
 
@@ -161,8 +161,8 @@ struct dinic_flow {
 
 /**
  * Push relabel with highest label selection rule, gap heuristic and reverse bfs
+ * Also known as Preflow-Push (GAP)
  * Complexity: O(V^2 E^1/2)
- * Constant factor is smaller for large graphs if edges are represented locally.
  */
 struct push_relabel {
     int V, E;
@@ -369,5 +369,109 @@ struct naive_flow {
     long maxflow(int s, int t) {
         vis.assign(V, false);
         return dfs(s, t, LONG_MAX / 2);
+    }
+};
+
+/**
+ * Simple tidal flow algorithm
+ * Complexity: O(V E^2)
+ * Based on "Tidal Flow: A Fast and Teachable Maximum Flow Algorithm" by Fontaine, M.C.
+ * Slower than push-relabel, comparable to dinitz
+ */
+struct tidal_flow {
+    int V, E;
+    vector<vector<int>> adj, rev, res;
+    vector<int> source, target;
+    vector<long> flow, cap;
+
+    explicit tidal_flow(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
+
+    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+
+    void add(int u, int v, long c = 1) {
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
+        int uv = 2 * E;
+        int vu = 2 * E + 1;
+        adj[u].push_back(uv);
+        rev[v].push_back(uv);
+        res[u].push_back(uv);
+        res[v].push_back(vu);
+        source.push_back(u), source.push_back(v);
+        target.push_back(v), target.push_back(u);
+        flow.push_back(0), flow.push_back(0);
+        cap.push_back(c), cap.push_back(0);
+        E++;
+    }
+
+    vector<int> level;
+    vector<int> edges;
+    vector<long> p, h, l;
+
+    bool bfs(int s, int t) {
+        fill(begin(level), end(level), -1);
+        edges.clear();
+        level[s] = 0;
+        vector<int> bfs{s};
+        int i = 0, S = 1;
+        while (i < S) {
+            int u = bfs[i++];
+            for (int e : res[u]) {
+                int v = target[e];
+                if (flow[e] < cap[e]) {
+                    if (level[v] == -1) {
+                        level[v] = level[u] + 1;
+                        bfs.push_back(v), S++;
+                    }
+                    if (level[v] == level[u] + 1) {
+                        edges.push_back(e);
+                    }
+                }
+            }
+        }
+        return level[t] != -1;
+    }
+
+    long tide(int s, int t) {
+        fill(begin(h), end(h), 0);
+        h[s] = inf;
+        for (int e : edges) {
+            int w = source[e], v = target[e];
+            p[e] = min(cap[e] - flow[e], h[w]);
+            h[v] = h[v] + p[e];
+        }
+        if (h[t] == 0) {
+            return 0;
+        }
+        fill(begin(l), end(l), 0);
+        l[t] = h[t];
+        for (auto it = edges.rbegin(); it != edges.rend(); it++) {
+            int e = *it, w = source[e], v = target[e];
+            p[e] = min(p[e], min(h[w] - l[w], l[v]));
+            l[v] -= p[e];
+            l[w] += p[e];
+        }
+        fill(begin(h), end(h), 0);
+        h[s] = l[s];
+        for (auto e : edges) {
+            int w = source[e], v = target[e];
+            p[e] = min(p[e], h[w]);
+            h[w] -= p[e];
+            h[v] += p[e];
+            flow[e] += p[e];
+            flow[e ^ 1] -= p[e];
+        }
+        return h[t];
+    }
+
+    long maxflow(int s, int t) {
+        level.assign(V, 0);
+        h.assign(V, 0);
+        l.assign(V, 0);
+        p.assign(2 * E, 0);
+        long max_flow = 0;
+        while (bfs(s, t)) {
+            max_flow += tide(s, t);
+        }
+        return max_flow;
     }
 };

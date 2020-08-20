@@ -506,6 +506,86 @@ digraph generate_tree_directed(int V, bool toparent = true, bool tochild = false
 }
 
 /**
+ * Generate undirected grid graph of size WxH vertices
+ * Vertices numbered top to bottom, left to right, row-major
+ */
+graph generate_grid_undirected(int W, int H) {
+    int V = W * H;
+    graph g(V);
+    for (int i = 0; i < W; i++) {
+        for (int j = 0; j < H; j++) {
+            int u = i * H + j;
+            int south = u + H;
+            int east = u + 1;
+            if (i + 1 < W)
+                g.add(u, south);
+            if (j + 1 < H)
+                g.add(u, east);
+        }
+    }
+    return g;
+}
+
+/**
+ * Generate directed grid graph of size WxH vertices directed towards southeast
+ * Vertices numbered top to bottom, left to right, row-major
+ */
+digraph generate_grid_directed(int W, int H) {
+    int V = W * H;
+    digraph g(V);
+    for (int i = 0; i < W; i++) {
+        for (int j = 0; j < H; j++) {
+            int u = i * H + j;
+            int south = u + H;
+            int east = u + 1;
+            if (i + 1 < W)
+                g.add(u, south);
+            if (j + 1 < H)
+                g.add(u, east);
+        }
+    }
+    return g;
+}
+
+/**
+ * Generate a ranked/level graph where nodes on level i are completely connected to
+ * nodes on level i+1 only
+ */
+graph generate_full_level_undirected(int V, const vector<int>& ranksize) {
+    graph g(V);
+    int start = 0, ranks = ranksize.size();
+    for (int r = 0; r < ranks - 1; r++) {
+        int mid = start + ranksize[r];
+        int end = mid + ranksize[r + 1];
+        for (int u = start; u < mid; u++) {
+            for (int v = mid; v < end; v++) {
+                g.add(u, v);
+            }
+        }
+    }
+    return g;
+}
+
+/**
+ * Generate a ranked/level graph where nodes on level i are completely connected to
+ * nodes on level i+1 only
+ */
+digraph generate_full_level_directed(int V, const vector<int>& ranksize) {
+    digraph g(V);
+    int start = 0, ranks = ranksize.size();
+    for (int r = 0; r < ranks - 1; r++) {
+        int mid = start + ranksize[r];
+        int end = mid + ranksize[r + 1];
+        for (int u = start; u < mid; u++) {
+            for (int v = mid; v < end; v++) {
+                g.add(u, v);
+            }
+        }
+    }
+    return g;
+}
+
+/**
  * Expand each node u of a directed acyclic graph into a randomly generated
  * strongly connected component from f(u).
  * Connect the generated nodes of u into the generated nodes of v in adj[u] using h(u,v)
