@@ -9,9 +9,9 @@ ostream& operator<<(ostream& out, const vector<N>& vec) {
     int n = vec.size();
     out << "[ ";
     for (int i = 0; i < n; i++) {
-        out << vec[i] << " ";
+        out << setw(2) << vec[i] << " ";
     }
-    return out << "]\n";
+    return out << "]";
 }
 
 constexpr int inf = INT_MAX / 2;
@@ -247,7 +247,7 @@ struct micali_vazirani {
                 vis[e] = true;
             else {
                 u = find(bloom[v]);
-                if (!vis[u] && !erased[u] && level(u) > level(lo) &&
+                if (!seen[u] && !erased[u] && level(u) > level(lo) &&
                     mark[u] == mark[hi]) {
                     seen[u] = true;
                     parent[u] = v, v = u;
@@ -312,7 +312,6 @@ struct micali_vazirani {
                 assert(m[e] && mate[other(e, u)] == e && other(e, u) < u);
             else {
                 int v = other(e, u);
-                debug(e), debug(u), debug(v);
                 assert(!n[u] && !n[t] && !m[e]);
                 assert(u == source[e] || u == target[e]);
                 assert(v == source[e] || v == target[e]);
