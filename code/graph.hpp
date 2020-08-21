@@ -1,3 +1,6 @@
+#ifndef GRAPH_HPP
+#define GRAPH_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -309,3 +312,5 @@ Graph read_dimacs(ifstream& file) {
     }
     return g;
 }
+
+#endif // GRAPH_HPP
