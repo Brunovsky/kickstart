@@ -5,29 +5,28 @@
 
 // *****
 
-/**
- * Take a graph and add self-loops with probability p
- */
-void add_self_loops(graph& g, double p) {
-    boold distp(p);
-    for (int u = 0; u < g.V; u++) {
-        if (distp(mt))
+// ***** Auxiliary methods
+
+template <typename Graph>
+void add_self_loops(Graph& g, double p) {
+    if (p <= 0.15) {
+        binomd distk(g.V, p);
+        for (int u : int_sample(distk(mt), 0, g.V - 1))
             g.add(u, u);
+    } else {
+        boold distp(p);
+        for (int u = 0; u < g.V; u++)
+            if (distp(mt))
+                g.add(u, u);
     }
 }
 
-/**
- * Take a graph and a parent map and add parent edges
- */
 void add_parent_edges(graph& g, const vector<int>& parent, int start) {
     for (int u = start; u < g.V; u++) {
         g.add(u, parent[u]);
     }
 }
 
-/**
- * Take a digraph and a parent map and add parent/child edges
- */
 void add_parent_edges(digraph& g, const vector<int>& parent, int start,
                       bool toparent = true, bool tochild = false) {
     for (int u = start; u < g.V; u++) {
@@ -38,10 +37,7 @@ void add_parent_edges(digraph& g, const vector<int>& parent, int start,
     }
 }
 
-/**
- * Take a digraph and a level size list and back edges with probability q.
- */
-void add_ranked_back_edges(digraph& g, double q, const vector<int>& R) {
+void add_level_back_edges(digraph& g, double q, const vector<int>& R) {
     boold distq(q);
     int start = 0, ranks = R.size();
     for (int r = 0; r < ranks; r++) {
@@ -58,9 +54,6 @@ void add_ranked_back_edges(digraph& g, double q, const vector<int>& R) {
     }
 }
 
-/**
- * Take any graph and add all edges from vertices [u1..u2) to [v1..v2).
- */
 template <typename Graph>
 void add_level_step_full(Graph& g, int u1, int u2, int v1, int v2) {
     for (int u = u1; u < u2; u++)
@@ -68,9 +61,6 @@ void add_level_step_full(Graph& g, int u1, int u2, int v1, int v2) {
             g.add(u, v);
 }
 
-/**
- * Take any graph and add edges from vertices [u1..u2) to [v1..v2) with probability p.
- */
 template <typename Graph>
 void add_level_step_uniform(Graph& g, int u1, int u2, int v1, int v2, double p,
                             bool mustout = false, bool mustin = false) {
@@ -103,11 +93,6 @@ void add_level_step_uniform(Graph& g, int u1, int u2, int v1, int v2, double p,
     }
 }
 
-/**
- * Take any graph and a level size list, and add level edges from level 0 to level 1,
- * level 1 to level 2, ..., level L - 2 to level L - 1.
- * If loop is true, add edges from level L - 1 to level 0.
- */
 template <typename Graph>
 void link_levels_full(Graph& g, const vector<int>& R, bool loop = false) {
     int start = 0, ranks = R.size();
@@ -124,11 +109,6 @@ void link_levels_full(Graph& g, const vector<int>& R, bool loop = false) {
     }
 }
 
-/**
- * Take any graph and a level size list, and add level edges from level 0 to level 1,
- * level 1 to level 2, ..., level L - 2 to level L - 1.
- * If loop is true, add edges from level L - 1 to level 0.
- */
 template <typename Graph>
 void link_levels_uniform(Graph& g, double p, const vector<int>& R, bool loop = false,
                          bool mustout = true, bool mustin = true) {
@@ -146,12 +126,6 @@ void link_levels_uniform(Graph& g, double p, const vector<int>& R, bool loop = f
     }
 }
 
-/**
- * Take any graph and a level size list, and add level edges from level n to level m
- * with probability p^(m-n).
- * If loop is true, add edges where m < n as well, "going around".
- * mustout and mustin are only for adjacent levels
- */
 template <typename Graph>
 void link_levels_exp(Graph& g, double p, const vector<int>& R, bool loop = false,
                      bool mustout = true, bool mustin = true) {
@@ -401,50 +375,10 @@ digraph generate_exact_rooted_dag(int V, int E) {
  * Complexity: O(kV^2)
  */
 graph generate_regular(int V, int k) {
-    assert(3 <= k && k < V && (k % 2 == 0 || V % 2 == 0));
-    vector<vector<bool>> edges;
-    vector<int> nodes;
-    graph g;
-
-    auto cmp = [&](int u, int v) {
-        return g.adj[u].size() < g.adj[v].size();
-    };
-
-restart:
-    nodes.resize(V);
-    iota(begin(nodes), end(nodes), 0);
-    edges.assign(V, vector<bool>(V, false));
-    g = graph(V);
-
-    while (k && !nodes.empty()) {
-        nth_element(begin(nodes), begin(nodes), end(nodes), cmp);
-        shuffle(begin(nodes) + 1, end(nodes), mt);
-
-        int u = nodes[0], v, vi, S = nodes.size();
-        for (int i = 1; i < S; i++) {
-            int w = nodes[i];
-            if (!edges[u][w] && u != w) {
-                vi = i, v = w;
-                goto add_edge;
-            }
-        }
-        goto restart;
-
-    add_edge:
-        g.add(u, v);
-        edges[u][v] = edges[v][u] = true;
-
-        int degu = g.adj[u].size();
-        int degv = g.adj[v].size();
-        if (degv == k) {
-            swap(nodes[vi], nodes.back());
-            nodes.pop_back();
-        }
-        if (degu == k) {
-            swap(nodes[0], nodes.back());
-            nodes.pop_back();
-        }
-    }
+    graph g(V);
+    auto edges = regular_sample(V, k);
+    for (auto edge : edges)
+        g.add(edge[0], edge[1]);
     return g;
 }
 

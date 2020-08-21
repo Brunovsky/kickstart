@@ -205,11 +205,80 @@ vector<int> partition_sample(int n, int k, int m = 1) {
     return parts;
 }
 
+/**
+ * Like partition_sample but the first and last levels have size exactly 1.
+ */
 vector<int> partition_sample_flow(int V, int ranks, int m = 1) {
     auto R = partition_sample(V - 2, ranks - 2, m);
     R.insert(R.begin(), 1);
     R.insert(R.end(), 1);
     return R;
+}
+
+/**
+ * Generate a k-regular undirected edge set on n vertices.
+ * Requires nk even and k <= n - 1.
+ * Complexity: O(kV * restarts)
+ */
+vector<array<int, 2>> regular_sample(int n, int k) {
+    assert(3 <= k && k < n && !(k & 1 && n & 1));
+    int restarts = 0, edges;
+
+    unordered_set<array<int, 2>, vec_hasher> seen;
+    vector<int> cnt(n), notfull;
+
+restart:
+    if (restarts++ == 100)
+        throw std::runtime_error("Failed to generate regular graph after 100 restarts");
+
+    seen.clear();
+    notfull.resize(n);
+    iota(begin(notfull), end(notfull), 0);
+    fill(begin(cnt), end(cnt), k);
+    edges = 0;
+
+    while (k && !notfull.empty()) {
+        int b = notfull.size();
+        if (b == 1)
+            goto restart;
+
+        for (int i = 0; i < b; i++) {
+            int u = notfull[i], v, j;
+            int fast = 2 * b;
+            intd other(0, b - 2);
+            do { // fast loop, fallback to iterating through notfull otherwise
+                j = other(mt);
+                j += j >= i;
+                v = notfull[j];
+            } while (--fast && seen.count({u, v}));
+            if (!fast && seen.count({u, v})) {
+                for (j = 0; j < b; j++) {
+                    v = notfull[j];
+                    if (i != j && !seen.count({u, v}))
+                        break;
+                }
+                if (j == b)
+                    goto restart; // :(
+            }
+
+            cnt[u]--, cnt[v]--, edges++;
+            seen.insert({u, v}), seen.insert({v, u});
+            if (i < j) // careful not to invalidate the other node's index
+                swap(u, v), swap(i, j);
+            if (cnt[u] == 0)
+                swap(notfull[i], notfull.back()), notfull.pop_back(), b--;
+            if (cnt[v] == 0)
+                swap(notfull[j], notfull.back()), notfull.pop_back(), b--;
+        }
+    }
+
+    vector<array<int, 2>> regular(edges);
+    for (auto p : seen)
+        if (p[0] < p[1])
+            regular[--edges] = p;
+    fprintf(stderr, "edges: %d  V: %d  k: %d\n", edges, n, k);
+    assert(edges == 0);
+    return regular;
 }
 
 #endif // RANDOM_HPP
