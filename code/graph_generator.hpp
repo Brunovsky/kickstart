@@ -1,54 +1,7 @@
 #include "graph.hpp"
+#include "random.hpp"
 
 // *****
-
-mt19937 mt(random_device{}());
-using intd = uniform_int_distribution<int>;
-using longd = uniform_int_distribution<long>;
-using reald = uniform_real_distribution<double>;
-using binomd = binomial_distribution<int>;
-using boold = bernoulli_distribution;
-
-vector<int> get_sparse_sample(int k, int a, int b) {
-    assert(a <= b);
-    intd dist(a, b);
-    vector<int> sample;
-    vector<bool> seen(b - a + 1, false);
-    while (k--) {
-        int n;
-        do {
-            n = dist(mt);
-        } while (seen[n - a]);
-        sample.push_back(n);
-        seen[n - a] = true;
-    }
-    sort(begin(sample), end(sample));
-    return sample;
-}
-
-vector<int> get_dense_sample(int k, int a, int b) {
-    vector<int> sample(b - a + 1);
-    iota(begin(sample), end(sample), a);
-    shuffle(begin(sample), end(sample), mt);
-    sample.resize(k);
-    sort(begin(sample), end(sample)); // no std::sample in C++14
-    return sample;
-}
-
-/**
- * Generate k integers in the range [a..b]
- */
-vector<int> get_sample(int k, int a, int b) {
-    assert(0 <= k && k <= b - a + 1);
-    k = min(k, b - a + 1);
-    if (k == 0) {
-        return {};
-    } else if (2 * k <= b - a + 1) {
-        return get_sparse_sample(k, a, b);
-    } else {
-        return get_dense_sample(k, a, b);
-    }
-}
 
 /**
  * Reverse the edges of the graph, and return a new graph.
@@ -299,7 +252,7 @@ vector<int> uniform_rank_partition(int V, int ranks) {
 /**
  * Apply chaos to a partition sum to destroy uniformity
  */
-void rank_partition_chaos(vector<int>& ranksize, reald chaos = reald(-0.6, 0.6)) {
+void rank_partition_chaos(vector<int>& ranksize, reald chaos = reald(-0.4, 0.4)) {
     int ranks = ranksize.size();
     for (int i = 1; i < ranks; i++) {
         double q = chaos(mt);
