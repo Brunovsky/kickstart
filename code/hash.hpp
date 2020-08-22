@@ -1,3 +1,6 @@
+#ifndef HASH_HPP
+#define HASH_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -22,6 +25,11 @@ struct pair_hasher {
     template <typename U, typename V>
     size_t operator()(const pair<U, V>& p) const noexcept {
         size_t lhs = p.first, rhs = p.second;
+        return (lhs + rhs) * (lhs + rhs + 1) / 2 + rhs;
+    }
+    template <typename U>
+    size_t operator()(const array<int, 2>& p) const noexcept {
+        size_t lhs = p[0], rhs = p[1];
         return (lhs + rhs) * (lhs + rhs + 1) / 2 + rhs;
     }
 };
@@ -61,3 +69,5 @@ struct rolling_hasher {
         return power;
     }
 };
+
+#endif // HASH_HPP

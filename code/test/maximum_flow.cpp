@@ -1,5 +1,6 @@
-#include "../graph_generator.hpp"
 #include "../maximum_flow.hpp"
+
+#include "../graph_generator.hpp"
 
 using namespace std::chrono;
 using ms = chrono::milliseconds;
@@ -7,64 +8,39 @@ using ms = chrono::milliseconds;
 // *****
 
 // T = # tests, D = # dag tests only, A = # test subjects, R = # random tests
-constexpr int T = 8, D = 4, A = 4, R = 2000;
-string names[T] = {"sparse dags",        "dense dags",         "very dense dags",
-                   "huge sparse dags",   "sparse general",     "dense general",
-                   "very dense general", "huge sparse general"};
-int quantity[T] = {1000, 500, 200, 60, 1000, 500, 200, 60};
+constexpr int T = 4, D = 4, A = 4, R = 100;
+const char* names[T] = {"sparse flow networks", "dense flow networks",
+                        "very dense flow networks", "huge sparse flow networks"};
+int quantity[T] = {1000, 500, 200, 60};
 vector<flow_graph> graphs[T];
 vector<long> flows[A];
 
 void generate_randoms() {
-    intd distV(10, 200);
-    intd hugeV(900, 2000);
-    reald sparse(3.0, 7.0);
+    intd distV(30, 200);
+    intd hugeV(2000, 4000);
+    reald sparse(4.0, 8.0);
     for (int t = 0; t < quantity[0]; t++) {
-        printf("\rGenerating sparse dag %d...", t + 1);
+        printf("\rGenerating %s %d...", names[0], t + 1);
         int V = distV(mt);
-        graphs[0].push_back(generate_dag_flow_graph(V, sparse(mt) / V, 100000));
+        graphs[0].push_back(generate_flow_graph(V, sparse(mt) / V, 100000));
     }
     printf(" OK\n");
     for (int t = 0; t < quantity[1]; t++) {
-        printf("\rGenerating dense dag %d...", t + 1);
+        printf("\rGenerating %s %d...", names[1], t + 1);
         int V = distV(mt);
-        graphs[1].push_back(generate_dag_flow_graph(V, 0.2, 100000));
+        graphs[1].push_back(generate_flow_graph(V, 0.2, 100000));
     }
     printf(" OK\n");
     for (int t = 0; t < quantity[2]; t++) {
-        printf("\rGenerating very dense dag %d...", t + 1);
+        printf("\rGenerating %s %d...", names[2], t + 1);
         int V = distV(mt);
-        graphs[2].push_back(generate_dag_flow_graph(V, 1.0, 100000));
+        graphs[2].push_back(generate_flow_graph(V, 1.0, 100000));
     }
     printf(" OK\n");
     for (int t = 0; t < quantity[3]; t++) {
-        printf("\rGenerating sparse huge dag %d... ", t + 1);
+        printf("\rGenerating %s %d...", names[3], t + 1);
         int V = hugeV(mt);
-        graphs[3].push_back(generate_dag_flow_graph(V, sparse(mt) / V, 100000));
-    }
-    printf(" OK\n");
-    for (int t = 0; t < quantity[4]; t++) {
-        printf("\rGenerating sparse directed %d...", t + 1);
-        int V = distV(mt);
-        graphs[4].push_back(generate_flow_graph(V, sparse(mt) / V, 100000));
-    }
-    printf(" OK\n");
-    for (int t = 0; t < quantity[5]; t++) {
-        printf("\rGenerating dense directed %d... ", t + 1);
-        int V = distV(mt);
-        graphs[5].push_back(generate_flow_graph(V, 0.2, 100000));
-    }
-    printf(" OK\n");
-    for (int t = 0; t < quantity[6]; t++) {
-        printf("\rGenerating very dense directed %d... ", t + 1);
-        int V = distV(mt);
-        graphs[6].push_back(generate_flow_graph(V, 1.0, 100000));
-    }
-    printf(" OK\n");
-    for (int t = 0; t < quantity[7]; t++) {
-        printf("\rGenerating sparse huge directed %d... ", t + 1);
-        int V = hugeV(mt);
-        graphs[7].push_back(generate_flow_graph(V, sparse(mt) / V, 100000));
+        graphs[3].push_back(generate_flow_graph(V, sparse(mt) / V, 100000));
     }
     printf(" OK\n");
 }
@@ -96,7 +72,7 @@ void speed_test(const string& name, int t) {
 void test_speed(int S = T) {
     generate_randoms();
     for (int t = 0; t < S; t++) {
-        printf("--- %d  %s\n", t, names[t].data());
+        printf("--- %d  %s\n", t, names[t]);
         speed_test<edmonds_karp, 0>("edmonds karp", t);
         speed_test<dinitz_flow, 1>("dinitz", t);
         speed_test<push_relabel, 2>("push relabel", t);
@@ -108,7 +84,7 @@ void test_speed(int S = T) {
 void test_equal() {
     intd distV(10, 40);
     int V = distV(mt);
-    flow_graph f = generate_dag_flow_graph(V, 5.0 / V, 100000);
+    flow_graph f = generate_flow_graph(V, 5.0 / V, 100000);
 
     tidal_flow flow1(V);
     edmonds_karp flow2(V);

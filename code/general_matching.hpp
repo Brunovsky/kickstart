@@ -1,17 +1,20 @@
+#include "debug_print.hpp"
 #include "hash.hpp"
 
 // *****
 
-#define debug(...) cerr << "[ " #__VA_ARGS__ ": " << __VA_ARGS__ << " ]\n"
-
-template <typename N>
-ostream& operator<<(ostream& out, const vector<N>& vec) {
-    int n = vec.size();
-    out << "[ ";
-    for (int i = 0; i < n; i++) {
-        out << setw(2) << vec[i] << " ";
+void print_edges(const vector<int>& source, const vector<int>& target) {
+    int E = source.size();
+    print("{:>{}}    ", "source", PAD - 2);
+    for (int e = 0; e < E; e++) {
+        print("{:>{}} ", source[e], dw);
     }
-    return out << "]";
+    print("\n");
+    print("{:>{}}    ", "target", PAD - 2);
+    for (int e = 0; e < E; e++) {
+        print("{:>{}} ", target[e], dw);
+    }
+    print("\n");
 }
 
 constexpr int inf = INT_MAX / 2;
@@ -42,6 +45,33 @@ struct micali_vazirani {
         E++;
     }
 
+    void megadump(string name) {
+        dstep(i, name);
+        dheader("edges", E);
+        print_edges(source, target);
+        debug(used);
+        debug(vis);
+        debug(base);
+        debug(peak);
+        dheader("nodes", V);
+        debug(mate);
+        debug(evenlevel);
+        debug(oddlevel);
+        debug(bloom);
+        debug(erased);
+        debug(seen);
+        debug(parent);
+        debug(mark);
+        debug(marked);
+        debug(cnt);
+        debugv(pred);
+        debugv(succ);
+        debugv(anom);
+        debugh(candidates);
+        debugh(bridges);
+        dflash();
+    }
+
     vector<int> base, peak;                // blossoms' base and peak
     vector<int> evenlevel, oddlevel;       // vertex levels
     vector<int> bloom;                     // vertex bloom
@@ -51,9 +81,11 @@ struct micali_vazirani {
     vector<vector<int>> pred, succ, anom;  // predecessors, successors and anomalies
     vector<vector<int>> candidates, bridges;
     unordered_map<pair<int, int>, int, pair_hasher> edge;
+    using path_t = list<int>;
+    int dcv, barrier, vL, vR, top, s, t, i; // bfs data
 
-    bool outer(int u) { return (level(u) % 2) == 0; }
-    bool inner(int u) { return (level(u) % 2) == 1; }
+    bool outer(int u) { return level(u) != inf && (level(u) % 2) == 0; }
+    bool inner(int u) { return level(u) != inf && (level(u) % 2) == 1; }
     bool exposed(int u) { return mate[u] == -1; }
     int level(int u) { return min(oddlevel[u], evenlevel[u]); }
     int minlevel(int u) { return min(oddlevel[u], evenlevel[u]); }
@@ -64,6 +96,8 @@ struct micali_vazirani {
     void tag(int u, int side) {
         if (!mark[u])
             marked.push_back(u);
+        else
+            print("{} has already been marked\n", u);
         mark[u] = side;
     }
 
@@ -92,7 +126,7 @@ struct micali_vazirani {
             pred[u].clear(), succ[u].clear(), anom[u].clear();
             candidates[u].clear(), bridges[u].clear();
         }
-        i = 0;
+        dcv = barrier = vL = vR = top = s = t = i = 0;
     }
 
     void bfs_even() {
@@ -119,24 +153,143 @@ struct micali_vazirani {
 
     void bfs_odd() {
         for (int v : candidates[i]) {
-            assert(oddlevel[v] == i);
+            assert(oddlevel[v] == i && mate[v] != -1);
             if (bloom[v] != -1)
                 continue;
-            assert(mate[v] != -1);
             int e = mate[v], u = other(e, v);
             if (oddlevel[u] < inf)
                 bridges[odd2(u, v) >> 1].push_back(e);
             if (evenlevel[u] == inf) {
                 evenlevel[u] = i + 1;
-                cnt[u] = 1;
-                pred[u] = {e}, succ[v] = {e};
+                cnt[u]++;
+                pred[u].push_back(e), succ[v].push_back(e);
                 candidates[i + 1].push_back(u);
             }
         }
     }
 
-    using path_t = list<int>;
-    int dcv, barrier, vL, vR, top, s, t, i; // bfs data
+    int unvisited_pred_edge(int v) {
+        dprint("UNVIS PREDECESSOR {} pred[v]=[{}] parent={}\n", v, pred[v], parent[v]);
+        for (int e : pred.at(v))
+            if (!vis[e])
+                return e;
+        return -1;
+    }
+
+    path_t findpath(int hi, int lo, int b, bool hitolo) {
+        assert(level(hi) >= level(lo));
+        dprintin("FINDPATH {} to {}, b={} (hi->l? {})\n", hi, lo, b,
+                 hitolo ? "yes" : "no");
+
+        if (hi == lo) {
+            dprintout("FINDPATH DONE [{}]\n", hi);
+            return {hi};
+        }
+
+        int v = hi, u = hi;
+        do {
+            int e;
+            while ((e = unvisited_pred_edge(v)) == -1)
+                v = parent[v];
+            u = other(e, v);
+            dprint("EDGE e={} u={} v={}  bloom[v]={}\n", e, u, v, bloom[v]);
+            if (bloom[v] == b || bloom[v] == -1)
+                vis[e] = true;
+            else {
+                u = base[bloom[v]];
+            }
+            if (!seen[u] && !erased[u] && level(u) > level(lo) && mark[u] == mark[hi]) {
+                seen[u] = true;
+                parent[u] = v, v = u;
+            }
+        } while (u != lo);
+
+        path_t path;
+        int x = lo;
+        do {
+            hitolo ? path.push_front(x) : path.push_back(x);
+            x = parent[x];
+        } while (x != -1);
+        for (auto it = begin(path); next(it) != end(path);) {
+            x = *it;
+            if (bloom[x] != -1 && bloom[x] != b) {
+                open_blossom(path, it, x, hitolo /* x to b <=> hi to lo */);
+            } else {
+                ++it;
+            }
+        }
+        dprintout("FOUND PATH [{}]\n", path);
+        return path;
+    }
+
+    void open_blossom(path_t& path, path_t::iterator& it, int x, bool xtob) {
+        dprint("OPEN {} it={} nit={} x={} (x->b? {})\n", path, *it, *next(it), x, xtob);
+        int B = bloom[x], b = base[B];
+        int p = peak[B], left = source[p], right = target[p];
+        it = path.erase(it, next(next(it)));
+        if (outer(x)) {
+            path.splice(it, findpath(x, b, B, xtob));
+        } else if (mark[x] == -1) {
+            path.splice(it, findpath(left, x, B, !xtob));
+            path.splice(it, findpath(right, b, B, xtob));
+        } else {
+            path.splice(it, findpath(right, x, B, !xtob));
+            path.splice(it, findpath(left, b, B, xtob));
+        }
+    }
+
+    void augment(path_t& path) {
+        dprintin("AUGMENT {}\n", path);
+        dheader("nodes", V);
+        debug(mate);
+        auto uit = begin(path);
+        auto vit = next(begin(path));
+        while (vit != end(path)) {
+            int u = *uit++, v = *vit++;
+            int e = edge.at({u, v});
+            if (mate[v] != e) {
+                assert(mate[u] != e);
+                mate[u] = mate[v] = e;
+            }
+        }
+        dprintout("CHECKING OK\n");
+        debug(mate);
+        assert_feasible();
+    }
+
+    void erase(path_t& path) {
+        while (!path.empty()) {
+            int u = path.back();
+            path.pop_back();
+            erased[u] = true;
+            for (int e : succ[u]) {
+                int v = other(e, u);
+                if (!erased[v] && --cnt[v] == 0)
+                    path.push_front(v);
+            }
+        }
+    }
+
+    void assert_feasible() {
+        vector<bool> n(V, false), m(E, false);
+        for (int u = 0; u < V; u++) {
+            int e = mate[u];
+            if (e == -1) {
+                n[u] = true;
+                continue;
+            }
+            if (n[u])
+                assert(m[e] && mate[other(e, u)] == e && other(e, u) < u);
+            else {
+                int v = other(e, u);
+                assert(!n[u] && !n[v] && !m[e]);
+                assert(u == source[e] || u == target[e]);
+                assert(v == source[e] || v == target[e]);
+                assert(u != v && mate[u] == mate[v] && !n[u] && !n[v]);
+                n[u] = n[v] = m[e] = true;
+            }
+        }
+    }
 
     bool dfs_left() {
         for (int e : pred[vL]) {
@@ -144,17 +297,19 @@ struct micali_vazirani {
             if (used[e] || erased[u])
                 continue;
             used[e] = true;
-            if (bloom[u] != -1)
-                u = find(bloom[u]);
+            u = find(u);
             if (!mark[u]) {
+                dprint("DFS_LEFT  tagged {} -1 on edge {}\n", u, e);
                 tag(u, -1);
-                parent[u] = e;
+                parent[u] = vL;
                 vL = u;
                 return false;
             }
         }
-        if (vL == s)
+        if (vL == s) {
             return true;
+        }
+        dprint("DFS_LEFT  backtrack on vL!=s: {} -> {}\n", vL, parent[vL]);
         vL = parent[vL];
         return false;
     }
@@ -165,9 +320,9 @@ struct micali_vazirani {
             if (used[e] || erased[u])
                 continue;
             used[e] = true;
-            if (bloom[u] != -1)
-                u = find(bloom[u]);
+            u = find(u);
             if (!mark[u]) {
+                dprint("DFS_RIGHT tagged {} +1 on edge {}\n", u, e);
                 tag(u, +1);
                 parent[u] = vR;
                 vR = u;
@@ -175,33 +330,44 @@ struct micali_vazirani {
             }
         }
         if (vR == barrier) {
+            dprint("DFS_RIGHT backtrack on vR==barrier, vL: {} -> {}\n", vL, parent[vL]);
             vR = barrier = dcv;
             tag(vR, +1);
             vL = parent[vL];
-        } else
+        } else {
+            dprint("DFS_RIGHT backtrack on vR!=barrier: vR: {} -> {}\n", vR, parent[vR]);
             vR = parent[vR];
+        }
         return false;
     }
 
     int bloss_augment() {
         if (bloom[s] != -1 && bloom[s] == bloom[t])
             return 0;
-        vL = bloom[s] != -1 ? find(bloom[s]) : s;
-        vR = bloom[t] != -1 ? find(bloom[t]) : t;
+        vL = find(s);
+        vR = find(t);
+        if (vL == vR)
+            return 0;
         marked.clear();
         tag(vL, -1), tag(vR, +1);
         dcv = -1, barrier = vR;
 
-        bool found = false;
-        while ((!exposed(vL) || !exposed(vR)) && !found) {
-            found = level(vL) >= level(vR) ? dfs_left() : dfs_right();
+        dprintin("BLOSS_AUGMENT vL={} vR={} top={} s={} t={}\n", vL, vR, top, s, t);
+
+        bool f = false;
+        while (!(exposed(vL) && exposed(vR)) && !f) {
+            f = level(vL) >= level(vR) ? dfs_left() : dfs_right();
+            dprint("LOOP vL={} vR={} dcv={} barrier={} f={}\n", vL, vR, dcv, barrier, f);
         }
-        if (!found && exposed(vL) && exposed(vR)) {
+        if (exposed(vL) && exposed(vR)) {
+            dprint("FOUND vL={} vR={} dcv={} barrier={}\n", vL, vR, dcv, barrier);
             auto path = findpath(s, vL, -1, false /* vL to s */);
             path.splice(end(path), findpath(t, vR, -1, true /* t to vR */));
             augment(path), erase(path);
+            dprintout("AUGMENTATION!\n");
             return 1;
         }
+        dprintout("BLOSSOM vL={} vR={} dcv={} barrier={}\n", vL, vR, dcv, barrier);
         if (dcv != -1)
             mark[dcv] = 0;
         int B = base.size();
@@ -226,128 +392,24 @@ struct micali_vazirani {
         return 0;
     }
 
-    int find_unvisited_predecessor_edge(int& v) {
-        for (int e : pred[v])
-            if (!vis[e])
-                return e;
-        assert(parent[v] != -1);
-        return find_unvisited_predecessor_edge(v = parent[v]);
-    }
-
-    path_t findpath(int hi, int lo, int b, bool hitolo) {
-        assert(level(hi) >= level(lo));
-        if (hi == lo)
-            return {hi};
-
-        int v = hi;
-        while (v != lo) {
-            int e = find_unvisited_predecessor_edge(v);
-            int u = other(e, v);
-            if (bloom[v] == b || bloom[v] == -1)
-                vis[e] = true;
-            else {
-                u = find(bloom[v]);
-                if (!seen[u] && !erased[u] && level(u) > level(lo) &&
-                    mark[u] == mark[hi]) {
-                    seen[u] = true;
-                    parent[u] = v, v = u;
-                }
-            }
-        }
-
-        path_t path;
-        int x = lo;
-        do {
-            hitolo ? path.push_front(x) : path.push_back(x);
-            x = parent[x];
-        } while (x != -1);
-        for (auto it = begin(path); next(it) != end(path);) {
-            x = *it;
-            if (bloom[x] != -1 && bloom[x] != b) {
-                open_bloom(path, it, x, hitolo /* x to b <=> hi to lo */);
-            } else {
-                ++it;
-            }
-        }
-        return path;
-    }
-
-    void open_bloom(path_t& path, path_t::iterator& it, int x, bool xtob) {
-        int B = bloom[x], b = base[B];
-        int p = peak[B], left = source[p], right = target[p];
-        it = path.erase(it, next(next(it)));
-        if (outer(x)) {
-            path.splice(it, findpath(x, b, B, xtob));
-        } else if (mark[x] == -1) {
-            path.splice(it, findpath(left, x, B, !xtob));
-            path.splice(it, findpath(right, b, B, xtob));
-        } else {
-            path.splice(it, findpath(right, x, B, !xtob));
-            path.splice(it, findpath(left, b, B, xtob));
-        }
-    }
-
-    void augment(path_t& path) {
-        auto uit = begin(path);
-        auto vit = next(begin(path));
-        while (vit != end(path)) {
-            int u = *uit++, v = *vit++;
-            int e = edge.at({u, v});
-            if (mate[v] != e) {
-                assert(mate[u] != v);
-                mate[u] = mate[v] = e;
-            }
-        }
-        assert_feasible();
-    }
-
-    void assert_feasible() {
-        vector<bool> n(V, false), m(E, false);
-        debug(mate);
-        for (int u = 0; u < V; u++) {
-            int e = mate[u];
-            if (e == -1)
-                continue;
-            if (n[u])
-                assert(m[e] && mate[other(e, u)] == e && other(e, u) < u);
-            else {
-                int v = other(e, u);
-                assert(!n[u] && !n[t] && !m[e]);
-                assert(u == source[e] || u == target[e]);
-                assert(v == source[e] || v == target[e]);
-                assert(u != v && mate[u] == mate[v] && !n[u] && !n[v]);
-                n[u] = n[v] = m[e] = true;
-            }
-        }
-    }
-
-    void erase(path_t& path) {
-        while (!path.empty()) {
-            int u = path.back();
-            path.pop_back();
-            erased[u] = true;
-            for (int e : succ[u]) {
-                int v = other(e, u);
-                if (!erased[v] && --cnt[v] == 0)
-                    path.push_front(v);
-            }
-        }
-    }
-
     int search() {
         for (int u = 0; u < V; u++)
             if (exposed(u))
                 evenlevel[u] = 0, candidates[0].push_back(u);
         int augmented = 0;
         while (!candidates[i].empty() && !augmented) {
+            megadump("before bfs, after previous bloss");
             (i % 2 == 0) ? bfs_even() : bfs_odd();
+            megadump("after bfs, before bloss");
             for (uint j = 0; j < bridges[i].size(); j++) {
                 top = bridges[i][j], s = source[top], t = target[top];
-                if (!erased[s] && !erased[t])
+                if (!erased[s] && !erased[t]) {
                     augmented += bloss_augment();
+                }
             }
             i++;
         }
+        megadump("done");
         return augmented;
     }
 

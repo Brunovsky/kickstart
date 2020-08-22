@@ -134,7 +134,7 @@ void link_levels_exp(Graph& g, double p, const vector<int>& R, bool loop = false
     for (int r = 0; r < ranks; r++) {
         starts[r + 1] = starts[r] + R[r];
     }
-    for (int r = 0; r - 1 < ranks; r++) {
+    for (int r = 0; r + 1 < ranks; r++) {
         int u1 = starts[r], u2 = starts[r + 1];
         double q = 1.0;
         for (int t = r + 1; t < ranks; t++) {
@@ -147,10 +147,10 @@ void link_levels_exp(Graph& g, double p, const vector<int>& R, bool loop = false
     if (loop && ranks >= 2) {
         double z = 1.0;
         for (int t = ranks - 1; t >= 1; t--) {
-            int v1 = starts[t], v2 = starts[t + 1];
+            int u1 = starts[t], u2 = starts[t + 1];
             double q = z;
             for (int r = 0; r < t; r++) {
-                int u1 = starts[r], u2 = starts[r + 1];
+                int v1 = starts[r], v2 = starts[r + 1];
                 q *= p;
                 add_level_step_uniform(g, u1, u2, v1, v2, q, false, false);
             }
@@ -159,9 +159,8 @@ void link_levels_exp(Graph& g, double p, const vector<int>& R, bool loop = false
     }
 }
 
-/**
- * Generate an arbitrary degree undirected tree rooted at 0.
- */
+// ***** Simple graph types like trees and grids
+
 graph generate_tree_undirected(int V) {
     graph g(V);
     vector<int> parent = parent_sample(V);
@@ -169,9 +168,6 @@ graph generate_tree_undirected(int V) {
     return g;
 }
 
-/**
- * Generate an arbitrary degree directed tree rooted at 0.
- */
 digraph generate_tree_directed(int V, bool toparent = true, bool tochild = false) {
     digraph g(V);
     vector<int> parent = parent_sample(V);
@@ -179,10 +175,6 @@ digraph generate_tree_directed(int V, bool toparent = true, bool tochild = false
     return g;
 }
 
-/**
- * Generate grid graph of size WxH vertices
- * Vertices numbered top to bottom, left to right, row-major
- */
 graph generate_grid_undirected(int W, int H) {
     int V = W * H;
     graph g(V);
@@ -200,10 +192,6 @@ graph generate_grid_undirected(int W, int H) {
     return g;
 }
 
-/**
- * Generate grid digraph of size WxH vertices directed towards southeast
- * Vertices numbered top to bottom, left to right, row-major
- */
 digraph generate_grid_directed(int W, int H) {
     int V = W * H;
     digraph g(V);
@@ -221,9 +209,6 @@ digraph generate_grid_directed(int W, int H) {
     return g;
 }
 
-/**
- * Generate the complete graph on V vertices
- */
 graph generate_complete_undirected(int V) {
     graph g(V);
     for (int u = 0; u < V; u++) {
@@ -234,10 +219,6 @@ graph generate_complete_undirected(int V) {
     return g;
 }
 
-/**
- * Generate the complete digraph on V vertices
- * Vertex u has an edge to vertex v iff u < v.
- */
 digraph generate_complete_directed(int V) {
     digraph g(V);
     for (int u = 0; u < V; u++) {
@@ -248,10 +229,6 @@ digraph generate_complete_directed(int V) {
     return g;
 }
 
-/**
- * Generate cycle graph on V vertices
- * This is not a cyclic graph for V <= 2.
- */
 graph generate_cycle_undirected(int V) {
     graph g(V);
     for (int u = 1; u < V; u++) {
@@ -262,10 +239,6 @@ graph generate_cycle_undirected(int V) {
     return g;
 }
 
-/**
- * Generate cycle digraph on V vertices
- * This is not a cyclic graph for V <= 2.
- */
 digraph generate_cycle_directed(int V) {
     digraph g(V);
     for (int u = 1; u < V; u++) {
@@ -276,12 +249,16 @@ digraph generate_cycle_directed(int V) {
     return g;
 }
 
-/**
- * Generate uniformly at random a connected graph on V vertices where every edge
- * exists with some probability p.
- * Algorithm: Generate a tree, then add back-edges with probability p.
- * Complexity: O(pV^2)
- */
+graph generate_regular(int V, int k) {
+    graph g(V);
+    auto edges = regular_sample(V, k);
+    for (auto edge : edges)
+        g.add(edge[0], edge[1]);
+    return g;
+}
+
+// ***** Completely random but connected graphs
+
 graph generate_uniform_undirected(int V, double p) {
     graph g(V);
     vector<int> parent = parent_sample(V);
@@ -295,12 +272,19 @@ graph generate_uniform_undirected(int V, double p) {
     return g;
 }
 
-/**
- * Generate uniformly at random a connected graph on V vertices with E edges.
- * Algorithm: Generate a tree with V - 1 edges, then select E + V random edges
- *     uniformly at random, shuffled, and add them until E are reached.
- * Complexity: O(V + E)
- */
+digraph generate_uniform_rooted_dag(int V, double p) {
+    digraph g(V);
+    vector<int> parent = parent_sample(V);
+    add_parent_edges(g, parent, 1, false, true);
+    for (int v = 1; v < V; v++) {
+        binomd distk(v, p);
+        for (int u : int_sample(distk(mt), 0, v - 1))
+            if (u != parent[v])
+                g.add(u, v);
+    }
+    return g;
+}
+
 graph generate_exact_undirected(int V, int E) {
     assert(V - 1 <= E && E <= V * (V - 1) / 2);
     graph g(V);
@@ -322,31 +306,6 @@ graph generate_exact_undirected(int V, int E) {
     return g;
 }
 
-/**
- * Generate uniformly at random a rooted connected dag on V vertices where every edge
- * exists with some probability p.
- * Algorithm: Generate a directed tree, then add forward-edges with probability p.
- * Complexity: O(pV^2)
- */
-digraph generate_uniform_rooted_dag(int V, double p) {
-    digraph g(V);
-    vector<int> parent = parent_sample(V);
-    add_parent_edges(g, parent, 1, false, true);
-    for (int v = 1; v < V; v++) {
-        binomd distk(v, p);
-        for (int u : int_sample(distk(mt), 0, v - 1))
-            if (u != parent[v])
-                g.add(u, v);
-    }
-    return g;
-}
-
-/**
- * Generate uniformly at random a connected rooted dag on V vertices with E edges.
- * Algorithm: Generate a directed tree with V - 1 edges, then select E + V random edges
- *     uniformly at random, shuffled, and add them until E edges are reached.
- * Complexity: O(V + E)
- */
 digraph generate_exact_rooted_dag(int V, int E) {
     assert(V - 1 <= E && E <= V * (V - 1) / 2);
     digraph g(V);
@@ -368,23 +327,25 @@ digraph generate_exact_rooted_dag(int V, int E) {
     return g;
 }
 
-/**
- * Simple algorithm to generate a random k-regular undirected graph (degree of every
- * node is k) meeting the configuration criteria. Fails with non-negligible
- * probability, and automatically tries again.
- * Complexity: O(kV^2)
- */
-graph generate_regular(int V, int k) {
-    graph g(V);
-    auto edges = regular_sample(V, k);
-    for (auto edge : edges)
-        g.add(edge[0], edge[1]);
-    return g;
-}
+// ***** Level (ranked) connected graphs, possibly looped
 
 graph generate_full_level(int V, int ranks, int m = 1, bool loop = false) {
     graph g(V);
     auto R = partition_sample(V, ranks, m);
+    link_levels_full(g, R, loop);
+    return g;
+}
+
+digraph generate_full_level_dag(int V, int ranks, int m = 1, bool loop = false) {
+    digraph g(V);
+    auto R = partition_sample(V, ranks, m);
+    link_levels_full(g, R, loop);
+    return g;
+}
+
+digraph generate_full_level_flow(int V, int ranks, int m = 1, bool loop = false) {
+    digraph g(V);
+    auto R = partition_sample_flow(V, ranks, m);
     link_levels_full(g, R, loop);
     return g;
 }
@@ -396,25 +357,11 @@ graph generate_uniform_level(int V, double p, int ranks, int m = 1, bool loop = 
     return g;
 }
 
-digraph generate_full_level_dag(int V, int ranks, int m = 1, bool loop = false) {
-    digraph g(V);
-    auto R = partition_sample(V, ranks, m);
-    link_levels_full(g, R, loop);
-    return g;
-}
-
 digraph generate_uniform_level_dag(int V, double p, int ranks, int m = 1,
                                    bool loop = false) {
     digraph g(V);
     auto R = partition_sample(V, ranks, m);
     link_levels_uniform(g, p, R, loop, true, true);
-    return g;
-}
-
-digraph generate_full_level_flow(int V, int ranks, int m = 1, bool loop = false) {
-    digraph g(V);
-    auto R = partition_sample_flow(V, ranks, m);
-    link_levels_full(g, R, loop);
     return g;
 }
 
@@ -434,50 +381,8 @@ digraph generate_exp_level_flow(int V, double p, int ranks, int m = 1,
     return g;
 }
 
-/**
- * Generate a ranked/level graph where nodes on level i are completely connected to
- * nodes on level i+1 only
- */
-graph generate_full_level_undirected(int V, const vector<int>& R) {
-    graph g(V);
-    int start = 0, ranks = R.size();
-    for (int r = 0; r < ranks - 1; r++) {
-        int mid = start + R[r];
-        int end = mid + R[r + 1];
-        for (int u = start; u < mid; u++) {
-            for (int v = mid; v < end; v++) {
-                g.add(u, v);
-            }
-        }
-    }
-    return g;
-}
+// ***** Strongly-connected components expansion
 
-/**
- * Generate a ranked/level graph where nodes on level i are completely connected to
- * nodes on level i+1 only
- */
-digraph generate_full_level_directed(int V, const vector<int>& R) {
-    digraph g(V);
-    int start = 0, ranks = R.size();
-    for (int r = 0; r < ranks - 1; r++) {
-        int mid = start + R[r];
-        int end = mid + R[r + 1];
-        for (int u = start; u < mid; u++) {
-            for (int v = mid; v < end; v++) {
-                g.add(u, v);
-            }
-        }
-    }
-    return g;
-}
-
-/**
- * Expand each node u of a directed acyclic graph into a randomly generated
- * strongly connected component from f(u).
- * Connect the generated nodes of u into the generated nodes of v in adj[u] using h(u,v)
- * edges and picking nodes arbitrarily.
- */
 template <typename Gn, typename En>
 digraph generate_scc_expansion(const digraph& dag, Gn&& f, En&& h) {
     int V = dag.V;
@@ -525,10 +430,8 @@ digraph generate_scc_uniform_expansion(const digraph& dag, int k, double p) {
     return generate_scc_expansion(dag, f, h);
 }
 
-/**
- * Transform a directed graph into a flow graph with uniform positive capacities
- * s is 0, t is V - 1.
- */
+// ***** Convert to flow network
+
 flow_graph make_flow_graph(const digraph& g, long max_cap) {
     longd capd(1, max_cap);
     flow_graph f(g.V);
@@ -540,23 +443,9 @@ flow_graph make_flow_graph(const digraph& g, long max_cap) {
     return f;
 }
 
-/**
- * Generate a random dag flow graph on V vertices
- */
-flow_graph generate_dag_flow_graph(int V, double p, long max_cap) {
-    intd rankd(3, max(3, V / 3));
-    int ranks = rankd(mt), m = min(3, V / ranks);
-    p = min(1.0, p);
-    digraph g = generate_uniform_level_flow(V, p, ranks, m, false);
-    return make_flow_graph(g, max_cap);
-}
-
-/**
- * Generate a random flow graph on V vertices
- */
 flow_graph generate_flow_graph(int V, double p, long max_cap) {
     intd rankd(3, max(3, V / 3));
-    int ranks = rankd(mt), m = min(5, V / ranks);
+    int ranks = rankd(mt), m = min(7, V / ranks);
     p = min(1.0, p);
     digraph g = generate_exp_level_flow(V, p, ranks, m, false);
     return make_flow_graph(g, max_cap);
