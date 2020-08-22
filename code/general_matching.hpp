@@ -34,7 +34,9 @@ struct micali_vazirani {
 
     explicit micali_vazirani(int V = 0) : V(V), E(0), adj(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) {
+        return u == target[e] ? source[e] : (assert(u == source[e]), target[e]);
+    }
 
     void add(int u, int v) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v);
@@ -178,7 +180,7 @@ struct micali_vazirani {
 
     path_t findpath(int hi, int lo, int b, bool hitolo) {
         assert(level(hi) >= level(lo));
-        dprintin("FINDPATH {} to {}, b={} (hi->l? {})\n", hi, lo, b,
+        dprintin("FINDPATH {} to {}, b={} (hi->lo? {})\n", hi, lo, b,
                  hitolo ? "yes" : "no");
 
         if (hi == lo) {
@@ -186,23 +188,30 @@ struct micali_vazirani {
             return {hi};
         }
 
+        dheader("nodes", V);
+        debug(parent);
+
         int v = hi, u = hi;
         do {
             int e;
             while ((e = unvisited_pred_edge(v)) == -1)
                 v = parent[v];
             u = other(e, v);
-            dprint("EDGE e={} u={} v={}  bloom[v]={}\n", e, u, v, bloom[v]);
             if (bloom[v] == b || bloom[v] == -1)
                 vis[e] = true;
             else {
                 u = base[bloom[v]];
             }
-            if (!seen[u] && !erased[u] && level(u) > level(lo) && mark[u] == mark[hi]) {
+            dprint("EDGE e={} u={} v={}  bloom[v]={}\n", e, u, v, bloom[v]);
+            if (!seen[u] && !erased[u] && level(u) >= level(lo) && mark[u] != 0 &&
+                mark[u] == mark[hi]) {
                 seen[u] = true;
                 parent[u] = v, v = u;
             }
         } while (u != lo);
+
+        dheader("nodes", V);
+        debug(parent);
 
         path_t path;
         int x = lo;
@@ -210,6 +219,7 @@ struct micali_vazirani {
             hitolo ? path.push_front(x) : path.push_back(x);
             x = parent[x];
         } while (x != -1);
+        dprint("PARENT PATH {}\n", path);
         for (auto it = begin(path); next(it) != end(path);) {
             x = *it;
             if (bloom[x] != -1 && bloom[x] != b) {
@@ -218,7 +228,7 @@ struct micali_vazirani {
                 ++it;
             }
         }
-        dprintout("FOUND PATH [{}]\n", path);
+        dprintout("FOUND PATH {}\n", path);
         return path;
     }
 
@@ -327,7 +337,8 @@ struct micali_vazirani {
                 parent[u] = vR;
                 vR = u;
                 return false;
-            }
+            } else if (u == vL)
+                dcv = u;
         }
         if (vR == barrier) {
             dprint("DFS_RIGHT backtrack on vR==barrier, vL: {} -> {}\n", vL, parent[vL]);

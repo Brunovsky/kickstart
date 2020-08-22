@@ -140,6 +140,8 @@ void random_test() {
 }
 
 int main() {
+    setbuf(stdout, nullptr);
+    setbuf(stderr, nullptr);
     // read();
     // test();
     read("datasets/general_matching_hard.txt");
