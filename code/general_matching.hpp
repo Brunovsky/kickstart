@@ -32,7 +32,7 @@ struct micali_vazirani {
     vector<int> source, target;
     vector<int> mate;
 
-    explicit micali_vazirani(int V = 0) : V(V), E(0), adj(V) {}
+    explicit micali_vazirani(int V = 0) : V(V), E(0), adj(V), mate(V, -1) {}
 
     int other(int e, int u) {
         return u == target[e] ? source[e] : (assert(u == source[e]), target[e]);
@@ -132,6 +132,7 @@ struct micali_vazirani {
     }
 
     void bfs_even() {
+        dprintin("BFS_EVEN {}\n", i);
         for (int v : candidates[i]) {
             assert(evenlevel[v] == i);
             for (int e : adj[v]) {
@@ -151,9 +152,11 @@ struct micali_vazirani {
                 }
             }
         }
+        dprintout("BFS_EVEN {}\n", i);
     }
 
     void bfs_odd() {
+        dprintin("BFS_ODD {}\n", i);
         for (int v : candidates[i]) {
             assert(oddlevel[v] == i && mate[v] != -1);
             if (bloom[v] != -1)
@@ -168,62 +171,66 @@ struct micali_vazirani {
                 candidates[i + 1].push_back(u);
             }
         }
+        dprintout("BFS_ODD {}\n", i);
     }
 
-    int unvisited_pred_edge(int v) {
-        dprint("UNVIS PREDECESSOR {} pred[v]=[{}] parent={}\n", v, pred[v], parent[v]);
-        for (int e : pred.at(v))
-            if (!vis[e])
-                return e;
-        return -1;
-    }
-
-    path_t findpath(int hi, int lo, int b, bool hitolo) {
+    path_t findpath(int hi, int lo, int b) {
         assert(level(hi) >= level(lo));
-        dprintin("FINDPATH {} to {}, b={} (hi->lo? {})\n", hi, lo, b,
-                 hitolo ? "yes" : "no");
+        dprintin("FINDPATH {} to {}, b={}\n", hi, lo, b);
 
         if (hi == lo) {
-            dprintout("FINDPATH DONE [{}]\n", hi);
+            dprintout("FINDPATH TRIVIAL: {}\n", hi);
             return {hi};
         }
 
         dheader("nodes", V);
-        debug(parent);
+        debug(parent), debug(seen), debug(erased), debug(mark);
 
-        int v = hi, u = hi;
+        int v = hi, u = hi, e;
+        uint j = 0, vsize;
         do {
-            int e;
-            while ((e = unvisited_pred_edge(v)) == -1)
-                v = parent[v];
-            u = other(e, v);
-            if (bloom[v] == b || bloom[v] == -1)
-                vis[e] = true;
-            else {
-                u = base[bloom[v]];
+            for (e = -1, vsize = pred[v].size(); j < vsize; j++) {
+                e = pred[v][j];
+                if (!vis[e])
+                    break;
             }
-            dprint("EDGE e={} u={} v={}  bloom[v]={}\n", e, u, v, bloom[v]);
-            if (!seen[u] && !erased[u] && level(u) >= level(lo) && mark[u] != 0 &&
-                mark[u] == mark[hi]) {
+            if (j == vsize) {
+                dprint("backtrack v={}->{}\n", v, parent[v]);
+                seen[v] = false, v = parent[v], j = 0;
+                continue;
+            }
+            u = other(e, v);
+            if (bloom[v] == b || bloom[v] == -1) {
+                vis[e] = true, j++;
+                dprint("EDGE e={} u={} v={} j={} bloom[u]={}\n", e, u, v, j, bloom[u]);
+            } else {
+                u = base[bloom[v]], j = vsize;
+                dprint("BLOOM u={} v={} B={}\n", u, v, bloom[v]);
+            }
+
+            if (!seen[u] && !erased[u] && level(u) >= level(lo) && mark[u] == mark[hi]) {
                 seen[u] = true;
                 parent[u] = v, v = u;
+                j = 0;
             }
         } while (u != lo);
 
         dheader("nodes", V);
-        debug(parent);
+        debug(parent), debug(seen);
 
         path_t path;
         int x = lo;
         do {
-            hitolo ? path.push_front(x) : path.push_back(x);
-            x = parent[x];
+            path.push_front(x), x = parent[x];
         } while (x != -1);
-        dprint("PARENT PATH {}\n", path);
-        for (auto it = begin(path); next(it) != end(path);) {
+        dprint("PARENT PATH (hi->lo) {}\n", path);
+        for (auto it = begin(path); it != end(path);) {
             x = *it;
+            dprint("it={} x={} b[x]={}\n", it == end(path) ? -1 : *it, x, bloom[x]);
             if (bloom[x] != -1 && bloom[x] != b) {
-                open_blossom(path, it, x, hitolo /* x to b <=> hi to lo */);
+                auto subpath = open_blossom(x);
+                it = path.erase(path.erase(it));
+                path.splice(it, subpath);
             } else {
                 ++it;
             }
@@ -232,20 +239,27 @@ struct micali_vazirani {
         return path;
     }
 
-    void open_blossom(path_t& path, path_t::iterator& it, int x, bool xtob) {
-        dprint("OPEN {} it={} nit={} x={} (x->b? {})\n", path, *it, *next(it), x, xtob);
+    path_t open_blossom(int x) {
         int B = bloom[x], b = base[B];
         int p = peak[B], left = source[p], right = target[p];
-        it = path.erase(it, next(next(it)));
+        dprintin("OPEN IN x={} B={} b={} p={} l={} r={}\n", x, B, b, p, left, right);
+        path_t path;
         if (outer(x)) {
-            path.splice(it, findpath(x, b, B, xtob));
+            dprint("find through outer\n");
+            path = findpath(x, b, B);
         } else if (mark[x] == -1) {
-            path.splice(it, findpath(left, x, B, !xtob));
-            path.splice(it, findpath(right, b, B, xtob));
+            dprint("find through inner left\n");
+            path = findpath(left, x, B);
+            reverse(begin(path), end(path));
+            path.splice(end(path), findpath(right, b, B));
         } else {
-            path.splice(it, findpath(right, x, B, !xtob));
-            path.splice(it, findpath(left, b, B, xtob));
+            dprint("find through inner right\n");
+            path = findpath(right, x, B);
+            reverse(begin(path), end(path));
+            path.splice(end(path), findpath(left, b, B));
         }
+        dprintout("OPEN OUT {} x={} B={} b={}\n", path, x, B, b);
+        return path;
     }
 
     void augment(path_t& path) {
@@ -341,12 +355,13 @@ struct micali_vazirani {
                 dcv = u;
         }
         if (vR == barrier) {
-            dprint("DFS_RIGHT backtrack on vR==barrier, vL: {} -> {}\n", vL, parent[vL]);
+            dprint("DFS_RIGHT backtrack on vR==barrier, vL:{}->{}\n", vL, parent[vL]);
+            assert(vL == dcv);
             vR = barrier = dcv;
             tag(vR, +1);
             vL = parent[vL];
         } else {
-            dprint("DFS_RIGHT backtrack on vR!=barrier: vR: {} -> {}\n", vR, parent[vR]);
+            dprint("DFS_RIGHT backtrack on vR!=barrier: vR:{}->{}\n", vR, parent[vR]);
             vR = parent[vR];
         }
         return false;
@@ -359,6 +374,10 @@ struct micali_vazirani {
         vR = find(t);
         if (vL == vR)
             return 0;
+        if (vL != s)
+            parent[vL] = s;
+        if (vR != t)
+            parent[vR] = t;
         marked.clear();
         tag(vL, -1), tag(vR, +1);
         dcv = -1, barrier = vR;
@@ -371,16 +390,17 @@ struct micali_vazirani {
             dprint("LOOP vL={} vR={} dcv={} barrier={} f={}\n", vL, vR, dcv, barrier, f);
         }
         if (exposed(vL) && exposed(vR)) {
-            dprint("FOUND vL={} vR={} dcv={} barrier={}\n", vL, vR, dcv, barrier);
-            auto path = findpath(s, vL, -1, false /* vL to s */);
-            path.splice(end(path), findpath(t, vR, -1, true /* t to vR */));
+            dprint("~ PATH vL={} vR={} dcv={} barrier={}\n", vL, vR, dcv, barrier);
+            auto path = findpath(s, vL, -1);
+            reverse(begin(path), end(path));
+            path.splice(end(path), findpath(t, vR, -1));
             augment(path), erase(path);
             dprintout("AUGMENTATION!\n");
             return 1;
         }
         dprintout("BLOSSOM vL={} vR={} dcv={} barrier={}\n", vL, vR, dcv, barrier);
-        if (dcv != -1)
-            mark[dcv] = 0;
+        assert(dcv != -1);
+        mark[dcv] = 0;
         int B = base.size();
         peak.push_back(top);
         base.push_back(dcv);
@@ -425,7 +445,6 @@ struct micali_vazirani {
     }
 
     int max_matching() {
-        mate.assign(V, -1);
         pred.assign(V, {});
         succ.assign(V, {});
         anom.assign(V, {});

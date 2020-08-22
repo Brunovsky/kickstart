@@ -74,7 +74,7 @@ int boost_matching_size(const bgraph& bg) {
  * Generate sparse graphs with V1..V2 vertices and collect those that have at least k
  * unmatched vertices in the maximum matching
  */
-void generate_hard_cases(int G = 50, int k = 5, int V1 = 20, int V2 = 30) {
+void generate_hard_cases(int G = 1000, int k = 5, int V1 = 40, int V2 = 70) {
     printf("Generating %d cases...", G);
     ofstream file("datasets/general_matching_hard.txt");
     ofstream dot("datasets/general_matching_hard.dot");
@@ -83,28 +83,28 @@ void generate_hard_cases(int G = 50, int k = 5, int V1 = 20, int V2 = 30) {
     dot << G << "\n\n";
 
     intd distv(V1, V2);
-    reald sparse(1.0, 4.0);
     int total_cnt = 0;
 
     for (int i = 0; i < G; i++) {
         bgraph bg;
         graph g;
-        int V, maximum;
+        int V, E, maximum;
         int cur_cnt = 0;
         do {
             V = distv(mt);
-            g = generate_uniform_undirected(V, sparse(mt) / V);
+            intd diste(3 * V / 2, 6 * V);
+            E = diste(mt);
+            g = generate_exact_undirected(V, E);
             bg = to_boost(g);
             maximum = boost_matching_size(bg);
             printf("\rGenerated %5d %5d...\r", cur_cnt++, total_cnt++);
         } while (maximum + k > V);
-        int E = g.V;
         printf("Generated %2dth graph with V=%2d and E=%2d...\n", i + 1, V, E);
 
         file << "# Generated, tested by boost #"s + to_string(i + 1) << "\n";
-        file << to_simple(g, to_string(maximum)) << endl;
+        file << to_simple_compact(g, to_string(maximum)) << endl;
         dot << "# Generated, tested by boost #"s + to_string(i + 1) << "\n";
-        dot << to_dot(g, false) << endl;
+        dot << to_dot_compact(g, false) << endl;
     }
 
     printf("Done in %d iterations\n", total_cnt);
@@ -148,5 +148,6 @@ int main() {
     test();
     // generate_hard_cases();
     // random_test();
+    // test_immediate_blossom();
     return 0;
 }

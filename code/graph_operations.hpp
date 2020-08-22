@@ -32,16 +32,35 @@ ostream& operator<<(ostream& out, const graph& g) { return out << to_string(g); 
 ostream& operator<<(ostream& out, const digraph& g) { return out << to_string(g); }
 
 // Simple format I use in datasets/ folder
-
 template <typename Graph>
 string to_simple(const Graph& g, string after, bool directed = false) {
     stringstream ss;
     ss << g.V << " " << g.E << " " << after << "\n";
-    int w = int(log10(g.V)) + 1;
+    const int w = int(log10(g.V)) + 1;
     for (int u = 0; u < g.V; u++) {
         for (int v : g.adj[u]) {
             if (directed || u < v)
                 ss << setw(w) << u << ' ' << setw(w) << v << "\n";
+        }
+    }
+    ss << "\n";
+    return ss.str();
+}
+
+// Compact format to use fewer lines and smaller commits
+template <typename Graph>
+string to_simple_compact(const Graph& g, string after, bool directed = false) {
+    stringstream ss;
+    ss << g.V << " " << g.E << " " << after << "\n";
+    const int w = int(log10(g.V)) + 1;
+    int cnt = 0;
+    for (int u = 0; u < g.V; u++) {
+        for (int v : g.adj[u]) {
+            if (directed || u < v) {
+                ss << (cnt ? "  " : "") << setw(w) << u << ' ' << setw(w) << v;
+                if (++cnt == 15)
+                    ss << "\n", cnt = 0;
+            }
         }
     }
     ss << "\n";
@@ -55,9 +74,32 @@ string to_dot(const Graph& g, bool directed = false) {
     static const char* arrow[] = {" -- ", " -> "};
     stringstream ss;
     ss << header[directed] << " {\n";
+    const int w = int(log10(g.V)) + 1;
     for (int u = 0; u < g.V; u++) {
         for (int v : g.adj[u]) {
-            ss << setw(6) << u << arrow[directed] << setw(2) << v << " ;\n";
+            ss << setw(w) << u << arrow[directed] << setw(w) << v << " ;\n";
+        }
+    }
+    ss << "}\n";
+    return ss.str();
+}
+
+template <typename Graph>
+string to_dot_compact(const Graph& g, bool directed = false) {
+    static const char* header[] = {"strict graph", "strict digraph"};
+    static const char* arrow[] = {" -- ", " -> "};
+    stringstream ss;
+    ss << header[directed] << " {\n";
+    const int w = int(log10(g.V)) + 1;
+    int cnt = 0;
+    for (int u = 0; u < g.V; u++) {
+        for (int v : g.adj[u]) {
+            if (directed || u < v) {
+                ss << (cnt ? "  " : "    ") << setw(w) << u << arrow[directed] << setw(w)
+                   << v << " ;";
+                if (++cnt == 15)
+                    ss << "\n", cnt = 0;
+            }
         }
     }
     ss << "}\n";
