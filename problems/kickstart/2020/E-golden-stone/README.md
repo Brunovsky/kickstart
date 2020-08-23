@@ -2,10 +2,8 @@
 
 ## [Golden Stone (16pts, 25pts)](https://codingcompetitions.withgoogle.com/kickstart/round/000000000019ff47/00000000003bef29)
 
-Unsolved
+Solved
 
-I have no clue what's wrong.
-
-* Time: 90 minutes
-* Complexity: Unknown, probably O(SN maxK)
+* Time: 3 hours
+* Complexity: O(N(N + S) x updates)
 * Memory: O(SN + R)

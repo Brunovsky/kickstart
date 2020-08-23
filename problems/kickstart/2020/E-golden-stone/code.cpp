@@ -11,71 +11,89 @@ int N, M, S, R;
 // output stone of each recipe and size of each recipe
 vector<int> O, K;
 
-// stones in each location
-vector<unordered_set<int>> stones;
-
 // where to find each stone
-vector<unordered_set<int>> where;
+vector<vector<int>> where;
 
 // stone recipes
 vector<vector<int>> recipe;
-vector<vector<int>> recipe_by_size;
+vector<vector<int>> producers;
+vector<vector<int>> targets;
 
 // all pairs shortest paths
 vector<vector<int>> adj;
+vector<vector<int>> dist;
 
-// basic[s][u]: cost of supplying 1 stone s to node u.
+// basic[s][u]: cost of producing 1 stone s in node u
 vector<vector<long>> basic;
+vector<bool> updated;
 
-// cost(r, u): cost of producing recipe r from scratch in node u.
-long cost(int i, int u) {
-    long total = 0;
-    for (int s : recipe[i])
-        total += basic[s][u];
-    return total;
-}
-
-void debug() {
-    cout << "\n\n";
-    for (int s = 0; s < S; s++) {
-        for (int u = 0; u < N; u++) {
-            string str = basic[s][u] >= 1000 ? "++"s : to_string(basic[s][u]);
-            cout << setw(3) << str << ' ';
-        }
-        cout << '\n';
-    }
-    cout << "\n\n";
-}
-
-int compute_round(int size) {
-    bool changed;
-    int rounds = 0;
-    do {
-        changed = false;
-        for (int i : recipe_by_size[size]) {
-            for (int u = 0; u < N; u++) {
-                long c = cost(i, u);
-                if (basic[O[i]][u] > c) {
-                    basic[O[i]][u] = c;
-                    changed = true;
-                }
+// Complexity O(N(N + P(s)))
+bool compute(int s) {
+    bool changed = false;
+    for (int u = 0; u < N; u++) {
+        for (int i : producers[s]) {
+            long c = 0;
+            for (int x : recipe[i])
+                c += basic[x][u];
+            if (basic[s][u] > c) {
+                basic[s][u] = c;
+                changed = true;
             }
-            printf("after recipe %d\n", i);
-            debug();
         }
-        rounds++;
-    } while (changed);
-    return rounds;
+        for (int v = 0; v < N; v++) {
+            long c = basic[s][v] + dist[u][v];
+            if (basic[s][u] > c) {
+                basic[s][u] = c;
+                changed = true;
+            }
+        }
+    }
+    updated[s] = changed;
+    if (changed)
+        for (int t : targets[s])
+            updated[t] = true;
+    return changed;
+}
+
+void compute_distances() {
+    dist.assign(N, vector<int>(N));
+
+    for (int u = 0; u < N; u++) {
+        vector<int> bfs, next_bfs;
+        vector<bool> vis(N, false);
+        for (int v : adj[u]) {
+            bfs.push_back(v), vis[v] = true, dist[u][v] = 1;
+        }
+
+        dist[u][u] = 0;
+        int depth = 1;
+
+        while (!bfs.empty()) {
+            depth++;
+            for (int w : bfs)
+                for (int v : adj[w])
+                    if (!vis[v])
+                        next_bfs.push_back(v), vis[v] = true, dist[u][v] = depth;
+            bfs = move(next_bfs);
+            next_bfs.clear();
+        }
+    }
+}
+
+void init_basic() {
+    for (int s = 0; s < S; s++)
+        for (int u : where[s])
+            basic[s][u] = 0;
 }
 
 auto solve() {
     cin >> N >> M >> S >> R;
     O.assign(R, 0);
     K.assign(R, 0);
-    stones.assign(N, {});
     where.assign(S, {});
     recipe.assign(R, {});
-    recipe_by_size.clear();
+    producers.assign(S, {});
+    targets.assign(S, {});
     adj.assign(N, {});
     basic.assign(S, vector<long>(N, MAX_COST));
     int maxK = 0;
@@ -90,51 +108,35 @@ auto solve() {
         cin >> C;
         for (int j = 0; j < C; j++) {
             cin >> s, s--;
-            stones[i].insert(s);
-            where[s].insert(i);
+            where[s].push_back(i);
         }
     }
     for (int i = 0; i < R; i++) {
         cin >> K[i];
         maxK = max(maxK, K[i]);
-        recipe_by_size.resize(maxK + 1, {});
-        recipe_by_size[K[i]].push_back(i);
         for (int j = 0; j < K[i]; j++) {
             int s;
             cin >> s, s--;
             recipe[i].push_back(s);
         }
         cin >> O[i], O[i]--;
+        producers[O[i]].push_back(i);
+        for (int s : recipe[i])
+            targets[s].push_back(O[i]);
     }
 
-    for (int s = 0; s < S; s++) {
-        vector<int> bfs, next_bfs;
-        vector<bool> vis(N, false);
-        for (int u : where[s]) {
-            bfs.push_back(u), vis[u] = true, basic[s][u] = 0;
-        }
-        int dist = 0;
+    compute_distances();
+    init_basic();
 
-        while (!bfs.empty()) {
-            dist++;
-            for (int u : bfs)
-                for (int v : adj[u])
-                    if (!vis[v])
-                        next_bfs.push_back(v), vis[v] = true, basic[s][v] = dist;
-            bfs = move(next_bfs);
-            next_bfs.clear();
-        }
-    }
+    updated.assign(S, true);
 
-    int rounds;
+    int updates;
     do {
-        rounds = 0;
-        for (int k = 1; k <= maxK; k++) {
-            rounds += compute_round(k);
-        }
-        debug();
-        fprintf(stderr, "rounds: %d\n", rounds);
-    } while (rounds > maxK);
+        updates = 0;
+        for (int s = 0; s < S; s++)
+            if (updated[s])
+                updates += compute(s);
+    } while (updates > 0);
 
     long min = *min_element(begin(basic[0]), end(basic[0]));
     return min < MAX_COST ? min : -1;
