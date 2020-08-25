@@ -1,9 +1,8 @@
-#include "../general_matching.hpp"
-
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
 #include "../graph_generator.hpp"
+#include "../minmax.hpp"
 
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;
@@ -15,7 +14,7 @@ vector<string> names;
 vector<graph> graphs;
 vector<int> actual;
 
-void read(string filename = "datasets/general_matching.txt") {
+void read(string filename) {
     ifstream file(filename);
     assert(file.is_open());
     file >> N >> ws;
@@ -142,10 +141,10 @@ void random_test() {
 int main() {
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
-    // read();
-    // test();
-    read("datasets/general_matching_hard.txt");
+    read("datasets/general_matching_easy.txt");
     test();
+    // read("datasets/general_matching_hard.txt");
+    // test();
     // generate_hard_cases();
     // random_test();
     // test_immediate_blossom();

@@ -14,9 +14,9 @@ using fmt::format;
 #define DEBUG        1
 #define PAD          20
 #define FLASH        170
-#define debug(name)  print("{:>{}}  {}\n", #name, PAD - 2, to_string(name))
-#define debugv(name) print("{}", join(#name, to_stringv(name)))
-#define debugh(name) print("{}", join(#name, to_stringh(name)))
+#define debug(name)  print(stderr, "{:>{}}  {}\n", #name, PAD - 2, to_string(name))
+#define debugv(name) print(stderr, "{}", join(#name, to_stringv(name)))
+#define debugh(name) print(stderr, "{}", join(#name, to_stringh(name)))
 
 constexpr uint dw = 2;
 constexpr int dbig = 100, dneg = -10, dnil = -1;
@@ -33,7 +33,7 @@ string pretty(int n) {
     return string(dw - s.size(), ' ') + s;
 }
 
-string pretty(bool b) { return string(dw - 1, ' ') + (b ? '1' : '0'); }
+string pretty(bool b) { return string(dw - 1, ' ') + (b ? '1' : ' '); }
 
 string pretty(string s) {
     if (dw >= s.size())
@@ -44,29 +44,34 @@ string pretty(string s) {
 
 template <typename... Args>
 void dprint(Args&&... args) {
-    print("{}", string(dmul * ddepth, ' ')), print(std::forward<Args>(args)...);
+    print(stderr, "{}", string(dmul * ddepth, ' '));
+    print(stderr, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 void dprintin(Args&&... args) {
-    print("{}", string(dmul * ddepth++, ' ')), print(std::forward<Args>(args)...);
+    print(stderr, "{}", string(dmul * ddepth++, ' '));
+    print(stderr, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 void dprintout(Args&&... args) {
-    print("{}", string(dmul * --ddepth, ' ')), print(std::forward<Args>(args)...);
+    print(stderr, "{}", string(dmul * --ddepth, ' '));
+    print(stderr, std::forward<Args>(args)...);
 }
 
 void dheader(string name, int n) {
-    print("{} {:>{}}    ", string(PAD - 8, '-'), name, 5);
+    print(stderr, "{} {:>{}}    ", string(PAD - 8, '-'), name, 5);
     for (int i = 0; i < n; i++)
-        print("{:>{}} ", i, dw);
-    print("\n");
+        print(stderr, "{:>{}} ", i, dw);
+    print(stderr, "\n");
 }
 
-void dstep(int i, string name) { print("{} {}  {}\n", string(PAD + 2, ' '), i, name); }
+void dstep(int i, string name) {
+    print(stderr, "{} {}  {}\n", string(PAD + 2, ' '), i, name);
+}
 
-void dflash() { print("{}\n{}\n", string(FLASH, '='), string(FLASH, '=')); }
+void dflash() { print(stderr, "{}\n{}\n", string(FLASH, '='), string(FLASH, '=')); }
 
 namespace std {
 
@@ -90,8 +95,8 @@ string to_string(const list<T>& lis) {
     return str;
 }
 
-template <typename T>
-vector<string> to_stringv(const vector<vector<T>>& vec) {
+template <typename Vec>
+vector<string> to_stringv(const vector<Vec>& vec) {
     vector<string> lines;
     size_t n = vec.size(), m = 1;
     for (const auto& row : vec)
@@ -109,8 +114,8 @@ vector<string> to_stringv(const vector<vector<T>>& vec) {
     return lines;
 }
 
-template <typename T>
-vector<string> to_stringh(const vector<vector<T>>& vec) {
+template <typename Vec>
+vector<string> to_stringh(const vector<Vec>& vec) {
     vector<string> lines;
     for (uint i = 0; i < vec.size(); i++)
         if (!vec[i].empty())

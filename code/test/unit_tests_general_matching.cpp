@@ -17,7 +17,7 @@ void debug_header(string name) {
  * The augmenting path to be found is 0->1->2->3->4->5->6->7.
  */
 void test_straight_line_1() {
-    debug_header("immediate blossom 1");
+    debug_header("test straight line 1");
     micali_vazirani vg(8);
     vg.add(0, 1); // 0
     vg.add(1, 2); // 1 ~
@@ -30,7 +30,8 @@ void test_straight_line_1() {
     vg.mate[3] = vg.mate[4] = 3;
     vg.mate[5] = vg.mate[6] = 5;
     int augmentation = vg.max_matching();
-    assert(augmentation == 2);
+    cout << "AUG: " << augmentation << endl;
+    assert(augmentation == 4);
 }
 
 /**
@@ -43,7 +44,7 @@ void test_straight_line_1() {
  * The augmenting path to be found is 0->1->2->3.
  */
 void test_straight_line_2() {
-    debug_header("immediate blossom 1");
+    debug_header("test straight line 2");
     micali_vazirani vg(8);
     vg.add(0, 1); // 0
     vg.add(1, 2); // 1 ~
@@ -57,7 +58,8 @@ void test_straight_line_2() {
     vg.mate[4] = vg.mate[5] = 4;
     vg.mate[6] = vg.mate[7] = 6;
     int augmentation = vg.max_matching();
-    assert(augmentation == 2);
+    cout << "AUG: " << augmentation << endl;
+    assert(augmentation == 4);
 }
 
 /**
@@ -88,7 +90,8 @@ void test_immediate_blossom_1() {
     vg.mate[3] = vg.mate[4] = 4;
     vg.mate[6] = vg.mate[7] = 7;
     int augmentation = vg.max_matching();
-    assert(augmentation == 2);
+    cout << "AUG: " << augmentation << endl;
+    assert(augmentation == 4);
 }
 
 /**
@@ -113,8 +116,9 @@ void test_immediate_blossom_2() {
     vg.add(4, 5); // 6
     vg.mate[1] = vg.mate[2] = 4;
     vg.mate[3] = vg.mate[4] = 5;
-    int augmentations = vg.max_matching();
-    assert(augmentations == 2);
+    int augmentation = vg.max_matching();
+    cout << "AUG: " << augmentation << endl;
+    assert(augmentation == 3);
 }
 
 /**
@@ -135,8 +139,9 @@ void test_immediate_blossom_3() {
     vg.add(1, 2); // 2 ~
     vg.add(2, 3); // 3
     vg.mate[1] = vg.mate[2] = 2;
-    int augmentations = vg.max_matching();
-    assert(augmentations == 2);
+    int augmentation = vg.max_matching();
+    cout << "AUG: " << augmentation << endl;
+    assert(augmentation == 2);
 }
 
 /**
@@ -181,7 +186,7 @@ void test_embedded_blossom_1() {
     vg.mate[7] = vg.mate[8] = 11;
     vg.mate[A] = vg.mate[B] = 13;
     int augmentations = vg.max_matching();
-    assert(augmentations == 2);
+    assert(augmentations == 6);
 }
 
 int main() {
