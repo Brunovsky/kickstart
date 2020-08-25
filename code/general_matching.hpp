@@ -504,12 +504,18 @@ struct micali_vazirani {
         assert(node_bloom_pred[sup.back()] == bloom_base[B]);
     }
 
-    void form_blossom(int peak, int base) {
-        dprintin("@form_blossom peak={} base={}\n", peak, base);
-        int B = blossoms++;
+    void form_blossom(int peak, int star) {
+        int s0 = support[0].size(), s1 = support[1].size();
+        int red_base = node_pred[support[0][s0 - 1]][taken[0][s0 - 1] - 1];
+        int blue_base = node_pred[support[1][s1 - 1]][taken[1][s1 - 1] - 1];
+        assert(red_base == blue_base); // base
+        int base = red_base;
+
+        dprintin("@form_blossom peak={} base={} star={}\n", peak, base, star);
+        int B = blossoms;
         bloom_peak.push_back(peak);
         bloom_base.push_back(base);
-        bloom_star.push_back(findstar(base));
+        bloom_star.push_back(findstar(star));
         form_petal(B, 0);
         form_petal(B, 1);
         dprintout("@form_blossom B={}\n", B);
