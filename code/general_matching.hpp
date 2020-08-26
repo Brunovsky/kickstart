@@ -19,6 +19,7 @@ void print_edges(const vector<int>& source, const vector<int>& target) {
 
 constexpr int inf = INT_MAX / 2;
 constexpr int good_phase_limit = 100; // how many augmentation phases per search
+long mv_search_cnt = 0, mv_good_cnt = 0;
 
 /**
  * General maximum matching algorithm of Micali and Vazirani
@@ -53,12 +54,13 @@ struct micali_vazirani {
         edge[{u, v}] = edge[{v, u}] = E++;
     }
 
-    int max_matching(bool debug = false) {
+    int max_matching() {
         int more = 1, max_matched_count = V / 2;
         init();
-        while (more && (debug || count_matched < max_matched_count)) {
+        while (more && count_matched < max_matched_count) {
             reset();
-            more = search(debug);
+            more = search();
+            mv_search_cnt++;
         }
         return count_matched;
     }
@@ -113,7 +115,7 @@ struct micali_vazirani {
         for (int u = 0; u < V; u++)
             if (mate[u] != -1) {
                 int e = mate[u], v = other(e, u);
-                assert(mate[v] == e);
+                (void)v, assert(mate[v] == e);
                 edge_matched[e] = true, count_matched++;
             }
         count_matched >>= 1; // double counted
@@ -197,6 +199,8 @@ struct micali_vazirani {
         assert(level[u][parity] < inf && level[v][parity] < inf);
         int tenacity = level[u][parity] + level[v][parity] + 1;
         int lvl = tenacity >> 1;
+        if (lvl < phase)
+            return;
         assert(lvl >= phase);
         bridges[lvl].push_back(e);
         edge_seen[e] = true;
@@ -336,7 +340,27 @@ struct micali_vazirani {
     vector<int> trail[2], saved[2], support[2], taken[2], arc[2];
     int ddfsid;
 
-    void advance_dfs(int& h, int c) {
+    void debug_ddfs(int barrier) {
+        vector<int> which[2];
+        for (int c : {0, 1})
+            for (uint i = 0; i < support[c].size(); i++)
+                which[c].push_back(node_pred[support[c][i]][taken[c][i] - 1]);
+        debug(trail[0]);
+        debug(saved[0]);
+        debug(support[0]);
+        debug(taken[0]);
+        debug(arc[0]);
+        debug(which[0]);
+        debug(trail[1]);
+        debug(saved[1]);
+        debug(support[1]);
+        debug(taken[1]);
+        debug(arc[1]);
+        debug(which[1]);
+        debug(node_succ[barrier]);
+    }
+
+    void advance_dfs(int& h, int c, bool safe) {
         int& i = arc[c].back();
         int hh = findstar(node_pred[h][i++]);
         assert(uint(i) <= node_pred[h].size() && !node_erased[hh]);
@@ -346,11 +370,17 @@ struct micali_vazirani {
         trail[c].push_back(h);
         arc[c].push_back(0);
         h = hh;
+        if (!safe)
+            return;
+        saved[c].push_back(trail[c].back());
+        taken[c].back()++;
+        taken[c].push_back(0);
     }
 
     bool reverse_dfs(int& h, int c) {
         int i, s;
-        assert(!trail[c].empty());
+        if (trail[c].empty())
+            return false;
         do {
             h = trail[c].back();
             arc[c].pop_back();
@@ -360,17 +390,17 @@ struct micali_vazirani {
             i = arc[c].back();
             s = node_pred[h].size();
         } while (!trail[c].empty() && i == s);
-        return !trail[c].empty() || i < s;
+        return i < s;
     }
 
     bool backtrack_dfs(int& h, int c) {
         int x = h, lvl = minlevel[x];
         while ((h == x || node_vis[h] == ddfsid) && reverse_dfs(h, c)) {
             do {
-                advance_dfs(h, c);
+                advance_dfs(h, c, false);
             } while (node_vis[h] != ddfsid && minlevel[h] > lvl);
         }
-        return minlevel[h] <= lvl && h != x;
+        return minlevel[h] <= lvl && h != x && node_vis[h] != ddfsid;
     }
 
     int ddfs(int e) {
@@ -379,64 +409,49 @@ struct micali_vazirani {
         if (r == b)
             return -2;
 
-        dprintin("@ddfs e={} red={} blue={} r={} b={}\n", e, red, blue, r, b);
         node_vis[r] = node_vis[b] = ++ddfsid;
         trail[0] = {}, taken[0] = arc[0] = {0}, saved[0] = support[0] = {};
         trail[1] = {}, taken[1] = arc[1] = {0}, saved[1] = support[1] = {};
 
+        // TODO: optimize support/trail/arc copy operations
         while (minlevel[r] != 0 || minlevel[b] != 0) {
-            dprintin("@ddfs r={} b={}  sr={}  sb={}\n", r, b, support[0], support[1]);
-            dprint("ddfs  t0={}  t1={}\n", taken[0], taken[1]);
-            dprint("ddfs  a0={}  a1={}\n", arc[0], arc[1]);
-            dprint("ddfs  s0={}  s1={}\n", saved[0], saved[1]);
             if (minlevel[r] >= minlevel[b]) {
-                advance_dfs(r, 0);
-                saved[0] = support[0]; // TODO
-                taken[0] = arc[0];     // TODO
+                advance_dfs(r, 0, true);
             } else {
-                advance_dfs(b, 1);
-                saved[1] = support[1]; // TODO
-                taken[1] = arc[1];     // TODO
+                advance_dfs(b, 1, true);
             }
             if (r == b) {
                 if (backtrack_dfs(b, 1)) {
-                    saved[1] = support[1]; // TODO
-                    taken[1] = arc[1];     // TODO
+                    saved[1] = support[1];
+                    taken[1] = arc[1];
                 } else {
-                    support[1] = saved[1];             // TODO
-                    arc[1] = {0}, taken[1].back() = 0; // TODO
+                    support[1] = saved[1];
+                    arc[1] = taken[1];
                     b = barrier = r;
                     if (backtrack_dfs(r, 0)) {
-                        saved[0] = support[0]; // TODO
-                        taken[0] = arc[0];     // TODO
+                        saved[0] = support[0];
+                        taken[0] = arc[0];
                     } else {
-                        support[0] = saved[0]; // TODO
+                        support[0] = saved[0];
+                        arc[0] = taken[0];
                         r = barrier = b;
                         // found blossom, output: barrier, support[] and taken[]
-                        dprint("~ barrier={}\n", barrier);
-                        dprint("sr={}  sb={}\n", support[0], support[1]);
-                        dprintout("t0={}  t1={}\n", taken[0], taken[1]);
-                        dprintout("@ddfs === blossom\n");
                         return barrier;
                     }
                 }
             }
-            dprintout("@ddfs ===\n");
         }
         assert(r != b); // this would be a blossom, needs to be caught inside the loop
 
         // found augmenting path, output: support[], taken[]
         support[0].push_back(r), support[1].push_back(b);
-        dprint("~ barrier={}\n", barrier);
-        dprint("sr={}  sb={}\n", support[0], support[1]);
-        dprint("t0={}  t1={}\n", taken[0], taken[1]);
-        dprintout("@ddfs === augmenting path\n");
         return -1;
     }
 
     int MAX() {
         int augmentations = 0;
-        for (int e : bridges[phase]) {
+        for (uint i = 0; i < bridges[phase].size(); i++) {
+            int e = bridges[phase][i];
             int red = source[e], blue = target[e];
             if (node_erased[red] || node_erased[blue]) {
                 continue;
@@ -500,19 +515,14 @@ struct micali_vazirani {
             int j = taken[c][i] - 1, v = node_pred[sup[i]][j];
             node_bloom_pred[sup[i]] = v;
         }
-        assert(node_bloom_pred[sup.back()] == bloom_base[B]);
     }
 
-    void form_blossom(int peak, int star) {
-        int s0 = support[0].size(), s1 = support[1].size();
-        int red_base = node_pred[support[0][s0 - 1]][taken[0][s0 - 1] - 1];
-        int blue_base = node_pred[support[1][s1 - 1]][taken[1][s1 - 1] - 1];
-        assert(red_base == blue_base); // base
-        int base = red_base;
+    void form_blossom(int peak, int base) {
+        assert(base == findstar(base));
         int B = blossoms;
         bloom_peak.push_back(peak);
         bloom_base.push_back(base);
-        bloom_star.push_back(findstar(star));
+        bloom_star.push_back(base);
         form_petal(B, 0);
         form_petal(B, 1);
     }
@@ -633,12 +643,10 @@ struct micali_vazirani {
     }
 
     void augment_path(int peak) {
-        dprintin("@augment_path: peak={} rs={} bs={}\n", peak, support[0], support[1]);
         auto path = find_path(source[peak], 0);
         reverse(begin(path), end(path));
         path.splice(end(path), find_path(target[peak], 1));
 
-        dprint("augmenting path: {}\n", path);
         assert(path.size() == 2U * phase + 2);
 
         bool status = 0;
@@ -655,7 +663,6 @@ struct micali_vazirani {
             node_erased[u] = true;
         }
         erase_successors(path);
-        dprintout("@augment_path out peak={}\n", peak);
     }
 
     void erase_successors(list<int>& path) {
@@ -684,11 +691,10 @@ struct micali_vazirani {
      * Using the optimizations shown in this paper:
      * https://pdfs.semanticscholar.org/e6ca/ff814bba9949fce6a48c76e3b158a8ddafbb.pdf
      */
-    int search(bool debug = false) {
+    int search() {
         bool done = false;
         int more, augmentations = 0, good = 0;
-        while (!done && phase < V &&
-               (debug || (good < good_phase_limit && count_matched < V / 2))) {
+        while (!done && phase < V && good < good_phase_limit && count_matched < V / 2) {
             done = MIN();
             more = MAX();
             good += more > 0;
@@ -696,6 +702,7 @@ struct micali_vazirani {
             augmentations += more;
             phase++;
         }
+        mv_good_cnt += good;
         return augmentations;
     }
 };

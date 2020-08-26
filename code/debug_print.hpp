@@ -42,17 +42,6 @@ string pretty(string s) {
         return s.substr(0, dw);
 }
 
-string letter(int n) {
-    if (n >= dbig)
-        return string(dw, '+');
-    if (n <= dneg)
-        return string(dw, '-');
-    if (n == dnil)
-        return string(dw, ' ');
-    string s(1, n >= 10 ? ('A' + (n - 10)) : '0' + n);
-    return string(dw - s.size(), ' ') + s;
-}
-
 template <typename... Args>
 void dprint(Args&&... args) {
     print(stderr, "{}", string(dmul * ddepth, ' '));
@@ -91,7 +80,7 @@ string to_string(const vector<T>& vec) {
     string str;
     str += "{ ";
     for (const auto& e : vec)
-        str += letter(e) + " ";
+        str += pretty(e) + " ";
     str += "}";
     return str;
 }
@@ -101,7 +90,7 @@ string to_string(const list<T>& lis) {
     string str;
     str += "( ";
     for (const auto& e : lis)
-        str += letter(e) + " ";
+        str += pretty(e) + " ";
     str += ")";
     return str;
 }

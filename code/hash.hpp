@@ -28,7 +28,7 @@ struct pair_hasher {
         return (lhs + rhs) * (lhs + rhs + 1) / 2 + rhs;
     }
     template <typename U>
-    size_t operator()(const array<int, 2>& p) const noexcept {
+    size_t operator()(const array<U, 2>& p) const noexcept {
         size_t lhs = p[0], rhs = p[1];
         return (lhs + rhs) * (lhs + rhs + 1) / 2 + rhs;
     }

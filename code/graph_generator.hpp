@@ -5,7 +5,19 @@
 
 // *****
 
+using edges_t = vector<array<int, 2>>;
+using parent_t = vector<int>;
+using ranks_t = vector<int>;
+
 // ***** Auxiliary methods
+
+unordered_set<array<int, 2>, pair_hasher> build_adjacency_set(const graph& g) {
+    unordered_set<array<int, 2>, pair_hasher> edgeset;
+    for (int u = 0; u < g.V; u++)
+        for (int v : g.adj[u])
+            edgeset.insert({u, v});
+    return edgeset;
+}
 
 template <typename Graph>
 void add_self_loops(Graph& g, double p) {
@@ -21,14 +33,14 @@ void add_self_loops(Graph& g, double p) {
     }
 }
 
-void add_parent_edges(graph& g, const vector<int>& parent, int start) {
+void add_parent_edges(graph& g, const parent_t& parent, int start) {
     for (int u = start; u < g.V; u++) {
         g.add(u, parent[u]);
     }
 }
 
-void add_parent_edges(digraph& g, const vector<int>& parent, int start,
-                      bool toparent = true, bool tochild = false) {
+void add_parent_edges(digraph& g, const parent_t& parent, int start, bool toparent = true,
+                      bool tochild = false) {
     for (int u = start; u < g.V; u++) {
         if (toparent)
             g.add(u, parent[u]);
@@ -37,7 +49,39 @@ void add_parent_edges(digraph& g, const vector<int>& parent, int start,
     }
 }
 
-void add_level_back_edges(digraph& g, double q, const vector<int>& R) {
+void add_uniform_edges(graph& g, int u1, int u2, double p) {
+    if (u2 - u1 >= 10 && p <= 0.25) {
+        for (int u = u1 + 1; u < u2; u++) {
+            binomd distk(u - u1, p);
+            for (int v : int_sample(distk(mt), u1, u - 1))
+                g.add(u, v);
+        }
+    } else {
+        boold distp(p);
+        for (int u = u1 + 1; u < u2; u++)
+            for (int v = u1; v < u; v++)
+                if (distp(mt))
+                    g.add(u, v);
+    }
+}
+
+void add_uniform_edges(digraph& g, int u1, int u2, double p) {
+    if (u2 - u1 >= 10 && p <= 0.25) {
+        binomd distk(u2 - u1, p);
+        for (int u = u1; u < u2; u++)
+            for (int v : int_sample(distk(mt), u1, u2 - 1))
+                if (u != v)
+                    g.add(u, v);
+    } else {
+        boold distp(p);
+        for (int u = u1; u < u2; u++)
+            for (int v = u1; v < u2; v++)
+                if (u != v && distp(mt))
+                    g.add(u, v);
+    }
+}
+
+void add_level_back_edges(digraph& g, double q, const ranks_t& R) {
     boold distq(q);
     int start = 0, ranks = R.size();
     for (int r = 0; r < ranks; r++) {
@@ -54,6 +98,147 @@ void add_level_back_edges(digraph& g, double q, const vector<int>& R) {
     }
 }
 
+void add_oriented_edges(graph& g, const edges_t& edges) {
+    for (auto edge : edges) {
+        int u = edge[0], v = edge[1];
+        assert(u < v);
+        g.add(u, v);
+    }
+}
+
+void add_nontrivial_edges(graph& g, const edges_t& edges, int S) {
+    for (auto edge : edges) {
+        if (S == 0)
+            break;
+        int u = edge[0], v = edge[1];
+        if (u != v)
+            g.add(u, v), S--;
+    }
+    assert(S == 0);
+}
+
+void add_nontrivial_edges(digraph& g, const edges_t& edges, int S) {
+    for (auto edge : edges) {
+        if (S == 0)
+            break;
+        int u = edge[0], v = edge[1];
+        if (u != v)
+            g.add(u, v), S--;
+    }
+    assert(S == 0);
+}
+
+void add_edges_except(graph& g, const edges_t& edges, const parent_t& par, int S) {
+    for (auto edge : edges) {
+        if (S == 0)
+            break;
+        int u = edge[0], v = edge[1];
+        if (u != v && u != par[v] && v != par[u])
+            g.add(u, v), S--;
+    }
+    assert(S == 0);
+}
+
+void add_edges_except(digraph& g, const edges_t& edges, const parent_t& par, int S) {
+    for (auto edge : edges) {
+        if (S == 0)
+            break;
+        int u = edge[0], v = edge[1];
+        if (u != v && u != par[v] && v != par[u])
+            g.add(u, v), S--;
+    }
+    assert(S == 0);
+}
+
+void add_regular_ring_lattice(graph& g, int k) {
+    int max_jump = min(k / 2, (g.V - 1) / 2);
+    for (int j = 1; j <= max_jump; j++) {
+        for (int u = 0; u < g.V; u++) {
+            int v = (u + j) - (u + j >= g.V ? g.V : 0);
+            g.add(u, v);
+        }
+    }
+}
+
+template <typename Graph>
+void add_all_edges(Graph& g, int u1, int u2) {
+    for (int u = u1; u < u2; u++)
+        for (int v = u + 1; v < u2; v++)
+            g.add(u, v);
+}
+
+void add_all_edges_bidirectional(digraph& g, int u1, int u2) {
+    for (int u = u1; u < u2; u++)
+        for (int v = u1; v < u2; v++)
+            if (u != v)
+                g.add(u, v);
+}
+
+template <typename Graph>
+void add_grid_edges(Graph& g, int W, int H) {
+    for (int i = 0; i < W; i++) {
+        for (int j = 0; j < H; j++) {
+            int u = i * H + j;
+            int uw = u + H;
+            int uh = u + 1;
+            if (i + 1 < W)
+                g.add(u, uw);
+            if (j + 1 < H)
+                g.add(u, uh);
+        }
+    }
+}
+
+template <typename Graph>
+void add_circular_grid_edges(Graph& g, int W, int H) {
+    for (int i = 0; i < W; i++) {
+        for (int j = 0; j < H; j++) {
+            int u = i * H + j;
+            int uw = i + 1 < W ? (u + H) : (u + H - W * H);
+            int uh = j + 1 < H ? (u + 1) : (u + 1 - H);
+            g.add(u, uw);
+            g.add(u, uh);
+        }
+    }
+}
+
+template <typename Graph>
+void add_grid3_edges(Graph& g, int X, int Y, int Z) {
+    for (int x = 0; x < X; x++) {
+        for (int y = 0; y < Y; y++) {
+            for (int z = 0; z < Z; z++) {
+                int u = x * Y * Z + y * Z + z;
+                int ux = u + Y * Z;
+                int uy = u + Z;
+                int uz = u + 1;
+                if (x + 1 < X)
+                    g.add(u, ux);
+                if (y + 1 < Y)
+                    g.add(u, uy);
+                if (z + 1 < Z)
+                    g.add(u, uz);
+            }
+        }
+    }
+}
+
+template <typename Graph>
+void add_circular_grid3_edges(Graph& g, int X, int Y, int Z) {
+    for (int x = 0; x < X; x++) {
+        for (int y = 0; y < Y; y++) {
+            for (int z = 0; z < Z; z++) {
+                int u = x * Y * Z + y * Z + z;
+                int ux = x + 1 < X ? (u + Y * Z) : (u + Y * Z - X * Y * Z);
+                int uy = y + 1 < Y ? (u + Z) : (u + Z - Y * Z);
+                int uz = z + 1 < Z ? (u + 1) : (u + 1 - Z);
+                g.add(u, ux);
+                g.add(u, uy);
+                g.add(u, uz);
+            }
+        }
+    }
+}
+
 template <typename Graph>
 void add_level_step_full(Graph& g, int u1, int u2, int v1, int v2) {
     for (int u = u1; u < u2; u++)
@@ -66,8 +251,9 @@ void add_level_step_uniform(Graph& g, int u1, int u2, int v1, int v2, double p,
                             bool mustout = false, bool mustin = false) {
     if (u1 == u2 || v1 == v2)
         return;
+
     vector<bool> out(u2 - u1, false), in(v2 - v1, false);
-    if (p <= 0.25) {
+    if (long(u2 - u1) * long(v2 - v1) >= 100 && p <= 0.25) {
         binomd distk(v2 - v1, p);
         for (int u = u1; u < u2; u++)
             for (int v : int_sample(distk(mt), v1, v2 - 1))
@@ -79,6 +265,7 @@ void add_level_step_uniform(Graph& g, int u1, int u2, int v1, int v2, double p,
                 if (distp(mt))
                     g.add(u, v), out[u - u1] = true, in[v - v1] = true;
     }
+
     if (mustout) {
         intd distv(v1, v2 - 1);
         for (int v, u = u1; u < u2; u++)
@@ -94,7 +281,7 @@ void add_level_step_uniform(Graph& g, int u1, int u2, int v1, int v2, double p,
 }
 
 template <typename Graph>
-void link_levels_full(Graph& g, const vector<int>& R, bool loop = false) {
+void link_levels_full(Graph& g, const ranks_t& R, bool loop = false) {
     int start = 0, ranks = R.size();
     for (int r = 0; r + 1 < ranks; r++) {
         int mid = start + R[r], end = mid + R[r + 1];
@@ -110,7 +297,7 @@ void link_levels_full(Graph& g, const vector<int>& R, bool loop = false) {
 }
 
 template <typename Graph>
-void link_levels_uniform(Graph& g, double p, const vector<int>& R, bool loop = false,
+void link_levels_uniform(Graph& g, double p, const ranks_t& R, bool loop = false,
                          bool mustout = true, bool mustin = true) {
     int start = 0, ranks = R.size();
     for (int r = 0; r + 1 < ranks; r++) {
@@ -126,143 +313,226 @@ void link_levels_uniform(Graph& g, double p, const vector<int>& R, bool loop = f
     }
 }
 
-template <typename Graph>
-void link_levels_exp(Graph& g, double p, const vector<int>& R, bool loop = false,
-                     bool mustout = true, bool mustin = true) {
-    int ranks = R.size();
-    vector<int> starts(ranks + 1);
+void complete_levels(graph& g, const ranks_t& R) {
+    int start = 0, ranks = R.size();
     for (int r = 0; r < ranks; r++) {
-        starts[r + 1] = starts[r] + R[r];
+        add_all_edges(g, start, start + R[r]);
+        start += R[r];
     }
-    for (int r = 0; r + 1 < ranks; r++) {
-        int u1 = starts[r], u2 = starts[r + 1];
-        double q = 1.0;
-        for (int t = r + 1; t < ranks; t++) {
-            int v1 = starts[t], v2 = starts[t + 1];
-            q *= p;
-            bool out = mustout && t == r + 1, in = mustin && t == r + 1;
-            add_level_step_uniform(g, u1, u2, v1, v2, q, out, in);
-        }
-    }
-    if (loop && ranks >= 2) {
-        double z = 1.0;
-        for (int t = ranks - 1; t >= 1; t--) {
-            int u1 = starts[t], u2 = starts[t + 1];
-            double q = z;
-            for (int r = 0; r < t; r++) {
-                int v1 = starts[r], v2 = starts[r + 1];
-                q *= p;
-                add_level_step_uniform(g, u1, u2, v1, v2, q, false, false);
-            }
-            z *= p;
-        }
-    }
+    assert(start == g.V);
 }
 
-// ***** Simple graph types like trees and grids
+void complete_levels(digraph& g, const ranks_t& R) {
+    int start = 0, ranks = R.size();
+    for (int r = 0; r < ranks; r++) {
+        add_all_edges_bidirectional(g, start, start + R[r]);
+        start += R[r];
+    }
+    assert(start == g.V);
+}
 
-graph generate_tree_undirected(int V) {
+// ***** Simple graph types like trees and grids with exact, known shape
+
+graph line_undirected(int V) {
+    graph g(V);
+    for (int u = 0; u + 1 < V; u++)
+        g.add(u, u + 1);
+    return g;
+}
+
+digraph line_directed(int V) {
+    digraph g(V);
+    for (int u = 0; u + 1 < V; u++)
+        g.add(u, u + 1);
+    return g;
+}
+
+graph grid_undirected(int W, int H) {
+    graph g(W * H);
+    add_grid_edges(g, W, H);
+    return g;
+}
+
+digraph grid_directed(int W, int H) {
+    digraph g(W * H);
+    add_grid_edges(g, W, H);
+    return g;
+}
+
+graph circular_grid_undirected(int W, int H) {
+    graph g(W * H);
+    add_circular_grid_edges(g, W, H);
+    return g;
+}
+
+digraph circular_grid_directed(int W, int H) {
+    digraph g(W * H);
+    add_circular_grid_edges(g, W, H);
+    return g;
+}
+
+graph grid3_undirected(int X, int Y, int Z) {
+    graph g(X * Y * Z);
+    add_grid3_edges(g, X, Y, Z);
+    return g;
+}
+
+digraph grid3_directed(int X, int Y, int Z) {
+    digraph g(X * Y * Z);
+    add_grid3_edges(g, X, Y, Z);
+    return g;
+}
+
+graph circular_grid3_undirected(int X, int Y, int Z) {
+    graph g(X * Y * Z);
+    add_circular_grid3_edges(g, X, Y, Z);
+    return g;
+}
+
+digraph circular_grid3_directed(int X, int Y, int Z) {
+    digraph g(X * Y * Z);
+    add_circular_grid3_edges(g, X, Y, Z);
+    return g;
+}
+
+graph complete_undirected(int V) {
+    graph g(V);
+    add_all_edges(g, 0, V);
+    return g;
+}
+
+digraph complete_directed(int V) {
+    digraph g(V);
+    add_all_edges(g, 0, V);
+    return g;
+}
+
+graph cycle_undirected(int V) {
+    graph g(V);
+    for (int u = 1; u < V; u++) {
+        g.add(u - 1, u);
+    }
+    if (V >= 3)
+        g.add(V - 1, 0);
+    return g;
+}
+
+digraph cycle_directed(int V) {
+    digraph g(V);
+    for (int u = 1; u < V; u++) {
+        g.add(u - 1, u);
+    }
+    if (V >= 3)
+        g.add(V - 1, 0);
+    return g;
+}
+
+graph regular_ring(int V, int k) {
+    assert(k >= 2 && k % 2 == 0 && k < V);
+    graph g(V);
+    add_regular_ring_lattice(g, k);
+    return g;
+}
+
+graph perfect_binary_tree_undirected(int h) {
+    int V = (1 << h) - 1;
+    graph g(V);
+    for (int i = 1; i < V; i++)
+        g.add(i, (i - 1) >> 1);
+    return g;
+}
+
+digraph perfect_binary_tree_directed(int h, bool toparent = true, bool tochild = false) {
+    int V = (1 << h) - 1;
+    digraph g(V);
+    if (toparent)
+        for (int i = 1; i < V; i++)
+            g.add(i, (i - 1) >> 1);
+    if (tochild)
+        for (int i = 1; i < V; i++)
+            g.add((i - 1) >> 1, i);
+    return g;
+}
+
+bipartite_graph complete_bipartite(int U, int V) {
+    bipartite_graph g(U, V);
+    for (int u = 0; u < U; u++)
+        for (int v = 0; v < V; v++)
+            g.add(u, v);
+    return g;
+}
+
+// ***** Randomized known shape graphs
+
+graph random_tree_undirected(int V) {
     graph g(V);
     vector<int> parent = parent_sample(V);
     add_parent_edges(g, parent, 1);
     return g;
 }
 
-digraph generate_tree_directed(int V, bool toparent = true, bool tochild = false) {
+digraph random_tree_directed(int V, bool toparent = true, bool tochild = false) {
     digraph g(V);
     vector<int> parent = parent_sample(V);
     add_parent_edges(g, parent, 1, toparent, tochild);
     return g;
 }
 
-graph generate_grid_undirected(int W, int H) {
-    int V = W * H;
-    graph g(V);
-    for (int i = 0; i < W; i++) {
-        for (int j = 0; j < H; j++) {
-            int u = i * H + j;
-            int south = u + H;
-            int east = u + 1;
-            if (i + 1 < W)
-                g.add(u, south);
-            if (j + 1 < H)
-                g.add(u, east);
-        }
-    }
-    return g;
-}
-
-digraph generate_grid_directed(int W, int H) {
-    int V = W * H;
-    digraph g(V);
-    for (int i = 0; i < W; i++) {
-        for (int j = 0; j < H; j++) {
-            int u = i * H + j;
-            int south = u + H;
-            int east = u + 1;
-            if (i + 1 < W)
-                g.add(u, south);
-            if (j + 1 < H)
-                g.add(u, east);
-        }
-    }
-    return g;
-}
-
-graph generate_complete_undirected(int V) {
-    graph g(V);
-    for (int u = 0; u < V; u++) {
-        for (int v = u + 1; v < V; v++) {
-            g.add(u, v);
-        }
-    }
-    return g;
-}
-
-digraph generate_complete_directed(int V) {
-    digraph g(V);
-    for (int u = 0; u < V; u++) {
-        for (int v = u + 1; v < V; v++) {
-            g.add(u, v);
-        }
-    }
-    return g;
-}
-
-graph generate_cycle_undirected(int V) {
-    graph g(V);
-    for (int u = 1; u < V; u++) {
-        g.add(u - 1, u);
-    }
-    if (V >= 3)
-        g.add(V - 1, 0);
-    return g;
-}
-
-digraph generate_cycle_directed(int V) {
-    digraph g(V);
-    for (int u = 1; u < V; u++) {
-        g.add(u - 1, u);
-    }
-    if (V >= 3)
-        g.add(V - 1, 0);
-    return g;
-}
-
-graph generate_regular(int V, int k) {
+graph random_regular(int V, int k) {
     graph g(V);
     auto edges = regular_sample(V, k);
-    for (auto edge : edges)
-        g.add(edge[0], edge[1]);
+    add_oriented_edges(g, edges);
     return g;
 }
 
-// ***** Completely random but connected graphs
+graph random_regular_connected(int V, int k) {
+    graph g;
+    do {
+        g = random_regular(V, k);
+    } while (!is_connected(g));
+    return g;
+}
 
-graph generate_uniform_undirected(int V, double p) {
+// ***** Completely random and not necessarily connected graphs (Erdős–Rényi graphs)
+
+graph random_uniform_undirected(int V, double p) {
+    graph g(V);
+    add_uniform_edges(g, 0, V, min(1.0, p));
+    return g;
+}
+
+digraph random_uniform_directed(int V, double p) {
+    digraph g(V);
+    add_uniform_edges(g, 0, V, min(1.0, p));
+    return g;
+}
+
+graph random_exact_undirected(int V, int E) {
+    assert(E <= V * (V - 1) / 2);
+    graph g(V);
+    auto edges = choose_sample(E, 0, V - 1, false);
+    add_oriented_edges(g, edges);
+    assert(g.E == E);
+    return g;
+}
+
+digraph random_exact_directed(int V, int E) {
+    assert(E <= V * (V - 1));
+    digraph g(V);
+    auto edges = pair_sample(E + V, 0, V - 1, 0, V - 1, false);
+    shuffle(begin(edges), end(edges), mt);
+    add_nontrivial_edges(g, edges, E);
+    assert(g.E == E);
+    return g;
+}
+
+// ***** Completely random but connected graphs (Erdős–Rényi with bootstrap tree)
+
+graph random_uniform_undirected_connected(int V, double p) {
     graph g(V);
     vector<int> parent = parent_sample(V);
     add_parent_edges(g, parent, 1);
+    p = min(p, 1.0);
     for (int v = 1; v < V; v++) {
         binomd distk(v, p);
         for (int u : int_sample(distk(mt), 0, v - 1))
@@ -272,10 +542,11 @@ graph generate_uniform_undirected(int V, double p) {
     return g;
 }
 
-digraph generate_uniform_rooted_dag(int V, double p) {
+digraph random_uniform_rooted_dag_connected(int V, double p) {
     digraph g(V);
     vector<int> parent = parent_sample(V);
     add_parent_edges(g, parent, 1, false, true);
+    p = min(p, 1.0);
     for (int v = 1; v < V; v++) {
         binomd distk(v, p);
         for (int u : int_sample(distk(mt), 0, v - 1))
@@ -285,149 +556,140 @@ digraph generate_uniform_rooted_dag(int V, double p) {
     return g;
 }
 
-graph generate_exact_undirected(int V, int E) {
+graph random_exact_undirected_connected(int V, int E) {
     assert(V - 1 <= E && E <= V * (V - 1) / 2);
     graph g(V);
     vector<int> parent = parent_sample(V);
     add_parent_edges(g, parent, 1);
     if (E == V - 1)
         return g;
+
     int k = min(V * (V - 1) / 2, E + V);
     auto edges = choose_sample(k, 0, V - 1, false);
     shuffle(begin(edges), end(edges), mt);
-    for (auto edge : edges) {
-        int u = edge[0], v = edge[1];
-        assert(u < v);
-        if (u != parent[v] && v != parent[u])
-            g.add(u, v);
-        if (g.E == E)
-            break;
-    }
+    add_edges_except(g, edges, parent, E - g.E);
+    assert(g.E == E);
     return g;
 }
 
-digraph generate_exact_rooted_dag(int V, int E) {
+digraph random_exact_rooted_dag_connected(int V, int E) {
     assert(V - 1 <= E && E <= V * (V - 1) / 2);
     digraph g(V);
+
     vector<int> parent = parent_sample(V);
     add_parent_edges(g, parent, 1, false, true);
     if (E == V - 1)
         return g;
+
     int k = min(V * (V - 1) / 2, E + V);
     auto edges = choose_sample(k, 0, V - 1, false);
     shuffle(begin(edges), end(edges), mt);
-    for (auto edge : edges) {
-        int u = edge[0], v = edge[1];
-        assert(u < v);
-        if (u != parent[v])
-            g.add(u, v);
-        if (g.E == E)
-            break;
+    add_edges_except(g, edges, parent, E - g.E);
+    assert(g.E == E);
+    return g;
+}
+
+// ***** Many complete graphs joined in different ways
+
+graph disjoint_complete_undirected(int n, int k) {
+    graph g(n * k);
+    for (int i = 0; i < n; i++)
+        add_all_edges(g, i * k, (i + 1) * k);
+    return g;
+}
+
+digraph disjoint_complete_directed(int n, int k) {
+    digraph g(n * k);
+    for (int i = 0; i < n; i++)
+        add_all_edges(g, i * k, (i + 1) * k);
+    return g;
+}
+
+graph one_connected_complete_undirected(int n, int k) {
+    graph g = disjoint_complete_undirected(n, k);
+    for (int i = 0; i + 1 < n; i++) {
+        int u = k * i + (i % k), v = k * (i + 1) + (i % k);
+        g.add(u, v);
     }
     return g;
 }
 
-// ***** Level (ranked) connected graphs, possibly looped
+digraph one_connected_complete_directed(int n, int k) {
+    digraph g = disjoint_complete_directed(n, k);
+    for (int i = 0; i + 1 < n; i++) {
+        int u = k * i + (i % k), v = k * (i + 1) + (i % k);
+        g.add(u, v);
+    }
+    return g;
+}
 
-graph generate_full_level(int V, int ranks, int m = 1, bool loop = false) {
+graph k_connected_complete_undirected(int n, int k) {
+    graph g = disjoint_complete_undirected(n, k);
+    for (int i = 0; i + 1 < n; i++)
+        for (int j = 0; j < k; j++)
+            g.add(k * i + j, k * (i + 1) + j);
+    return g;
+}
+
+digraph k_connected_complete_directed(int n, int k) {
+    digraph g = disjoint_complete_directed(n, k);
+    for (int i = 0; i + 1 < n; i++)
+        for (int j = 0; j < k; j++)
+            g.add(k * i + j, k * (i + 1) + j);
+    return g;
+}
+
+// ***** Level (ranked) connected graphs, optionally looped
+// Each level is connected (full,uniform) to the next level.
+
+graph random_full_level(int V, int ranks, int m = 1, bool loop = false) {
     graph g(V);
     auto R = partition_sample(V, ranks, m);
     link_levels_full(g, R, loop);
+    complete_levels(g, R);
     return g;
 }
 
-digraph generate_full_level_dag(int V, int ranks, int m = 1, bool loop = false) {
+digraph random_full_level_dag(int V, int ranks, int m = 1, bool loop = false) {
     digraph g(V);
     auto R = partition_sample(V, ranks, m);
     link_levels_full(g, R, loop);
+    complete_levels(g, R);
     return g;
 }
 
-digraph generate_full_level_flow(int V, int ranks, int m = 1, bool loop = false) {
+digraph random_full_level_flow(int V, int ranks, int m = 1, bool loop = false) {
     digraph g(V);
     auto R = partition_sample_flow(V, ranks, m);
     link_levels_full(g, R, loop);
+    complete_levels(g, R);
     return g;
 }
 
-graph generate_uniform_level(int V, double p, int ranks, int m = 1, bool loop = false) {
+graph random_uniform_level(int V, double p, int ranks, int m = 1, bool loop = false) {
     graph g(V);
     auto R = partition_sample(V, ranks, m);
     link_levels_uniform(g, p, R, loop);
+    complete_levels(g, R);
     return g;
 }
 
-digraph generate_uniform_level_dag(int V, double p, int ranks, int m = 1,
-                                   bool loop = false) {
+digraph random_uniform_level_dag(int V, double p, int ranks, int m = 1,
+                                 bool loop = false) {
     digraph g(V);
     auto R = partition_sample(V, ranks, m);
     link_levels_uniform(g, p, R, loop, true, true);
+    complete_levels(g, R);
     return g;
 }
 
-digraph generate_uniform_level_flow(int V, double p, int ranks, int m = 1,
-                                    bool loop = false) {
+digraph random_uniform_level_flow(int V, double p, int ranks, int m = 1,
+                                  bool loop = false) {
     digraph g(V);
     auto R = partition_sample_flow(V, ranks, m);
     link_levels_uniform(g, p, R, loop, true, true);
+    complete_levels(g, R);
     return g;
-}
-
-digraph generate_exp_level_flow(int V, double p, int ranks, int m = 1,
-                                bool loop = false) {
-    digraph g(V);
-    auto R = partition_sample_flow(V, ranks, m);
-    link_levels_exp(g, p, R, loop, true, true);
-    return g;
-}
-
-// ***** Strongly-connected components expansion
-
-template <typename Gn, typename En>
-digraph generate_scc_expansion(const digraph& dag, Gn&& f, En&& h) {
-    int V = dag.V;
-    vector<int> intv(V + 1, 0);
-    digraph g(0);
-
-    for (int u = 0; u < V; u++) {
-        join(g, f(u));
-        intv[u + 1] = g.V;
-    }
-    for (int u = 0; u < V; u++) {
-        for (int v : dag.adj[u]) {
-            vector<array<int, 2>> choices;
-            for (int su = intv[u]; su < intv[u + 1]; su++) {
-                for (int sv = intv[v]; sv < intv[v + 1]; sv++) {
-                    choices.push_back({su, sv});
-                }
-            }
-            shuffle(begin(choices), end(choices), mt);
-            int edges = h(u, v);
-            for (int e = 0; e < edges; e++) {
-                g.add(choices[e][0], choices[e][1]);
-            }
-        }
-    }
-    return g;
-}
-
-digraph generate_scc_uniform_expansion(const digraph& dag, int k, double p) {
-    int V = dag.V;
-    vector<int> cnt(V);
-    intd dist(1, k);
-    for (int u = 0; u < V; u++) {
-        cnt[u] = dist(mt);
-    }
-    auto f = [&](int u) {
-        digraph g;
-        intd ranksd(1, max(cnt[u] / 2, 1));
-        g = generate_uniform_level_dag(cnt[u], p, ranksd(mt), 1, true);
-        return g;
-    };
-    auto h = [&](int u, int v) {
-        return int(ceil(sqrt(cnt[u] * cnt[v])));
-    };
-    return generate_scc_expansion(dag, f, h);
 }
 
 // ***** Convert to flow network
@@ -435,19 +697,17 @@ digraph generate_scc_uniform_expansion(const digraph& dag, int k, double p) {
 flow_graph make_flow_graph(const digraph& g, long max_cap) {
     longd capd(1, max_cap);
     flow_graph f(g.V);
-    for (int u = 0; u < g.V; u++) {
-        for (int v : g.adj[u]) {
+    for (int u = 0; u < g.V; u++)
+        for (int v : g.adj[u])
             f.add(u, v, capd(mt));
-        }
-    }
     return f;
 }
 
-flow_graph generate_flow_graph(int V, double p, long max_cap) {
+flow_graph random_flow_graph(int V, double p, long max_cap) {
     intd rankd(3, max(3, V / 3));
     int ranks = rankd(mt), m = min(7, V / ranks);
     p = min(1.0, p);
-    digraph g = generate_exp_level_flow(V, p, ranks, m, false);
+    digraph g = random_uniform_level_flow(V, p, ranks, m, false);
     return make_flow_graph(g, max_cap);
 }
 

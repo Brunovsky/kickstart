@@ -1,44 +1,85 @@
+#include "../general_matching.hpp"
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
 #include "../graph_generator.hpp"
-#include "../minmax.hpp"
 
+using namespace std::chrono;
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;
 
 // *****
 
-int N, R = 300;
-vector<string> names;
-vector<graph> graphs;
-vector<int> actual;
+void debug_header(string name) {
+    dflash();
+    dprint("{} {} {}\n", string(70, '='), name, string(70, '='));
+    dflash();
+}
 
-void read(string filename) {
-    ifstream file(filename);
-    assert(file.is_open());
-    file >> N >> ws;
+struct Test {
+    string name, comment;
+    micali_vazirani g;
+    int M;
+};
 
-    names.resize(N);
-    actual.resize(N);
-    graphs.clear();
+Test read_unit_test(istream& in) {
+    Test test;
+    auto& g = test.g;
+    while (in.peek() == '#') {
+        string line;
+        getline(in, line);
+        test.comment += line + "\n";
+    }
+    in >> ws;
+    getline(in, test.name);
 
-    for (int i = 0; i < N; i++) {
-        int V, E;
-        getline(file, names[i]);
-        file >> V >> E >> actual[i] >> ws;
+    int V, E, I, M;
+    in >> ws >> V >> E >> I >> M >> ws;
+    assert(V >= 0 && E >= 0 && I >= 0 && M >= 0 && I < 2 * V && M < 2 * V && I <= M);
+    assert(!in.bad());
 
-        graph g(V);
-        for (int e = 0; e < E; e++) {
-            int u, v;
-            file >> u >> v >> ws;
-            g.add(u, v);
-        }
-        graphs.push_back(move(g));
+    g = micali_vazirani(V);
+    test.M = M;
+    for (int i = 0; i < E; i++) {
+        int u, v;
+        char c;
+        in >> u >> c >> v;
+        g.add(u, v);
+    }
+    for (int i = 0; i < I; i++) {
+        int e;
+        in >> e;
+        g.mate[g.source[e]] = g.mate[g.target[e]] = e;
+    }
+    return test;
+}
+
+void read_unit_tests(vector<Test>& tests, istream& in = cin) {
+    in >> ws;
+    while (!in.eof()) {
+        tests.push_back(read_unit_test(in));
+        in >> ws;
     }
 }
 
-micali_vazirani to_vazirani(const graph& g) {
+void run_test(Test& test) {
+    debug_header(test.name);
+    dprint("{}", test.comment);
+    int matched = test.g.max_matching();
+    print("{:4} -- {:4} {}\n", matched, test.M, test.name);
+    // assert(matched == test.M);
+}
+
+void run_dataset_tests(string filename) {
+    vector<Test> tests;
+    ifstream file(filename);
+    assert(file.is_open());
+    read_unit_tests(tests, file);
+    for_each(begin(tests), end(tests), run_test);
+}
+
+micali_vazirani to_mv(const graph& g) {
     micali_vazirani vg(g.V);
     for (int u = 0; u < g.V; u++) {
         for (int v : g.adj[u]) {
@@ -69,84 +110,89 @@ int boost_matching_size(const bgraph& bg) {
     return cnt;
 }
 
-/**
- * Generate sparse graphs with V1..V2 vertices and collect those that have at least k
- * unmatched vertices in the maximum matching
- */
-void generate_hard_cases(int G = 1000, int k = 5, int V1 = 40, int V2 = 70) {
-    printf("Generating %d cases...", G);
-    ofstream file("datasets/general_matching_hard.txt");
-    ofstream dot("datasets/general_matching_hard.dot");
-    assert(file.is_open() && dot.is_open());
-    file << G << "\n\n";
-    dot << G << "\n\n";
+void random_test(int R = 100, int step = 5) {
+    intd distv(1000, 50000);
+    reald sparse(1.0, 6.0);
 
-    intd distv(V1, V2);
-    int total_cnt = 0;
-
-    for (int i = 0; i < G; i++) {
-        bgraph bg;
-        graph g;
-        int V, E, maximum;
-        int cur_cnt = 0;
-        do {
-            V = distv(mt);
-            intd diste(3 * V / 2, 6 * V);
-            E = diste(mt);
-            g = generate_exact_undirected(V, E);
-            bg = to_boost(g);
-            maximum = boost_matching_size(bg);
-            printf("\rGenerated %5d %5d...\r", cur_cnt++, total_cnt++);
-        } while (maximum + k > V);
-        printf("Generated %2dth graph with V=%2d and E=%2d...\n", i + 1, V, E);
-
-        file << "# Generated, tested by boost #"s + to_string(i + 1) << "\n";
-        file << to_simple_compact(g, to_string(maximum)) << endl;
-        dot << "# Generated, tested by boost #"s + to_string(i + 1) << "\n";
-        dot << to_dot_compact(g, false) << endl;
-    }
-
-    printf("Done in %d iterations\n", total_cnt);
-}
-
-void test() {
-    printf("===== GENERAL MATCHING DATASET TESTS =====\n answer | actual\n");
-
-    for (int i = 0; i < N; i++) {
-        auto& g = graphs[i];
-        auto name = names[i].data();
-        auto vg = to_vazirani(g);
-        int card = vg.max_matching();
-        printf(" %6d | %6d   %4d%5d  %s\n", card, actual[i], g.V, g.E, name);
-    }
-}
-
-void random_test() {
-    printf("===== GENERAL MATCHING BOOST TESTS =====\n  n  | answer | boost\n");
-
-    intd distv(1, 30);
-    reald sparse(4.0, 9.0);
+    unordered_map<int, int> misscnt;
+    int errors = 0;
 
     for (int i = 0; i < R; i++) {
         int V = distv(mt);
         auto g = generate_uniform_undirected(V, sparse(mt) / V);
+        g = relabel(g); // randomize the tree structure
+        shuffle_adj(g);
         bgraph bg = to_boost(g);
-        micali_vazirani vg = to_vazirani(g);
-        int bcard = boost_matching_size(bg);
-        int vcard = vg.max_matching();
-        printf("%4d | %6d | %6d   %4d %6d\n", i + 1, vcard, bcard, g.V, g.E);
+        micali_vazirani vg = to_mv(g);
+        int bans = boost_matching_size(bg) / 2;
+        int vans = vg.max_matching();
+        int missed = V / 2 - bans;
+        misscnt[missed]++;
+        print("\r{:7} | {:6} | {:6}   {:4} {:5}", i + 1, vans, bans, g.V, g.E);
+        if (vans != bans) {
+            print("\n");
+            errors++;
+        }
+
+        if (i % step == step - 1) {
+            print("\nerrors={:<3}  miss counts: ", errors);
+            for (int k = 0; k < 10; k++) {
+                print(" {}->{:<6}", k, misscnt[k]);
+            }
+            print("\n");
+        }
     }
+}
+
+// use boost's edmonds implementation for reference
+void performance_test(int R = 100, int Vlo = 500, int Vhi = 20000) {
+    intd distv(Vlo, Vhi);
+    reald sparse(1.0, 6.0);
+
+    vector<int> bans(R), vans(R);
+    vector<graph> gs(R);
+
+    mv_search_cnt = 0;
+    mv_good_cnt = 0;
+    int errors = 0;
+
+    for (int i = 0; i < R; i++) {
+        int V = distv(mt);
+        gs[i] = generate_uniform_undirected(V, sparse(mt) / V);
+        print("\rGenerating {}...", i + 1);
+    }
+    print("\n");
+
+    // boost
+    auto boost_now = steady_clock::now();
+    for (int i = 0; i < R; i++) {
+        auto bg = to_boost(gs[i]);
+        bans[i] = boost_matching_size(bg) / 2;
+        dprint("\rboost {}", i + 1);
+    }
+    auto boost_time = duration_cast<milliseconds>(steady_clock::now() - boost_now);
+    print("\nboost time: {}ms\n", boost_time.count());
+
+    // mv
+    auto mv_now = steady_clock::now();
+    for (int i = 0; i < R; i++) {
+        auto vg = to_mv(gs[i]);
+        vans[i] = vg.max_matching();
+        dprint("\r   mv {}", i + 1);
+        errors += vans[i] != bans[i];
+    }
+    auto mv_time = duration_cast<milliseconds>(steady_clock::now() - mv_now);
+    print("\n   mv time: {}ms\n", mv_time.count());
+    print("searches: {} (avg: {:.2})\n", mv_search_cnt, 1.0 * mv_search_cnt / R);
+    print("good phases: {} (avg: {:.2})\n", mv_good_cnt, 1.0 * mv_good_cnt / R);
+    print("errors : {}\n", errors);
 }
 
 int main() {
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
-    read("datasets/general_matching_easy.txt");
-    test();
-    // read("datasets/general_matching_hard.txt");
-    // test();
-    // generate_hard_cases();
-    // random_test();
-    // test_immediate_blossom();
+    run_dataset_tests("datasets/micali_vazirani.txt");
+    performance_test();
+    random_test();
     return 0;
 }

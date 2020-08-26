@@ -7,7 +7,7 @@ using namespace std;
 static constexpr long inf = LONG_MAX / 2;
 
 /**
- * Edmond-Karp augmenting paths
+ * Edmonds-Karp augmenting paths
  * Complexity: O(VE^2), not good
  */
 struct edmonds_karp {
@@ -403,8 +403,7 @@ struct tidal_flow {
         E++;
     }
 
-    vector<int> level;
-    vector<int> edges;
+    vector<int> level, edges;
     vector<long> p, h, l;
 
     bool bfs(int s, int t) {
@@ -470,7 +469,11 @@ struct tidal_flow {
         p.assign(2 * E, 0);
         long max_flow = 0;
         while (bfs(s, t)) {
-            max_flow += tide(s, t);
+            long df;
+            do {
+                df = tide(s, t);
+                max_flow += df;
+            } while (df > 0);
         }
         return max_flow;
     }

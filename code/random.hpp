@@ -276,7 +276,6 @@ restart:
     for (auto p : seen)
         if (p[0] < p[1])
             regular[--edges] = p;
-    fprintf(stderr, "edges: %d  V: %d  k: %d\n", edges, n, k);
     assert(edges == 0);
     return regular;
 }

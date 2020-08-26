@@ -11,13 +11,15 @@ template <typename Graph>
 string to_string(const Graph& g) {
     stringstream ss;
     ss << "V=" << g.V << ", E=" << g.E << '\n';
+    ss << string(g.V + 2, '.') << '\n';
     for (int u = 0; u < g.V; u++) {
-        string s(g.V, '0');
+        string s(g.V, ' ');
         for (int v : g.adj[u]) {
             s[v] = '1';
         }
-        ss << s << '\n';
+        ss << '.' << s << ".\n";
     }
+    ss << string(g.V + 2, '.') << '\n';
     for (int u = 0; u < g.V; u++) {
         ss << setw(2) << u << " ->";
         for (int v : g.adj[u]) {
@@ -170,6 +172,16 @@ digraph relabel(const digraph& g) {
     }
     h.E = g.E;
     return h;
+}
+
+/**
+ * Shuffle adjacency list
+ */
+template <typename Graph>
+void shuffle_adj(Graph& g) {
+    for (int u = 0; u < g.V; u++) {
+        shuffle(begin(g.adj[u]), end(g.adj[u]), mt);
+    }
 }
 
 /**
