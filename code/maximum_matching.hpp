@@ -5,14 +5,14 @@ using namespace std;
 // *****
 
 /**
- * Simple maximal matching algorithm
+ * Simple maximum matching algorithm
  * Complexity: O(VE)
  */
-struct maximal_matching {
+struct maximum_matching {
     int U, V;
     vector<vector<int>> adj;
 
-    maximal_matching(int U, int V) : U(U), V(V) { adj.assign(U, {}); }
+    maximum_matching(int U, int V) : U(U), V(V) { adj.assign(U, {}); }
 
     void add(int u, int v) {
         assert(0 <= u && u < U && 0 <= v && v < V);
