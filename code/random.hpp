@@ -228,8 +228,8 @@ vector<array<int, 2>> regular_sample(int n, int k) {
     vector<int> cnt(n), notfull;
 
 restart:
-    if (restarts++ == 100)
-        throw std::runtime_error("Failed to generate regular graph after 100 restarts");
+    if (restarts++ == 500)
+        throw std::runtime_error("Failed to generate regular graph after 500 restarts");
 
     seen.clear();
     notfull.resize(n);

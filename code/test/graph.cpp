@@ -12,8 +12,8 @@ void show(string msg, G&& g) {
 }
 
 void test_generator() {
-    show("Line undirected 10", line_undirected(10));
-    show("Line directed 10", line_directed(10));
+    show("Path undirected 10", path_undirected(10));
+    show("Path directed 10", path_directed(10));
     show("Grid undirected 4x5", grid_undirected(4, 5));
     show("Grid directed 4x5", grid_directed(4, 5));
     show("Grid circular undirected 4x5", circular_grid_undirected(4, 5));
@@ -29,6 +29,20 @@ void test_generator() {
     show("Regular ring 9,4", regular_ring(9, 4));
     show("Perfect binary tree height 5", perfect_binary_tree_undirected(5));
     show("Perfect binary tree height 5 directed", perfect_binary_tree_directed(5));
+    show("Perfect 3-ary tree height 3", perfect_tree_undirected(3, 3));
+    show("Multipartite graph 2,3,4,5", complete_multipartite({2, 3, 4, 5}));
+
+    show("Johnson graph (7,2)", johnson(7, 2));
+    show("Johnson graph (5,3)", johnson(5, 3));
+    show("Kneser graph (8,3)", kneser(8, 3));
+    show("Kneser graph (9,4)", kneser(9, 4));
+    show("Wheel graph 10", wheel(10));
+    show("Cogwheel graph 5", cogwheel(5));
+    show("Web graph 6,3", web(6, 3));
+    show("Turan graph 15,4", turan(15, 4));
+    show("Circulant graph 14 (2,4,7)", circulant(14, {2, 4, 7}));
+    show("Sudoku 9x9", sudoku(9));
+    show("Sudoku 4x4", sudoku(4));
 
     show("Random tree undirected 8", random_tree_undirected(8));
     show("Random tree directed 8", random_tree_directed(8));

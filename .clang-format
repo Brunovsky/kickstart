@@ -52,6 +52,9 @@ ForEachMacros:
     - foreach
     - Q_FOREACH
     - BOOST_FOREACH
+    - FOR_EACH_MASK
+    - FOR_EACH_BIT
+    - FOR_EACH_SUBSET
 IncludeBlocks: Regroup
 #IndentCaseLabels: true
 IndentCaseLabels: false

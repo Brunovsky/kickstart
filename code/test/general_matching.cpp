@@ -68,7 +68,6 @@ void run_test(Test& test) {
     dprint("{}", test.comment);
     int matched = test.g.max_matching();
     print("{:4} -- {:4} {}\n", matched, test.M, test.name);
-    // assert(matched == test.M);
 }
 
 void run_dataset_tests(string filename) {
@@ -110,16 +109,15 @@ int boost_matching_size(const bgraph& bg) {
     return cnt;
 }
 
-void random_test(int R = 100, int step = 5) {
-    intd distv(1000, 50000);
-    reald sparse(1.0, 6.0);
+void random_test(int R = 1000000, int step = 5) {
+    intd distv(20, 25);
 
     unordered_map<int, int> misscnt;
     int errors = 0;
 
     for (int i = 0; i < R; i++) {
         int V = distv(mt);
-        auto g = generate_uniform_undirected(V, sparse(mt) / V);
+        auto g = random_uniform_undirected(V, sparse(mt) / V);
         g = relabel(g); // randomize the tree structure
         shuffle_adj(g);
         bgraph bg = to_boost(g);
@@ -144,7 +142,6 @@ void random_test(int R = 100, int step = 5) {
     }
 }
 
-// use boost's edmonds implementation for reference
 void performance_test(int R = 100, int Vlo = 500, int Vhi = 20000) {
     intd distv(Vlo, Vhi);
     reald sparse(1.0, 6.0);
@@ -158,7 +155,7 @@ void performance_test(int R = 100, int Vlo = 500, int Vhi = 20000) {
 
     for (int i = 0; i < R; i++) {
         int V = distv(mt);
-        gs[i] = generate_uniform_undirected(V, sparse(mt) / V);
+        gs[i] = random_uniform_undirected(V, sparse(mt) / V);
         print("\rGenerating {}...", i + 1);
     }
     print("\n");

@@ -57,12 +57,16 @@ inline void reverse_bits(uint& v) {
 
 inline string lsbits(uint v, uint bits = 32) {
     string s(bits, '0');
-    FOR_EACH_BIT(v, n, bit) if (n < bits) s[n] = '1';
+    FOR_EACH_BIT (v, n, bit)
+        if (n < bits)
+            s[n] = '1';
     return s;
 }
 
 inline string msbits(uint v, uint bits = 32) {
     string s(bits, '0');
-    FOR_EACH_BIT(v, n, bit) if (n < bits) s[bits - n - 1] = '1';
+    FOR_EACH_BIT (v, n, bit)
+        if (n < bits)
+            s[bits - n - 1] = '1';
     return s;
 }
