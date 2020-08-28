@@ -28,7 +28,7 @@ void test() {
 }
 
 int main() {
-    test<maximal_matching>();
-    test<maximal_matching_big>();
+    test<maximum_matching>();
+    test<hopcroft_karp>();
     return 0;
 }

@@ -1,3 +1,6 @@
+#ifndef RMQ_HPP
+#define RMQ_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -28,3 +31,5 @@ struct RMQ {
         return min(jmp[dep][a], jmp[dep][b - (1 << dep)]);
     }
 };
+
+#endif // RMQ_HPP

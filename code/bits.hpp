@@ -1,3 +1,6 @@
+#ifndef BITS_HPP
+#define BITS_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -70,3 +73,5 @@ inline string msbits(uint v, uint bits = 32) {
             s[bits - n - 1] = '1';
     return s;
 }
+
+#endif // BITS_HPP

@@ -1,3 +1,6 @@
+#ifndef STRING_SEARCH_HPP
+#define STRING_SEARCH_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -195,7 +198,7 @@ struct rolling_hasher {
     static constexpr size_t mask = (1 << 26) - 1;
     size_t n, mul;
 
-    rolling_hasher(size_t n) : n(n), mul(powovf(base, n) & mask) {}
+    rolling_hasher(size_t n) : n(n), mul(powovf(n) & mask) {}
 
     size_t operator()(const char* s, const char* e) const noexcept {
         size_t seed = 0;
@@ -213,14 +216,14 @@ struct rolling_hasher {
         return (seed * base + in + (mask + 1 - out) * mul) & mask;
     }
 
-    constexpr size_t powovf(size_t base, size_t n) {
-        size_t power = 1;
-        while (n) {
-            if (n & 1) {
-                power = power * base;
+    static constexpr size_t powovf(size_t e) {
+        size_t power = 1, b = base;
+        while (e) {
+            if (e & 1) {
+                power = power * b;
             }
-            n >>= 1;
-            base = base * base;
+            e >>= 1;
+            b = b * b;
         }
         return power;
     }
@@ -318,3 +321,5 @@ vector<int> z_search_all(const string& text, const string& needle, char null = '
     }
     return match;
 }
+
+#endif // STRING_SEARCH_HPP

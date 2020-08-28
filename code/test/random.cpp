@@ -50,7 +50,7 @@ void test_sampler(int n = 53439, int k = 173, int runs = 30000) {
 
     int i = 0;
     while (i++ < runs) {
-        vector<int> sample = get_sample(univ, k);
+        vector<int> sample = vec_sample(univ, k);
         for (int m : sample) {
             assert(start <= m && m < start + n);
             cnt[m - start]++;

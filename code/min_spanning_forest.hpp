@@ -1,3 +1,6 @@
+#ifndef MIN_SPANNING_FOREST_HPP
+#define MIN_SPANNING_FOREST_HPP
+
 #include "disjoint_set.hpp"
 
 // *****
@@ -42,3 +45,5 @@ struct min_spanning_forest {
         return msf_weight;
     }
 };
+
+#endif // MIN_SPANNING_FOREST_HPP

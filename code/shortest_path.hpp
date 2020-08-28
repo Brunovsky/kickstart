@@ -1,3 +1,6 @@
+#ifndef SHORTEST_PATH
+#define SHORTEST_PATH
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -12,9 +15,7 @@ struct dijkstra {
     int V;
     vector<vector<pair<int, int>>> adj;
 
-    dijkstra(int V) : V(V) {
-        adj.resize(V, {});
-    }
+    dijkstra(int V) : V(V) { adj.resize(V, {}); }
 
     void add(int u, int v, int w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && w >= 0);
@@ -81,9 +82,7 @@ struct astar {
     vector<vector<pair<int, int>>> adj;
     using heuristic_t = const function<int(int)>&;
 
-    astar(int V) : V(V) {
-        adj.resize(V, {});
-    }
+    astar(int V) : V(V) { adj.resize(V, {}); }
 
     void add(int u, int v, int w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && w >= 0);
@@ -268,3 +267,5 @@ struct bellman_ford {
         return path;
     }
 };
+
+#endif // SHORTEST_PATH

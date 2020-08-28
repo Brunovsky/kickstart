@@ -12,7 +12,6 @@ void test() {
         {2, 2, 1},
     };
     tp.compute();
-    cout << to_string(tp.tp) << endl;
     solution = {{30, 30, 40}, {50, 0, 0}};
     assert(tp.tp == solution);
 
@@ -23,7 +22,6 @@ void test() {
         {3, 0, 3},
     };
     tp.compute();
-    cout << to_string(tp.tp) << endl;
     solution = {{100, 0, 0}, {0, 20, 40}};
     assert(tp.tp == solution);
 
@@ -35,7 +33,6 @@ void test() {
         {0, 1, 4, 3},
     };
     tp.compute();
-    cout << to_string(tp.tp) << endl;
     solution = {{50, 0, 0, 0}, {0, 0, 45, 5}, {0, 25, 0, 25}};
     assert(tp.tp == solution);
 
@@ -48,7 +45,6 @@ void test() {
         {20, 27, 16},
     };
     tp.compute();
-    cout << to_string(tp.tp) << endl;
     solution = {{123, 0, 0}, {77, 66, 0}, {0, 34, 50}, {0, 0, 150}};
     assert(tp.tp == solution);
 
@@ -61,7 +57,6 @@ void test() {
         {60, 68, 75, 71},
     };
     tp.compute();
-    cout << to_string(tp.tp) << endl;
     solution = {{0, 0, 0, 134}, {163, 0, 0, 40}, {0, 0, 175, 1}, {12, 175, 0, 0}};
     assert(tp.tp == solution);
 
@@ -73,7 +68,6 @@ void test() {
         {40, 32, 28, 35},
     };
     tp.compute();
-    cout << to_string(tp.tp) << endl;
     solution = {{21, 11, 22, 0}, {0, 21, 0, 46}, {0, 0, 29, 0}};
     assert(tp.tp == solution);
 
@@ -85,7 +79,6 @@ void test() {
         {8, 6, 3},
     };
     tp.compute();
-    cout << to_string(tp.tp) << endl;
     solution = {{0, 2, 15}, {0, 23, 0}, {0, 0, 10}};
     assert(tp.tp == solution);
 
@@ -99,7 +92,6 @@ void test() {
         {25, 74, 26, 62, 36, 14}, //
     };
     tp.compute();
-    cout << to_string(tp.tp) << endl;
     solution = {{0, 0, 46, 28, 0, 0},
                 {0, 0, 0, 62, 30, 0},
                 {0, 0, 0, 0, 0, 81},

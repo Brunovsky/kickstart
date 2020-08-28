@@ -1,3 +1,6 @@
+#ifndef MATH_HPP
+#define MATH_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -264,3 +267,5 @@ struct modnum {
     friend bool operator==(modnum lhs, modnum rhs) { return lhs.n == rhs.n; }
     friend bool operator!=(modnum lhs, modnum rhs) { return lhs.n != rhs.n; }
 };
+
+#endif // MATH_HPP

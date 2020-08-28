@@ -1,3 +1,6 @@
+#ifndef DANCING_LINKS_HPP
+#define DANCING_LINKS_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -62,3 +65,5 @@ struct dancing_links_matrix {
         return {r, W[r][c]};
     }
 };
+
+#endif // DANCING_LINKS_HPP

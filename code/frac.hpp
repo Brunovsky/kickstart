@@ -1,3 +1,6 @@
+#ifndef FRAC_HPP
+#define FRAC_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -175,3 +178,5 @@ frac cf_search(frac lo, frac hi) {
         return fa + inv(cf_search(inv(hi - fa), inv(lo - fa)));
     }
 }
+
+#endif // FRAC_HPP

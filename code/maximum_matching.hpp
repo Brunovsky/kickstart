@@ -1,8 +1,13 @@
+#ifndef MAXIMUM_MATCHING_HPP
+#define MAXIMUM_MATCHING_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
 
 // *****
+
+constexpr int inf = INT_MAX / 2;
 
 /**
  * Simple maximum matching algorithm
@@ -19,15 +24,15 @@ struct maximum_matching {
         adj[u].push_back(v);
     }
 
-    vector<int> mu;  // mu[u]=v where the mapping is u<->v, nil if u is unmatched
-    vector<int> mv;  // mv[v]=u where the mapping is u<->v, nil if v is unmatched
+    vector<int> mu;  // mu[u]=v where the mapping is u<->v, nil(-1) if u is unmatched
+    vector<int> mv;  // mv[v]=u where the mapping is u<->v, nil(-1) if v is unmatched
     vector<int> vis; // vis[u]: last iteration that u was visited
     int iteration;
 
     bool dfs(int u) {
         vis[u] = iteration;
         for (int v : adj[u]) {
-            if (mv[v] == nil) {
+            if (mv[v] == -1) {
                 mu[u] = v;
                 mv[v] = u;
                 return true;
@@ -44,8 +49,8 @@ struct maximum_matching {
     }
 
     int compute() {
-        mu.assign(U, nil);
-        mv.assign(V, nil);
+        mu.assign(U, -1);
+        mv.assign(V, -1);
         vis.assign(U, 0);
         iteration = 0;
         int new_matchings = 0;
@@ -54,7 +59,7 @@ struct maximum_matching {
             iteration++;
             new_matchings = 0;
             for (int u = 0; u < U; u++) {
-                if (mu[u] == nil && dfs(u)) {
+                if (mu[u] == -1 && dfs(u)) {
                     new_matchings++;
                 }
             }
@@ -62,28 +67,25 @@ struct maximum_matching {
         } while (new_matchings);
         return matchings;
     }
-
-  private:
-    int nil = -1;
 };
 
 /**
  * Hopcroft-Karp maximal matching
  * Complexity: O(V^1/2 E)
  */
-struct maximal_matching_big {
+struct hopcroft_karp {
     int U, V;
     vector<vector<int>> adj;
 
-    maximal_matching_big(int U, int V) : U(U), V(V) { adj.assign(U + 1, {}); }
+    hopcroft_karp(int U, int V) : U(U), V(V) { adj.assign(U + 1, {}); }
 
     void add(int u, int v) {
         assert(0 <= u && u < U && 0 <= v && v < V);
         adj[u + 1].push_back(v + 1);
     }
 
-    vector<int> mu;   // mu[u]=v where the mapping is u<->v, nil if u is unmatched
-    vector<int> mv;   // mv[v]=u where the mapping is u<->v, nil if v is unmatched
+    vector<int> mu;   // mu[u]=v where the mapping is u<->v, nil(0) if u is unmatched
+    vector<int> mv;   // mv[v]=u where the mapping is u<->v, nil(0) if v is unmatched
     vector<int> vis;  // vis[u]: last iteration that u was visited
     vector<int> dist; // dist[u]: distance of u to s
     int iteration;
@@ -91,18 +93,18 @@ struct maximal_matching_big {
     bool bfs() {
         queue<int> Q;
         for (int u = 1; u <= U; u++) {
-            if (mu[u] == nil) {
+            if (mu[u] == 0) {
                 dist[u] = 0;
                 Q.push(u);
             } else {
                 dist[u] = inf;
             }
         }
-        dist[nil] = inf;
+        dist[0] = inf;
         while (!Q.empty()) {
             int u = Q.front();
             Q.pop();
-            if (dist[u] < dist[nil]) {
+            if (dist[u] < dist[0]) {
                 for (int v : adj[u]) {
                     // note: the check v != mu[u] is implicit in dist[mv[v]] == inf
                     if (dist[mv[v]] == inf) {
@@ -112,11 +114,11 @@ struct maximal_matching_big {
                 }
             }
         }
-        return dist[nil] != inf;
+        return dist[0] != inf;
     }
 
     bool dfs(int u) {
-        if (u == nil) {
+        if (u == 0) {
             return true;
         }
         if (vis[u] == iteration) {
@@ -134,8 +136,8 @@ struct maximal_matching_big {
     }
 
     int compute() {
-        mu.assign(U + 1, nil);
-        mv.assign(V + 1, nil);
+        mu.assign(U + 1, 0);
+        mv.assign(V + 1, 0);
         vis.assign(U + 1, 0);
         dist.assign(U + 1, 0);
         int matching = 0;
@@ -143,14 +145,13 @@ struct maximal_matching_big {
         while (bfs()) {
             iteration++;
             for (int u = 1; u <= U; u++) {
-                if (mu[u] == nil && dfs(u)) {
+                if (mu[u] == 0 && dfs(u)) {
                     matching++;
                 }
             }
         }
         return matching;
     }
-
-  private:
-    int nil = 0, inf = INT_MAX;
 };
+
+#endif // MAXIMUM_MATCHING_HPP

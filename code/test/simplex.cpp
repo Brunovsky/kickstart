@@ -66,7 +66,7 @@ void test() {
 
     cout << smp.tab;
     vector<frac> sol = {
-        0, 0, 9_q / 4_q, frac(3, 2), frac(1, 2), 0, frac(37, 4), 8, frac(17, 2), 0,
+        0, 0, frac(9, 4), frac(3, 2), frac(1, 2), 0, frac(37, 4), 8, frac(17, 2), 0,
     };
     assert(smp.x == sol);
 }

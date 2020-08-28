@@ -110,7 +110,8 @@ int boost_matching_size(const bgraph& bg) {
 }
 
 void random_test(int R = 1000000, int step = 5) {
-    intd distv(20, 25);
+    intd distv(20, 30);
+    reald sparse(1.2, 8.0);
 
     unordered_map<int, int> misscnt;
     int errors = 0;

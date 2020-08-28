@@ -1,3 +1,6 @@
+#ifndef SIMPLEX_HPP
+#define SIMPLEX_HPP
+
 #include <bits/stdc++.h>
 
 #include "frac.hpp"
@@ -127,3 +130,5 @@ struct simplex {
         return tab[0][0];
     }
 };
+
+#endif // SIMPLEX_HPP

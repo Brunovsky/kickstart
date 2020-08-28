@@ -1,3 +1,6 @@
+#ifndef FENWICK_HPP
+#define FENWICK_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -77,3 +80,5 @@ struct fenwick2d {
         }
     }
 };
+
+#endif // FENWICK_HPP

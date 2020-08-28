@@ -1,3 +1,6 @@
+#ifndef TRANSPORTATION_HPP
+#define TRANSPORTATION_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -169,3 +172,5 @@ struct transportation {
         }
     }
 };
+
+#endif // TRANSPORTATION_HPP

@@ -1,3 +1,6 @@
+#ifndef PRIMES_HPP
+#define PRIMES_HPP
+
 #include "math.hpp"
 
 // *****
@@ -136,7 +139,7 @@ vector<ulong> factor_simple(ulong n) {
  */
 ulong pollard(ulong n, ulong c = 1) {
     static const ulong cmax = 17;
-    int i = 1, iterations = 37 + ceil(sqrt(sqrt(sqrt(n))));
+    int i = 1, iterations = 37 + int(ceil(sqrt(sqrt(sqrt(n)))));
     auto f = [n, c](ulong x) {
         return ((x * x + c) % n) + 1;
     };
@@ -162,3 +165,5 @@ vector<ulong> factor(ulong n) {
     l.insert(end(l), begin(r), end(r));
     return l;
 }
+
+#endif // PRIMES_HPP

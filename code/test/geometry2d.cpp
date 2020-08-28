@@ -31,7 +31,7 @@ vector<P> random_points(int N) {
 void test_collinear() {
     for (P a : random_points(100)) {
         for (P b : random_points(100)) {
-            long k = random_p();
+            double k = random_p();
             P c = a * (1 - k) + b * k;
             assert(collinear(a, b, c));
             assert(collinear(b, a, c));

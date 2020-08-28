@@ -1,3 +1,6 @@
+#ifndef GENERAL_MATCHING_HPP
+#define GENERAL_MATCHING_HPP
+
 #include "debug_print.hpp"
 #include "hash.hpp"
 
@@ -706,3 +709,5 @@ struct micali_vazirani {
         return augmentations;
     }
 };
+
+#endif // GENERAL_MATCHING_HPP

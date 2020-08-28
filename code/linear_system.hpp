@@ -1,3 +1,6 @@
+#ifndef LINEAR_SYSTEM_HPP
+#define LINEAR_SYSTEM_HPP
+
 #include "frac.hpp"
 
 // *****
@@ -119,3 +122,5 @@ struct inverse {
         return true;
     }
 };
+
+#endif // LINEAR_SYSTEM_HPP

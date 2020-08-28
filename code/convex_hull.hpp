@@ -1,3 +1,6 @@
+#ifndef CONVEX_HULL_HPP
+#define CONVEX_HULL_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -42,3 +45,5 @@ vector<point2d> graham_scan(vector<point2d> points) {
 
     return hull;
 }
+
+#endif // CONVEX_HULL_HPP

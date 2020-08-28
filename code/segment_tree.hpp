@@ -1,3 +1,6 @@
+#ifndef SEGMENT_TREE
+#define SEGMENT_TREE
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -179,3 +182,5 @@ void driver_usage() {
     }
     // done
 }
+
+#endif // SEGMENT_TREE

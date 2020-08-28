@@ -1,3 +1,6 @@
+#ifndef PLANARITY_HPP
+#define PLANARITY_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -336,3 +339,5 @@ struct left_right {
         return true;
     }
 };
+
+#endif // PLANARITY_HPP

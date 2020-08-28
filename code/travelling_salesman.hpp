@@ -1,3 +1,6 @@
+#ifndef TSP_HPP
+#define TSP_HPP
+
 #include "bits.hpp"
 
 // *****
@@ -19,9 +22,9 @@ struct travelling_salesman {
             cost[1 << i][i] = dist[n][i];
         }
         for (int s = 2; s <= n; s++) {
-            FOR_EACH_MASK(set, s, n) {
-                FOR_EACH_BIT(set, k, kbit) {
-                    FOR_EACH_BIT(set ^ kbit, m, mbit) {
+            FOR_EACH_MASK (set, s, n) {
+                FOR_EACH_BIT (set, k, kbit) {
+                    FOR_EACH_BIT (set ^ kbit, m, mbit) {
                         cost[set][k] = min(cost[set][k],
                                            cost[set ^ kbit][m] + dist[m][k]);
                     }
@@ -41,7 +44,7 @@ struct travelling_salesman {
         path.push_back(k);
         for (int s = n; s >= 2; s--) {
             int kbit = 1 << k;
-            FOR_EACH_BIT(set ^ kbit, m, mbit) {
+            FOR_EACH_BIT (set ^ kbit, m, mbit) {
                 if (cost[set][k] == cost[set ^ kbit][m] + dist[m][k]) {
                     path.push_back(m);
                     set ^= kbit;
@@ -56,3 +59,5 @@ struct travelling_salesman {
         return {optimum, path};
     }
 };
+
+#endif // TSP_HPP

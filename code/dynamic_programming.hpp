@@ -1,3 +1,6 @@
+#ifndef DYNAMIC_PROGRAMMING_HPP
+#define DYNAMIC_PROGRAMMING_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -300,3 +303,5 @@ vector<int> longest_increasing_subsequence(const vector<int>& nums) {
     }
     return subsequence;
 }
+
+#endif // DYNAMIC_PROGRAMMING_HPP

@@ -3,7 +3,9 @@
 
 #include "bits.hpp"
 #include "graph_operations.hpp"
+#include "hash.hpp"
 #include "math.hpp"
+#include "random.hpp"
 
 // *****
 

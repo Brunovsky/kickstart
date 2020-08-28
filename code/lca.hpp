@@ -1,3 +1,6 @@
+#ifndef LCA_HPP
+#define LCA_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -61,3 +64,5 @@ struct lca_tree {
         return depth[u] + depth[v] - 2 * depth[lca(u, v)];
     }
 };
+
+#endif // LCA_HPP

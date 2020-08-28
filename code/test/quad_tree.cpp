@@ -104,7 +104,7 @@ void test() {
                 printf(" %d:\tcorrect:%lu\tanswer:%lu\n", i, correct[i], answers[i]);
             }
         }
-        return 1;
+        return;
     }
 
     printf("%d queries\n", QUERIES);
@@ -113,7 +113,7 @@ void test() {
     printf("size / log2^2(size): %lf\n", N / (logN * logN));
     printf("linear / tree time:  %lf\n", linear_time / double(tree_time));
     printf("quad_tree OK\n");
-    return 0;
+    return;
 }
 
 int main() {

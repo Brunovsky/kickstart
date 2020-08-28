@@ -1,3 +1,6 @@
+#ifndef QUAD_TREE_HPP
+#define QUAD_TREE_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -184,3 +187,5 @@ struct quad_tree {
 //               |
 //  .            |            .
 //       .   .       .   .
+
+#endif // QUAD_TREE_HPP

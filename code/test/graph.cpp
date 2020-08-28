@@ -1,3 +1,4 @@
+#include "../graph_formats.hpp"
 #include "../graph_generator.hpp"
 
 // *****

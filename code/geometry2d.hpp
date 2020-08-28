@@ -1,3 +1,6 @@
+#ifndef GEOMETRY2D_HPP
+#define GEOMETRY2D_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -176,3 +179,5 @@ P orthocenter(P A, P B, P C) {
     P b = perp(A - C), c = perp(A - B);
     return intersect(B, B + b, C, C + c);
 }
+
+#endif // GEOMETRY2D_HPP

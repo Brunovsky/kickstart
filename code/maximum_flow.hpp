@@ -1,3 +1,6 @@
+#ifndef MAXIMUM_FLOW_HPP
+#define MAXIMUM_FLOW_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -478,3 +481,5 @@ struct tidal_flow {
         return max_flow;
     }
 };
+
+#endif // MAXIMUM_FLOW_HPP

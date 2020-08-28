@@ -1,3 +1,6 @@
+#ifndef SCC_HPP
+#define SCC_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -122,3 +125,5 @@ string to_dot(const strongly_connected_components& g) {
     ss << "}\n";
     return ss.str();
 }
+
+#endif // SCC_HPP

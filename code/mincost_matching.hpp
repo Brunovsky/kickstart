@@ -1,3 +1,6 @@
+#ifndef MINCOST_MATCHING_HPP
+#define MINCOST_MATCHING_HPP
+
 #include <bits/stdc++.h>
 
 using namespace std;
@@ -130,7 +133,7 @@ struct mincost_matching {
             } else {
                 reprice();
             }
-        };
+        }
         int min_cost = 0;
         for (int e = 0; e < E; e++) {
             if (mu[source[e]] == target[e]) {
@@ -140,3 +143,5 @@ struct mincost_matching {
         return min_cost;
     }
 };
+
+#endif // MINCOST_MATCHING_HPP
