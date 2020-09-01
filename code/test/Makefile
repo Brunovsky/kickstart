@@ -12,12 +12,15 @@ DEP_DIR := ./dep
 
 HEADERS := $(shell find .. -name '*.hpp')
 CXX_FILES := $(wildcard *.cpp)
+CXX_FILES := $(filter-out $(FILE), $(CXX_FILES))
 EXE_FILES := $(CXX_FILES:%.cpp=${BIN_DIR}/%)
 DEP_FILES := $(CXX_FILES:%.cpp=${DEP_DIR}/%.d)
 LIBS := -lfmt
 
 include ../../templates/cpp-flags.make
 CXXFLAGS += $(LIBS)
+
+default: debug
 
 -include $(DEP_FILES)
 
@@ -34,7 +37,11 @@ perfm: MODE := performance
 perfm: CXXFLAGS += $(OPTIM)
 perfm: $(EXE)
 
-# all
+sanit: MODE := sanitizer
+sanit: CXXFLAGS += $(DEBUG) $(SANIT)
+sanit: $(EXE)
+
+# global build
 
 CMD_MKDIRS = @mkdir -p $(BIN_DIR) $(DEP_DIR)
 CMD_MV_DEPENDENCY = @mv -f $(DEP_DIR)/$*.Td $(DEP_DIR)/$*.d && touch $@
@@ -60,7 +67,7 @@ cleanall: clean
 # code.cpp
 
 $(EXE): $(FILE) $(HEADERS)
-	@echo "CC (${COMPILER} $(MODE))  $@"
+	@echo "CC (${COMPILER} $(MODE)) $@"
 	@$(CXX) $(FILE) $(CXXFLAGS) -o $@
 
 run code: debug

@@ -1,15 +1,100 @@
-#include "../general_matching.hpp"
+#include <fmt/format.h>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
+#include "../general_matching.hpp"
+#include "../graph_formats.hpp"
 #include "../graph_generator.hpp"
 
 using namespace std::chrono;
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;
+using fmt::format, fmt::print;
 
 // *****
+
+micali_vazirani to_mv(const graph& g) {
+    micali_vazirani vg(g.V);
+    for (int u = 0; u < g.V; u++) {
+        for (int v : g.adj[u]) {
+            if (u < v)
+                vg.add(u, v);
+        }
+    }
+    return vg;
+}
+
+bgraph to_boost(const graph& g) {
+    bgraph bg(g.V);
+    for (int u = 0; u < g.V; u++) {
+        for (int v : g.adj[u]) {
+            add_edge(u, v, bg);
+        }
+    }
+    return bg;
+}
+
+int boost_matching_size(const bgraph& bg) {
+    matemap_t mate(num_vertices(bg));
+    bool ok = boost::checked_edmonds_maximum_cardinality_matching(bg, &mate[0]);
+    (void)ok, assert(ok);
+    int cnt = 0;
+    for (auto& mapped : mate)
+        cnt += mapped != bgraph::null_vertex();
+    return cnt / 2;
+}
+
+string apply_comment(string lines) {
+    stringstream ss(lines);
+    string commented, line;
+    while (getline(ss, line)) {
+        commented += "# " + line + "\n";
+    }
+    return commented;
+}
+
+[[noreturn]] void logerror(ofstream& out, graph& g, int M) {
+    stringstream ss;
+    vector<int> matched;
+    auto& vg = micali_vazirani::saved_vg;
+
+    for (int e = 0; e < g.E; e++)
+        if (vg.edge_matched[e])
+            matched.push_back(e);
+
+    int c = matched.size();
+    out << apply_comment(to_dot(g));
+    out << "\nRandom test error\n";
+    out << to_simple(g, format("{} {}", c, M));
+    for (int e : matched)
+        out << ' ' << e;
+    out << endl;
+    out.close();
+    exit(0);
+}
+
+int vg_matching_size(graph& g, micali_vazirani& vg, ofstream& errorfile, int M) {
+    try {
+        return vg.max_matching();
+    } catch (string error) {
+        print("\r Error: {}\n", error);
+        micali_vazirani::saved_vg.dump();
+        vg.dump_trail();
+        logerror(errorfile, g, M);
+    }
+}
+
+int vg_matching_size(micali_vazirani& vg) {
+    try {
+        return vg.max_matching();
+    } catch (string error) {
+        print("\r Error: {}\n", error);
+        micali_vazirani::saved_vg.dump();
+        vg.dump_trail();
+        exit(0);
+    }
+}
 
 void debug_header(string name) {
     dflash();
@@ -44,13 +129,16 @@ Test read_unit_test(istream& in) {
     for (int i = 0; i < E; i++) {
         int u, v;
         char c;
-        in >> u >> c >> v;
+        in >> u >> ws >> c >> ws >> v;
         g.add(u, v);
     }
     for (int i = 0; i < I; i++) {
-        int e;
-        in >> e;
-        g.mate[g.source[e]] = g.mate[g.target[e]] = e;
+        int u, v;
+        char c;
+        in >> u >> ws >> c >> ws >> v;
+        int e = g.edge.at({u, v});
+        assert(g.mate[u] == -1 && g.mate[v] == -1);
+        g.mate[u] = g.mate[v] = e;
     }
     return test;
 }
@@ -66,7 +154,7 @@ void read_unit_tests(vector<Test>& tests, istream& in = cin) {
 void run_test(Test& test) {
     debug_header(test.name);
     dprint("{}", test.comment);
-    int matched = test.g.max_matching();
+    int matched = vg_matching_size(test.g);
     print("{:4} -- {:4} {}\n", matched, test.M, test.name);
 }
 
@@ -78,85 +166,43 @@ void run_dataset_tests(string filename) {
     for_each(begin(tests), end(tests), run_test);
 }
 
-micali_vazirani to_mv(const graph& g) {
-    micali_vazirani vg(g.V);
-    for (int u = 0; u < g.V; u++) {
-        for (int v : g.adj[u]) {
-            if (u < v)
-                vg.add(u, v);
-        }
-    }
-    return vg;
-}
-
-bgraph to_boost(const graph& g) {
-    bgraph bg(g.V);
-    for (int u = 0; u < g.V; u++) {
-        for (int v : g.adj[u]) {
-            add_edge(u, v, bg);
-        }
-    }
-    return bg;
-}
-
-int boost_matching_size(const bgraph& bg) {
-    matemap_t mate(num_vertices(bg));
-    bool ok = boost::checked_edmonds_maximum_cardinality_matching(bg, &mate[0]);
-    (void)ok, assert(ok);
-    int cnt = 0;
-    for (auto& mapped : mate)
-        cnt += mapped != bgraph::null_vertex();
-    return cnt;
-}
-
-void random_test(int R = 1000000, int step = 5) {
-    intd distv(20, 30);
-    reald sparse(1.2, 8.0);
-
+void random_test(int R = 1000000) {
+    intd distV(18, 50);
+    reald distE(1.2, 3.0);
     unordered_map<int, int> misscnt;
-    int errors = 0;
+    ofstream errorfile("datasets/latest_error.txt");
 
-    for (int i = 0; i < R; i++) {
-        int V = distv(mt);
-        auto g = random_uniform_undirected(V, sparse(mt) / V);
+    for (int i = 1; i <= R; i++) {
+        int V = distV(mt), E = int(V * distE(mt));
+        auto g = random_exact_undirected_connected(V, E);
         g = relabel(g); // randomize the tree structure
         shuffle_adj(g);
         bgraph bg = to_boost(g);
         micali_vazirani vg = to_mv(g);
-        int bans = boost_matching_size(bg) / 2;
-        int vans = vg.max_matching();
-        int missed = V / 2 - bans;
+        int M = boost_matching_size(bg);
+        int ans = vg_matching_size(g, vg, errorfile, M);
+        int missed = V / 2 - M;
         misscnt[missed]++;
-        print("\r{:7} | {:6} | {:6}   {:4} {:5}", i + 1, vans, bans, g.V, g.E);
-        if (vans != bans) {
-            print("\n");
-            errors++;
-        }
-
-        if (i % step == step - 1) {
-            print("\nerrors={:<3}  miss counts: ", errors);
-            for (int k = 0; k < 10; k++) {
-                print(" {}->{:<6}", k, misscnt[k]);
-            }
-            print("\n");
+        print("\rRandom test {}... ", i);
+        if (ans != M) {
+            print("ERROR\n");
+            logerror(errorfile, g, M);
         }
     }
 }
 
-void performance_test(int R = 100, int Vlo = 500, int Vhi = 20000) {
+void performance_test(int R = 100, int Vlo = 30000, int Vhi = 30000) {
     intd distv(Vlo, Vhi);
-    reald sparse(1.0, 6.0);
+    reald sparse(1.0, 4.0);
 
     vector<int> bans(R), vans(R);
     vector<graph> gs(R);
 
-    mv_search_cnt = 0;
-    mv_good_cnt = 0;
     int errors = 0;
 
     for (int i = 0; i < R; i++) {
         int V = distv(mt);
-        gs[i] = random_uniform_undirected(V, sparse(mt) / V);
+        gs[i] = random_uniform_undirected_connected(V, sparse(mt) / V);
         print("\rGenerating {}...", i + 1);
     }
     print("\n");
@@ -165,7 +211,7 @@ void performance_test(int R = 100, int Vlo = 500, int Vhi = 20000) {
     auto boost_now = steady_clock::now();
     for (int i = 0; i < R; i++) {
         auto bg = to_boost(gs[i]);
-        bans[i] = boost_matching_size(bg) / 2;
+        bans[i] = boost_matching_size(bg);
         dprint("\rboost {}", i + 1);
     }
     auto boost_time = duration_cast<milliseconds>(steady_clock::now() - boost_now);
@@ -181,8 +227,6 @@ void performance_test(int R = 100, int Vlo = 500, int Vhi = 20000) {
     }
     auto mv_time = duration_cast<milliseconds>(steady_clock::now() - mv_now);
     print("\n   mv time: {}ms\n", mv_time.count());
-    print("searches: {} (avg: {:.2})\n", mv_search_cnt, 1.0 * mv_search_cnt / R);
-    print("good phases: {} (avg: {:.2})\n", mv_good_cnt, 1.0 * mv_good_cnt / R);
     print("errors : {}\n", errors);
 }
 
@@ -190,7 +234,7 @@ int main() {
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
     run_dataset_tests("datasets/micali_vazirani.txt");
-    performance_test();
-    random_test();
+    // performance_test();
+    // random_test();
     return 0;
 }

@@ -102,4 +102,44 @@ ifeq ($(COMPILER),gcc)
 	DEBUG += -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
 endif
 
+# Sanitizers
+
+# * Sanitizers
+# ? https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html
+
+# Address sanitizer, fast memory error detector. Incompatible with =thread
+# ? https://github.com/google/sanitizers/wiki#addresssanitizer
+# Memory leak detector. Incompatible with =thread
+# ? https://github.com/google/sanitizers/wiki/AddressSanitizerLeakSanitizer
+LEAK_SANIT := -fsanitize=address -fsanitize=leak
+
+# Thread sanitizer, fast data race sanitizer. Incompatible with =address, =leak
+# ? https://github.com/google/sanitizers/wiki#threadsanitizer
+THREAD_SANIT := -fsanitize=thread
+
+# Enable one:
+SANIT := $(LEAK_SANIT)
+#SANIT := $(THREAD_SANIT)
+
+# Undefined Behaviour detector.
+SANIT += -fsanitize=pointer-compare
+SANIT += -fsanitize=pointer-subtract
+SANIT += -fsanitize=pointer-overflow
+SANIT += -fsanitize=builtin
+SANIT += -fsanitize=undefined
+SANIT +=   -fsanitize=shift
+SANIT +=     -fsanitize=shift-base
+SANIT +=     -fsanitize=shift-exponent
+SANIT +=   -fsanitize=integer-divide-by-zero
+SANIT +=   -fsanitize=return
+SANIT +=   -fsanitize=signed-integer-overflow
+SANIT +=   -fsanitize=bounds
+SANIT +=   -fsanitize=float-divide-by-zero
+SANIT +=   -fsanitize=float-cast-overflow
+SANIT +=   -fsanitize=bool
+SANIT +=   -fsanitize=enum
+SANIT +=   -fsanitize=vptr
+
+SANIT_LIST := $(subst -fsanitize=,,${SANIT})
+
 CXXFLAGS := $(WARNS)
