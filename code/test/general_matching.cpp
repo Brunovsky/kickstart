@@ -54,13 +54,12 @@ string apply_comment(string lines) {
     return commented;
 }
 
-[[noreturn]] void logerror(ofstream& out, graph& g, int M) {
-    stringstream ss;
+[[noreturn]] void logerror(graph& g, micali_vazirani& vg, int M) {
+    ofstream out("datasets/latest_error.txt");
     vector<int> matched;
-    auto& vg = micali_vazirani::saved_vg;
 
     for (int e = 0; e < g.E; e++)
-        if (vg.edge_matched[e])
+        if (vg.mate[vg.source[e]] == e)
             matched.push_back(e);
 
     int c = matched.size();
@@ -74,14 +73,16 @@ string apply_comment(string lines) {
     exit(0);
 }
 
-int vg_matching_size(graph& g, micali_vazirani& vg, ofstream& errorfile, int M) {
+int vg_matching_size(graph& g, micali_vazirani& vg, int M) {
     try {
-        return vg.max_matching();
+        int ans = vg.max_matching();
+        if (ans != M) {
+            throw "Bad matching size"s;
+        }
+        return ans;
     } catch (string error) {
         print("\r Error: {}\n", error);
-        micali_vazirani::saved_vg.dump();
-        vg.dump_trail();
-        logerror(errorfile, g, M);
+        logerror(errorfile, g, vg, M);
     }
 }
 
@@ -90,8 +91,6 @@ int vg_matching_size(micali_vazirani& vg) {
         return vg.max_matching();
     } catch (string error) {
         print("\r Error: {}\n", error);
-        micali_vazirani::saved_vg.dump();
-        vg.dump_trail();
         exit(0);
     }
 }
@@ -170,7 +169,6 @@ void random_test(int R = 1000000) {
     intd distV(18, 50);
     reald distE(1.2, 3.0);
     unordered_map<int, int> misscnt;
-    ofstream errorfile("datasets/latest_error.txt");
 
     for (int i = 1; i <= R; i++) {
         int V = distV(mt), E = int(V * distE(mt));
@@ -180,29 +178,25 @@ void random_test(int R = 1000000) {
         bgraph bg = to_boost(g);
         micali_vazirani vg = to_mv(g);
         int M = boost_matching_size(bg);
-        int ans = vg_matching_size(g, vg, errorfile, M);
+        int ans = vg_matching_size(g, vg, M);
         int missed = V / 2 - M;
         misscnt[missed]++;
         print("\rRandom test {}... ", i);
         if (ans != M) {
             print("ERROR\n");
-            logerror(errorfile, g, M);
+            logerror(g, vg, M);
         }
     }
 }
 
-void performance_test(int R = 100, int Vlo = 30000, int Vhi = 30000) {
-    intd distv(Vlo, Vhi);
-    reald sparse(1.0, 4.0);
-
+void performance_test(int R, int V, int E) {
     vector<int> bans(R), vans(R);
     vector<graph> gs(R);
 
     int errors = 0;
 
     for (int i = 0; i < R; i++) {
-        int V = distv(mt);
-        gs[i] = random_uniform_undirected_connected(V, sparse(mt) / V);
+        gs[i] = random_exact_undirected_connected(V, E);
         print("\rGenerating {}...", i + 1);
     }
     print("\n");
@@ -227,14 +221,27 @@ void performance_test(int R = 100, int Vlo = 30000, int Vhi = 30000) {
     }
     auto mv_time = duration_cast<milliseconds>(steady_clock::now() - mv_now);
     print("\n   mv time: {}ms\n", mv_time.count());
-    print("errors : {}\n", errors);
+    print("errors: {}\n", errors);
+
+    double ratio = 1e9 * mv_time.count() / (R * E * sqrt(V));
+    print("ratio: {}\n", ratio);
 }
 
 int main() {
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
-    run_dataset_tests("datasets/micali_vazirani.txt");
-    // performance_test();
-    // random_test();
+    // run_dataset_tests("datasets/micali_vazirani.txt");
+    performance_test(10000, 500, 800);
+    performance_test(1000, 5000, 7000);
+    performance_test(700, 5000, 12000);
+    performance_test(200, 10000, 15000);
+    performance_test(150, 10000, 25000);
+    performance_test(70, 20000, 30000);
+    performance_test(55, 20000, 45000);
+    performance_test(30, 30000, 50000);
+    performance_test(25, 30000, 70000);
+    performance_test(10, 50000, 80000);
+    performance_test(5, 100000, 150000);
+    random_test();
     return 0;
 }

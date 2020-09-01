@@ -599,7 +599,7 @@ graph sudoku(int n) {
             }
         }
     }
-    assert(2 * g.E == n * n * (3 * n - 1 - 2 * m));
+    assert(2 * g.E == 1L * n * n * (3 * n - 1 - 2 * m));
     return g;
 }
 
@@ -650,7 +650,7 @@ digraph random_uniform_directed(int V, double p) {
 }
 
 graph random_exact_undirected(int V, int E) {
-    assert(E <= V * (V - 1) / 2);
+    assert(E <= 1L * V * (V - 1) / 2);
     graph g(V);
     auto edges = choose_sample(E, 0, V - 1, false);
     add_oriented_edges(g, edges);
@@ -659,7 +659,7 @@ graph random_exact_undirected(int V, int E) {
 }
 
 digraph random_exact_directed(int V, int E) {
-    assert(E <= V * (V - 1));
+    assert(E <= 1L * V * (V - 1));
     digraph g(V);
     auto edges = pair_sample(E + V, 0, V - 1, 0, V - 1, false);
     shuffle(begin(edges), end(edges), mt);
@@ -700,14 +700,14 @@ digraph random_uniform_rooted_dag_connected(int V, double p) {
 }
 
 graph random_exact_undirected_connected(int V, int E) {
-    assert(V - 1 <= E && E <= V * (V - 1) / 2);
+    assert(V - 1 <= E && E <= 1L * V * (V - 1) / 2);
     graph g(V);
     vector<int> parent = parent_sample(V);
     add_parent_edges(g, parent, 1);
     if (E == V - 1)
         return g;
 
-    int k = min(V * (V - 1) / 2, E + V);
+    int k = min(1L * V * (V - 1) / 2, 0L + E + V);
     auto edges = choose_sample(k, 0, V - 1, false);
     shuffle(begin(edges), end(edges), mt);
     add_edges_except(g, edges, parent, E - g.E);
@@ -716,7 +716,7 @@ graph random_exact_undirected_connected(int V, int E) {
 }
 
 digraph random_exact_rooted_dag_connected(int V, int E) {
-    assert(V - 1 <= E && E <= V * (V - 1) / 2);
+    assert(V - 1 <= E && E <= 1L * V * (V - 1) / 2);
     digraph g(V);
 
     vector<int> parent = parent_sample(V);
@@ -724,7 +724,7 @@ digraph random_exact_rooted_dag_connected(int V, int E) {
     if (E == V - 1)
         return g;
 
-    int k = min(V * (V - 1) / 2, E + V);
+    int k = min(1L * V * (V - 1) / 2, 0L + E + V);
     auto edges = choose_sample(k, 0, V - 1, false);
     shuffle(begin(edges), end(edges), mt);
     add_edges_except(g, edges, parent, E - g.E);
