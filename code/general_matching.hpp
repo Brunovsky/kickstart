@@ -8,7 +8,7 @@
 // *****
 
 constexpr int inf = INT_MAX / 2;
-constexpr int max_phases = 100; // how many augmentation phases per search
+constexpr int mv_max_phases = 100; // how many augmentation phases per search
 
 /**
  * General maximum matching algorithm of Micali and Vazirani
@@ -18,9 +18,11 @@ constexpr int max_phases = 100; // how many augmentation phases per search
  *    https://github.com/mh3166/Extended_MV_algorithm
  * - "The General Maximum Matching Algorithm of Micali and Vazirani"
  *    Peterson P., Loui M.
+ *
  * Complexity: O(E V^1/2) with a monstrous constant.
+ *
  * Currently passing unit tests and random tests, compared with boost's edmonds for
- * correctness and performance
+ * correctness and performance. Better than edmonds for V>1000.
  */
 struct micali_vazirani {
     int V, E;
@@ -46,22 +48,25 @@ struct micali_vazirani {
     }
 
     void bootstrap() {
-        for (int u = 0; u < V; u++) {
-            if (mate[u] == -1) {
-                for (int v : adj[u]) {
-                    if (mate[v] == -1) {
-                        mate[u] = mate[v] = edge.at({u, v});
-                        break;
-                    }
-                }
+        vector<int> edges(E);
+        iota(begin(edges), end(edges), 0);
+        sort(begin(edges), end(edges), [&](int a, int b) {
+            int ua = adj[source[a]].size(), va = adj[target[a]].size();
+            int ub = adj[source[b]].size(), vb = adj[target[b]].size();
+            return ua + va < ub + vb;
+        });
+        for (int i = 0; i < E; i++) {
+            int e = edges[i], u = source[e], v = target[e];
+            if (mate[u] == -1 && mate[v] == -1) {
+                mate[u] = mate[v] = e;
             }
         }
     }
 
     int max_matching() {
-        int more = 1, max_matched_count = V / 2;
+        int more = 1;
         init();
-        while (more && count_matched < max_matched_count) {
+        while (more && count_matched < V / 2) {
             reset();
             more = search();
         }
@@ -88,13 +93,14 @@ struct micali_vazirani {
         int peak, base, star;
     };
 
-    vector<node_t> node;
-    vector<bloom_t> bloom;
+    vector<node_t> node;              // node data: level, preds, succs, bloom, color...
+    vector<bloom_t> bloom;            // bloom data: peak, base and base*
     vector<vector<int>> phaselist;    // bfs nodes in the frontier per phase
     vector<vector<int>> bridges;      // bridges in the frontier per phase
-    vector<int8_t> seen;              // whether an edge has been tagged prop or bridge
+    vector<int8_t> seen;              // has edge been tagged prop or bridge already
     vector<int8_t> edge_matched;      // edge match status, persistent
-    int phase, blooms, count_matched; // current bfs phase, # blooms and # matches
+    int phase, blooms, count_matched; // current bfs phase, # blooms and # matched edges
+    int pending;
 
     // find base*(u) in constant time with union-find
     inline int findstar(int u) {
@@ -112,43 +118,42 @@ struct micali_vazirani {
     /** Reset routines
      */
     void init() {
-        assert(mate.size() == uint(V));
         node.resize(V);
-        seen.resize(E);
         phaselist.resize(V);
         bridges.resize(V);
-
+        seen.resize(E);
         edge_matched.assign(E, false);
+
         count_matched = 0;
-        for (int u = 0; u < V; u++)
+        for (int u = 0; u < V; u++) {
             if (mate[u] != -1) {
-                int e = mate[u], v = other(e, u);
-                (void)v;
-                assert(mate[v] == e);
+                int e = mate[u];
+                assert(mate[other(e, u)] == e);
                 edge_matched[e] = true, count_matched++;
             }
+        }
         count_matched >>= 1; // double counted
     }
 
     void reset() {
+        phase = blooms = ddfsid = pending = 0;
         for (int u = 0; u < V; u++) {
             phaselist[u].clear();
             bridges[u].clear();
             node[u].clear();
             if (mate[u] == -1) {
-                phaselist[0].push_back(u);
+                add_phase(u, 0);
                 node[u].minlevel = node[u].level[0] = 0;
             }
         }
-        fill(begin(seen), end(seen), false);
+        fill(begin(seen), end(seen), 0);
         bloom.clear();
-        phase = blooms = ddfsid = 0;
     }
 
     int search() {
         bool done = false;
         int more, augmentations = 0, good = 0;
-        while (!done && good < max_phases && count_matched < V / 2) {
+        while (!done && good < mv_max_phases && count_matched < V / 2) {
             done = MIN();
             more = MAX();
             good += more > 0;
@@ -191,11 +196,13 @@ struct micali_vazirani {
      *     ignored and will be processed later, when the even level of v is set.
      */
 
+    inline void add_phase(int u, int lvl) { phaselist[lvl].push_back(u), pending++; }
+
     void visit_prop(int e, int u, int v, bool parity) {
         assert(!seen[e] && !node[u].erased && !node[v].erased);
         if (node[v].minlevel == inf) {
             node[v].minlevel = node[v].level[!parity] = phase + 1;
-            phaselist[phase + 1].push_back(v);
+            add_phase(v, phase + 1);
         }
         assert(node[v].minlevel == phase + 1 && node[v].level[!parity] == phase + 1);
         node[v].pred.push_back(u);
@@ -224,9 +231,9 @@ struct micali_vazirani {
     }
 
     bool MIN() {
-        if (phaselist[phase].empty()) {
+        if (pending == 0)
             return true;
-        }
+
         bool parity = phase % 2;
         for (int u : phaselist[phase]) {
             if (node[u].erased)
@@ -243,6 +250,7 @@ struct micali_vazirani {
                     bfs_visit(e, u, v);
             }
         }
+        pending -= phaselist[phase].size();
         return false;
     }
 
@@ -432,12 +440,11 @@ struct micali_vazirani {
 
     int MAX() {
         int augmentations = 0;
-        for (uint i = 0; i < bridges[phase].size(); i++) {
-            int peak = bridges[phase][i];
+        for (int peak : bridges[phase]) {
             int red = source[peak], blue = target[peak];
-            if (node[red].erased || node[blue].erased) {
+            if (node[red].erased || node[blue].erased)
                 continue;
-            }
+
             auto what = ddfs(peak);
             if (what == 1) {
                 augment_path(peak);
@@ -543,12 +550,14 @@ struct micali_vazirani {
     bool bloom_dfs_petal(int u) {
         if (u == bloom[blooms].base)
             return true;
-        if (node[u].bloom_pred == -2)
-            return false;
 
         for (int v : node[u].pred) {
             int w = findstar(v);
-            if (w == bloom[blooms].base || node[u].color == node[w].color) {
+            if (w == bloom[blooms].base) {
+                node[u].bloom_pred = v;
+                return true;
+            }
+            if (node[w].bloom_pred == -1 && node[u].color == node[w].color) {
                 if (bloom_dfs_petal(w)) {
                     node[u].bloom_pred = v;
                     return true;
@@ -561,26 +570,22 @@ struct micali_vazirani {
     }
 
     void bloom_dfs_level(int u, int p) {
-        if (u == bloom[blooms].base || node[u].bloom == blooms)
+        if (u == bloom[blooms].base)
             return;
 
         int lvl = 2 * phase + 1 - node[u].minlevel;
-        assert(!node[u].erased);
-        assert(node[u].bloom == -1);
-        assert(node[u].vis == ddfsid);
-        assert(lvl < V);
-        assert(node[u].maxlevel == inf);
-        assert(node[u].level[lvl % 2] == inf);
+        assert(!node[u].erased && node[u].bloom == -1 && node[u].vis == ddfsid);
+        assert(lvl < V && node[u].maxlevel == inf && node[u].level[lvl % 2] == inf);
 
         node[u].bloom = blooms;
         node[u].bloom_succ = p;
         node[u].maxlevel = node[u].level[lvl % 2] = lvl;
-        phaselist[lvl].push_back(u);
+        add_phase(u, lvl);
 
         for (int v : node[u].pred) {
-            int w = findstar(v), e = edge.at({u, v});
-            if (node[u].color == node[w].color) {
-                bloom_dfs_level(w, e);
+            int w = findstar(v);
+            if (node[w].bloom == -1 && node[u].color == node[w].color) {
+                bloom_dfs_level(w, edge.at({u, v}));
             }
         }
 
@@ -653,9 +658,6 @@ struct micali_vazirani {
      *
      * ***** Algorithm
      *
-     * - Reconstruct the missing blue path using dfs
-     *   - Like ddfs, use a similar advance/reverse combo
-     *   - TODO: can this reconstruction be avoided at little expense?
      * - For each trail red/blue with color c and top t:
      *   - Expand the initial bloom of t, if it exists.
      *   - Expand each segment [u(i),u(i+1)], i=0,...,n-1, finding the edge using arc[].
@@ -676,6 +678,13 @@ struct micali_vazirani {
 
     using path_t = list<int>;
 
+    inline void add_path(path_t& path, bool back, path_t&& subpath) {
+        path.splice(back ? end(path) : begin(path), subpath);
+    }
+    inline void add_path(path_t& path, bool back, int node) {
+        back ? path.push_back(node) : path.push_front(node);
+    }
+
     path_t walk_bloom(int u, bool down) {
         int B = node[u].bloom, peak = bloom[B].peak;
 
@@ -683,20 +692,16 @@ struct micali_vazirani {
             return walk_down(u, B, down);
         } else /* inner */ {
             int t = node[u].color ? source[peak] : target[peak];
-            auto to_peak = walk_peak(u, B, !down);
-            auto to_base = walk_base(t, B, down);
-            auto where = down ? end(to_peak) : begin(to_peak);
-            to_peak.splice(where, to_base);
-            return to_peak;
+            auto path = walk_peak(u, B, !down);
+            add_path(path, down, walk_base(t, B, down));
+            return path;
         }
     }
 
     path_t walk_star(int u, int star, bool down) {
         path_t path;
         while (u != star) {
-            auto subpath = walk_bloom(u, down);
-            auto where = down ? end(path) : begin(path);
-            path.splice(where, subpath);
+            add_path(path, down, walk_bloom(u, down));
             u = bloom[node[u].bloom].base;
         }
         return path;
@@ -708,21 +713,16 @@ struct micali_vazirani {
 
         path_t top_path, path{u};
         while (node[t].bloom != B) {
-            auto subpath = walk_bloom(t, down);
-            auto where = down ? end(top_path) : begin(top_path);
-            top_path.splice(where, subpath);
+            add_path(top_path, down, walk_bloom(t, down));
             t = bloom[node[t].bloom].base;
         }
         while (u != t) {
             int e = node[u].bloom_succ, v = lowest(e);
-            auto subpath = walk_star(v, u, down); // usually empty
-            auto where = down ? begin(path) : end(path);
-            path.splice(where, subpath);
+            add_path(path, !down, walk_star(v, u, down));
             u = other(e, v);
-            down ? path.push_front(u) : path.push_back(u);
+            add_path(path, !down, u);
         }
-        auto where = down ? begin(path) : end(path);
-        path.splice(where, top_path);
+        add_path(path, !down, move(top_path));
         return path;
     }
 
@@ -732,12 +732,10 @@ struct micali_vazirani {
         path_t path;
         while (u != base) {
             if (node[u].bloom == B) {
-                down ? path.push_back(u) : path.push_front(u);
+                add_path(path, down, u);
                 u = node[u].bloom_pred; // take a predecessor of the same color
             } else {
-                auto subpath = walk_bloom(u, down);
-                auto where = down ? end(path) : begin(path);
-                path.splice(where, subpath);
+                add_path(path, down, walk_bloom(u, down));
                 u = bloom[node[u].bloom].base;
             }
         }
@@ -750,12 +748,10 @@ struct micali_vazirani {
         path_t path;
         while (u != base) {
             if (node[u].bloom == B) {
-                down ? path.push_back(u) : path.push_front(u);
+                add_path(path, down, u);
                 u = node[u].pred.front(); // any predecessor works to go down
             } else {
-                auto subpath = walk_bloom(u, down);
-                auto where = down ? end(path) : begin(path);
-                path.splice(where, subpath);
+                add_path(path, down, walk_bloom(u, down));
                 u = bloom[node[u].bloom].base;
             }
         }
@@ -767,32 +763,23 @@ struct micali_vazirani {
         for (int i = 0, s = trail[c].size(); i + 1 < s; i++) {
             int u = trail[c][i], w = trail[c][i + 1];
             int j = arc[c][i] - 1, v = node[u].pred[j];
-            down ? path.push_back(u) : path.push_front(u);
-            auto rest = walk_star(v, w, down);
-            auto where = down ? end(path) : begin(path);
-            path.splice(where, rest);
+            add_path(path, down, u);
+            add_path(path, down, walk_star(v, w, down));
         }
         int u = trail[c].back();
-        down ? path.push_back(u) : path.push_front(u);
-        return path;
-    }
-
-    path_t construct_augmenting_path(int peak) {
-        auto path = find_path(source[peak], 0, false);
-        auto rest = find_path(target[peak], 1, true);
-        path.splice(end(path), rest);
+        add_path(path, down, u);
         return path;
     }
 
     void augment_path(int peak) {
-        auto path = construct_augmenting_path(peak);
+        auto path = find_path(source[peak], 0, false);
+        auto rest = find_path(target[peak], 1, true);
+        path.splice(end(path), rest);
 
-        bool status = 0;
         auto ait = begin(path), bit = next(ait);
         while (bit != end(path)) {
             int u = *ait++, v = *bit++, e = edge.at({u, v});
-            assert(!node[u].erased && !node[v].erased && status == edge_matched[e]);
-            status = !status;
+            assert(!node[u].erased && !node[v].erased);
             edge_matched[e] = !edge_matched[e];
             if (edge_matched[e]) {
                 mate[u] = mate[v] = e;

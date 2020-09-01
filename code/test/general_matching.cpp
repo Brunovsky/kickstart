@@ -5,7 +5,6 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
-#include "../debug_print.hpp"
 #include "../graph_formats.hpp"
 #include "../graph_generator.hpp"
 
@@ -35,7 +34,7 @@ string apply_comment(string lines) {
 }
 
 [[noreturn]] void logerror(graph& g, micali_vazirani& vg, int M) {
-    ofstream out("datasets/latest_error.txt");
+    ofstream out(ERROR_FILE);
 
     vector<pair<int, int>> mates;
     for (int e = 0; e < g.E; e++)
@@ -84,16 +83,12 @@ int boost_matching_size(const bgraph& bg) {
 }
 
 int vg_matching_size(graph& g, micali_vazirani& vg, int M) {
-    try {
-        int ans = vg.max_matching();
-        if (ans != M) {
-            throw "Bad matching size"s;
-        }
-        return ans;
-    } catch (string error) {
-        print("\r Error: {}\n", error);
+    int ans = vg.max_matching();
+    if (ans != M) {
+        print("Bad matching size\n");
         logerror(g, vg, M);
     }
+    return ans;
 }
 
 int vg_matching_size(micali_vazirani& vg) {
@@ -149,20 +144,21 @@ void read_unit_tests(vector<Test>& tests, istream& in = cin) {
 }
 
 void run_test(Test& test) {
-    dprint("{}", test.comment);
-    int matched = vg_matching_size(test.g);
+    print("{}", test.comment);
+    int matched = test.g.max_matching();
+    assert(matched == test.M);
     print("{:4} -- {:4} {}\n", matched, test.M, test.name);
 }
 
-void run_dataset_tests(string filename) {
+void run_dataset_tests() {
     vector<Test> tests;
-    ifstream file(filename);
+    ifstream file(UNIT_TESTS);
     assert(file.is_open());
     read_unit_tests(tests, file);
     for_each(begin(tests), end(tests), run_test);
 }
 
-void random_test(int R = 1000000) {
+void random_test(int R) {
     intd distV(18, 50);
     reald distE(1.2, 3.0);
     unordered_map<int, int> misscnt;
@@ -170,7 +166,7 @@ void random_test(int R = 1000000) {
     for (int i = 1; i <= R; i++) {
         int V = distV(mt), E = int(V * distE(mt));
         auto g = random_exact_undirected_connected(V, E);
-        g = relabel(g); // randomize the tree structure
+        g = relabel(g);
         shuffle_adj(g);
         bgraph bg = to_boost(g);
         micali_vazirani vg = to_mv(g);
@@ -189,10 +185,15 @@ void random_test(int R = 1000000) {
 void scaling_test(int R, int V, int E) {
     print("x{:<6}  V={:<6}  E={:<6}\n", R, V, E);
 
+    vector<graph> gs(R);
+    for (int i = 0; i < R; i++) {
+        gs[i] = relabel(random_exact_undirected_connected(V, E));
+        shuffle_adj(gs[i]);
+    }
+
     auto now = steady_clock::now();
-    for (int i = 1; i <= R; i++) {
-        auto g = random_exact_undirected_connected(V, E);
-        auto vg = to_mv(g);
+    for (int i = 0; i < R; i++) {
+        auto vg = to_mv(gs[i]);
         vg.bootstrap();
         vg.max_matching();
     }
@@ -200,32 +201,32 @@ void scaling_test(int R, int V, int E) {
 
     print("\r time: {}ms\n", time);
 
-    double ratio = 1e6 * time / (R * E * sqrt(V));
+    double ratio = 1e6 * time / (1.0 * R * E * sqrt(V));
     print("ratio: {:.2f}\n\n", ratio);
 }
 
-void scaling_tests() {
-    scaling_test(20000, 200, 300);
-    scaling_test(5000, 200, 2000);
-    scaling_test(10000, 500, 800);
-    scaling_test(1000, 500, 12000);
-    scaling_test(1000, 5000, 7000);
-    scaling_test(150, 5000, 70000);
-    scaling_test(700, 5000, 12000);
-    scaling_test(60, 5000, 230000);
-    scaling_test(200, 10000, 15000);
-    scaling_test(150, 10000, 25000);
-    scaling_test(30, 10000, 150000);
-    scaling_test(70, 20000, 30000);
-    scaling_test(55, 20000, 45000);
-    scaling_test(10, 20000, 400000);
-    scaling_test(30, 30000, 50000);
-    scaling_test(25, 30000, 70000);
-    scaling_test(5, 30000, 550000);
-    scaling_test(10, 50000, 80000);
-    scaling_test(5, 50000, 780000);
-    scaling_test(5, 100000, 150000);
-    scaling_test(5, 100000, 1'000'000);
+void scaling_tests(int M = 1) {
+    scaling_test(M * 2000, 200, 300);
+    scaling_test(M * 600, 200, 2000);
+    scaling_test(M * 800, 500, 800);
+    scaling_test(M * 100, 500, 12000);
+    scaling_test(M * 80, 5000, 7000);
+    scaling_test(M * 40, 5000, 12000);
+    scaling_test(M * 10, 5000, 70000);
+    scaling_test(M * 3, 5000, 230000);
+    scaling_test(M * 30, 10000, 15000);
+    scaling_test(M * 24, 10000, 25000);
+    scaling_test(M * 5, 10000, 150000);
+    scaling_test(M * 14, 20000, 30000);
+    scaling_test(M * 9, 20000, 45000);
+    scaling_test(M * 2, 20000, 400000);
+    scaling_test(M * 6, 30000, 50000);
+    scaling_test(M * 5, 30000, 70000);
+    scaling_test(M * 1, 30000, 550000);
+    scaling_test(M * 2, 50000, 80000);
+    scaling_test(M * 1, 50000, 780000);
+    scaling_test(M * 1, 100000, 150000);
+    scaling_test(M * 1, 100000, 1'000'000);
 }
 
 void performance_test(int R, int V, int E) {
@@ -244,7 +245,7 @@ void performance_test(int R, int V, int E) {
     for (int i = 0; i < R; i++) {
         auto bg = to_boost(gs[i]);
         bans[i] = boost_matching_size(bg);
-        dprint("\rboost {}", i + 1);
+        print("\rboost {}", i + 1);
     }
     auto boost_time = duration_cast<milliseconds>(steady_clock::now() - boost_now);
     print("\nboost time: {}ms\n", boost_time.count());
@@ -255,38 +256,38 @@ void performance_test(int R, int V, int E) {
         auto vg = to_mv(gs[i]);
         vg.bootstrap();
         vans[i] = vg.max_matching();
-        dprint("\r   mv {}", i + 1);
+        print("\r   mv {}", i + 1);
         errors += vans[i] != bans[i];
     }
     auto mv_time = duration_cast<milliseconds>(steady_clock::now() - mv_now);
     print("\n   mv time: {}ms\n", mv_time.count());
     print("errors: {}\n", errors);
 
-    double ratio = 1e6 * mv_time.count() / (R * E * sqrt(V));
+    double ratio = 1e6 * mv_time.count() / (1.0 * R * E * sqrt(V));
     print("ratio: {:.2f}\n", ratio);
 }
 
-void performance_tests() {
-    performance_test(20000, 200, 300);
-    performance_test(10000, 500, 800);
-    performance_test(1000, 5000, 7000);
-    performance_test(700, 5000, 12000);
-    performance_test(200, 10000, 15000);
-    performance_test(150, 10000, 25000);
-    performance_test(70, 20000, 30000);
-    performance_test(55, 20000, 45000);
-    performance_test(30, 30000, 50000);
-    performance_test(25, 30000, 70000);
-    performance_test(10, 50000, 80000);
-    performance_test(5, 100000, 150000);
+void performance_tests(int M) {
+    performance_test(M * 4000, 200, 300);
+    performance_test(M * 2000, 500, 800);
+    performance_test(M * 200, 5000, 7000);
+    performance_test(M * 140, 5000, 12000);
+    performance_test(M * 40, 10000, 15000);
+    performance_test(M * 30, 10000, 25000);
+    performance_test(M * 14, 20000, 30000);
+    performance_test(M * 11, 20000, 45000);
+    performance_test(M * 6, 30000, 50000);
+    performance_test(M * 5, 30000, 70000);
+    performance_test(M * 2, 50000, 80000);
+    performance_test(M * 1, 100000, 150000);
 }
 
 int main() {
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
-    // run_dataset_tests("datasets/micali_vazirani.txt");
-    scaling_tests();
-    random_test(50000);
-    // performance_tests();
+    // random_test(500000);
+    run_dataset_tests();
+    scaling_tests(1);
+    // performance_tests(1);
     return 0;
 }

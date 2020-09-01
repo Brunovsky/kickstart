@@ -41,3 +41,7 @@ hack_naive
 # Dumps
 core
 vgcore*
+
+# Instrumentation
+gmon.out
+analysis.txt

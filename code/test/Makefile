@@ -1,9 +1,9 @@
 # Compiler, gcc or clang
-COMPILER := clang
+COMPILER := gcc
 CPP_STANDARD := c++17
 
 # Compiler command
-CC := clang++
+CC := g++
 
 FILE := code.cpp
 EXE := ./hack
@@ -40,6 +40,10 @@ perfm: $(EXE)
 sanit: MODE := sanitizer
 sanit: CXXFLAGS += $(DEBUG) $(SANIT)
 sanit: $(EXE)
+
+prof: MODE := profiling
+prof: CXXFLAGS += $(DEBUG) -pg
+prof: $(EXE)
 
 # global build
 

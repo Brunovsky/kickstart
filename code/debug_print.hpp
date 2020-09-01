@@ -13,14 +13,14 @@ using fmt::format;
 
 #define DEBUG        1
 #define PAD          20
-#define FLASH        170
+#define FLASH        150
 #define debug(name)  print(stderr, "{:>{}}  {}\n", #name, PAD - 2, to_string(name))
 #define debugv(name) print(stderr, "{}", join(#name, to_stringv(name)))
 #define debugh(name) print(stderr, "{}", join(#name, to_stringh(name)))
 
 constexpr uint dw = 2;
 constexpr int dbig = 100, dneg = -10, dnil = -1;
-static int ddepth = 0, dmul = 2;
+int ddepth = 0, dmul = 4;
 
 string pretty(int n) {
     if (n >= dbig)
@@ -60,7 +60,7 @@ void dprintout(Args&&... args) {
     print(stderr, std::forward<Args>(args)...);
 }
 
-void dheader(string name, int n) {
+void diota(string name, int n) {
     print(stderr, "{} {:>{}}    ", string(PAD - 8, '-'), name, 5);
     for (int i = 0; i < n; i++)
         print(stderr, "{:>{}} ", i, dw);
