@@ -1,9 +1,11 @@
+#include "../general_matching.hpp"
+
 #include <fmt/format.h>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
-#include "../general_matching.hpp"
+#include "../debug_print.hpp"
 #include "../graph_formats.hpp"
 #include "../graph_generator.hpp"
 
@@ -13,6 +15,43 @@ using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;
 using fmt::format, fmt::print;
 
 // *****
+
+const string UNIT_TESTS = "datasets/micali_vazirani.txt";
+const string ERROR_FILE = "datasets/latest_error.txt";
+
+struct Test {
+    string name, comment;
+    micali_vazirani g;
+    int M;
+};
+
+string apply_comment(string lines) {
+    stringstream ss(lines);
+    string commented, line;
+    while (getline(ss, line)) {
+        commented += "# " + line + "\n";
+    }
+    return commented;
+}
+
+[[noreturn]] void logerror(graph& g, micali_vazirani& vg, int M) {
+    ofstream out("datasets/latest_error.txt");
+
+    vector<pair<int, int>> mates;
+    for (int e = 0; e < g.E; e++)
+        if (vg.mate[vg.source[e]] == e)
+            mates.push_back({vg.source[e], vg.target[e]});
+
+    int c = mates.size();
+    out << apply_comment(to_dot(g));
+    out << "\nRandom test error\n";
+    out << to_simple(g, format("{} {}", c, M));
+    for (auto [u, v] : mates)
+        out << ' ' << u << ',' << v;
+    out << endl;
+    out.close();
+    exit(0);
+}
 
 micali_vazirani to_mv(const graph& g) {
     micali_vazirani vg(g.V);
@@ -37,40 +76,11 @@ bgraph to_boost(const graph& g) {
 
 int boost_matching_size(const bgraph& bg) {
     matemap_t mate(num_vertices(bg));
-    bool ok = boost::checked_edmonds_maximum_cardinality_matching(bg, &mate[0]);
-    (void)ok, assert(ok);
+    boost::edmonds_maximum_cardinality_matching(bg, &mate[0]);
     int cnt = 0;
     for (auto& mapped : mate)
         cnt += mapped != bgraph::null_vertex();
     return cnt / 2;
-}
-
-string apply_comment(string lines) {
-    stringstream ss(lines);
-    string commented, line;
-    while (getline(ss, line)) {
-        commented += "# " + line + "\n";
-    }
-    return commented;
-}
-
-[[noreturn]] void logerror(graph& g, micali_vazirani& vg, int M) {
-    ofstream out("datasets/latest_error.txt");
-    vector<int> matched;
-
-    for (int e = 0; e < g.E; e++)
-        if (vg.mate[vg.source[e]] == e)
-            matched.push_back(e);
-
-    int c = matched.size();
-    out << apply_comment(to_dot(g));
-    out << "\nRandom test error\n";
-    out << to_simple(g, format("{} {}", c, M));
-    for (int e : matched)
-        out << ' ' << e;
-    out << endl;
-    out.close();
-    exit(0);
 }
 
 int vg_matching_size(graph& g, micali_vazirani& vg, int M) {
@@ -82,7 +92,7 @@ int vg_matching_size(graph& g, micali_vazirani& vg, int M) {
         return ans;
     } catch (string error) {
         print("\r Error: {}\n", error);
-        logerror(errorfile, g, vg, M);
+        logerror(g, vg, M);
     }
 }
 
@@ -94,18 +104,6 @@ int vg_matching_size(micali_vazirani& vg) {
         exit(0);
     }
 }
-
-void debug_header(string name) {
-    dflash();
-    dprint("{} {} {}\n", string(70, '='), name, string(70, '='));
-    dflash();
-}
-
-struct Test {
-    string name, comment;
-    micali_vazirani g;
-    int M;
-};
 
 Test read_unit_test(istream& in) {
     Test test;
@@ -151,7 +149,6 @@ void read_unit_tests(vector<Test>& tests, istream& in = cin) {
 }
 
 void run_test(Test& test) {
-    debug_header(test.name);
     dprint("{}", test.comment);
     int matched = vg_matching_size(test.g);
     print("{:4} -- {:4} {}\n", matched, test.M, test.name);
@@ -189,10 +186,51 @@ void random_test(int R = 1000000) {
     }
 }
 
+void scaling_test(int R, int V, int E) {
+    print("x{:<6}  V={:<6}  E={:<6}\n", R, V, E);
+
+    auto now = steady_clock::now();
+    for (int i = 1; i <= R; i++) {
+        auto g = random_exact_undirected_connected(V, E);
+        auto vg = to_mv(g);
+        vg.bootstrap();
+        vg.max_matching();
+    }
+    auto time = duration_cast<milliseconds>(steady_clock::now() - now).count();
+
+    print("\r time: {}ms\n", time);
+
+    double ratio = 1e6 * time / (R * E * sqrt(V));
+    print("ratio: {:.2f}\n\n", ratio);
+}
+
+void scaling_tests() {
+    scaling_test(20000, 200, 300);
+    scaling_test(5000, 200, 2000);
+    scaling_test(10000, 500, 800);
+    scaling_test(1000, 500, 12000);
+    scaling_test(1000, 5000, 7000);
+    scaling_test(150, 5000, 70000);
+    scaling_test(700, 5000, 12000);
+    scaling_test(60, 5000, 230000);
+    scaling_test(200, 10000, 15000);
+    scaling_test(150, 10000, 25000);
+    scaling_test(30, 10000, 150000);
+    scaling_test(70, 20000, 30000);
+    scaling_test(55, 20000, 45000);
+    scaling_test(10, 20000, 400000);
+    scaling_test(30, 30000, 50000);
+    scaling_test(25, 30000, 70000);
+    scaling_test(5, 30000, 550000);
+    scaling_test(10, 50000, 80000);
+    scaling_test(5, 50000, 780000);
+    scaling_test(5, 100000, 150000);
+    scaling_test(5, 100000, 1'000'000);
+}
+
 void performance_test(int R, int V, int E) {
     vector<int> bans(R), vans(R);
     vector<graph> gs(R);
-
     int errors = 0;
 
     for (int i = 0; i < R; i++) {
@@ -215,6 +253,7 @@ void performance_test(int R, int V, int E) {
     auto mv_now = steady_clock::now();
     for (int i = 0; i < R; i++) {
         auto vg = to_mv(gs[i]);
+        vg.bootstrap();
         vans[i] = vg.max_matching();
         dprint("\r   mv {}", i + 1);
         errors += vans[i] != bans[i];
@@ -223,14 +262,12 @@ void performance_test(int R, int V, int E) {
     print("\n   mv time: {}ms\n", mv_time.count());
     print("errors: {}\n", errors);
 
-    double ratio = 1e9 * mv_time.count() / (R * E * sqrt(V));
-    print("ratio: {}\n", ratio);
+    double ratio = 1e6 * mv_time.count() / (R * E * sqrt(V));
+    print("ratio: {:.2f}\n", ratio);
 }
 
-int main() {
-    setbuf(stdout, nullptr);
-    setbuf(stderr, nullptr);
-    // run_dataset_tests("datasets/micali_vazirani.txt");
+void performance_tests() {
+    performance_test(20000, 200, 300);
     performance_test(10000, 500, 800);
     performance_test(1000, 5000, 7000);
     performance_test(700, 5000, 12000);
@@ -242,6 +279,14 @@ int main() {
     performance_test(25, 30000, 70000);
     performance_test(10, 50000, 80000);
     performance_test(5, 100000, 150000);
-    random_test();
+}
+
+int main() {
+    setbuf(stdout, nullptr);
+    setbuf(stderr, nullptr);
+    // run_dataset_tests("datasets/micali_vazirani.txt");
+    scaling_tests();
+    random_test(50000);
+    // performance_tests();
     return 0;
 }
