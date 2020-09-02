@@ -23,8 +23,8 @@ struct dancing_links_matrix {
             for (int j = 0; j <= m + 1; j++) {
                 S[i][j] = i + 1;
                 N[i][j] = i - 1;
-                E[i][j] = i + 1;
-                W[i][j] = i - 1;
+                E[i][j] = j + 1;
+                W[i][j] = j - 1;
             }
         }
     }

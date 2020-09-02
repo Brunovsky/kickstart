@@ -11,7 +11,7 @@ struct disjoint_set {
     int N, S;
     vector<int> next, size;
 
-    disjoint_set(int N) : N(N), S(N), next(N), size(N, 1) {
+    explicit disjoint_set(int N = 0) : N(N), S(N), next(N), size(N, 1) {
         iota(begin(next), end(next), 0);
     }
 

@@ -12,8 +12,7 @@ struct fenwick {
     int N;
     int tree[MAXN + 1]{};
 
-    fenwick() {}
-    fenwick(int N) : N(N) {}
+    explicit fenwick(int N = 0) : N(N) {}
 
     int sum(int i) {
         int sum = 0;
@@ -52,8 +51,7 @@ struct fenwick2d {
     int N, M;
     int tree[MAXN + 1][MAXM + 1]{};
 
-    fenwick2d() {}
-    fenwick2d(int N, int M) : N(N), M(M) {}
+    explicit fenwick2d(int N = 0, int M = 0) : N(N), M(M) {}
 
     int sum(int i, int j) {
         int sum = 0;

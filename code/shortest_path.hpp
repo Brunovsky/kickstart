@@ -13,25 +13,25 @@ using namespace std;
  */
 struct dijkstra {
     int V;
-    vector<vector<pair<int, int>>> adj;
+    vector<vector<pair<int, long>>> adj;
 
-    dijkstra(int V) : V(V) { adj.resize(V, {}); }
+    explicit dijkstra(int V = 0) : V(V) { adj.resize(V, {}); }
 
-    void add(int u, int v, int w) {
+    void add(int u, int v, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && w >= 0);
         adj[u].push_back({v, w});
     }
 
-    vector<int> dist;
+    vector<long> dist;
     vector<int> prev;
 
     void compute(int s, int t = -1) {
-        dist.assign(V, INT_MAX);
+        dist.assign(V, LONG_MAX / 2);
         prev.assign(V, -1);
         dist[s] = 0;
         prev[s] = s;
 
-        using int2 = pair<int, int>;
+        using int2 = pair<long, int>;
         vector<bool> vis(V, false);
         priority_queue<int2, vector<int2>, greater<int2>> Q;
         Q.push({0, s});
@@ -46,8 +46,8 @@ struct dijkstra {
             }
             vis[u] = true;
             for (auto edge : adj[u]) {
-                int v = edge.first, w = edge.second;
-                int cost = dist[u] + w;
+                int v = edge.first;
+                long cost = dist[u] + edge.second;
                 if (!vis[v] && cost < dist[v]) {
                     dist[v] = cost;
                     prev[v] = u;
@@ -79,26 +79,26 @@ struct dijkstra {
  */
 struct astar {
     int V;
-    vector<vector<pair<int, int>>> adj;
-    using heuristic_t = const function<int(int)>&;
+    vector<vector<pair<int, long>>> adj;
+    using heuristic_t = const function<long(int)>&;
 
-    astar(int V) : V(V) { adj.resize(V, {}); }
+    explicit astar(int V = 0) : V(V) { adj.resize(V, {}); }
 
-    void add(int u, int v, int w) {
+    void add(int u, int v, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && w >= 0);
         adj[u].push_back({v, w});
     }
 
-    vector<int> dist;
+    vector<long> dist;
     vector<int> prev;
 
     int compute(int s, int t, heuristic_t h) {
-        dist.assign(V, INT_MAX);
+        dist.assign(V, LONG_MAX / 2);
         prev.assign(V, -1);
         dist[s] = 0;
         prev[s] = s;
 
-        using int2 = pair<int, int>;
+        using int2 = pair<long, int>;
         vector<bool> vis(V, false);
         priority_queue<int2, vector<int2>, greater<int2>> Q;
         Q.push({0, s});
@@ -113,8 +113,8 @@ struct astar {
             }
             vis[u] = true;
             for (auto edge : adj[u]) {
-                int v = edge.first, w = edge.second;
-                int cost = dist[u] + w;
+                int v = edge.first;
+                long cost = dist[u] + edge.second;
                 if (!vis[v] && cost < dist[v]) {
                     dist[v] = cost;
                     prev[v] = u;
@@ -150,11 +150,11 @@ struct floyd_warshall {
     int V, E;
     vector<int> source;
     vector<int> target;
-    vector<int> weight;
+    vector<long> weight;
 
-    floyd_warshall(int V) : V(V), E(0) {}
+    explicit floyd_warshall(int V = 0) : V(V), E(0) {}
 
-    void add(int u, int v, int w) {
+    void add(int u, int v, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && w >= 0);
         source.push_back(u);
         target.push_back(v);
@@ -162,11 +162,11 @@ struct floyd_warshall {
         E++;
     }
 
-    vector<vector<int>> dist;
+    vector<vector<long>> dist;
     vector<vector<int>> next;
 
     void compute() {
-        dist.assign(V, vector<int>(V, INT_MAX));
+        dist.assign(V, vector<long>(V, LONG_MAX / 2));
         next.assign(V, vector<int>(V, -1));
 
         for (int e = 0; e < E; e++) {
@@ -212,11 +212,11 @@ struct bellman_ford {
     int V, E;
     vector<int> source;
     vector<int> target;
-    vector<int> weight;
+    vector<long> weight;
 
-    bellman_ford(int V) : V(V), E(0) {}
+    explicit bellman_ford(int V = 0) : V(V), E(0) {}
 
-    void add(int u, int v, int w) {
+    void add(int u, int v, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v);
         source.push_back(u);
         target.push_back(v);
@@ -224,11 +224,11 @@ struct bellman_ford {
         E++;
     }
 
-    vector<int> dist;
+    vector<long> dist;
     vector<int> prev;
 
     void compute(int s) {
-        dist.assign(V, INT_MAX);
+        dist.assign(V, LONG_MAX / 2);
         prev.assign(V, -1);
         dist[s] = 0;
         prev[s] = s;
@@ -238,8 +238,8 @@ struct bellman_ford {
             stop = true;
             for (int e = 0; e < E; e++) {
                 int u = source[e], v = target[e];
-                if (dist[u] > dist[v] + weight[e]) {
-                    dist[u] = dist[v] + weight[e];
+                if (dist[v] > dist[u] + weight[e]) {
+                    dist[v] = dist[u] + weight[e];
                     prev[v] = u;
                     stop = false;
                 }
@@ -262,6 +262,111 @@ struct bellman_ford {
             path.push_back(v);
             t = v;
             v = prev[v];
+        } while (t != v);
+        reverse(begin(path), end(path));
+        return path;
+    }
+};
+
+/**
+ * Implementation for directed graphs
+ * For undirected graphs insert edges both ways
+ * Negative loops are detected
+ */
+struct johnsons {
+    int V, E;
+    vector<vector<int>> adj;
+    vector<int> source;
+    vector<int> target;
+    vector<long> weight;
+
+    explicit johnsons(int V = 0) : V(V), E(0) {}
+
+    void add(int u, int v, long w) {
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v);
+        adj[u].push_back(E++);
+        source.push_back(u);
+        target.push_back(v);
+        weight.push_back(w);
+    }
+
+    vector<vector<long>> dist;
+    vector<vector<int>> prev;
+
+    void bellman_ford(int s) {
+        dist[s].assign(V, LONG_MAX / 2);
+        prev[s].assign(V, -1);
+        dist[s][s] = 0;
+        prev[s][s] = s;
+
+        bool stop = false;
+        for (int k = 1; k < V && !stop; k++) {
+            stop = true;
+            for (int e = 0; e < E; e++) {
+                int u = source[e], v = target[e], w = weight[e];
+                if (dist[s][v] > dist[s][u] + w) {
+                    dist[s][v] = dist[s][u] + w;
+                    prev[s][v] = u;
+                    stop = false;
+                }
+            }
+        }
+
+        for (int e = 0; e < E; e++) {
+            int u = source[e], v = target[e];
+            assert(dist[s][u] + weight[e] >= dist[s][v]);
+        }
+    }
+
+    void dijkstra(int s) {
+        dist[s].assign(V, LONG_MAX / 2);
+        prev[s].assign(V, -1);
+        dist[s][s] = 0;
+        prev[s][s] = s;
+
+        using int2 = pair<long, int>;
+        vector<bool> vis(V, false);
+        priority_queue<int2, vector<int2>, greater<int2>> Q;
+        Q.push({0, s});
+
+        while (!Q.empty()) {
+            int u = Q.top().second;
+            Q.pop();
+            if (vis[u]) {
+                continue;
+            }
+            vis[u] = true;
+            for (auto e : adj[u]) {
+                int v = target[e];
+                long cost = dist[s][u] + weight[e];
+                if (!vis[v] && cost < dist[s][v]) {
+                    dist[s][v] = cost;
+                    prev[s][v] = u;
+                    Q.push({cost, v});
+                }
+            }
+        }
+    }
+
+    void compute() {
+        assert(V > 0);
+        dist.assign(V, {});
+        prev.assign(V, {});
+        bellman_ford(0);
+        for (int u = 0; u < V; u++)
+            dijkstra(u);
+    }
+
+    auto path(int s, int v) {
+        vector<int> path;
+        if (prev[s][v] == -1) {
+            return path;
+        }
+        int t;
+        do {
+            path.push_back(v);
+            t = v;
+            v = prev[s][v];
         } while (t != v);
         reverse(begin(path), end(path));
         return path;

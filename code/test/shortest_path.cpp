@@ -1,5 +1,9 @@
 #include "../shortest_path.hpp"
 
+#include <fmt/format.h>
+
+using fmt::print;
+
 // *****
 
 // https://en.wikipedia.org/wiki/Shortest_path_problem#/media/File:Shortest_path_with_direct_weights.svg
@@ -34,15 +38,13 @@ void test() {
     dijkstra mm(6);
     add_g1(mm);
     mm.compute(0);
-    printf("dist[0..3]: %d\tdist[0..5]: %d\n", mm.dist[3], mm.dist[5]);
     assert(mm.dist[3] == 9);
     assert(mm.dist[5] == 20);
     assert(mm.path(5) == vector<int>({0, 2, 4, 3, 5}));
 
     add_g2(mm);
     mm.compute(1);
-    printf("dist[0..5]: %d\tdist[0..6]: %d\n", mm.dist[5], mm.dist[6]);
-    assert(mm.dist[0] == INT_MAX);
+    assert(mm.dist[0] == LONG_MAX / 2);
     assert(mm.dist[5] == 20);
     assert(mm.dist[6] == 11);
     assert(mm.path(5) == vector<int>({1, 3, 6, 5}));

@@ -8,7 +8,7 @@
 /**
  * Held-Karp dynamic programming exact algorithm
  * Complexity: O(V^2 2^V) (~1s for V=22)
- * Memory: O(V 2^V)
+ * Memory: O(V 2^V) (prohibitive for V>25)
  */
 struct travelling_salesman {
     int V;
