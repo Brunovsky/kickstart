@@ -15,7 +15,7 @@ const char* names[T] = {"sparse flow networks", "dense flow networks",
                         "very dense flow networks", "large sparse flow networks",
                         "huge sparse flow networks"};
 int quantity[T] = {1000, 500, 200, 100, 20};
-bool hard[T] = {0, 0, 0, 0, 1};
+bool hard[T] = {0, 0, 0, 1, 1};
 vector<flow_graph> graphs[T];
 vector<long> flows[A];
 
@@ -96,7 +96,7 @@ void test_speed() {
 }
 
 void test_equal(int i) {
-    intd distV(10, 40);
+    intd distV(10, 20);
     int V = distV(mt);
     flow_graph f = random_flow_graph(V, 5.0 / V, 100000);
 

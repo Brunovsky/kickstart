@@ -165,6 +165,12 @@ void add_regular_ring_lattice(graph& g, int k) {
     }
 }
 
+void add_circulant_arcs(graph& g, int u1, int u2, int o = 1) {
+    int V = u2 - u1, cap = 2 * o == V ? V / 2 : V;
+    for (int s = 0; s < cap; s++)
+        g.add(u1 + s, u1 + (s + o) % V);
+}
+
 template <typename Graph>
 void add_all_edges(Graph& g, int u1, int u2) {
     for (int u = u1; u < u2; u++)
@@ -567,11 +573,8 @@ graph turan(int n, int r) {
 
 graph circulant(int V, const offsets_t& O) {
     graph g(V);
-    for (int o : O) {
-        int cap = 2 * o == V ? V / 2 : V;
-        for (int u = 0; u < cap; u++)
-            g.add(u, (u + o) % V);
-    }
+    for (int o : O)
+        add_circulant_arcs(g, 0, V, o);
     return g;
 }
 
