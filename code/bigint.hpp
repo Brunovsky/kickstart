@@ -3,8 +3,6 @@
 
 #include <bits/stdc++.h>
 
-#include <boost/multiprecision/cpp_int.hpp>
-
 using namespace std;
 
 // *****
@@ -29,7 +27,7 @@ struct bigint {
     int len() const { return nums.size(); }
     bool zero() const { return nums.empty(); }
     void clear() { nums.clear(), sign = 0; }
-    void flip() { sign = !sign; }
+    void flip() { sign = !sign && !zero(); }
     void trim() {
         while (!zero() && nums.back() == 0)
             nums.pop_back();
@@ -37,44 +35,8 @@ struct bigint {
     }
 };
 
-string bigdigits(const bigint& u) {
-    stringstream ss;
-    ss << (u.sign ? "-[" : "[");
-    int n = u.len();
-    for (int i = 0; i + 1 < n; i++)
-        ss << setw(11) << u[i] << ",";
-    if (n)
-        ss << setw(11) << u[n - 1];
-    ss << "]";
-    return ss.str();
-}
-
-string lsbits(const bigint& u) {
-    if (u.zero())
-        return "0";
-    string s(32 * u.len() + 1, '0');
-    s[0] = u.sign ? '-' : '+';
-    for (int i = 0; i < 32 * u.len(); i++)
-        s[i + 1] = '0' + u.bit(i);
-    while (!s.empty() && s.back() == '0')
-        s.pop_back();
-    return s;
-}
-string msbits(const bigint& u) {
-    if (u.zero())
-        return "0";
-    string s(32 * u.len() + 1, '0');
-    s[0] = u.sign ? '-' : '+';
-    for (int i = 0; i < 32 * u.len(); i++)
-        s[32 * u.len() - i] = '0' + u.bit(i);
-    s.erase(begin(s) + 1, find(begin(s) + 1, end(s), '1'));
-    return s;
-}
-
-ostream& operator<<(ostream& out, const bigint& u) { return out << lsbits(u); }
-
 bool magnitude_cmp(const bigint& u, const bigint& v) {
-    int L = u.nums.size(), R = v.nums.size();
+    int L = u.len(), R = v.len();
     if (L != R)
         return L < R;
     else
@@ -139,12 +101,43 @@ bigint& operator<<=(bigint& u, uint shift) {
 bigint operator>>(bigint u, uint shift) { return u >>= shift; }
 bigint operator<<(bigint u, uint shift) { return u <<= shift; }
 
+bigint& operator&=(bigint& u, const bigint& v) {
+    int n = min(u.len(), v.len());
+    u.nums.resize(n);
+    for (int i = 0; i < n; i++)
+        u[i] = u[i] & v[i];
+    u.trim();
+    return u;
+}
+bigint& operator|=(bigint& u, const bigint& v) {
+    int n = max(u.len(), v.len());
+    u.nums.resize(n, 0);
+    for (int i = 0; i < v.len(); i++)
+        u[i] = u[i] | v[i];
+    return u;
+}
+bigint& operator^=(bigint& u, const bigint& v) {
+    int n = max(u.len(), v.len());
+    u.nums.resize(n, 0);
+    for (int i = 0; i < v.len(); i++)
+        u[i] = u[i] ^ v[i];
+    u.trim();
+    return u;
+}
+bigint operator~(bigint u) {
+    for (int i = 0; i < u.len(); i++)
+        u[i] = ~u[i];
+    u.trim();
+    return u;
+}
+
+bigint operator&(bigint u, const bigint& v) { return u &= v; }
+bigint operator|(bigint u, const bigint& v) { return u |= v; }
+bigint operator^(bigint u, const bigint& v) { return u ^= v; }
+
 void add_int(bigint& u, uint v) {
-    for (int i = 0; v && i < u.len(); i++) {
-        bool carry = u[i] > UINT_MAX - v;
-        u[i] += v;
-        v = carry;
-    }
+    for (int i = 0; v && i < u.len(); i++)
+        u[i] += v, v = u[i] < v;
     if (v > 0)
         u.nums.push_back(v);
 }
@@ -157,13 +150,13 @@ void sub_int(bigint& u, uint v) {
         return;
     }
     if (u.len() == 1 && u[0] < v) {
-        u.nums = {v - u[0]}, u.sign = !u.sign;
+        u.nums = {v - u[0]}, u.flip();
         return;
     }
     for (int i = 0; v && i < u.len(); i++) {
-        long sum = long(u[i]) - v;
-        u[i] = sum + UINT_MAX + 1;
-        v = sum < 0;
+        bool carry = v > u[i];
+        u[i] -= v;
+        v = carry;
     }
     u.trim();
 }
@@ -176,10 +169,10 @@ void mul_int(bigint& u, uint v) {
     if (v == 1) {
         return;
     }
-    ulong sum = 0;
+    ulong m = v, sum = 0;
     for (int i = 0; i < u.len(); i++) {
-        sum += ulong(u[i]) * v;
-        u[i] = sum & UINT_MAX;
+        sum += u[i] * m;
+        u[i] = sum;
         sum >>= 32;
     }
     if (sum > 0)
@@ -200,10 +193,6 @@ uint div_int(bigint& u, uint v) {
     return r;
 }
 
-/**
- * Big integer operations
- */
-
 void add_vec(bigint& u, const bigint& v) {
     int n = u.len(), m = v.len(), hi = max(n, m), lo = min(n, m);
     u.nums.resize(hi, 0);
@@ -217,8 +206,7 @@ void add_vec(bigint& u, const bigint& v) {
         u[i] = k, k = k > UINT_MAX;
     }
     for (int i = m; k && i < hi; i++) {
-        u[i]++;
-        k = u[i] == 0;
+        u[i]++, k = u[i] == 0;
     }
     if (k)
         u.nums.push_back(k);
@@ -267,8 +255,7 @@ void dyn_sub_vec(bigint& u, const bigint& v) {
     if (n > m) {
         return sub_vec(u, v);
     } else if (n < m) {
-        u.flip();
-        return rev_sub_vec(u, v);
+        return rev_sub_vec(u, v), u.flip();
     } else {
         int i = n - 1;
         while (i >= 0 && u[i] == v[i])
@@ -332,6 +319,7 @@ bigint div_vec(bigint& u, bigint v) {
 
     bigint d;
     d.nums.resize(m + 1, 0);
+    d.sign = u.sign ^ v.sign;
 
     for (int j = m; j >= 0; j--) {
         ulong q = (u[n + j] * b + u[n - 1 + j]) / v[n - 1];
@@ -339,6 +327,8 @@ bigint div_vec(bigint& u, bigint v) {
 
         while (r < b && q * v[n - 2] > r * b + u[n - 2 + j])
             q--, r += v[n - 1];
+        if (q == 0)
+            continue;
 
         long k = 0, t;
         for (int i = 0; i < n; i++) {
@@ -370,19 +360,16 @@ bigint div_vec(bigint& u, bigint v) {
 }
 
 bigint div_mod(bigint& u, const bigint& v) {
-    int su = u.sign, sv = v.sign;
     bigint r;
     if (magnitude_cmp(u, v)) {
         r = move(u);
         u.clear();
-        return r;
     } else if (v.len() == 1) {
-        r = bigint(div_int(u, v[0]));
+        r = bigint(div_int(u, v[0]), u.sign);
+        u.sign ^= v.sign;
     } else {
         r = div_vec(u, v);
     }
-    r.sign = su && !r.zero();
-    u.sign = su ^ sv;
     return r;
 }
 
@@ -408,11 +395,11 @@ bigint& operator%=(bigint& u, const bigint& v) {
 }
 
 bigint& operator+=(bigint& u, uint n) {
-    u.sign == 0 ? add_int(u, n) : dyn_sub_vec(u, bigint(n));
+    u.sign == 0 ? add_int(u, n) : sub_int(u, n);
     return u;
 }
 bigint& operator-=(bigint& u, uint n) {
-    u.sign == 1 ? add_int(u, n) : dyn_sub_vec(u, bigint(n));
+    u.sign == 1 ? add_int(u, n) : sub_int(u, n);
     return u;
 }
 bigint& operator*=(bigint& u, uint n) {
@@ -433,7 +420,7 @@ bigint& operator+=(bigint& u, int n) {
     return u;
 }
 bigint& operator-=(bigint& u, int n) {
-    n > 0 ? u -= uint(n) : u += uint(abs(n));
+    n >= 0 ? u -= uint(n) : u += uint(abs(n));
     return u;
 }
 bigint& operator*=(bigint& u, int n) {
@@ -475,39 +462,7 @@ bigint operator%(bigint u, int n) { return u %= n; }
 
 bigint operator-(bigint u) { return u.flip(), u; }
 
-bigint& operator&=(bigint& u, const bigint& v) {
-    int n = min(u.len(), v.len());
-    u.nums.resize(n);
-    for (int i = 0; i < n; i++)
-        u[i] = u[i] & v[i];
-    u.trim();
-    return u;
-}
-bigint& operator|=(bigint& u, const bigint& v) {
-    int n = max(u.len(), v.len());
-    u.nums.resize(n);
-    for (int i = 0; i < v.len(); i++)
-        u[i] = u[i] | v[i];
-    return u;
-}
-bigint& operator^=(bigint& u, const bigint& v) {
-    int n = max(u.len(), v.len());
-    u.nums.resize(n);
-    for (int i = 0; i < v.len(); i++)
-        u[i] = u[i] ^ v[i];
-    u.trim();
-    return u;
-}
-bigint operator~(bigint u) {
-    for (int i = 0; i < u.len(); i++)
-        u[i] = ~u[i];
-    u.trim();
-    return u;
-}
-
-bigint operator&(bigint u, const bigint& v) { return u &= v; }
-bigint operator|(bigint u, const bigint& v) { return u |= v; }
-bigint operator^(bigint u, const bigint& v) { return u ^= v; }
+bigint operator""_b(const char* s) { return bigint(s); }
 
 bigint::bigint(const string& s, uint b) {
     assert(2 <= b && b <= 10);
@@ -519,16 +474,16 @@ bigint::bigint(const string& s, uint b) {
         return;
     }
     if (s[i] == '-') {
-        sign = true;
+        sign = 1;
     }
     if (!isnum(s[i])) {
         i++;
     }
     uint n = 0, tens = 1, threshold = UINT_MAX / (b + 1);
     while (i < S && isnum(s[i])) {
-        n = b * n + (s[i++] - '0');
+        n = b * n + uint(s[i++] - '0');
         tens *= b;
-        if (n >= threshold) {
+        if (tens >= threshold) {
             mul_int(*this, tens);
             add_int(*this, n);
             n = 0;
@@ -538,5 +493,41 @@ bigint::bigint(const string& s, uint b) {
     mul_int(*this, tens);
     add_int(*this, n);
 }
+
+string lsbits(const bigint& u) {
+    if (u.zero())
+        return "0";
+    string s(32 * u.len() + 1, '0');
+    s[0] = u.sign ? '-' : '+';
+    for (int i = 0; i < 32 * u.len(); i++)
+        s[i + 1] = '0' + u.bit(i);
+    while (!s.empty() && s.back() == '0')
+        s.pop_back();
+    return s;
+}
+string msbits(const bigint& u) {
+    if (u.zero())
+        return "0";
+    string s(32 * u.len() + 1, '0');
+    s[0] = u.sign ? '-' : '+';
+    for (int i = 0; i < 32 * u.len(); i++)
+        s[32 * u.len() - i] = '0' + u.bit(i);
+    s.erase(begin(s) + 1, find(begin(s) + 1, end(s), '1'));
+    return s;
+}
+string to_string(bigint u) {
+    if (u.zero())
+        return "0";
+    string s = u.sign ? "-" : "";
+    deque<string> rems;
+    while (!u.zero()) {
+        rems.push_front(to_string(div_int(u, 1'000'000'000u)));
+    }
+    for (int i = 0, n = rems.size(); i < n; i++)
+        s += string(i ? 9 - rems[i].length() : 0, '0') + rems[i];
+    return s;
+}
+
+ostream& operator<<(ostream& out, const bigint& u) { return out << to_string(u); }
 
 #endif // BIGINT_HPP
