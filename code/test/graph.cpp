@@ -82,6 +82,12 @@ void test_generator() {
          random_uniform_level_dag(30, 0.4, 5, 2));
     show("Random uniform level flow 7 ranks V=30",
          random_uniform_level_flow(30, 0.4, 7, 2));
+
+    show("Random uniform bipartite 10,20,0.3", random_uniform_bipartite(10, 20, 0.3));
+    show("Random uniform bipartite 10,20,0.7", random_uniform_bipartite(10, 20, 0.7));
+    show("Random exact bipartite 10,20,73", random_exact_bipartite(10, 20, 73));
+    show("Random exact bipartite 10,25,43", random_exact_bipartite(10, 25, 43));
+    show("Random regular bipartite 10,25,5", random_regular_bipartite(10, 25, 5));
 }
 
 int main() {

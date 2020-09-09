@@ -2,6 +2,7 @@
 #define GRAPH_GENERATOR_HPP
 
 #include "bits.hpp"
+#include "graph_convert.hpp"
 #include "graph_operations.hpp"
 #include "hash.hpp"
 #include "math.hpp"
@@ -26,7 +27,7 @@ unordered_set<array<int, 2>, pair_hasher> build_adjacency_set(const graph& g) {
 
 template <typename Graph>
 void add_self_loops(Graph& g, double p) {
-    if (p <= 0.15) {
+    if (g.V >= 10 && p <= 0.15) {
         binomd distk(g.V, p);
         for (int u : int_sample(distk(mt), 0, g.V - 1))
             g.add(u, u);
@@ -84,6 +85,54 @@ void add_uniform_edges(digraph& g, int u1, int u2, double p) {
                 if (u != v && distp(mt))
                     g.add(u, v);
     }
+}
+
+void add_uniform_edges(bipartite_graph& g, int u1, int u2, int v1, int v2, double p) {
+    if (u2 - u1 >= 10 && v2 - v1 >= 10 && p <= 0.25) {
+        binomd distk(v2 - v1, p);
+        for (int u = u1; u < u2; u++)
+            for (int v : int_sample(distk(mt), v1, v2 - 1))
+                if (u != v)
+                    g.add(u, v);
+    } else {
+        boold distp(p);
+        for (int u = u1; u < u2; u++)
+            for (int v = v1; v < v2; v++)
+                if (distp(mt))
+                    g.add(u, v);
+    }
+}
+
+void add_any_missing_edge(graph& g, int u1, int u2, int v1, int v2) {
+    for (int u = u1; u < u2; u++)
+        if (g.adj[u].empty())
+            g.add(u, different(u, v1, v2 - 1));
+}
+
+void add_any_missing_outedge(digraph& g, int u1, int u2, int v1, int v2) {
+    for (int u = u1; u < u2; u++)
+        if (g.adj[u].empty())
+            g.add(u, different(u, v1, v2 - 1));
+}
+
+void add_any_missing_inedge(digraph& g, int u1, int u2, int v1, int v2) {
+    for (int v = v1; v < v2; v++)
+        if (g.rev[v].empty())
+            g.add(different(v, u1, u2 - 1), v);
+}
+
+void add_any_missing_outedge(bipartite_graph& g, int u1, int u2, int v1, int v2) {
+    intd distv(v1, v2 - 1);
+    for (int u = u1; u < u2; u++)
+        if (g.adj[u].empty())
+            g.add(u, distv(mt));
+}
+
+void add_any_missing_inedge(bipartite_graph& g, int u1, int u2, int v1, int v2) {
+    intd distu(u1, u2 - 1);
+    for (int v = v1; v < v2; v++)
+        if (g.rev[v].empty())
+            g.add(distu(mt), v);
 }
 
 void add_level_back_edges(digraph& g, double q, const ranks_t& R) {
@@ -155,6 +204,13 @@ void add_edges_except(digraph& g, const edges_t& edges, const parent_t& par, int
     assert(S == 0);
 }
 
+void add_bipartite_edges(bipartite_graph& g, const edges_t& edges) {
+    for (auto edge : edges) {
+        int u = edge[0], v = edge[1];
+        g.add(u, v);
+    }
+}
+
 void add_regular_ring_lattice(graph& g, int k) {
     int max_jump = min(k / 2, (g.V - 1) / 2);
     for (int j = 1; j <= max_jump; j++) {
@@ -171,10 +227,21 @@ void add_circulant_arcs(graph& g, int u1, int u2, int o = 1) {
         g.add(u1 + s, u1 + (s + o) % V);
 }
 
-template <typename Graph>
-void add_all_edges(Graph& g, int u1, int u2) {
+void add_all_edges(graph& g, int u1, int u2) {
     for (int u = u1; u < u2; u++)
         for (int v = u + 1; v < u2; v++)
+            g.add(u, v);
+}
+
+void add_all_edges(digraph& g, int u1, int u2) {
+    for (int u = u1; u < u2; u++)
+        for (int v = u + 1; v < u2; v++)
+            g.add(u, v);
+}
+
+void add_all_edges(bipartite_graph& g, int u1, int u2, int v1, int v2) {
+    for (int u = u1; u < u2; u++)
+        for (int v = v1; v < v2; v++)
             g.add(u, v);
 }
 
@@ -479,9 +546,7 @@ graph complete_multipartite(const ranks_t& R) {
 
 bipartite_graph complete_bipartite(int U, int V) {
     bipartite_graph g(U, V);
-    for (int u = 0; u < U; u++)
-        for (int v = 0; v < V; v++)
-            g.add(u, v);
+    add_all_edges(g, 0, U, 0, V);
     return g;
 }
 
@@ -637,8 +702,14 @@ graph random_regular_connected(int V, int k) {
     return g;
 }
 
-// ***** Completely random and not necessarily connected graphs (Erdős–Rényi
-// graphs)
+bipartite_graph random_regular_bipartite(int U, int V, int k) {
+    bipartite_graph g(U, V);
+    auto edges = regular_bipartite_sample(U, V, k);
+    add_bipartite_edges(g, edges);
+    return g;
+}
+
+// ***** Completely random and not necessarily connected graphs (Erdős–Rényi graphs)
 
 graph random_uniform_undirected(int V, double p) {
     graph g(V);
@@ -649,6 +720,12 @@ graph random_uniform_undirected(int V, double p) {
 digraph random_uniform_directed(int V, double p) {
     digraph g(V);
     add_uniform_edges(g, 0, V, min(1.0, p));
+    return g;
+}
+
+bipartite_graph random_uniform_bipartite(int U, int V, double p) {
+    bipartite_graph g(U, V);
+    add_uniform_edges(g, 0, U, 0, V, min(1.0, p));
     return g;
 }
 
@@ -664,15 +741,23 @@ graph random_exact_undirected(int V, int E) {
 digraph random_exact_directed(int V, int E) {
     assert(E <= 1L * V * (V - 1));
     digraph g(V);
-    auto edges = pair_sample(E + V, 0, V - 1, 0, V - 1, false);
+    auto edges = pair_sample(E + V, 0, V - 1, 0, V - 1);
     shuffle(begin(edges), end(edges), mt);
     add_nontrivial_edges(g, edges, E);
     assert(g.E == E);
     return g;
 }
 
-// ***** Completely random but connected graphs (Erdős–Rényi with bootstrap
-// tree)
+bipartite_graph random_exact_bipartite(int U, int V, int E) {
+    assert(E <= 1L * V * (V - 1));
+    bipartite_graph g(U, V);
+    auto edges = pair_sample(E, 0, U - 1, 0, V - 1);
+    add_bipartite_edges(g, edges);
+    assert(g.E == E);
+    return g;
+}
+
+// ***** Completely random but connected graphs (Erdős–Rényi with bootstrap tree)
 
 graph random_uniform_undirected_connected(int V, double p) {
     graph g(V);
@@ -840,21 +925,12 @@ digraph random_uniform_level_flow(int V, double p, int ranks, int m = 1,
 
 // ***** Convert to flow network
 
-flow_graph make_flow_graph(const digraph& g, long max_cap) {
-    longd capd(1, max_cap);
-    flow_graph f(g.V);
-    for (int u = 0; u < g.V; u++)
-        for (int v : g.adj[u])
-            f.add(u, v, capd(mt));
-    return f;
-}
-
 flow_graph random_flow_graph(int V, double p, long max_cap) {
     intd rankd(3, max(3, V / 3));
     int ranks = rankd(mt), m = min(7, V / ranks);
     p = min(1.0, p);
     digraph g = random_uniform_level_flow(V, p, ranks, m, false);
-    return make_flow_graph(g, max_cap);
+    return add_caps(g, max_cap);
 }
 
 #endif // GRAPH_GENERATOR_HPP

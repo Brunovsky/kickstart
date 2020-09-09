@@ -33,6 +33,17 @@ string pretty(int n) {
     return string(dw - s.size(), ' ') + s;
 }
 
+string pretty(long n) {
+    if (n >= dbig)
+        return string(dw, '+');
+    if (n <= dneg)
+        return string(dw, '-');
+    if (n == dnil)
+        return string(dw, ' ');
+    string s = to_string(n);
+    return string(dw - s.size(), ' ') + s;
+}
+
 string pretty(bool b) { return string(dw - 1, ' ') + (b ? '1' : ' '); }
 
 string pretty(string s) {

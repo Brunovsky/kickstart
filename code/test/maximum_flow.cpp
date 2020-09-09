@@ -1,10 +1,9 @@
-#include <fmt/format.h>
-
-#include "../graph_generator.hpp"
 #include "../maximum_flow.hpp"
 
+#include "../debug_print.hpp"
+#include "../graph_generator.hpp"
+
 using namespace std::chrono;
-using fmt::print;
 using ms = chrono::milliseconds;
 
 // *****
@@ -77,8 +76,8 @@ void speed_test(const string& name, int t) {
             print("\r{} {}", i + 1, flows[k][i]);
     }
     auto time = duration_cast<ms>(steady_clock::now() - now);
-    print("\r                       ");
-    print("\r{}\t{}\n", time.count(), name.data());
+
+    print("\r{}\r{}\t{}\n", string(50, ' '), time.count(), name.data());
 }
 
 void test_speed() {
@@ -103,8 +102,7 @@ void test_equal(int i) {
     edmonds_karp flow1(V);
     dinitz_flow flow2(V);
     push_relabel flow3(V);
-    naive_flow flow4(V);
-    tidal_flow flow5(V);
+    tidal_flow flow4(V);
 
     for (int u = 0; u < V; u++) {
         for (int e : f.adj[u]) {
@@ -112,7 +110,6 @@ void test_equal(int i) {
             flow2.add(u, f.target[e], f.cap[e]);
             flow3.add(u, f.target[e], f.cap[e]);
             flow4.add(u, f.target[e], f.cap[e]);
-            flow5.add(u, f.target[e], f.cap[e]);
         }
     }
 
@@ -120,12 +117,11 @@ void test_equal(int i) {
     long mf2 = flow2.maxflow(0, V - 1);
     long mf3 = flow3.maxflow(0, V - 1);
     long mf4 = flow4.maxflow(0, V - 1);
-    long mf5 = flow5.maxflow(0, V - 1);
     assert(mf1 != 0);
 
     string spaces(20, ' ');
-    print("\rrandom test #{}: {} {} {} {} {}{}", i, mf1, mf2, mf3, mf4, mf5, spaces);
-    if (!(mf1 == mf2 && mf2 == mf3 && mf3 == mf4 && mf4 == mf5)) {
+    print("\rrandom test #{}: {} {} {} {}{}", i, mf1, mf2, mf3, mf4, spaces);
+    if (!(mf1 == mf2 && mf2 == mf3 && mf3 == mf4)) {
         print("\nRandom test failed\n");
         exit(1);
     }

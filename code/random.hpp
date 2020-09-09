@@ -15,6 +15,14 @@ using reald = uniform_real_distribution<double>;
 using binomd = binomial_distribution<int>;
 using boold = bernoulli_distribution;
 
+int different(int u, int v1, int v2) {
+    assert(v1 <= v2 && (v1 != u || v2 != u));
+    intd dist(v1, v2);
+    while (true)
+        if ((v1 = dist(mt)) != u)
+            return v1;
+}
+
 /**
  * Run k iterations of Fisher-Yates shuffle over a vector,
  * shuffling its first k elements. Complexity linear in k and E[mt] = k.
@@ -221,6 +229,8 @@ vector<int> partition_sample_flow(int V, int ranks, int m = 1) {
  * Complexity: O(kV * restarts)
  */
 vector<array<int, 2>> regular_sample(int n, int k) {
+    if (k == 0)
+        return {};
     assert(3 <= k && k < n && !(k & 1 && n & 1));
     int restarts = 0, edges;
 
@@ -237,7 +247,7 @@ restart:
     fill(begin(cnt), end(cnt), k);
     edges = 0;
 
-    while (k && !notfull.empty()) {
+    while (!notfull.empty()) {
         int b = notfull.size();
         if (b == 1)
             goto restart;
@@ -276,6 +286,57 @@ restart:
     for (auto p : seen)
         if (p[0] < p[1])
             regular[--edges] = p;
+    assert(edges == 0);
+    return regular;
+}
+
+vector<array<int, 2>> regular_bipartite_sample(int n, int m, int k) {
+    if (k == 0)
+        return {};
+    assert(k <= m && n * k % m == 0);
+    int restarts = 0, edges, x = n * k / m;
+
+    unordered_set<array<int, 2>, vec_hasher> seen;
+    vector<int> cnt(m), notfull;
+
+restart:
+    if (restarts++ == 500)
+        throw std::runtime_error("Failed to generate regular graph after 500 restarts");
+
+    seen.clear();
+    notfull.resize(m);
+    iota(begin(notfull), end(notfull), 0);
+    fill(begin(cnt), end(cnt), x);
+    edges = 0;
+
+    for (int i = 0; i < k; i++) {
+        for (int u = 0; u < n; u++) {
+            intd distv(0, m - 1);
+            int v, j, fast = 2 * m;
+            do { // fast loop, fallback to iterating through notfull otherwise
+                j = distv(mt);
+                v = notfull[j];
+            } while (--fast && seen.count({u, v}));
+            if (!fast && seen.count({u, v})) {
+                for (j = 0; j < m; j++) {
+                    v = notfull[j];
+                    if (i != j && !seen.count({u, v}))
+                        break;
+                }
+                if (j == m)
+                    goto restart; // :(
+            }
+
+            cnt[v]--, edges++;
+            seen.insert({u, v});
+            if (cnt[v] == 0)
+                swap(notfull[j], notfull.back()), notfull.pop_back(), m--;
+        }
+    }
+
+    vector<array<int, 2>> regular(edges);
+    for (auto p : seen)
+        regular[--edges] = p;
     assert(edges == 0);
     return regular;
 }

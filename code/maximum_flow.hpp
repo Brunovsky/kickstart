@@ -58,7 +58,6 @@ struct edmonds_karp {
     }
 
     long maxflow(int s, int t) {
-        flow.assign(E, 0);
         pred.resize(V);
         long max_flow = 0;
         while (bfs(s, t)) {
@@ -148,7 +147,6 @@ struct dinitz_flow {
     }
 
     long maxflow(int s, int t) {
-        flow.assign(E, 0);
         level.assign(V + 2, 0);
         arc.assign(V, 0);
         long max_flow = 0;
@@ -274,7 +272,6 @@ struct push_relabel {
         excess.assign(V, 0);
         height.assign(V, 0);
         arc.assign(V, 0);
-        flow.assign(E, 0);
         active.assign(2 * V, {});
         labeled.assign(2 * V, 0);
         height[s] = V, height[t] = 0;

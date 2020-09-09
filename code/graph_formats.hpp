@@ -5,11 +5,15 @@
 
 // *****
 
+int len(const graph& g) { return g.V; }
+int len(const digraph& g) { return g.V; }
+int len(const bipartite_graph& g) { return g.U; }
+
 template <typename Graph>
 string adj_matrix(const Graph& g) {
     stringstream ss;
     ss << "V=" << g.V << ", E=" << g.E << '\n';
-    ss << string(g.V + 2, '.') << '\n';
+    ss << string(2 + g.V, '.') << '\n';
     for (int u = 0; u < g.V; u++) {
         string s(g.V, ' ');
         for (int v : g.adj[u]) {
@@ -17,14 +21,29 @@ string adj_matrix(const Graph& g) {
         }
         ss << '.' << s << ".\n";
     }
-    ss << string(g.V + 2, '.') << '\n';
+    ss << string(2 + g.V, '.') << '\n';
+    return ss.str();
+}
+
+string adj_matrix(const bipartite_graph& g) {
+    stringstream ss;
+    ss << "U=" << g.U << ", V=" << g.V << ", E=" << g.E << '\n';
+    ss << string(2 + g.V, '.') << '\n';
+    for (int u = 0; u < g.U; u++) {
+        string s(g.V, ' ');
+        for (int v : g.adj[u]) {
+            s[v] = '1';
+        }
+        ss << '.' << s << ".\n";
+    }
+    ss << string(2 + g.V, '.') << '\n';
     return ss.str();
 }
 
 template <typename Graph>
 string adj_list(const Graph& g) {
     stringstream ss;
-    for (int u = 0; u < g.V; u++) {
+    for (int u = 0; u < len(g); u++) {
         ss << setw(2) << u << " ->";
         for (int v : g.adj[u]) {
             ss << ' ' << setw(2) << v;
@@ -37,9 +56,9 @@ string adj_list(const Graph& g) {
 template <typename Graph>
 string compact_simple(const Graph& g, bool directed = false) {
     stringstream ss;
-    const int w = int(log10(g.V)) + 1;
+    const int w = int(log10(len(g))) + 2;
     int cnt = 0;
-    for (int u = 0; u < g.V; u++) {
+    for (int u = 0; u < len(g); u++) {
         for (int v : g.adj[u]) {
             if (directed || u <= v) {
                 ss << (cnt ? "  " : "") << setw(w) << u << ',' << setw(w) << v;
@@ -58,9 +77,9 @@ string compact_dot(const Graph& g, bool directed = false) {
     static const char* arrow[] = {" -- ", " -> "};
     stringstream ss;
     ss << header[directed] << " {\n";
-    const int w = int(log10(g.V)) + 1;
+    const int w = int(log10(len(g))) + 2;
     int cnt = 0;
-    for (int u = 0; u < g.V; u++) {
+    for (int u = 0; u < len(g); u++) {
         for (int v : g.adj[u]) {
             if (directed || u <= v) {
                 ss << (cnt ? "  " : "    ") << setw(w) << u << arrow[directed];
@@ -92,6 +111,13 @@ template <typename Graph>
 string to_human(const Graph& g) {
     stringstream ss;
     ss << "V=" << g.V << ", E=" << g.E << '\n';
+    ss << adj_matrix(g) << adj_list(g);
+    return ss.str();
+}
+
+string to_human(const bipartite_graph& g) {
+    stringstream ss;
+    ss << "U=" << g.U << ", V=" << g.V << ", E=" << g.E << '\n';
     ss << adj_matrix(g) << adj_list(g);
     return ss.str();
 }
@@ -137,5 +163,6 @@ string to_string(const Graph& g) {
 
 ostream& operator<<(ostream& out, const graph& g) { return out << to_human(g); }
 ostream& operator<<(ostream& out, const digraph& g) { return out << to_human(g); }
+ostream& operator<<(ostream& out, const bipartite_graph& g) { return out << to_human(g); }
 
 #endif // GRAPH_FORMATS_HPP

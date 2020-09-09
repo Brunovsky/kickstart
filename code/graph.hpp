@@ -204,8 +204,6 @@ struct bipartite_edge_graph {
     explicit bipartite_edge_graph(int U = 0, int V = 0)
         : U(U), V(V), E(0), adj(U), rev(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
-
     void add(int u, int v) {
         assert(0 <= u && u < U && 0 <= v && v < V);
         adj[u].push_back(E);
