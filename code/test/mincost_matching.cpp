@@ -13,17 +13,17 @@ constexpr int T = 4, A = 1, R = 300;
 const char* names[T] = {"sparse", "dense", "complete", "sparse large"};
 int quantity[T] = {200, 100, 50, 10};
 bool hard[T] = {1, 1, 1, 1};
-vector<weight_bipartite_graph> graphs[T];
+vector<cost_bipartite_graph> graphs[T];
 vector<long> answers[A];
 
 auto make_bipartite(int U, int V, int E, long max_weight) {
     auto g = random_exact_bipartite(U, V, E);
-    return add_weights(g, max_weight);
+    return add_costs(g, max_weight);
 }
 
 auto make_bipartite(int U, int V, double p, long max_weight) {
     auto g = random_uniform_bipartite(U, V, p);
-    return add_weights(g, max_weight);
+    return add_costs(g, max_weight);
 }
 
 auto generate(int i) {
@@ -62,10 +62,10 @@ void generate_randoms() {
 }
 
 template <typename MCM>
-MCM convert(const weight_bipartite_graph& g) {
+MCM convert(const cost_bipartite_graph& g) {
     MCM mcm(g.U, g.V);
     for (int e = 0; e < g.E; e++) {
-        int u = g.source[e], v = g.target[e], w = g.weight[e];
+        int u = g.source[e], v = g.target[e], w = g.cost[e];
         mcm.add(u, v, w);
     }
     return mcm;

@@ -1,5 +1,5 @@
-#ifndef SEGMENT_TREE
-#define SEGMENT_TREE
+#ifndef SEGMENT_TREE_HPP
+#define SEGMENT_TREE_HPP
 
 #include <bits/stdc++.h>
 
@@ -183,4 +183,4 @@ void driver_usage() {
     // done
 }
 
-#endif // SEGMENT_TREE
+#endif // SEGMENT_TREE_HPP

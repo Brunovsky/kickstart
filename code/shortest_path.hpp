@@ -1,5 +1,5 @@
-#ifndef SHORTEST_PATH
-#define SHORTEST_PATH
+#ifndef SHORTEST_PATH_HPP
+#define SHORTEST_PATH_HPP
 
 #include <bits/stdc++.h>
 
@@ -373,4 +373,4 @@ struct johnsons {
     }
 };
 
-#endif // SHORTEST_PATH
+#endif // SHORTEST_PATH_HPP

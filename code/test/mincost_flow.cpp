@@ -12,10 +12,10 @@ using ms = chrono::milliseconds;
 const string UNIT_TESTS = "datasets/mincost_flow.txt";
 
 template <typename MCF>
-MCF convert(const weight_flow_graph& g) {
+MCF convert(const cost_flow_graph& g) {
     MCF mcf(g.V);
     for (int e = 0; e < 2 * g.E; e += 2) {
-        int u = g.source[e], v = g.target[e], c = g.cap[e], w = g.weight[e];
+        int u = g.source[e], v = g.target[e], c = g.cap[e], w = g.cost[e];
         mcf.add(u, v, c, w);
     }
     return mcf;
@@ -23,7 +23,7 @@ MCF convert(const weight_flow_graph& g) {
 
 struct Test {
     string name, comment;
-    weight_flow_graph g;
+    cost_flow_graph g;
     vector<long> f;
     int s, t;
 };
@@ -44,7 +44,7 @@ auto read_unit_test(istream& in) {
     assert(V > 0 && E > 0);
     assert(!in.bad());
 
-    g = weight_flow_graph(V);
+    g = cost_flow_graph(V);
     for (int i = 0; i < E; i++) {
         int u, v, c, w;
         in >> u >> v >> c >> w >> ws;
@@ -73,7 +73,7 @@ void run_test(Test& test) {
     int s = test.s, t = test.t;
     for (long f : test.f) {
         auto [flow, cost] = g.mincost_flow(s, t, f);
-        print("{:4} -- {:4} {:4}\n", f, flow, cost);
+        print("{:>4} -- {:4} {:4}\n", f, flow, cost);
         g.flow.assign(2 * g.E, 0);
     }
     auto [flow, cost] = g.mincost_flow(s, t);
@@ -95,12 +95,12 @@ const char* names[T] = {"sparse flow networks", "dense flow networks",
                         "huge sparse flow networks"};
 int quantity[T] = {1000, 500, 300, 100, 20};
 bool hard[T] = {0, 0, 0, 1, 1};
-vector<weight_flow_graph> graphs[T];
+vector<cost_flow_graph> graphs[T];
 vector<pair<long, long>> flows[A];
 
-auto make_flow(int V, double p, long max_cap, long max_weight) {
+auto make_flow(int V, double p, long max_cap, long max_cost) {
     auto g = random_flow_graph(V, p, max_cap);
-    return add_weights(g, max_weight);
+    return add_costs(g, max_cost);
 }
 
 auto generate(int i) {
@@ -153,7 +153,7 @@ void speed_test(const string& name, int t) {
         MCF mcf(V);
         for (int u = 0; u < V; u++) {
             for (int e : f.adj[u]) {
-                mcf.add(u, f.target[e], f.cap[e], f.weight[e]);
+                mcf.add(u, f.target[e], f.cap[e], f.cost[e]);
             }
         }
         flows[k][i] = mcf.mincost_flow(0, V - 1);
