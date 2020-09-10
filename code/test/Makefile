@@ -18,7 +18,7 @@ DEP_FILES := $(CXX_FILES:%.cpp=${DEP_DIR}/%.d)
 LIBS := -lfmt
 
 include ../../templates/cpp-flags.make
-CXXFLAGS += $(LIBS)
+CXXFLAGS += $(LIBS) -Wno-sign-compare
 
 default: debug
 

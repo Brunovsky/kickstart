@@ -49,7 +49,7 @@ struct edge_graph {
 
     explicit edge_graph(int V = 0) : V(V), E(0), adj(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
     void add(int u, int v) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v);
@@ -69,7 +69,7 @@ struct edge_digraph {
 
     explicit edge_digraph(int V = 0) : V(V), E(0), adj(V), rev(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
     void add(int u, int v) {
         assert(0 <= u && u < V && 0 <= v && v < V);
@@ -90,9 +90,9 @@ struct weight_graph {
 
     explicit weight_graph(int V = 0) : V(V), E(0), adj(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
-    void add(int u, int v, long w = 0) {
+    void add(int u, int v, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && w >= 0);
         adj[u].push_back(E);
         adj[v].push_back(E);
@@ -112,9 +112,9 @@ struct weight_digraph {
 
     explicit weight_digraph(int V = 0) : V(V), E(0), adj(V), rev(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
-    void add(int u, int v, long w = 0) {
+    void add(int u, int v, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && w >= 0);
         adj[u].push_back(E);
         rev[v].push_back(E);
@@ -134,9 +134,9 @@ struct flow_graph {
 
     explicit flow_graph(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
-    void add(int u, int v, long c = 1) {
+    void add(int u, int v, long c) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
         int uv = 2 * E;
         int vu = 2 * E + 1;
@@ -146,7 +146,6 @@ struct flow_graph {
         res[v].push_back(vu);
         source.push_back(u), source.push_back(v);
         target.push_back(v), target.push_back(u);
-        flow.push_back(0), flow.push_back(0);
         cap.push_back(c), cap.push_back(0);
         E++;
     }
@@ -161,9 +160,9 @@ struct weight_flow_graph {
 
     explicit weight_flow_graph(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
-    void add(int u, int v, long c = 1, long w = 0) {
+    void add(int u, int v, long c, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0 && w >= 0);
         int uv = 2 * E;
         int vu = 2 * E + 1;
@@ -173,9 +172,62 @@ struct weight_flow_graph {
         res[v].push_back(vu);
         source.push_back(u), source.push_back(v);
         target.push_back(v), target.push_back(u);
-        flow.push_back(0), flow.push_back(0);
         cap.push_back(c), cap.push_back(0);
         weight.push_back(w), weight.push_back(w);
+        E++;
+    }
+};
+
+// Directed supply/demand graph for one commodity with separate residual network
+struct supply_graph {
+    int V, E;
+    vector<vector<int>> adj, rev, res;
+    vector<int> supply, source, target;
+    vector<long> flow, cap;
+
+    explicit supply_graph(int V = 0) : V(V), E(0), adj(V), rev(V), res(V), supply(V) {}
+
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
+
+    void add(int u, int v, long c) {
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
+        int uv = 2 * E;
+        int vu = 2 * E + 1;
+        adj[u].push_back(uv);
+        rev[v].push_back(uv);
+        res[u].push_back(uv);
+        res[v].push_back(vu);
+        source.push_back(u), source.push_back(v);
+        target.push_back(v), target.push_back(u);
+        cap.push_back(c), cap.push_back(0);
+        E++;
+    }
+};
+
+// Directed weighed supply/demand graph for one commodity with separate residual network
+struct weight_supply_graph {
+    int V, E;
+    vector<vector<int>> adj, rev, res;
+    vector<int> supply, source, target;
+    vector<long> flow, cap, weight;
+
+    explicit weight_supply_graph(int V = 0)
+        : V(V), E(0), adj(V), rev(V), res(V), supply(V) {}
+
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
+
+    void add(int u, int v, long c, long w) {
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0 && w >= 0);
+        int uv = 2 * E;
+        int vu = 2 * E + 1;
+        adj[u].push_back(uv);
+        rev[v].push_back(uv);
+        res[u].push_back(uv);
+        res[v].push_back(vu);
+        source.push_back(u), source.push_back(v);
+        target.push_back(v), target.push_back(u);
+        cap.push_back(c), cap.push_back(0);
+        weight.push_back(w), weight.push_back(-w);
         E++;
     }
 };

@@ -21,7 +21,7 @@ struct edmonds_karp {
 
     explicit edmonds_karp(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
     void add(int u, int v, long c = 1) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
@@ -33,7 +33,6 @@ struct edmonds_karp {
         res[v].push_back(vu);
         source.push_back(u), source.push_back(v);
         target.push_back(v), target.push_back(u);
-        flow.push_back(0), flow.push_back(0);
         cap.push_back(c), cap.push_back(0);
         E++;
     }
@@ -59,6 +58,7 @@ struct edmonds_karp {
 
     long maxflow(int s, int t) {
         pred.resize(V);
+        flow.assign(2 * E, 0);
         long max_flow = 0;
         while (bfs(s, t)) {
             long aug_flow = inf;
@@ -89,7 +89,7 @@ struct dinitz_flow {
 
     explicit dinitz_flow(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
     // normal nodes are 1..V
     void add(int u, int v, long c) {
@@ -102,7 +102,6 @@ struct dinitz_flow {
         res[v].push_back(vu);
         source.push_back(u), source.push_back(v);
         target.push_back(v), target.push_back(u);
-        flow.push_back(0), flow.push_back(0);
         cap.push_back(c), cap.push_back(0);
         E++;
     }
@@ -149,6 +148,7 @@ struct dinitz_flow {
     long maxflow(int s, int t) {
         level.assign(V + 2, 0);
         arc.assign(V, 0);
+        flow.assign(2 * E, 0);
         long max_flow = 0;
         while (bfs(s, t)) {
             max_flow += dfs(s, t, inf);
@@ -173,7 +173,7 @@ struct push_relabel {
 
     explicit push_relabel(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
     // normal nodes are 1..V
     void add(int u, int v, long c) {
@@ -186,7 +186,6 @@ struct push_relabel {
         res[v].push_back(vu);
         source.push_back(u), source.push_back(v);
         target.push_back(v), target.push_back(u);
-        flow.push_back(0), flow.push_back(0);
         cap.push_back(c), cap.push_back(0);
         E++;
     }
@@ -274,6 +273,7 @@ struct push_relabel {
         arc.assign(V, 0);
         active.assign(2 * V, {});
         labeled.assign(2 * V, 0);
+        flow.assign(2 * E, 0);
         height[s] = V, height[t] = 0;
 
         bfs(s, t);
@@ -313,7 +313,7 @@ struct naive_flow {
 
     explicit naive_flow(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
     void add(int u, int v, long c = 1) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
@@ -325,7 +325,6 @@ struct naive_flow {
         res[v].push_back(vu);
         source.push_back(u), source.push_back(v);
         target.push_back(v), target.push_back(u);
-        flow.push_back(0), flow.push_back(0);
         cap.push_back(c), cap.push_back(0);
         E++;
     }
@@ -368,6 +367,7 @@ struct naive_flow {
 
     long maxflow(int s, int t) {
         vis.assign(V, false);
+        flow.assign(2 * E, 0);
         return dfs(s, t, LONG_MAX / 2);
     }
 };
@@ -386,7 +386,7 @@ struct tidal_flow {
 
     explicit tidal_flow(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
     void add(int u, int v, long c = 1) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
@@ -398,7 +398,6 @@ struct tidal_flow {
         res[v].push_back(vu);
         source.push_back(u), source.push_back(v);
         target.push_back(v), target.push_back(u);
-        flow.push_back(0), flow.push_back(0);
         cap.push_back(c), cap.push_back(0);
         E++;
     }
@@ -467,6 +466,7 @@ struct tidal_flow {
         h.assign(V, 0);
         l.assign(V, 0);
         p.assign(2 * E, 0);
+        flow.assign(2 * E, 0);
         long max_flow = 0;
         while (bfs(s, t)) {
             long df;
@@ -477,6 +477,8 @@ struct tidal_flow {
         }
         return max_flow;
     }
+
+    bool left_of_mincut(int u) const { return level[u] >= 0; }
 };
 
 #endif // MAXIMUM_FLOW_HPP

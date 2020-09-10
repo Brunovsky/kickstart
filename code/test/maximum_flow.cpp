@@ -136,6 +136,7 @@ void test_equals() {
 
 int main() {
     setbuf(stdout, nullptr);
+    setbuf(stderr, nullptr);
     test_equals();
     test_speed();
     return 0;

@@ -10,8 +10,9 @@ using namespace std;
 static constexpr long inf = LONG_MAX / 3;
 
 /**
- * Edmonds-Karp augmenting paths
+ * Edmonds-Karp augmenting paths for simple mincost flow.
  * Complexity: O(V E^2 log V)
+ * For min-cost flow problems with one source, one sink, no supplies or demands.
  */
 struct mincost_edmonds_karp {
     int V, E;
@@ -21,10 +22,10 @@ struct mincost_edmonds_karp {
 
     explicit mincost_edmonds_karp(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
 
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
     void add(int u, int v, long c, long w) {
-        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0 && w >= 0);
         int uv = 2 * E;
         int vu = 2 * E + 1;
         adj[u].push_back(uv);
@@ -33,7 +34,6 @@ struct mincost_edmonds_karp {
         res[v].push_back(vu);
         source.push_back(u), source.push_back(v);
         target.push_back(v), target.push_back(u);
-        flow.push_back(0), flow.push_back(0);
         cap.push_back(c), cap.push_back(0);
         cost.push_back(w), cost.push_back(-w);
         E++;
@@ -71,13 +71,17 @@ struct mincost_edmonds_karp {
                 }
             }
         }
+        reprice();
+        return prev[t] != -1;
+    }
+
+    void reprice() {
         for (int u = 0; u < V; u++) {
             pi[u] = min(dist[u] + pi[u], inf);
         }
-        return vis[t];
     }
 
-    auto path(int v) {
+    auto path(int v) const {
         vector<int> path;
         while (prev[v] != -1) {
             path.push_back(prev[v]);
@@ -86,7 +90,10 @@ struct mincost_edmonds_karp {
         return path;
     }
 
-    pair<long, long> mincost_flow(int s, int t, long F) {
+    pair<long, long> mincost_flow(int s, int t, long F = inf) {
+        pi.assign(V, 0);
+        flow.assign(2 * E, 0);
+
         long sflow = 0;
         while (sflow < F && dijkstra(s, t)) {
             auto augmenting_path = path(t);
@@ -106,7 +113,7 @@ struct mincost_edmonds_karp {
         return {sflow, scost};
     }
 
-    pair<long, long> mincost_maxflow(int s, int t) { return mincost_flow(s, t, inf); }
+    bool left_of_mincut(int u) const { return dist[u] < inf; }
 };
 
 #endif // MINCOST_FLOW_HPP

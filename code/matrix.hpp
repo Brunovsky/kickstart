@@ -92,6 +92,14 @@ struct mat {
         return c;
     }
 
+    friend mat transpose(const mat& a) {
+        mat b(a.m, a.n);
+        for (int i = 0; i < a.m; i++)
+            for (int j = 0; j < a.n; j++)
+                b[i][j] = a[j][i];
+        return b;
+    }
+
     friend mat inverse(mat a) {
         assert(a.n == a.m);
         int n = a.n;
