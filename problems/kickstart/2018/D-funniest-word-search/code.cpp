@@ -9,81 +9,49 @@ using namespace std;
 namespace {
 
 class KMP {
-    vector<int> lookup_;
-    string pattern;
+    vector<int> table;
+    string needle;
 
-public:
-    KMP(string pattern);
-    int lookup(int index) const;
-    int shift(int index) const;
-    const string &get_pattern() const;
-};
+  public:
+    KMP(string pattern) : needle(move(pattern)) {
+        int P = needle.size();
+        table.resize(P + 1);
+        table[0] = -1;
 
-KMP::KMP(string pattern) : pattern(pattern) {
-    int P = pattern.size();
-
-    lookup_.resize(P + 1);
-
-    lookup_[0] = -1;
-    int border = 0; // need to compare against 0
-
-    for (int index = 1; index < P; ++index, ++border) {
-        if (pattern[index] == pattern[border]) {
-            lookup_[index] = lookup_[border];
-        } else {
-            lookup_[index] = border;
-
-            do {
-                border = lookup_[border];
-            } while (border >= 0 && pattern[index] != pattern[border]);
+        int b = 0;
+        for (int j = 1; j < P; ++j, ++b) {
+            if (needle[j] == needle[b]) {
+                table[j] = table[b];
+            } else {
+                table[j] = b;
+                do {
+                    b = table[b];
+                } while (b >= 0 && needle[j] != needle[b]);
+            }
         }
+        table[P] = b;
     }
 
-    lookup_[P] = border;
-}
+    int lookup(int j) const { return table[j]; }
+    int shift(int j) const { return j - table[j]; }
+    const string& get_pattern() const { return needle; }
+};
 
-int KMP::lookup(int index) const {
-    return lookup_[index];
-}
-
-int KMP::shift(int index) const {
-    return index - lookup_[index];
-}
-
-const string &KMP::get_pattern() const {
-    return pattern;
-}
-
-vector<int> kmp_search(const string &text, const KMP &kmp) {
-    const string &pattern = kmp.get_pattern();
-    int P = pattern.size(), T = text.size();
-
+vector<int> kmp_search_all(const string& text, const KMP& kmp) {
+    const string& needle = kmp.get_pattern();
+    int P = needle.size(), T = text.size();
+    int i = 0, j = 0;
     vector<int> match;
-    if (P == 0)
-        return match;
-
-    int i = 0;
-    int j = 0;
 
     while (i <= T - P) {
-        while ((j < P) && (text[i + j] == pattern[j])) {
-            ++j;
+        while (j < P && text[i + j] == needle[j]) {
+            j++;
         }
-
         if (j == P) {
-            // Matched
             match.push_back(i);
-            i += kmp.shift(P);
-            j = kmp.lookup(P);
-        } else {
-            // Mismatched
-            i += kmp.shift(j);
-            j = kmp.lookup(j);
         }
-
-        if (j < 0) {
-            j = 0;
-        }
+        i += kmp.shift(j);
+        j = max(0, kmp.lookup(j));
     }
 
     return match;
@@ -100,7 +68,7 @@ string text_cols[MAXL];
 vector<string> words;
 long H[MAXL][MAXL][MAXL], V[MAXL][MAXL][MAXL];
 
-void fill_word_counts(const string &word) {
+void fill_word_counts(const string& word) {
     if (word.empty())
         return;
 
@@ -108,14 +76,14 @@ void fill_word_counts(const string &word) {
     const int l = word.size();
 
     for (int r = 1; r <= R; ++r) {
-        auto indices = kmp_search(text_rows[r - 1], kmp);
+        auto indices = kmp_search_all(text_rows[r - 1], kmp);
         for (int c : indices) {
             H[r][c + l][l] += long(l);
         }
     }
 
     for (int c = 1; c <= C; ++c) {
-        auto indices = kmp_search(text_cols[c - 1], kmp);
+        auto indices = kmp_search_all(text_cols[c - 1], kmp);
         for (int r : indices) {
             V[r + l][c][l] += long(l);
         }
@@ -133,9 +101,11 @@ long gcd(long a, long b) {
 auto solve() {
     int W;
     cin >> R >> C >> W >> ws;
+    words.clear();
     for (int r = 0; r < R; ++r) {
         string text;
         cin >> text >> ws;
+        assert(text.size() == uint(C));
         text_rows[r] = move(text);
     }
     for (int c = 0; c < C; ++c) {
