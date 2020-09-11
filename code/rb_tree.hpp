@@ -147,16 +147,20 @@ struct rb_tree {
     }
     // Move assignment
     rb_tree& operator=(rb_tree&& other) noexcept {
-        clear();
-        swap(other);
+        if (head != other.head) {
+            clear();
+            swap(other);
+        }
         return *this;
     }
     // Copy assignment
     rb_tree& operator=(const rb_tree& other) noexcept {
-        delete head->link[0];
-        adopt_node(head, deep_clone_node(other.head->link[0]), 0);
-        update_minmax();
-        node_count = other.node_count;
+        if (head != other.head) {
+            delete head->link[0];
+            adopt_node(head, deep_clone_node(other.head->link[0]), 0);
+            update_minmax();
+            node_count = other.node_count;
+        }
         return *this;
     }
 

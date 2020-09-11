@@ -186,16 +186,20 @@ struct avl_tree {
     }
     // Move assignment
     avl_tree& operator=(avl_tree&& other) noexcept {
-        clear();
-        swap(other);
+        if (head != other.head) {
+            clear();
+            swap(other);
+        }
         return *this;
     }
     // Copy assignment
     avl_tree& operator=(const avl_tree& other) noexcept {
-        delete head->link[0];
-        adopt_node(head, deep_clone_node(other.head->link[0]), 0);
-        update_minmax();
-        node_count = other.node_count;
+        if (head != other.head) {
+            delete head->link[0];
+            adopt_node(head, deep_clone_node(other.head->link[0]), 0);
+            update_minmax();
+            node_count = other.node_count;
+        }
         return *this;
     }
 
