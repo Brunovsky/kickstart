@@ -3,8 +3,6 @@
 
 #include "hash.hpp"
 
-using namespace std;
-
 // *****
 
 default_random_engine mt(random_device{}());
@@ -14,6 +12,17 @@ using ulongd = uniform_int_distribution<size_t>;
 using reald = uniform_real_distribution<double>;
 using binomd = binomial_distribution<int>;
 using boold = bernoulli_distribution;
+
+using edge_sample_t = array<int, 2>;
+using int_sample_t = vector<int>;
+using pair_sample_t = vector<edge_sample_t>;
+using parent_t = vector<int>;
+using partition_t = vector<int>;
+using ranks_t = vector<int>;
+using offsets_t = vector<int>;
+using degrees_t = vector<int>;
+using edges_t = vector<edge_sample_t>;
+using edgeset_t = unordered_set<edge_sample_t, pair_hasher>;
 
 int different(int u, int v1, int v2) {
     assert(v1 <= v2 && (v1 != u || v2 != u));
@@ -45,7 +54,7 @@ void fisher_yates(vector<T>& univ, int k = -1) {
  * It must hold that a <= b and k <= n = b - a + 1.
  * Complexity: O(k) with E[mt] <= 3k.
  */
-vector<int> int_sample(int k, int a, int b, bool complement = false) {
+int_sample_t int_sample(int k, int a, int b, bool complement = false) {
     int ab = b - a + 1;
     assert(a <= b && 0 <= k && k <= ab);
     if (3 * k >= 2 * ab) {
@@ -63,7 +72,7 @@ vector<int> int_sample(int k, int a, int b, bool complement = false) {
         seen.insert(n);
     }
 
-    vector<int> sample;
+    int_sample_t sample;
     if (complement) {
         for (int n = a; n <= b; n++)
             if (!seen.count(n))
@@ -85,8 +94,7 @@ vector<int> int_sample(int k, int a, int b, bool complement = false) {
  * It must hold that a <= b and k <= (n choose 2) where n = b - a + 1.
  * Complexity: O(k) with E[mt] <= 6k.
  */
-vector<array<int, 2>> choose_sample(int k, int a, int b, bool eq,
-                                    bool complement = false) {
+pair_sample_t choose_sample(int k, int a, int b, bool eq, bool complement = false) {
     long ab = 1L * (b - a + 1) * (b - a + 2) / 2 - !eq * (b - a + 1);
     assert(a <= b && 0 <= k && k <= ab);
     if (3 * k >= 2 * ab) {
@@ -104,7 +112,7 @@ vector<array<int, 2>> choose_sample(int k, int a, int b, bool eq,
         seen.insert(p);
     }
 
-    vector<array<int, 2>> sample;
+    pair_sample_t sample;
     if (complement) {
         for (int x = a; x <= b; x++)
             for (int y = x + !eq; y <= b; y++)
@@ -129,8 +137,7 @@ vector<array<int, 2>> choose_sample(int k, int a, int b, bool eq,
  * It must hold that a <= b, c <= d, and k <= n x m = (b - a + 1)(d - c + 1).
  * Complexity: O(k) with E[mt] = 6k.
  */
-vector<array<int, 2>> pair_sample(int k, int a, int b, int c, int d,
-                                  bool complement = false) {
+pair_sample_t pair_sample(int k, int a, int b, int c, int d, bool complement = false) {
     long ab = b - a + 1, cd = d - c + 1;
     assert(a <= b && c <= d && 0 <= k && k <= ab * cd);
     if (3 * k >= 2 * ab * cd) {
@@ -148,7 +155,7 @@ vector<array<int, 2>> pair_sample(int k, int a, int b, int c, int d,
         seen.insert({x, y});
     }
 
-    vector<array<int, 2>> sample;
+    pair_sample_t sample;
     if (complement) {
         for (int x = a; x <= b; x++)
             for (int y = c; y <= d; y++)
@@ -186,8 +193,8 @@ vector<T> vec_sample(const vector<T>& univ, int k) {
  * uniformly at random from [0..i-1] and parent[0] = 0.
  * Complexity: O(n)
  */
-vector<int> parent_sample(int n) {
-    vector<int> parent(n);
+parent_t parent_sample(int n) {
+    parent_t parent(n);
     for (int i = 1; i < n; i++) {
         intd dist(0, i - 1);
         parent[i] = dist(mt);
@@ -200,8 +207,8 @@ vector<int> parent_sample(int n) {
  * It must hold that k > 0.
  * Complexity: faster than linear
  */
-vector<int> partition_sample(int n, int k, int m = 1) {
-    vector<int> parts(k, m);
+partition_t partition_sample(int n, int k, int m = 1) {
+    partition_t parts(k, m);
     intd dist(0, k - 1);
     n -= m * k;
     assert(n >= 0);
@@ -216,129 +223,11 @@ vector<int> partition_sample(int n, int k, int m = 1) {
 /**
  * Like partition_sample but the first and last levels have size exactly 1.
  */
-vector<int> partition_sample_flow(int V, int ranks, int m = 1) {
+partition_t partition_sample_flow(int V, int ranks, int m = 1) {
     auto R = partition_sample(V - 2, ranks - 2, m);
     R.insert(R.begin(), 1);
     R.insert(R.end(), 1);
     return R;
-}
-
-/**
- * Generate a k-regular undirected edge set on n vertices.
- * Requires nk even and k <= n - 1.
- * Complexity: O(kV * restarts)
- */
-vector<array<int, 2>> regular_sample(int n, int k) {
-    if (k == 0)
-        return {};
-    assert(3 <= k && k < n && !(k & 1 && n & 1));
-    int restarts = 0, edges;
-
-    unordered_set<array<int, 2>, vec_hasher> seen;
-    vector<int> cnt(n), notfull;
-
-restart:
-    if (restarts++ == 500)
-        throw std::runtime_error("Failed to generate regular graph after 500 restarts");
-
-    seen.clear();
-    notfull.resize(n);
-    iota(begin(notfull), end(notfull), 0);
-    fill(begin(cnt), end(cnt), k);
-    edges = 0;
-
-    while (!notfull.empty()) {
-        int b = notfull.size();
-        if (b == 1)
-            goto restart;
-
-        for (int i = 0; i < b; i++) {
-            int u = notfull[i], v, j;
-            int fast = 2 * b;
-            intd other(0, b - 2);
-            do { // fast loop, fallback to iterating through notfull otherwise
-                j = other(mt);
-                j += j >= i;
-                v = notfull[j];
-            } while (--fast && seen.count({u, v}));
-            if (!fast && seen.count({u, v})) {
-                for (j = 0; j < b; j++) {
-                    v = notfull[j];
-                    if (i != j && !seen.count({u, v}))
-                        break;
-                }
-                if (j == b)
-                    goto restart; // :(
-            }
-
-            cnt[u]--, cnt[v]--, edges++;
-            seen.insert({u, v}), seen.insert({v, u});
-            if (i < j) // careful not to invalidate the other node's index
-                swap(u, v), swap(i, j);
-            if (cnt[u] == 0)
-                swap(notfull[i], notfull.back()), notfull.pop_back(), b--;
-            if (cnt[v] == 0)
-                swap(notfull[j], notfull.back()), notfull.pop_back(), b--;
-        }
-    }
-
-    vector<array<int, 2>> regular(edges);
-    for (auto p : seen)
-        if (p[0] < p[1])
-            regular[--edges] = p;
-    assert(edges == 0);
-    return regular;
-}
-
-vector<array<int, 2>> regular_bipartite_sample(int n, int m, int k) {
-    if (k == 0)
-        return {};
-    assert(k <= m && n * k % m == 0);
-    int restarts = 0, edges, x = n * k / m;
-
-    unordered_set<array<int, 2>, vec_hasher> seen;
-    vector<int> cnt(m), notfull;
-
-restart:
-    if (restarts++ == 500)
-        throw std::runtime_error("Failed to generate regular graph after 500 restarts");
-
-    seen.clear();
-    notfull.resize(m);
-    iota(begin(notfull), end(notfull), 0);
-    fill(begin(cnt), end(cnt), x);
-    edges = 0;
-
-    for (int i = 0; i < k; i++) {
-        for (int u = 0; u < n; u++) {
-            intd distv(0, m - 1);
-            int v, j, fast = 2 * m;
-            do { // fast loop, fallback to iterating through notfull otherwise
-                j = distv(mt);
-                v = notfull[j];
-            } while (--fast && seen.count({u, v}));
-            if (!fast && seen.count({u, v})) {
-                for (j = 0; j < m; j++) {
-                    v = notfull[j];
-                    if (i != j && !seen.count({u, v}))
-                        break;
-                }
-                if (j == m)
-                    goto restart; // :(
-            }
-
-            cnt[v]--, edges++;
-            seen.insert({u, v});
-            if (cnt[v] == 0)
-                swap(notfull[j], notfull.back()), notfull.pop_back(), m--;
-        }
-    }
-
-    vector<array<int, 2>> regular(edges);
-    for (auto p : seen)
-        regular[--edges] = p;
-    assert(edges == 0);
-    return regular;
 }
 
 #endif // RANDOM_HPP

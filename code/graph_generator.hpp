@@ -7,17 +7,13 @@
 #include "hash.hpp"
 #include "math.hpp"
 #include "random.hpp"
+#include "regular.hpp"
 
 // *****
 
-using edges_t = vector<array<int, 2>>;
-using parent_t = vector<int>;
-using ranks_t = vector<int>;
-using offsets_t = vector<int>;
-
 // ***** Auxiliary methods
 
-unordered_set<array<int, 2>, pair_hasher> build_adjacency_set(const graph& g) {
+edgeset_t build_adjacency_set(const graph& g) {
     unordered_set<array<int, 2>, pair_hasher> edgeset;
     for (int u = 0; u < g.V; u++)
         for (int v : g.adj[u])
@@ -696,14 +692,14 @@ graph sudoku(int n) {
 
 graph random_tree_undirected(int V) {
     graph g(V);
-    vector<int> parent = parent_sample(V);
+    auto parent = parent_sample(V);
     add_parent_edges(g, parent, 1);
     return g;
 }
 
 digraph random_tree_directed(int V, bool toparent = true, bool tochild = false) {
     digraph g(V);
-    vector<int> parent = parent_sample(V);
+    auto parent = parent_sample(V);
     add_parent_edges(g, parent, 1, toparent, tochild);
     return g;
 }
@@ -782,7 +778,7 @@ bipartite_graph random_exact_bipartite(int U, int V, int E) {
 
 graph random_uniform_undirected_connected(int V, double p) {
     graph g(V);
-    vector<int> parent = parent_sample(V);
+    auto parent = parent_sample(V);
     add_parent_edges(g, parent, 1);
     p = min(p, 1.0);
     for (int v = 1; v < V; v++) {
@@ -796,7 +792,7 @@ graph random_uniform_undirected_connected(int V, double p) {
 
 digraph random_uniform_rooted_dag_connected(int V, double p) {
     digraph g(V);
-    vector<int> parent = parent_sample(V);
+    auto parent = parent_sample(V);
     add_parent_edges(g, parent, 1, false, true);
     p = min(p, 1.0);
     for (int v = 1; v < V; v++) {
@@ -811,7 +807,7 @@ digraph random_uniform_rooted_dag_connected(int V, double p) {
 graph random_exact_undirected_connected(int V, int E) {
     assert(V - 1 <= E && E <= 1L * V * (V - 1) / 2);
     graph g(V);
-    vector<int> parent = parent_sample(V);
+    auto parent = parent_sample(V);
     add_parent_edges(g, parent, 1);
     if (E == V - 1)
         return g;
@@ -828,7 +824,7 @@ digraph random_exact_rooted_dag_connected(int V, int E) {
     assert(V - 1 <= E && E <= 1L * V * (V - 1) / 2);
     digraph g(V);
 
-    vector<int> parent = parent_sample(V);
+    auto parent = parent_sample(V);
     add_parent_edges(g, parent, 1, false, true);
     if (E == V - 1)
         return g;
