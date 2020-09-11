@@ -182,8 +182,8 @@ struct cost_flow_graph {
 struct supply_graph {
     int V, E = 0;
     vector<vector<int>> adj, rev, res;
-    vector<int> supply, source, target;
-    vector<long> flow, cap;
+    vector<int> source, target;
+    vector<long> supply, flow, cap;
 
     explicit supply_graph(int V = 0) : V(V), adj(V), rev(V), res(V), supply(V) {}
 
@@ -208,8 +208,8 @@ struct supply_graph {
 struct cost_supply_graph {
     int V, E = 0;
     vector<vector<int>> adj, rev, res;
-    vector<int> supply, source, target;
-    vector<long> flow, cap, cost;
+    vector<int> source, target;
+    vector<long> supply, flow, cap, cost;
 
     explicit cost_supply_graph(int V = 0) : V(V), adj(V), rev(V), res(V), supply(V) {}
 

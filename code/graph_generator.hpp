@@ -595,6 +595,27 @@ graph peterson() {
     return kneser(5, 2);
 }
 
+graph star(int n) {
+    graph g(n);
+    add_level_step_full(g, 0, 1, 1, n);
+    return g;
+}
+
+graph stacked_book(int m, int n) {
+    int k = (m + 1) * n;
+    graph g(k);
+    for (int i = 0; i < k; i += m + 1)
+        add_level_step_full(g, i, i + 1, i + 1, i + m + 1);
+    for (int i = m + 1; i < k; i++)
+        g.add(i - (m + 1), i);
+    return g;
+}
+
+graph book(int m) {
+    // special case of stacked book
+    return stacked_book(m, 2);
+}
+
 graph wheel(int n) {
     assert(n >= 3);
     graph g(n + 1);
