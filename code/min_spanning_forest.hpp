@@ -10,14 +10,13 @@
  * Complexity: O(E log E)
  */
 struct min_spanning_forest {
-    int V, E;
-    vector<int> source;
-    vector<int> target;
-    vector<int> weight;
+    int V, E = 0;
+    vector<int> source, target;
+    vector<long> weight;
 
-    min_spanning_forest(int V) : V(V), E(0) {}
+    explicit min_spanning_forest(int V) : V(V) {}
 
-    void add(int u, int v, int w) {
+    void add(int u, int v, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v);
         source.push_back(u);
         target.push_back(v);

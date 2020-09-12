@@ -7,10 +7,8 @@ using namespace std;
 
 // *****
 
-constexpr int inf = INT_MAX / 2;
-
 /**
- * Simple maximum matching algorithm
+ * Simple maximum bipartite matching
  * Complexity: O(VE)
  */
 struct maximum_matching {
@@ -24,10 +22,9 @@ struct maximum_matching {
         adj[u].push_back(v);
     }
 
-    vector<int> mu;  // mu[u]=v where the mapping is u<->v, nil(-1) if u is unmatched
-    vector<int> mv;  // mv[v]=u where the mapping is u<->v, nil(-1) if v is unmatched
-    vector<int> vis; // vis[u]: last iteration that u was visited
+    vector<int> mu, mv, vis;
     int iteration;
+    static inline constexpr int inf = INT_MAX / 2;
 
     bool dfs(int u) {
         vis[u] = iteration;
@@ -70,25 +67,23 @@ struct maximum_matching {
 };
 
 /**
- * Hopcroft-Karp maximal matching
+ * Hopcroft-Karp maximum bipartite matching
  * Complexity: O(V^1/2 E)
  */
 struct hopcroft_karp {
     int U, V;
     vector<vector<int>> adj;
 
-    hopcroft_karp(int U, int V) : U(U), V(V) { adj.assign(U + 1, {}); }
+    hopcroft_karp(int U, int V) : U(U), V(V), adj(U + 1) {}
 
     void add(int u, int v) {
         assert(0 <= u && u < U && 0 <= v && v < V);
         adj[u + 1].push_back(v + 1);
     }
 
-    vector<int> mu;   // mu[u]=v where the mapping is u<->v, nil(0) if u is unmatched
-    vector<int> mv;   // mv[v]=u where the mapping is u<->v, nil(0) if v is unmatched
-    vector<int> vis;  // vis[u]: last iteration that u was visited
-    vector<int> dist; // dist[u]: distance of u to s
+    vector<int> mu, mv, vis, dist;
     int iteration;
+    static inline constexpr int inf = INT_MAX / 2;
 
     bool bfs() {
         queue<int> Q;

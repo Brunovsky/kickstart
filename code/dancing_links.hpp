@@ -11,9 +11,10 @@ using int2 = array<int, 2>;
 
 // 2d dancing links, non-wrapping
 struct dancing_links_matrix {
-    int n, m;
+    int n = 0, m = 0;
     vector<vector<int>> S, N, E, W;
 
+    dancing_links_matrix() = default;
     dancing_links_matrix(int n, int m) : n(n), m(m) {
         N.assign(n + 2, vector<int>(m + 2));
         S.assign(n + 2, vector<int>(m + 2));

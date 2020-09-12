@@ -7,20 +7,18 @@ using namespace std;
 
 // *****
 
-static constexpr long inf = LONG_MAX / 3;
-
 /**
  * Edmonds-Karp augmenting paths for simple mincost flow.
  * Complexity: O(V E^2 log V)
  * For min-cost flow problems with one source, one sink, no supplies or demands.
  */
 struct mincost_edmonds_karp {
-    int V, E;
+    int V, E = 0;
     vector<vector<int>> adj, rev, res;
     vector<int> source, target;
     vector<long> flow, cap, cost;
 
-    explicit mincost_edmonds_karp(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
+    explicit mincost_edmonds_karp(int V = 0) : V(V), adj(V), rev(V), res(V) {}
 
     int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
@@ -41,6 +39,7 @@ struct mincost_edmonds_karp {
 
     vector<long> dist, pi;
     vector<int> prev;
+    static inline constexpr long inf = LONG_MAX / 3;
 
     bool dijkstra(int s, int t) {
         dist.assign(V, inf);

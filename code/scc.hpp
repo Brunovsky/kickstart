@@ -11,9 +11,8 @@ using namespace std;
  * Operations on the strongly connected components of a graph
  */
 struct strongly_connected_components {
-    int V, C;
-    vector<vector<int>> adj;
-    vector<vector<int>> cset;
+    int V, C = 0;
+    vector<vector<int>> adj, cset;
     vector<int> cmap;
 
     strongly_connected_components(int V) : V(V) { adj.resize(V, {}); }
@@ -23,8 +22,7 @@ struct strongly_connected_components {
         adj[u].push_back(v);
     }
 
-    vector<int> index;
-    vector<int> lowlink;
+    vector<int> index, lowlink;
     vector<bool> onstack;
     stack<int> S;
     int depth;

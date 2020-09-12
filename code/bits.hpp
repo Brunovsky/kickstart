@@ -20,7 +20,6 @@ inline void reverse_bits(uint& v) {
     v = ((v >> 4) & 0x0F0F0F0F) | ((v & 0x0F0F0F0F) << 4);
     v = ((v >> 8) & 0x00FF00FF) | ((v & 0x00FF00FF) << 8);
     v = (v >> 16) | (v << 16);
-    // v = (v >> 32) | (v << 32);
 }
 
 /**

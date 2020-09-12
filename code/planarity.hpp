@@ -8,94 +8,18 @@ using namespace std;
 // *****
 
 /**
- * Boyer Myrvold planarity test
- * Complexity: O(V) very expensive
- * Based on original paper, jgrapht and boost/graph
- * TODO (bloody complicated)
- */
-struct boyer_myrvold {
-    int V, E;
-    vector<vector<int>> adj;
-
-    boyer_myrvold(int V) : V(V), E(0) { adj.assign(V, {}); }
-
-    void add(int u, int v) {
-        assert(0 <= u && u < V && 0 <= v && v < V);
-        adj[u].push_back(v);
-        adj[v].push_back(u);
-        E++;
-    }
-
-    stack<int> merge_stack;
-    vector<int> index;
-    vector<int> order;
-    vector<int> parent;
-    vector<int> lowpoint;
-    vector<list<int>> separated_dfs_child_list;
-    vector<list<int>::iterator> representative;
-    int depth = 0;
-
-    void dfs(int u, int p = -1) {
-        index[u] = depth;
-        order[depth] = u;
-        parent[u] = p;
-        lowpoint[u] = index[u];
-        depth++;
-
-        for (int v : adj[u]) {
-            if (index[v] == -1) {
-                dfs(v, u);
-                lowpoint[u] = min(lowpoint[u], lowpoint[v]);
-            } else if (index[v] < index[u]) {
-                lowpoint[u] = min(lowpoint[u], index[v]);
-            }
-        }
-    }
-
-    void orient() {
-        merge_stack = stack<int>();
-        index.assign(V, -1);
-        order.assign(V, -1);
-        parent.assign(V, -1);
-        lowpoint.assign(V, -1);
-        separated_dfs_child_list.assign(V, {});
-        representative.assign(V, {});
-        depth = 0;
-
-        for (int u = 0; u < V; u++) {
-            if (index[u] == -1) {
-                dfs(u);
-            }
-        }
-
-        for (int i = 0; i < V; i++) {
-            int u = order[i], p = parent[u];
-            if (p != -1) {
-                separated_dfs_child_list[p].push_back(u);
-                representative[u] = --separated_dfs_child_list[p].end();
-            }
-            lowpoint[u] = order[lowpoint[u]];
-        }
-    }
-
-    bool is_planar() {
-        orient();
-        return true;
-    }
-};
-
-/**
  * Left right planarity test
  * Complexity: O(V) expensive
  * Based on: The Left-Right Planarity Test, Ulrik Brandes
  */
 struct left_right {
-    int V, E;
+    int V, E = 0;
     vector<vector<int>> adj;
-    vector<int> source;
-    vector<int> target;
+    vector<int> source, target;
 
-    left_right(int V) : V(V), E(0) { adj.assign(V, {}); }
+    explicit left_right(int V) : V(V), adj(V) {}
+
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
     void add(int u, int v) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v);
@@ -119,20 +43,12 @@ struct left_right {
         inline bool operator==(conflict_t b) { return L == b.L && R == b.R; }
     };
 
-    vector<int> parent_edge;
-    vector<int> height;
-    vector<int> lowpoint;
-    vector<int> lowpoint2;
-    vector<int> nesting;
+    vector<int> parent_edge, height, lowpoint, lowpoint2, nesting;
     vector<bool> vis;
-    vector<int> ref;
-    vector<int> side;
+    vector<int> ref, side, lowpoint_edge;
     stack<conflict_t> S;
     vector<conflict_t> stack_bottom;
-    vector<int> lowpoint_edge;
     vector<vector<int>> dfs_adj;
-
-    int other(int e, int u) { return u == target[e] ? source[e] : target[e]; }
 
     bool conflicting(interval_t I, int e) { return I && lowpoint[I.high] > lowpoint[e]; }
     int lowest(conflict_t P) {

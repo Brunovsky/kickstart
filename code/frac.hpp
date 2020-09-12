@@ -13,11 +13,12 @@ struct frac {
 
     constexpr frac() : n(0), d(1) {}
     constexpr frac(long num) : n(num), d(1) {}
-    frac(long num, long den) : n(num), d(den) {
+    constexpr frac(long num, long den) : n(num), d(den) {
         if (d < 0) {
             n = -n, d = -d;
         }
-        long g = abs(__gcd(n, d));
+        long g = gcd(n, d);
+        g = g < 0 ? -g : g;
         n /= g, d /= g;
     }
 

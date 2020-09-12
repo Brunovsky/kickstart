@@ -7,8 +7,6 @@ using namespace std;
 
 // *****
 
-constexpr int nil = INT_MIN;
-
 /**
  * Transportation solver
  * Complexity: O(S * D * #pivots)
@@ -28,7 +26,9 @@ struct transportation {
     vector<bool> row_vis;
     vector<bool> col_vis;
     vector<vector<int>> tp; // transport
+
     enum State { FOUND = 0, OPTIMAL = 1 };
+    static inline constexpr int nil = INT_MIN;
 
     void potential_dfs_row(int r) {
         assert(u[r] != nil);

@@ -312,14 +312,14 @@ struct bst_node_handle : bst_node_handle_methods<T, tag> {
     bst_node_handle() : y(nullptr) {}
     explicit bst_node_handle(node_t* n) : y(n) {}
 
-    bst_node_handle(self_t&& other) : y(other.y) { other.y = nullptr; }
-    bst_node_handle& operator=(self_t&& other) {
+    bst_node_handle(self_t&& other) noexcept : y(other.y) { other.y = nullptr; }
+    bst_node_handle& operator=(self_t&& other) noexcept {
         delete y;
         y = other.y;
         other.y = nullptr;
     }
 
-    ~bst_node_handle() { delete y; }
+    ~bst_node_handle() noexcept { delete y; }
 
     bool empty() const noexcept { return y == nullptr; }
     explicit operator bool() const noexcept { return y != nullptr; }

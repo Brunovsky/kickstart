@@ -75,7 +75,7 @@ size_t build_hash(const bfs_t& bfs, const hashtable_t& ht) {
 
 /**
  * Compute the topological vertex hashes of a graph, irrespective of their labels.
- * Complexity: O(V^2 x iterations)
+ * Complexity: O(VE + V^2 x iterations), memory: O(V^2)
  * Useful for example to:
  *   - generate graphs that have only the trivial automorphism, in other words, the
  *     graph is different as seen from any of its vertices.

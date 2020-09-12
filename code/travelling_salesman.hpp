@@ -14,8 +14,9 @@ struct travelling_salesman {
     int V;
     vector<vector<int>> dist;
 
+    static inline constexpr int inf = INT_MAX / 2;
+
     pair<int, vector<int>> compute() {
-        static constexpr int inf = INT_MAX / 2;
         int n = V - 1;
         vector<vector<int>> cost(1 << n, vector<int>(n, inf));
         for (int i = 0; i < n; i++) {

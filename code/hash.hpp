@@ -24,13 +24,13 @@ struct vec_hasher {
 struct pair_hasher {
     template <typename U, typename V>
     size_t operator()(const pair<U, V>& p) const noexcept {
-        size_t lhs = p.first, rhs = p.second;
-        return (lhs + rhs) * (lhs + rhs + 1) / 2 + rhs;
+        size_t a = p.first, b = p.second;
+        return (a + b) * (a + b + 1) / 2 + b;
     }
     template <typename U>
     size_t operator()(const array<U, 2>& p) const noexcept {
-        size_t lhs = p[0], rhs = p[1];
-        return (lhs + rhs) * (lhs + rhs + 1) / 2 + rhs;
+        size_t a = p[0], b = p[1];
+        return (a + b) * (a + b + 1) / 2 + b;
     }
 };
 

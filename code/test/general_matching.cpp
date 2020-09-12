@@ -286,7 +286,7 @@ int main() {
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
     // random_test(500000);
-    run_dataset_tests();
+    // run_dataset_tests();
     scaling_tests(1);
     // performance_tests(1);
     return 0;

@@ -19,11 +19,11 @@ constexpr long inf = LONG_MAX / 3;
  * to mincost flow instead.
  */
 struct mincost_hungarian {
-    int U, V, E, W;
+    int U, V, E = 0, W;
     vector<vector<int>> adj;
     unordered_map<pair<int, int>, long, pair_hasher> cost;
 
-    mincost_hungarian(int U, int V) : U(U), V(V), E(0), W(max(U, V)), adj(W) { pad(); }
+    mincost_hungarian(int U, int V) : U(U), V(V), W(max(U, V)), adj(W) { pad(); }
     explicit mincost_hungarian(int W = 0) : mincost_hungarian(W, W) {}
 
     void add(int u, int v, long w) {

@@ -7,19 +7,17 @@ using namespace std;
 
 // *****
 
-static constexpr long inf = LONG_MAX / 2;
-
 /**
  * Edmonds-Karp augmenting paths
  * Complexity: O(VE^2), not good
  */
 struct edmonds_karp {
-    int V, E;
+    int V, E = 0;
     vector<vector<int>> adj, rev, res;
     vector<int> source, target;
     vector<long> flow, cap;
 
-    explicit edmonds_karp(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
+    explicit edmonds_karp(int V = 0) : V(V), adj(V), rev(V), res(V) {}
 
     int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
@@ -38,6 +36,7 @@ struct edmonds_karp {
     }
 
     vector<int> pred;
+    static constexpr long inf = LONG_MAX / 2;
 
     bool bfs(int s, int t) {
         fill(begin(pred), end(pred), -1);
@@ -82,12 +81,12 @@ struct edmonds_karp {
  * Complexity: O(V^2 E), close to push relabel in practice
  */
 struct dinitz_flow {
-    int V, E;
+    int V, E = 0;
     vector<vector<int>> adj, rev, res;
     vector<int> source, target;
     vector<long> flow, cap;
 
-    explicit dinitz_flow(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
+    explicit dinitz_flow(int V = 0) : V(V), adj(V), rev(V), res(V) {}
 
     int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
@@ -107,6 +106,7 @@ struct dinitz_flow {
     }
 
     vector<int> level, arc;
+    static constexpr long inf = LONG_MAX / 2;
 
     bool bfs(int s, int t) {
         fill(begin(level), end(level), -1);
@@ -166,12 +166,12 @@ struct dinitz_flow {
  * Complexity: O(V^2 E^1/2)
  */
 struct push_relabel {
-    int V, E;
+    int V, E = 0;
     vector<vector<int>> adj, rev, res;
     vector<int> source, target;
     vector<long> flow, cap;
 
-    explicit push_relabel(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
+    explicit push_relabel(int V = 0) : V(V), adj(V), rev(V), res(V) {}
 
     int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
@@ -194,6 +194,7 @@ struct push_relabel {
     vector<int> height, arc, labeled;
     vector<vector<int>> active;
     int b;
+    static constexpr long inf = LONG_MAX / 2;
 
     void push(int e) {
         int u = source[e], v = target[e];
@@ -306,12 +307,12 @@ struct push_relabel {
  * Complexity: O(2^E f) where f is the maximum flow
  */
 struct naive_flow {
-    int V, E;
+    int V, E = 0;
     vector<vector<int>> adj, rev, res;
     vector<int> source, target;
     vector<long> flow, cap;
 
-    explicit naive_flow(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
+    explicit naive_flow(int V = 0) : V(V), adj(V), rev(V), res(V) {}
 
     int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
@@ -330,6 +331,7 @@ struct naive_flow {
     }
 
     vector<bool> vis;
+    static constexpr long inf = LONG_MAX / 2;
 
     long dfs(int u, int t, long mincap) {
         if (u == t) {
@@ -368,7 +370,7 @@ struct naive_flow {
     long maxflow(int s, int t) {
         vis.assign(V, false);
         flow.assign(2 * E, 0);
-        return dfs(s, t, LONG_MAX / 2);
+        return dfs(s, t, inf);
     }
 };
 
@@ -379,12 +381,12 @@ struct naive_flow {
  * Slower than push-relabel, comparable to dinitz
  */
 struct tidal_flow {
-    int V, E;
+    int V, E = 0;
     vector<vector<int>> adj, rev, res;
     vector<int> source, target;
     vector<long> flow, cap;
 
-    explicit tidal_flow(int V = 0) : V(V), E(0), adj(V), rev(V), res(V) {}
+    explicit tidal_flow(int V = 0) : V(V), adj(V), rev(V), res(V) {}
 
     int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
@@ -404,6 +406,7 @@ struct tidal_flow {
 
     vector<int> level, edges;
     vector<long> p, h, l;
+    static constexpr long inf = LONG_MAX / 2;
 
     bool bfs(int s, int t) {
         fill(begin(level), end(level), -1);

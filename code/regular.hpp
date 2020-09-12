@@ -46,7 +46,7 @@ edges_t degree_sample(int n, const degrees_t& k) {
         }
     } while (restarts++ < 500);
 
-    throw std::runtime_error("Failed to generate regular sample after 500 restarts");
+    throw runtime_error("Failed to generate regular sample after 500 restarts");
 }
 
 edges_t degree_bipartite_sample(int n, int m, const degrees_t& k, const degrees_t& p) {
@@ -94,7 +94,7 @@ edges_t degree_bipartite_sample(int n, int m, const degrees_t& k, const degrees_
         }
     } while (restarts++ < 500);
 
-    throw std::runtime_error("Failed to generate regular sample after 500 restarts");
+    throw runtime_error("Failed to generate regular sample after 500 restarts");
 }
 
 edges_t degree_directed_sample(int n, const degrees_t& out, const degrees_t& in) {
@@ -142,7 +142,7 @@ edges_t degree_directed_sample(int n, const degrees_t& out, const degrees_t& in)
         }
     } while (restarts++ < 500);
 
-    throw std::runtime_error("Failed to generate regular sample after 500 restarts");
+    throw runtime_error("Failed to generate regular sample after 500 restarts");
 }
 
 edges_t regular_sample(int n, int k) {

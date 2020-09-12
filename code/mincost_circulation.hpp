@@ -7,7 +7,7 @@
 
 /**
  * Cost scaling push relabel for general mincost single-commodity flow
- * Complexity: O(V^2 E log(VC)), large constant factors.
+ * Complexity: O(V^2 E log(VC))
  *
  * Currently no heuristics are implemented, and only lightly tested.
  *
@@ -76,6 +76,7 @@ struct mincost_push_relabel {
     vector<int> arc;
     queue<int> active;
     long epsilon = 0;
+    static inline constexpr long inf = LONG_MAX / 3;
 
     long reduced_cost(int e) const { return cost[e] + pi[source[e]] - pi[target[e]]; }
     bool admissible(int e) const { return flow[e] < cap[e] && reduced_cost(e) < 0; }

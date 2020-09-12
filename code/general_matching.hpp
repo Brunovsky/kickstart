@@ -1,14 +1,9 @@
 #ifndef GENERAL_MATCHING_HPP
 #define GENERAL_MATCHING_HPP
 
-#include <cassert>
-
 #include "hash.hpp"
 
 // *****
-
-constexpr int inf = INT_MAX / 2;
-constexpr int mv_max_phases = 100; // how many augmentation phases per search
 
 /**
  * General maximum matching algorithm of Micali and Vazirani
@@ -74,6 +69,9 @@ struct micali_vazirani {
     }
 
   private:
+    static inline constexpr int inf = INT_MAX / 2;
+    static inline constexpr int mv_max_phases = 10; // augmentation phases per search
+
     struct node_t {
         int minlevel, maxlevel, level[2];
         int vis, bloom, bloom_pred, bloom_succ;

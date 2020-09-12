@@ -12,21 +12,23 @@ using namespace std;
  * For undirected graphs insert edges both ways
  */
 struct dijkstra {
-    int V;
+    int V, E = 0;
     vector<vector<pair<int, long>>> adj;
 
-    explicit dijkstra(int V = 0) : V(V) { adj.resize(V, {}); }
+    explicit dijkstra(int V = 0) : V(V), adj(V) {}
 
     void add(int u, int v, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && w >= 0);
         adj[u].push_back({v, w});
+        E++;
     }
 
     vector<long> dist;
     vector<int> prev;
+    static inline constexpr long inf = LONG_MAX / 2;
 
-    void compute(int s, int t = -1) {
-        dist.assign(V, LONG_MAX / 2);
+    long compute(int s, int t = -1) {
+        dist.assign(V, inf);
         prev.assign(V, -1);
         dist[s] = 0;
         prev[s] = s;
@@ -55,6 +57,8 @@ struct dijkstra {
                 }
             }
         }
+
+        return t == -1 ? 0 : dist[t];
     }
 
     auto path(int v) {
@@ -78,22 +82,24 @@ struct dijkstra {
  * For undirected graphs insert edges both ways
  */
 struct astar {
-    int V;
+    int V, E = 0;
     vector<vector<pair<int, long>>> adj;
     using heuristic_t = const function<long(int)>&;
 
-    explicit astar(int V = 0) : V(V) { adj.resize(V, {}); }
+    explicit astar(int V = 0) : V(V), adj(V) {}
 
     void add(int u, int v, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && w >= 0);
         adj[u].push_back({v, w});
+        E++;
     }
 
     vector<long> dist;
     vector<int> prev;
+    static inline constexpr long inf = LONG_MAX / 2;
 
-    int compute(int s, int t, heuristic_t h) {
-        dist.assign(V, LONG_MAX / 2);
+    long compute(int s, int t, heuristic_t h) {
+        dist.assign(V, inf);
         prev.assign(V, -1);
         dist[s] = 0;
         prev[s] = s;
@@ -147,12 +153,11 @@ struct astar {
  * For undirected graphs insert edges both ways
  */
 struct floyd_warshall {
-    int V, E;
-    vector<int> source;
-    vector<int> target;
+    int V, E = 0;
+    vector<int> source, target;
     vector<long> weight;
 
-    explicit floyd_warshall(int V = 0) : V(V), E(0) {}
+    explicit floyd_warshall(int V = 0) : V(V) {}
 
     void add(int u, int v, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && w >= 0);
@@ -164,9 +169,10 @@ struct floyd_warshall {
 
     vector<vector<long>> dist;
     vector<vector<int>> next;
+    static inline constexpr long inf = LONG_MAX / 2;
 
     void compute() {
-        dist.assign(V, vector<long>(V, LONG_MAX / 2));
+        dist.assign(V, vector<long>(V, inf));
         next.assign(V, vector<int>(V, -1));
 
         for (int e = 0; e < E; e++) {
@@ -209,12 +215,11 @@ struct floyd_warshall {
  * For directed graphs with negative weights
  */
 struct bellman_ford {
-    int V, E;
-    vector<int> source;
-    vector<int> target;
+    int V, E = 0;
+    vector<int> source, target;
     vector<long> weight;
 
-    explicit bellman_ford(int V = 0) : V(V), E(0) {}
+    explicit bellman_ford(int V = 0) : V(V) {}
 
     void add(int u, int v, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v);
@@ -226,9 +231,10 @@ struct bellman_ford {
 
     vector<long> dist;
     vector<int> prev;
+    static inline constexpr long inf = LONG_MAX / 2;
 
     void compute(int s) {
-        dist.assign(V, LONG_MAX / 2);
+        dist.assign(V, inf);
         prev.assign(V, -1);
         dist[s] = 0;
         prev[s] = s;
@@ -274,13 +280,12 @@ struct bellman_ford {
  * Negative loops are detected
  */
 struct johnsons {
-    int V, E;
+    int V, E = 0;
     vector<vector<int>> adj;
-    vector<int> source;
-    vector<int> target;
+    vector<int> source, target;
     vector<long> weight;
 
-    explicit johnsons(int V = 0) : V(V), E(0) {}
+    explicit johnsons(int V = 0) : V(V) {}
 
     void add(int u, int v, long w) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v);
@@ -292,9 +297,10 @@ struct johnsons {
 
     vector<vector<long>> dist;
     vector<vector<int>> prev;
+    static inline constexpr long inf = LONG_MAX / 2;
 
     void bellman_ford(int s) {
-        dist[s].assign(V, LONG_MAX / 2);
+        dist[s].assign(V, inf);
         prev[s].assign(V, -1);
         dist[s][s] = 0;
         prev[s][s] = s;
@@ -319,7 +325,7 @@ struct johnsons {
     }
 
     void dijkstra(int s) {
-        dist[s].assign(V, LONG_MAX / 2);
+        dist[s].assign(V, inf);
         prev[s].assign(V, -1);
         dist[s][s] = 0;
         prev[s][s] = s;

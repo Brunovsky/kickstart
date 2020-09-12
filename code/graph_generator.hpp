@@ -148,10 +148,18 @@ void add_level_back_edges(digraph& g, double q, const ranks_t& R) {
     }
 }
 
-void add_oriented_edges(graph& g, const edges_t& edges) {
+void add_edges(graph& g, const edges_t& edges) {
     for (auto edge : edges) {
         int u = edge[0], v = edge[1];
         assert(u < v);
+        g.add(u, v);
+    }
+}
+
+void add_edges(digraph& g, const edges_t& edges) {
+    for (auto edge : edges) {
+        int u = edge[0], v = edge[1];
+        assert(u != v);
         g.add(u, v);
     }
 }
@@ -707,7 +715,7 @@ digraph random_tree_directed(int V, bool toparent = true, bool tochild = false) 
 graph random_regular(int V, int k) {
     graph g(V);
     auto edges = regular_sample(V, k);
-    add_oriented_edges(g, edges);
+    add_edges(g, edges);
     return g;
 }
 
@@ -715,6 +723,21 @@ graph random_regular_connected(int V, int k) {
     graph g;
     do {
         g = random_regular(V, k);
+    } while (!is_connected(g));
+    return g;
+}
+
+digraph random_regular_directed(int V, int k) {
+    digraph g(V);
+    auto edges = regular_directed_sample(V, k);
+    add_edges(g, edges);
+    return g;
+}
+
+digraph random_regular_directed_connected(int V, int k) {
+    digraph g;
+    do {
+        g = random_regular_directed(V, k);
     } while (!is_connected(g));
     return g;
 }
@@ -750,7 +773,7 @@ graph random_exact_undirected(int V, int E) {
     assert(E <= 1L * V * (V - 1) / 2);
     graph g(V);
     auto edges = choose_sample(E, 0, V - 1, false);
-    add_oriented_edges(g, edges);
+    add_edges(g, edges);
     assert(g.E == E);
     return g;
 }

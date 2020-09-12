@@ -1,15 +1,9 @@
 #ifndef SIMPLEX_HPP
 #define SIMPLEX_HPP
 
-#include <bits/stdc++.h>
-
 #include "frac.hpp"
 
-using namespace std;
-
 // *****
-
-static const frac inf(1, 0);
 
 /**
  * maximize f(x)
@@ -28,7 +22,7 @@ struct simplex {
     vector<frac> b;
     vector<frac> x;
 
-    simplex(int n) : n(n), m(0) {}
+    explicit simplex(int n) : n(n), m(0) {}
 
     void add_constraint(vector<frac> Ai, frac bi) {
         assert(int(Ai.size()) == n && bi >= 0L);
@@ -44,6 +38,7 @@ struct simplex {
 
     vector<vector<frac>> tab;
     enum State { FOUND = 0, OPTIMAL = 1, UNBOUNDED = 2 };
+    static inline constexpr frac inf = frac(1, 0);
 
     void make_tableau() {
         tab.assign(m + 1, vector<frac>(n + m + 1, 0L));
