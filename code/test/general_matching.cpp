@@ -230,12 +230,13 @@ void scaling_tests(int M = 1) {
 }
 
 void performance_test(int R, int V, int E) {
+    print("x{:6}  V={:<6}  E={:<6}\n", R, V, E);
+
     vector<int> bans(R), vans(R);
     vector<graph> gs(R);
-    int errors = 0;
-
     for (int i = 0; i < R; i++) {
-        gs[i] = random_exact_undirected_connected(V, E);
+        gs[i] = relabel(random_exact_undirected_connected(V, E));
+        shuffle_adj(gs[i]);
         print("\rGenerating {}...", i + 1);
     }
     print("\n");
@@ -251,6 +252,7 @@ void performance_test(int R, int V, int E) {
     print("\nboost time: {}ms\n", boost_time.count());
 
     // mv
+    int errors = 0;
     auto mv_now = steady_clock::now();
     for (int i = 0; i < R; i++) {
         auto vg = to_mv(gs[i]);
@@ -268,6 +270,8 @@ void performance_test(int R, int V, int E) {
 }
 
 void performance_tests(int M) {
+    performance_test(M * 20000, 50, 70);
+    performance_test(M * 10000, 100, 150);
     performance_test(M * 4000, 200, 300);
     performance_test(M * 2000, 500, 800);
     performance_test(M * 200, 5000, 7000);
@@ -287,7 +291,7 @@ int main() {
     setbuf(stderr, nullptr);
     // random_test(500000);
     // run_dataset_tests();
-    scaling_tests(1);
-    // performance_tests(1);
+    // scaling_tests(1);
+    performance_tests(1);
     return 0;
 }

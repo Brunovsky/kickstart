@@ -17,44 +17,44 @@
  * Complexity: O(E V^1/2) with a monstrous constant.
  *
  * Currently passing unit tests and random tests, compared with boost's edmonds for
- * correctness and performance. Better than edmonds for V>1000.
+ * correctness and performance. Better than edmonds for V>50.
  */
 struct micali_vazirani {
-    int V, E;
+    int V, E = 0;
     vector<vector<int>> adj;
     vector<int> source, target, mate;
     unordered_map<pair<int, int>, int, pair_hasher> edge;
 
-    explicit micali_vazirani(int V = 0) : V(V), E(0), adj(V), mate(V, -1) {}
+    explicit micali_vazirani(int V = 0) : V(V), adj(V), mate(V, -1) {}
 
-    int other(int e, int u) {
-        assert(u == source[e] || u == target[e]);
-        return u ^ source[e] ^ target[e];
-    }
+    int other(int e, int u) { return u ^ source[e] ^ target[e]; }
+    int get(int u, int v) const { return edge.at(minmax(u, v)); }
+    bool has_edge(int u, int v) const { return edge.count(minmax(u, v)); }
 
     void add(int u, int v) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v);
-        assert(!edge.count({u, v}) && !edge.count({v, u}));
+        auto e = minmax(u, v);
+        assert(!edge.count(e));
         adj[u].push_back(v);
         adj[v].push_back(u);
         source.push_back(u);
         target.push_back(v);
-        edge[{u, v}] = edge[{v, u}] = E++;
+        edge[e] = E++;
     }
 
     void bootstrap() {
         vector<int> edges(E);
         iota(begin(edges), end(edges), 0);
         sort(begin(edges), end(edges), [&](int a, int b) {
-            int ua = adj[source[a]].size(), va = adj[target[a]].size();
-            int ub = adj[source[b]].size(), vb = adj[target[b]].size();
-            return ua + va < ub + vb;
+            return adj[target[a]].size() < adj[target[b]].size();
+        });
+        stable_sort(begin(edges), end(edges), [&](int a, int b) {
+            return adj[source[a]].size() < adj[source[b]].size();
         });
         for (int i = 0; i < E; i++) {
             int e = edges[i], u = source[e], v = target[e];
-            if (mate[u] == -1 && mate[v] == -1) {
+            if (mate[u] == mate[v])
                 mate[u] = mate[v] = e;
-            }
         }
     }
 
@@ -238,7 +238,7 @@ struct micali_vazirani {
                 continue;
             if (parity == 0) {
                 for (int v : adj[u]) {
-                    int e = edge.at({u, v});
+                    int e = get(u, v);
                     if (!edge_matched[e] && !seen[e] && !node[v].erased)
                         bfs_visit(e, u, v);
                 }
@@ -583,13 +583,13 @@ struct micali_vazirani {
         for (int v : node[u].pred) {
             int w = findstar(v);
             if (node[w].bloom == -1 && node[u].color == node[w].color) {
-                bloom_dfs_level(w, edge.at({u, v}));
+                bloom_dfs_level(w, get(u, v));
             }
         }
 
         if (lvl % 2 == 0) {
             for (int v : adj[u]) {
-                int e = edge.at({u, v});
+                int e = get(u, v);
                 if (!node[v].erased && !seen[e] && node[v].level[0] < inf) {
                     visit_bridge(e, 0);
                 }
@@ -776,7 +776,7 @@ struct micali_vazirani {
 
         auto ait = begin(path), bit = next(ait);
         while (bit != end(path)) {
-            int u = *ait++, v = *bit++, e = edge.at({u, v});
+            int u = *ait++, v = *bit++, e = get(u, v);
             assert(!node[u].erased && !node[v].erased);
             edge_matched[e] = !edge_matched[e];
             if (edge_matched[e]) {
