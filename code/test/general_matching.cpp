@@ -145,8 +145,9 @@ void read_unit_tests(vector<Test>& tests, istream& in = cin) {
 void run_test(Test& test) {
     print("{}", test.comment);
     int matched = test.g.max_matching();
-    assert(matched == test.M);
     print("{:4} -- {:4} {}\n", matched, test.M, test.name);
+    test.g.debug_nodes();
+    assert(matched == test.M);
 }
 
 void run_dataset_tests() {
@@ -154,11 +155,12 @@ void run_dataset_tests() {
     ifstream file(UNIT_TESTS);
     assert(file.is_open());
     read_unit_tests(tests, file);
-    for_each(begin(tests), end(tests), run_test);
+    run_test(tests.back());
+    // for_each(begin(tests), end(tests), run_test);
 }
 
 void random_test(int R) {
-    intd distV(18, 50);
+    intd distV(18, 30);
     reald distE(1.2, 3.0);
     unordered_map<int, int> misscnt;
 
@@ -263,7 +265,6 @@ void performance_test(int R, int V, int E) {
         auto vg = to_mv(gs[i]);
         vg.bootstrap();
         vans[i] = vg.max_matching();
-        print("\r   mv {}", i + 1);
         errors += vans[i] != bans[i];
     }
     auto mv_time = duration_cast<milliseconds>(steady_clock::now() - mv_now);
@@ -292,11 +293,12 @@ void performance_tests(double M) {
 }
 
 int main() {
+    mt.seed(23);
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
     // run_dataset_tests();
     // random_test(500000);
     scaling_tests(1);
-    // performance_tests(1);
+    // performance_tests(0.05);
     return 0;
 }

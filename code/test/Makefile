@@ -45,6 +45,10 @@ prof: MODE := profiling
 prof: CXXFLAGS += $(OPTIM) -pg
 prof: $(EXE)
 
+fastdebug: MODE := fastdebug
+fastdebug: CXXFLAGS += $(DEBUG) $(OPTIM)
+fastdebug: $(EXE)
+
 # global build
 
 CMD_MKDIRS = @mkdir -p $(BIN_DIR) $(DEP_DIR)
