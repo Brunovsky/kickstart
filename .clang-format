@@ -55,6 +55,7 @@ ForEachMacros:
     - FOR_EACH_MASK
     - FOR_EACH_BIT
     - FOR_EACH_SUBSET
+    - FOR_EACH_FORWARD_LIST
 IncludeBlocks: Regroup
 #IndentCaseLabels: true
 IndentCaseLabels: false

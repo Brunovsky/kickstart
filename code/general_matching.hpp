@@ -91,14 +91,25 @@ struct micali_vazirani {
         int peak, base, star;
     };
 
-    vector<node_t> node;              // node data: level, preds, succs, bloom, color...
-    vector<bloom_t> bloom;            // bloom data: peak, base and base*
-    vector<vector<int>> phaselist;    // bfs nodes in the frontier per phase
-    vector<vector<int>> bridges;      // bridges in the frontier per phase
-    vector<int8_t> seen;              // has edge been tagged prop or bridge already
-    vector<int8_t> edge_matched;      // edge match status, persistent
-    int phase, blooms, count_matched; // current bfs phase, # blooms and # matched edges
-    int pending;
+    struct lists_t {
+        vector<int> head, next;
+
+        explicit lists_t(int N = 0, int M = 0) : head(N, -1), next(M) {}
+
+        void push(int h, int n) { next[n] = head[h], head[h] = n; }
+        void clear() { fill(begin(head), end(head), -1); }
+        void resize(int N, int M) { head.resize(N, -1), next.resize(M); }
+    };
+
+    vector<node_t> node;   // node data: level, preds, succs, bloom, color...
+    vector<bloom_t> bloom; // bloom data: peak, base and base*
+    lists_t phaselist, bridges;
+    vector<int8_t> seen;         // has edge been tagged prop or bridge already
+    vector<int8_t> edge_matched; // edge match status, persistent
+    int phase, blooms, count_matched, pending;
+
+    inline void add_phase(int u, int lvl) { phaselist.push(lvl, u), pending++; }
+    inline void add_bridge(int e, int lvl) { bridges.push(lvl, e); }
 
     // find base*(u) in constant time with union-find
     inline int findstar(int u) {
@@ -107,7 +118,7 @@ struct micali_vazirani {
         return u;
     }
 
-    inline int lowest(int e) {
+    inline int lowest(int e) const {
         assert(e != -1 && node[source[e]].minlevel != node[target[e]].minlevel);
         int u = source[e], v = target[e];
         return node[u].minlevel < node[v].minlevel ? u : v;
@@ -117,8 +128,8 @@ struct micali_vazirani {
      */
     void init() {
         node.resize(V);
-        phaselist.resize(V);
-        bridges.resize(V);
+        phaselist.resize(V, V);
+        bridges.resize(V, E);
         seen.resize(E);
         edge_matched.assign(E, false);
 
@@ -135,9 +146,8 @@ struct micali_vazirani {
 
     void reset() {
         phase = blooms = ddfsid = pending = 0;
+        phaselist.clear(), bridges.clear();
         for (int u = 0; u < V; u++) {
-            phaselist[u].clear();
-            bridges[u].clear();
             node[u].clear();
             if (mate[u] == -1) {
                 add_phase(u, 0);
@@ -194,8 +204,6 @@ struct micali_vazirani {
      *     ignored and will be processed later, when the even level of v is set.
      */
 
-    inline void add_phase(int u, int lvl) { phaselist[lvl].push_back(u), pending++; }
-
     void visit_prop(int e, int u, int v, bool parity) {
         assert(!seen[e] && !node[u].erased && !node[v].erased);
         if (node[v].minlevel == inf) {
@@ -215,7 +223,7 @@ struct micali_vazirani {
         int tenacity = node[u].level[parity] + node[v].level[parity] + 1;
         int lvl = tenacity >> 1;
         assert(phase <= lvl && lvl < V);
-        bridges[lvl].push_back(e);
+        add_bridge(e, lvl);
         seen[e] = true;
     }
 
@@ -233,7 +241,7 @@ struct micali_vazirani {
             return true;
 
         bool parity = phase % 2;
-        for (int u : phaselist[phase]) {
+        for (int u = phaselist.head[phase]; u != -1; pending--, u = phaselist.next[u]) {
             if (node[u].erased)
                 continue;
             if (parity == 0) {
@@ -248,7 +256,6 @@ struct micali_vazirani {
                     bfs_visit(e, u, v);
             }
         }
-        pending -= phaselist[phase].size();
         return false;
     }
 
@@ -438,7 +445,7 @@ struct micali_vazirani {
 
     int MAX() {
         int augmentations = 0;
-        for (int peak : bridges[phase]) {
+        for (int peak = bridges.head[phase]; peak != -1; peak = bridges.next[peak]) {
             int red = source[peak], blue = target[peak];
             if (node[red].erased || node[blue].erased)
                 continue;
