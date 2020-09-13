@@ -37,9 +37,9 @@ string apply_comment(string lines) {
     ofstream out(ERROR_FILE);
 
     vector<pair<int, int>> mates;
-    for (int e = 0; e < g.E; e++)
-        if (vg.mate[vg.source[e]] == e)
-            mates.push_back({vg.source[e], vg.target[e]});
+    for (int u = 0; u < vg.V; u++)
+        if (u < vg.mate[u])
+            mates.push_back({u, vg.mate[u]});
 
     int c = mates.size();
     out << apply_comment(to_dot(g));
@@ -128,9 +128,8 @@ Test read_unit_test(istream& in) {
         int u, v;
         char c;
         in >> u >> ws >> c >> ws >> v;
-        int e = g.edge.at({u, v});
         assert(g.mate[u] == -1 && g.mate[v] == -1);
-        g.mate[u] = g.mate[v] = e;
+        g.mate[u] = v, g.mate[v] = u;
     }
     return test;
 }
@@ -183,6 +182,9 @@ void random_test(int R) {
 }
 
 void scaling_test(int R, int V, int E) {
+    if (R == 0)
+        return;
+
     print("x{:<6}  V={:<6}  E={:<6}\n", R, V, E);
 
     vector<graph> gs(R);
@@ -202,10 +204,10 @@ void scaling_test(int R, int V, int E) {
     print("\r time: {}ms\n", time);
 
     double ratio = 1e6 * time / (1.0 * R * E * sqrt(V));
-    print("ratio: {:.2f}\n\n", ratio);
+    print("ratio: {:.2f}\n", ratio);
 }
 
-void scaling_tests(int M = 1) {
+void scaling_tests(double M = 1) {
     scaling_test(M * 2000, 200, 300);
     scaling_test(M * 600, 200, 2000);
     scaling_test(M * 800, 500, 800);
@@ -230,6 +232,9 @@ void scaling_tests(int M = 1) {
 }
 
 void performance_test(int R, int V, int E) {
+    if (R == 0)
+        return;
+
     print("x{:6}  V={:<6}  E={:<6}\n", R, V, E);
 
     vector<int> bans(R), vans(R);
@@ -269,7 +274,7 @@ void performance_test(int R, int V, int E) {
     print("ratio: {:.2f}\n", ratio);
 }
 
-void performance_tests(int M) {
+void performance_tests(double M) {
     performance_test(M * 20000, 50, 70);
     performance_test(M * 10000, 100, 150);
     performance_test(M * 4000, 200, 300);
@@ -291,7 +296,7 @@ int main() {
     setbuf(stderr, nullptr);
     // run_dataset_tests();
     // random_test(500000);
-    // scaling_tests(1);
-    performance_tests(1);
+    scaling_tests(1);
+    // performance_tests(1);
     return 0;
 }
