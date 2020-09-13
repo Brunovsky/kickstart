@@ -42,7 +42,7 @@ sanit: CXXFLAGS += $(DEBUG) $(SANIT)
 sanit: $(EXE)
 
 prof: MODE := profiling
-prof: CXXFLAGS += $(DEBUG) -pg
+prof: CXXFLAGS += $(OPTIM) -pg
 prof: $(EXE)
 
 # global build

@@ -1,8 +1,6 @@
 #include "../shortest_path.hpp"
 
-#include <fmt/format.h>
-
-using fmt::print;
+#include "../debug_print.hpp"
 
 // *****
 
@@ -38,12 +36,14 @@ void test() {
     dijkstra mm(6);
     add_g1(mm);
     mm.compute(0);
+    print("{}\n", mm.dist);
     assert(mm.dist[3] == 9);
     assert(mm.dist[5] == 20);
     assert(mm.path(5) == vector<int>({0, 2, 4, 3, 5}));
 
     add_g2(mm);
     mm.compute(1);
+    print("{}\n", mm.dist);
     assert(mm.dist[0] == LONG_MAX / 2);
     assert(mm.dist[5] == 20);
     assert(mm.dist[6] == 11);
