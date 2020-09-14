@@ -14,7 +14,7 @@ using fmt::format;
 #define DEBUG        1
 #define PAD          20
 #define FLASH        150
-#define debug(name)  print(stderr, "{:>{}}  {}\n", #name, PAD - 2, to_string(name))
+#define debugn(name) print(stderr, "{:>{}}  {}\n", #name, PAD - 2, to_string(name))
 #define debugv(name) print(stderr, "{}", join(#name, to_stringv(name)))
 #define debugh(name) print(stderr, "{}", join(#name, to_stringh(name)))
 

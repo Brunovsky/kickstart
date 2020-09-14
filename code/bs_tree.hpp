@@ -238,7 +238,7 @@ struct bst_reverse_iterator : bst_iterator<T> {
     using node_t = typename Tree<T>::node_t;
     using self_t = bst_reverse_iterator<T>;
     using forward_t = bst_iterator<T>;
-    using bst_iterator<T>::y;
+    using forward_t::y;
 
   public:
     using forward_t::forward_t;

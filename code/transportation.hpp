@@ -12,8 +12,7 @@ using namespace std;
  * Complexity: O(S * D * #pivots)
  */
 struct transportation {
-    vector<int> supply;
-    vector<int> demand;
+    vector<int> supply, demand;
     vector<vector<int>> cost;
 
     // fill in the matrices...
@@ -21,8 +20,8 @@ struct transportation {
     int n, m;
     vector<int> u;
     vector<int> v;
-    vector<set<int>> row_basis;
-    vector<set<int>> col_basis;
+    vector<unordered_set<int>> row_basis;
+    vector<unordered_set<int>> col_basis;
     vector<bool> row_vis;
     vector<bool> col_vis;
     vector<vector<int>> tp; // transport

@@ -46,7 +46,7 @@ prof: CXXFLAGS += $(OPTIM) -pg
 prof: $(EXE)
 
 fastdebug: MODE := fastdebug
-fastdebug: CXXFLAGS += $(DEBUG) $(OPTIM)
+fastdebug: CXXFLAGS += $(DEBUG) $(OPTIM) -UNDEBUG
 fastdebug: $(EXE)
 
 # global build
