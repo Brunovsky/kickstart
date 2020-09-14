@@ -13,16 +13,16 @@ using reald = uniform_real_distribution<double>;
 using binomd = binomial_distribution<int>;
 using boold = bernoulli_distribution;
 
-using edge_sample_t = array<int, 2>;
+using edge_t = array<int, 2>;
 using int_sample_t = vector<int>;
-using pair_sample_t = vector<edge_sample_t>;
+using pair_sample_t = vector<edge_t>;
 using parent_t = vector<int>;
 using partition_t = vector<int>;
 using ranks_t = vector<int>;
 using offsets_t = vector<int>;
 using degrees_t = vector<int>;
-using edges_t = vector<edge_sample_t>;
-using edgeset_t = unordered_set<edge_sample_t, pair_hasher>;
+using edges_t = vector<edge_t>;
+using edgeset_t = unordered_set<edge_t, pair_hasher>;
 
 int different(int u, int v1, int v2) {
     assert(v1 <= v2 && (v1 != u || v2 != u));

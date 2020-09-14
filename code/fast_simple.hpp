@@ -41,8 +41,14 @@ struct disjoint_lists {
     explicit disjoint_lists(int N = 0, int M = 0)
         : head(N, -1), tail(N, -1), next(M), prev(M) {}
 
-    void insert_before(int i, int n) { meet_before(prev[i], n), meet(n, i); }
-    void insert_after(int i, int n) { meet_after(n, next[i]), meet(i, n); }
+    void insert_before(int i, int n) {
+        meet_before(prev[i], n);
+        meet(n, i);
+    }
+    void insert_after(int i, int n) {
+        meet_after(n, next[i]);
+        meet(i, n);
+    }
     void push_front(int l, int n) {
         head[l] == -1 ? init(l, n) : (prev[n] = -1, meet(n, head[l]));
     }
@@ -74,6 +80,7 @@ struct disjoint_lists {
             meet_after(tail[b], next[i]), meet(i, head[b]), clean(b);
     }
 
+    void init(int l, int n) { head[l] = tail[l] = n, next[n] = prev[n] = -1; }
     void clean(int l) { head[l] = tail[l] = -1; }
     bool empty(int l) const { return head[l] == -1; }
     void clear() {
@@ -86,7 +93,6 @@ struct disjoint_lists {
     }
 
   private:
-    inline void init(int l, int n) { head[l] = tail[l] = n, next[n] = prev[n] = -1; }
     inline void meet(int u, int v) {
         assert(u != v && u != -1 && v != -1);
         next[u] = v, prev[v] = u;

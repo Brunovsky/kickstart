@@ -21,19 +21,8 @@ edgeset_t build_adjacency_set(const graph& g) {
     return edgeset;
 }
 
-template <typename Graph>
-void add_self_loops(Graph& g, double p) {
-    if (g.V >= 10 && p <= 0.15) {
-        binomd distk(g.V, p);
-        for (int u : int_sample(distk(mt), 0, g.V - 1))
-            g.add(u, u);
-    } else {
-        boold distp(p);
-        for (int u = 0; u < g.V; u++)
-            if (distp(mt))
-                g.add(u, u);
-    }
-}
+/** Basic auxiliary methods for adding edges to graphs
+ */
 
 void add_parent_edges(graph& g, const parent_t& parent, int start) {
     for (int u = start; u < g.V; u++) {
@@ -131,44 +120,30 @@ void add_any_missing_inedge(bipartite_graph& g, int u1, int u2, int v1, int v2) 
             g.add(distu(mt), v);
 }
 
-void add_level_back_edges(digraph& g, double q, const ranks_t& R) {
-    boold distq(q);
-    int start = 0, ranks = R.size();
-    for (int r = 0; r < ranks; r++) {
-        int mid = start + R[r];
-        int universe = g.V - mid;
-        binomd distk(universe, q);
-        for (int u = start; u < mid; u++) {
-            int k = distk(mt);
-            for (int v : int_sample(k, mid, g.V - 1)) {
-                g.add(v, u);
-            }
-        }
-        start = mid;
-    }
-}
-
 void add_edges(graph& g, const edges_t& edges) {
-    for (auto edge : edges) {
-        int u = edge[0], v = edge[1];
+    for (auto [u, v] : edges) {
         assert(u < v);
         g.add(u, v);
     }
 }
 
 void add_edges(digraph& g, const edges_t& edges) {
-    for (auto edge : edges) {
-        int u = edge[0], v = edge[1];
+    for (auto [u, v] : edges) {
         assert(u != v);
         g.add(u, v);
     }
 }
 
+void add_edges(bipartite_graph& g, const edges_t& edges) {
+    for (auto [u, v] : edges) {
+        g.add(u, v);
+    }
+}
+
 void add_nontrivial_edges(graph& g, const edges_t& edges, int S) {
-    for (auto edge : edges) {
+    for (auto [u, v] : edges) {
         if (S == 0)
             break;
-        int u = edge[0], v = edge[1];
         if (u != v)
             g.add(u, v), S--;
     }
@@ -176,10 +151,9 @@ void add_nontrivial_edges(graph& g, const edges_t& edges, int S) {
 }
 
 void add_nontrivial_edges(digraph& g, const edges_t& edges, int S) {
-    for (auto edge : edges) {
+    for (auto [u, v] : edges) {
         if (S == 0)
             break;
-        int u = edge[0], v = edge[1];
         if (u != v)
             g.add(u, v), S--;
     }
@@ -187,10 +161,9 @@ void add_nontrivial_edges(digraph& g, const edges_t& edges, int S) {
 }
 
 void add_edges_except(graph& g, const edges_t& edges, const parent_t& par, int S) {
-    for (auto edge : edges) {
+    for (auto [u, v] : edges) {
         if (S == 0)
             break;
-        int u = edge[0], v = edge[1];
         if (u != v && u != par[v] && v != par[u])
             g.add(u, v), S--;
     }
@@ -198,37 +171,13 @@ void add_edges_except(graph& g, const edges_t& edges, const parent_t& par, int S
 }
 
 void add_edges_except(digraph& g, const edges_t& edges, const parent_t& par, int S) {
-    for (auto edge : edges) {
+    for (auto [u, v] : edges) {
         if (S == 0)
             break;
-        int u = edge[0], v = edge[1];
         if (u != v && u != par[v] && v != par[u])
             g.add(u, v), S--;
     }
     assert(S == 0);
-}
-
-void add_bipartite_edges(bipartite_graph& g, const edges_t& edges) {
-    for (auto edge : edges) {
-        int u = edge[0], v = edge[1];
-        g.add(u, v);
-    }
-}
-
-void add_regular_ring_lattice(graph& g, int k) {
-    int max_jump = min(k / 2, (g.V - 1) / 2);
-    for (int j = 1; j <= max_jump; j++) {
-        for (int u = 0; u < g.V; u++) {
-            int v = (u + j) - (u + j >= g.V ? g.V : 0);
-            g.add(u, v);
-        }
-    }
-}
-
-void add_circulant_arcs(graph& g, int u1, int u2, int o = 1) {
-    int V = u2 - u1, cap = 2 * o == V ? V / 2 : V;
-    for (int s = 0; s < cap; s++)
-        g.add(u1 + s, u1 + (s + o) % V);
 }
 
 void add_all_edges(graph& g, int u1, int u2) {
@@ -256,40 +205,198 @@ void add_all_edges_bidirectional(digraph& g, int u1, int u2) {
                 g.add(u, v);
 }
 
+/** More exotic methods for adding edges to graphs
+ */
+
 template <typename Graph>
-void add_grid_edges(Graph& g, int W, int H, bool v, bool h) {
-    assert(v || h);
-    for (int i = 0; i + v < W; i++)
-        for (int j = 0; j + h < H; j++)
-            g.add(i * H + j, (i + v) * H + (j + h));
+void add_uniform_self_loops(Graph& g, double p) {
+    if (g.V >= 10 && p <= 0.25) {
+        binomd distk(g.V, p);
+        for (int u : int_sample(distk(mt), 0, g.V - 1))
+            g.add(u, u);
+    } else {
+        boold distp(p);
+        for (int u = 0; u < g.V; u++)
+            if (distp(mt))
+                g.add(u, u);
+    }
+}
+
+void remove_uniform(graph& g, double p) {
+    graph f(g.V);
+    boold distp(p);
+    for (int u = 0; u < g.V; u++)
+        for (int v : g.adj[u])
+            if (u < v && !distp(mt))
+                f.add(u, v);
+    g = move(f);
+}
+
+void remove_uniform(digraph& g, double p) {
+    digraph f(g.V);
+    boold distp(p);
+    for (int u = 0; u < g.V; u++)
+        for (int v : g.adj[u])
+            if (!distp(mt))
+                f.add(u, v);
+    g = move(f);
+}
+
+void remove_uniform(bipartite_graph& g, double p) {
+    bipartite_graph f(g.V);
+    boold distp(p);
+    for (int u = 0; u < g.V; u++)
+        for (int v : g.adj[u])
+            if (!distp(mt))
+                f.add(u, v);
+    g = move(f);
+}
+
+void add_circulant_arcs(graph& g, int u1, int u2, int o = 1) {
+    int V = u2 - u1, cap = 2 * o == V ? V / 2 : V;
+    for (int s = 0; s < cap; s++)
+        g.add(u1 + s, u1 + (s + o) % V);
+}
+
+void add_regular_ring_lattice(graph& g, int k) {
+    int max_jump = min(k / 2, (g.V - 1) / 2);
+    for (int o = 1; o <= max_jump; o++)
+        add_circulant_arcs(g, 0, g.V, o);
+}
+
+/** Auxiliary methods for 2D and 3D grid graphs and their edges
+ *
+ * 24 25 26 27 28 29
+ * 18 19 20 21 22 23
+ * 12 13 14 15 16 17   X=6, Y=5
+ *  6  7  8  9 10 11   19=(1,3)
+ *  0  1  2  3  4  5
+ */
+
+inline int calc_grid2(int X, int x, int y) { return y * X + x; }
+inline int calc_grid3(int X, int Y, int x, int y, int z) { return z * X * Y + y * X + x; }
+
+template <typename Graph>
+void add_grid_edges(Graph& g, int X, int Y, int dx, int dy) {
+    assert((dx || dy) && 0 <= dx && dx <= X && 0 <= dy && dy <= Y);
+    for (int x = 0; x + dx < X; x++)
+        for (int y = 0; y + dy < Y; y++)
+            g.add(calc_grid2(X, x, y), calc_grid2(X, x + dx, y + dy));
 }
 
 template <typename Graph>
-void add_circular_grid_edges(Graph& g, int W, int H, bool v, bool h) {
-    assert(v || h);
-    for (int i = 0; i < W; i++)
-        for (int j = 0; j < H; j++)
-            g.add(i * H + j, (i + v) * H % (W * H) + (j + h) % H);
+void add_circular_grid_edges(Graph& g, int X, int Y, bool dx, bool dy) {
+    assert((dx || dy) && 0 <= dx && 0 <= dy);
+    for (int x = 0; x < X; x++)
+        for (int y = 0; y < Y; y++)
+            g.add(calc_grid2(X, x, y), calc_grid2(X, (x + dx) % X, (y + dy) % Y));
 }
 
 template <typename Graph>
-void add_grid3_edges(Graph& g, int X, int Y, int Z, bool x, bool y, bool z) {
-    assert(x || y || z);
-    for (int i = 0; i + x < X; i++)
-        for (int j = 0; j + y < Y; j++)
-            for (int k = 0; k + z < Z; k++)
-                g.add(i * Y * Z + j * Z + k, (i + x) * Y * Z + (j + y) * Z + (k + z));
+void add_grid3_edges(Graph& g, int X, int Y, int Z, bool dx, bool dy, bool dz) {
+    assert(dx || dy || dz);
+    assert(0 <= dx && dx <= X && 0 <= dy && dy <= Y && 0 <= dz && dz <= Z);
+    for (int x = 0; x + dx < X; x++)
+        for (int y = 0; y + dy < Y; y++)
+            for (int z = 0; z + dz < Z; z++)
+                g.add(calc_grid3(X, Y, x, y, z),
+                      calc_grid3(X, Y, x + dx, y + dy, z + dz));
 }
 
 template <typename Graph>
-void add_circular_grid3_edges(Graph& g, int X, int Y, int Z, bool x, bool y, bool z) {
-    assert(x || y || z);
-    for (int i = 0; i < X; i++)
-        for (int j = 0; j < Y; j++)
-            for (int k = 0; k < Z; k++)
-                g.add(i * Y * Z + j * Z + k, (i + x) * Y * Z % (X * Y * Z) +
-                                                 (j + y) * Z % (Y * Z) + (k + z) % Z);
+void add_circular_grid3_edges(Graph& g, int X, int Y, int Z, bool dx, bool dy, bool dz) {
+    assert((dx || dy || dz) && 0 <= dx && 0 <= dy && 0 <= dz);
+    for (int x = 0; x < X; x++)
+        for (int y = 0; y < Y; y++)
+            for (int z = 0; z < Z; z++)
+                g.add(calc_grid3(X, Y, x, y, z),
+                      calc_grid3(X, Y, (x + dx) % X, (y + dy) % Y, (z + dz) % Z));
 }
+
+template <typename Graph>
+void add_uniform_grid_edges(Graph& g, int X, int Y, double p, int dx, int dy) {
+    assert((dx || dy) && 0 <= dx && dx <= X && 0 <= dy && dy <= Y);
+    if (dx < X && dy < Y && p <= 0.25) {
+        binomd distk((X - dx) * (Y - dy), p);
+        auto edges = pair_sample(distk(mt), 0, X - dx - 1, 0, Y - dy - 1);
+        for (auto [x, y] : edges)
+            g.add(calc_grid2(X, x, y), calc_grid2(X, x + dx, y + dy));
+    } else {
+        boold distp(p);
+        for (int x = 0; x + dx < X; x++)
+            for (int y = 0; y + dy < Y; y++)
+                if (distp(mt))
+                    g.add(calc_grid2(X, x, y), calc_grid2(X, x + dx, y + dy));
+    }
+}
+
+template <typename Graph>
+void add_uniform_circular_grid_edges(Graph& g, int X, int Y, double p, int dx, int dy) {
+    assert((dx || dy) && 0 <= dx && 0 <= dy);
+    if (dx < X && dy < Y && p <= 0.25) {
+        binomd distk(X * Y, p);
+        auto edges = pair_sample(distk(mt), 0, X - 1, 0, Y - 1);
+        for (auto [x, y] : edges)
+            g.add(calc_grid2(X, x, y), calc_grid2(X, (x + dx) % X, (y + dy) % Y));
+    } else {
+        boold distp(p);
+        for (int x = 0; x < X; x++)
+            for (int y = 0; y < Y; y++)
+                if (distp(mt))
+                    g.add(calc_grid2(X, x, y), calc_grid2(X, (x + dx) % X, (y + dy) % Y));
+    }
+}
+
+template <typename Graph>
+void add_uniform_grid3_edges(Graph& g, int X, int Y, int Z, double p, int dx, int dy,
+                             int dz) {
+    assert(dx || dy || dz);
+    assert(0 <= dx && dx <= X && 0 <= dy && dy <= Y && 0 <= dz && dz <= Z);
+    if (dx < X && dy < Y && dz < Z && p <= 0.25) {
+        for (int z = 0; z + dz < Z; z++) {
+            binomd distk((X - dx) * (Y - dy), p);
+            auto edges = pair_sample(distk(mt), 0, X - dx - 1, 0, Y - dy - 1);
+            for (auto [x, y] : edges)
+                g.add(calc_grid3(X, Y, x, y, z),
+                      calc_grid3(X, Y, x + dx, y + dy, z + dz));
+        }
+    } else {
+        boold distp(p);
+        for (int x = 0; x + dx < X; x++)
+            for (int y = 0; y + dy < Y; y++)
+                for (int z = 0; z + dz < Z; z++)
+                    if (distp(mt))
+                        g.add(calc_grid3(X, Y, x, y, z),
+                              calc_grid3(X, Y, x + dx, y + dy, z + dz));
+    }
+}
+
+template <typename Graph>
+void add_uniform_circular_grid3_edges(Graph& g, int X, int Y, int Z, double p, int dx,
+                                      int dy, int dz) {
+    assert(dx || dy || dz);
+    assert(0 <= dx && dx <= X && 0 <= dy && dy <= Y && 0 <= dz && dz <= Z);
+    if (dx < X && dy < Y && dz < Z && p <= 0.25) {
+        for (int z = 0; z < Z; z++) {
+            binomd distk(X * Y, p);
+            auto edges = pair_sample(distk(mt), 0, X - 1, 0, Y - 1);
+            for (auto [x, y] : edges)
+                g.add(calc_grid3(X, Y, x, y, z),
+                      calc_grid3(X, Y, (x + dx) % X, (y + dy) % Y, (z + dz) % Z));
+        }
+    } else {
+        boold distp(p);
+        for (int x = 0; x < X; x++)
+            for (int y = 0; y < Y; y++)
+                for (int z = 0; z < Z; z++)
+                    if (distp(mt))
+                        g.add(calc_grid3(X, Y, x, y, z),
+                              calc_grid3(X, Y, (x + dx) % X, (y + dy) % Y, (z + dz) % Z));
+    }
+}
+
+/** Auxiliary methods for level (ranked) graphs and complete multipartite graphs
+ */
 
 template <typename Graph>
 void add_level_step_full(Graph& g, int u1, int u2, int v1, int v2) {
@@ -365,6 +472,23 @@ void link_levels_uniform(Graph& g, double p, const ranks_t& R, bool loop = false
     }
 }
 
+void add_level_back_edges(digraph& g, double q, const ranks_t& R) {
+    boold distq(q);
+    int start = 0, ranks = R.size();
+    for (int r = 0; r < ranks; r++) {
+        int mid = start + R[r];
+        int universe = g.V - mid;
+        binomd distk(universe, q);
+        for (int u = start; u < mid; u++) {
+            int k = distk(mt);
+            for (int v : int_sample(k, mid, g.V - 1)) {
+                g.add(v, u);
+            }
+        }
+        start = mid;
+    }
+}
+
 void complete_levels(graph& g, const ranks_t& R) {
     int start = 0, ranks = R.size();
     for (int r = 0; r < ranks; r++) {
@@ -383,7 +507,8 @@ void complete_levels(digraph& g, const ranks_t& R) {
     assert(start == g.V);
 }
 
-// ***** Simple graph types like trees and grids with exact, known shape
+/** Simple graph types like trees and grids with exact, known shape
+ */
 
 graph path_undirected(int V) {
     graph g(V);
@@ -554,7 +679,8 @@ bipartite_graph complete_bipartite(int U, int V) {
     return g;
 }
 
-// ***** More complex graphs with known shape
+/** More complex graphs with known shape
+ */
 
 graph johnson(int n, int k) {
     assert(0 < n && n <= 31 && 0 < k && k <= n);
@@ -696,7 +822,8 @@ graph sudoku(int n) {
     return g;
 }
 
-// ***** Randomized known shape graphs
+/** Randomized known shape graphs
+ */
 
 graph random_tree_undirected(int V) {
     graph g(V);
@@ -745,11 +872,12 @@ digraph random_regular_directed_connected(int V, int k) {
 bipartite_graph random_regular_bipartite(int U, int V, int k) {
     bipartite_graph g(U, V);
     auto edges = regular_bipartite_sample(U, V, k);
-    add_bipartite_edges(g, edges);
+    add_edges(g, edges);
     return g;
 }
 
-// ***** Completely random and not necessarily connected graphs (Erdős–Rényi graphs)
+/** Completely random and not necessarily connected graphs (Erdős–Rényi graphs)
+ */
 
 graph random_uniform_undirected(int V, double p) {
     graph g(V);
@@ -792,12 +920,13 @@ bipartite_graph random_exact_bipartite(int U, int V, int E) {
     assert(E <= 1L * V * (V - 1));
     bipartite_graph g(U, V);
     auto edges = pair_sample(E, 0, U - 1, 0, V - 1);
-    add_bipartite_edges(g, edges);
+    add_edges(g, edges);
     assert(g.E == E);
     return g;
 }
 
-// ***** Completely random but connected graphs (Erdős–Rényi with bootstrap tree)
+/** Completely random but connected graphs (Erdős–Rényi with bootstrap tree)
+ */
 
 graph random_uniform_undirected_connected(int V, double p) {
     graph g(V);
@@ -860,7 +989,8 @@ digraph random_exact_rooted_dag_connected(int V, int E) {
     return g;
 }
 
-// ***** Many complete graphs joined in different ways
+/** Many complete graphs joined in different ways
+ */
 
 graph disjoint_complete_undirected(int n, int k) {
     graph g(n * k);
@@ -910,8 +1040,10 @@ digraph k_connected_complete_directed(int n, int k) {
     return g;
 }
 
-// ***** Level (ranked) connected graphs, optionally looped
-// Each level is connected (full,uniform) to the next level.
+/** Level (ranked) connected graphs, optionally looped
+ *
+ * Each level is connected (full,uniform) to the next level.
+ */
 
 graph random_full_level(int V, int ranks, int m = 1, bool loop = false) {
     graph g(V);
@@ -963,7 +1095,7 @@ digraph random_uniform_level_flow(int V, double p, int ranks, int m = 1,
     return g;
 }
 
-// ***** Convert to flow network
+// ***** Convert to flow network (temporary)
 
 flow_graph random_flow_graph(int V, double p, long max_cap) {
     intd rankd(3, max(3, V / 3));

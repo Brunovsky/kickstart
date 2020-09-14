@@ -1,17 +1,15 @@
 #include "../general_matching.hpp"
 
-#include <fmt/format.h>
-
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
+#include "../debug_print.hpp"
 #include "../graph_formats.hpp"
 #include "../graph_generator.hpp"
 
 using namespace std::chrono;
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;
-using fmt::format, fmt::print;
 
 // *****
 
@@ -146,7 +144,6 @@ void run_test(Test& test) {
     print("{}", test.comment);
     int matched = test.g.max_matching();
     print("{:4} -- {:4} {}\n", matched, test.M, test.name);
-    test.g.debug_nodes();
     assert(matched == test.M);
 }
 
@@ -155,8 +152,7 @@ void run_dataset_tests() {
     ifstream file(UNIT_TESTS);
     assert(file.is_open());
     read_unit_tests(tests, file);
-    run_test(tests.back());
-    // for_each(begin(tests), end(tests), run_test);
+    for_each(begin(tests), end(tests), run_test);
 }
 
 void random_test(int R) {
@@ -237,7 +233,7 @@ void performance_test(int R, int V, int E) {
     if (R == 0)
         return;
 
-    print("x{:6}  V={:<6}  E={:<6}\n", R, V, E);
+    print("x{:>6}  V={:<6}  E={:<6}\n", R, V, E);
 
     vector<int> bans(R), vans(R);
     vector<graph> gs(R);
@@ -297,8 +293,8 @@ int main() {
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
     // run_dataset_tests();
-    // random_test(500000);
+    random_test(10000);
     scaling_tests(1);
-    // performance_tests(0.05);
+    performance_tests(0.5);
     return 0;
 }

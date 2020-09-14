@@ -1,7 +1,6 @@
 #ifndef GENERAL_MATCHING_HPP
 #define GENERAL_MATCHING_HPP
 
-#include "debug_print.hpp"
 #include "hash.hpp"
 
 // *****
@@ -15,16 +14,18 @@
  * - "The General Maximum Matching Algorithm of Micali and Vazirani"
  *    Peterson P., Loui M.
  *
- * Complexity: O(E V^1/2) with a monstrous constant.
+ * Complexity: O(E V^1/2) and O(V + E) memory.
  *
- * Currently passing unit tests and random tests, compared with boost's edmonds for
- * correctness and performance.
+ * Currently passing basic unit tests and random uniform graph tests, being compared with
+ * boost's edmonds for correctness and performance.
  *
- * Heavily optimized, including:
+ * Heavily optimized:
  *   - findpath does not do depth first search
  *   - no hashtables used
+ *   - no data structure required to hold a bloom's support
  *   - efficient storage of phaselists and bridges
- *   - very greedy bootstrap algorithm
+ *   - very good greedy bootstrap algorithm that runs in O(V + E) time
+ *   - extended search phases supported, tunable
  */
 struct micali_vazirani {
     int V, E = 0;
@@ -45,50 +46,27 @@ struct micali_vazirani {
     }
 
     void bootstrap() {
-        vector<int> edges(E);
-        auto c = edges.data();
-        iota(c, c + E, 0);
-        sort(c, c + E, [&](int a, int b) {
-            return minadj(a) < minadj(b);
-        });
-
-        for (int i = 0, j; i < E; i = j) {
-            j = i + 1;
-            while (j < E && minadj(edges[i]) == minadj(edges[j]))
-                j++;
-            sort(c + i, c + j, [&](int a, int b) {
-                return maxadj(a) < maxadj(b);
-            });
+        vector<vector<int>> sumbuck(2 * V), minbuck(V);
+        for (int e = 0; e < E; e++) {
+            auto [u, v] = edge[e];
+            int s = adj[u].size() + adj[v].size();
+            sumbuck[s].push_back(e);
         }
-        for (int i = 0; i < E; i++) {
-            int e = c[i], u = edge[e][0], v = edge[e][1];
-            if (mate[u] == mate[v]) // both -1
-                mate[u] = v, mate[v] = u;
+        for (int s = 0; s < 2 * V; s++) {
+            for (int e : sumbuck[s]) {
+                auto [u, v] = edge[e];
+                int m = min(adj[u].size(), adj[v].size());
+                minbuck[m].push_back(e);
+            }
         }
-    }
-
-    void debug_nodes() {
-        diota("e", E);
-        debugv(edge);
-        diota("u", V);
-        print("   | ma c <l >l | vi bl le ar | 0h 0l , 1h 1l |\n");
-        for (int u = 0; u < V; u++) {
-            auto& n = node[u];
-            print("{:2} | {:2} {} {:2} {:2} | {:2} {:2} {:2} {:2} | {:2} {:2} , {:2} "
-                  "{:2} | "
-                  "{:<24} {:<10} {:<10}\n",
-                  u, pretty(mate[u]), int(n.color), pretty(n.minlevel),
-                  pretty(n.maxlevel), pretty(n.vis), pretty(n.bloom), pretty(n.lead),
-                  pretty(n.arc), pretty(n.trail[0].hi), pretty(n.trail[0].lo),
-                  pretty(n.trail[1].hi), pretty(n.trail[1].lo), adj[u], pred[u], succ[u]);
+        sumbuck.clear();
+        for (int m = 0; m < V; m++) {
+            for (int e : minbuck[m]) {
+                auto [u, v] = edge[e];
+                if (mate[u] == mate[v]) // both -1
+                    mate[u] = v, mate[v] = u;
+            }
         }
-    }
-
-    int minadj(int e) const {
-        return min(adj[edge[e][0]].size(), adj[edge[e][1]].size());
-    }
-    int maxadj(int e) const {
-        return max(adj[edge[e][0]].size(), adj[edge[e][1]].size());
     }
 
     int max_matching() {
@@ -111,8 +89,9 @@ struct micali_vazirani {
 
     struct node_t {
         int minlevel = inf, maxlevel = inf, level[2] = {inf, inf};
-        int vis = -1, bloom = -1, lead = -1, arc[2] = {};
+        int vis = -1, bloom = -1, petal = -1;
         link_t trail[2] = {};
+        int arc = 0;
         bool color = 0, erased = 0;
 
         inline void clear() { *this = node_t(); }
@@ -137,29 +116,37 @@ struct micali_vazirani {
     vector<bloom_t> bloom;
     lists_t phaselist, bridges;
     vector<bool> seen;
-    int phase, blooms, count_matched, pending, ddfsid, barrier, exposed[2];
+    int count_matched, phase, blooms, pending, ddfsid, barrier, exposed[2];
 
     inline void add_phase(int u, int lvl) { phaselist.push(lvl, u), pending++; }
     inline void add_bridge(int e, int lvl) { bridges.push(lvl, e); }
 
     // find base*(u) in constant time with union-find
     inline int findstar(int u) {
-        if (node[u].bloom != -1)
-            u = bloom[node[u].bloom].star = findstar(bloom[node[u].bloom].star);
+        int b = node[u].bloom;
+        if (b != -1) {
+            if (node[bloom[b].star].bloom != -1)
+                bloom[b].star = findstar(bloom[b].star);
+            return bloom[b].star;
+        }
         return u;
     }
 
     /** Reset routines
+     *
+     * Add exposed nodes
      */
     void init() {
+        pred.resize(V);
+        succ.resize(V);
         node.resize(V);
         phaselist.resize(V, V);
         bridges.resize(V, E);
-        pred.resize(V);
-        succ.resize(V);
 
         count_matched = 0;
         for (int u = 0; u < V; u++) {
+            pred[u].reserve(adj[u].size());
+            succ[u].reserve(adj[u].size());
             assert(mate[u] == -1 || mate[mate[u]] == u);
             count_matched += u < mate[u];
         }
@@ -169,9 +156,9 @@ struct micali_vazirani {
         phase = blooms = ddfsid = pending = 0;
         phaselist.clear(), bridges.clear();
         for (int u = 0; u < V; u++) {
-            node[u].clear();
             pred[u].clear();
             succ[u].clear();
+            node[u].clear();
             if (mate[u] == -1) {
                 add_phase(u, 0);
                 node[u].minlevel = node[u].level[0] = 0;
@@ -196,35 +183,35 @@ struct micali_vazirani {
     }
 
     /** Breadth first search and MIN
-     * For each node with min level equal to phase, find more nodes (previously unseen)
-     * and find new bridges.
+     * For each node with min level equal to phase, find more nodes (previously
+     * unseen) and find new bridges.
      *
-     * - For each node u in the current phaselist
-     *   - If the phase is odd, u is inner and we're looking for the matched edge out of
-     *     u that goes to an unaugmented node through an unprocessed edge.
-     *   - If the phase is even, u is outer and we're looking for unmatched edges out of
-     *     u that go to unaugmented nodes through unprocessed edges.
+     * For each node u in the current phaselist
+     *   - If the phase is odd, u is inner and we're looking for the matched edge out
+     * of u that goes to an unaugmented node through an unprocessed edge.
+     *   - If the phase is even, u is outer and we're looking for unmatched edges out
+     * of u that go to unaugmented nodes through unprocessed edges.
      *
-     *   Let the target node be v, and let the edge from u to v be e.
+     * Let the target node be v, and let the edge from u to v be e.
+     * - If the minlevel of the node v has not been set or is phase+1 already,
+     *   the edge to it is a prop and is part of the primary bfs tree. A successor
+     *   and predecessor relationship is recorded for the other subroutines, and v is
+     *   added to the next phaselist.
+     * - If the minlevel of v has been set and is <=phase then v is already in the
+     *   tree and adding the edge e to it as a prop would form a back edge.
+     *   Therefore e is not a prop and not part of the tree, hence it is a bridge.
      *
-     *   - If the min level of the node v has not been set or is phase+1 already,
-     *     the edge to it is a prop and is part of the primary bfs tree. A successor and
-     *     predecessor relationship is recorded for the other subroutines, and v is added
-     *     to the next phaselist.
-     *   - If the min level of v has been set and is <=phase then v is already in the
-     *     tree and adding the edge e to it as a prop would form a back edge.
-     *     Therefore e is not a prop and not part of the tree, hence it is a bridge.
-     *
-     *   - For bridges:
-     *   - If the phase is odd then e is matched and is horizontal (i.e. the minlevel
-     *     of v is phase and v is processed in the same iteration as u).
-     *     The level of this bridge is known (lvl=phase) and so the bridge can be saved.
-     *   - If phase is even however, the edge e is unmatched and it is possible that the
-     *     evenlevel of v has not yet been computed. In this case the tenacity/level of
-     *     the bridge is unknown at this point. This happens because the
-     *     even level of u is smaller than the even level path to v and the bridge is
-     *     not horizontal, but actually oblique in the phase graph. This bridge is
-     *     ignored and will be processed later, when the even level of v is set.
+     * For bridges:
+     * - If the phase is odd then e is matched and is horizontal (i.e. the minlevel
+     *   of v is phase and v is processed in the same iteration as u).
+     *   The level of this bridge is known (lvl=phase) and so the bridge can be
+     *   saved.
+     * - If phase is even however, the edge e is unmatched and it is possible that
+     *   the evenlevel of v has not yet been computed. In this case the tenacity/level
+     *   of the bridge is unknown at this point. This happens because the even level of
+     *   u is smaller than the even level path to v and the bridge is not horizontal,
+     *   but actually oblique in the phase graph. This bridge is ignored and will be
+     *   processed later, when the even level of v is set.
      */
 
     void visit_prop(int e, int u, int v, bool parity) {
@@ -239,8 +226,8 @@ struct micali_vazirani {
         seen[e] = true;
     }
 
-    void visit_bridge(int e, int parity) {
-        int u = edge[e][0], v = edge[e][1];
+    void visit_bridge(int e, bool parity) {
+        auto [u, v] = edge[e];
         assert(!seen[e] && !node[u].erased && !node[v].erased);
         assert(node[u].level[parity] < inf && node[v].level[parity] < inf);
         int tenacity = node[u].level[parity] + node[v].level[parity] + 1;
@@ -251,7 +238,7 @@ struct micali_vazirani {
     }
 
     void bfs_visit(int e, int u, int v) {
-        int parity = phase % 2;
+        bool parity = phase % 2;
         if (node[v].minlevel > phase) {
             visit_prop(e, u, v, parity);
         } else if (node[v].level[parity] < inf) {
@@ -273,10 +260,10 @@ struct micali_vazirani {
                     if (mate[u] != v && !seen[e] && !node[v].erased)
                         bfs_visit(e, u, v);
                 }
-            } else {
+            } else if (!node[mate[u]].erased) {
                 for (int e : adj[u]) {
                     int v = other(e, u);
-                    if (mate[u] == v && !seen[e] && !node[v].erased)
+                    if (mate[u] == v && !seen[e])
                         bfs_visit(e, u, v);
                     if (mate[u] == v)
                         break;
@@ -290,121 +277,132 @@ struct micali_vazirani {
      * For a given bridge 'e' with endpoints 'red' and 'blue', either find a bloom, or
      * find an augmenting path, or do nothing and exit immediately.
      *
-     * The bloom formation subroutine will need to perform dfs again (this time with no
-     * major fuss) to assign maxlevels, bloom ids and bloom successors and predecessors
-     * to all bloom nodes.
+     * The idea is straightforward: we maintain two dfs "trails" instead of just one.
+     * The goal is to arrive at two distinct exposed nodes and thus identify an
+     * augmenting path made up of the concatenation of both trails, but this will be
+     * impossible in the presence of a bloom.
      *
-     * The augmenting path subroutine will need to reuse the trail and arc vectors.
+     * The two trails are colored red and blue, and along the ddfs the nodes visited
+     * are appropriately colored. Predecessor relationships are stored, which maintain
+     * the trail data attached to the nodes.
      *
-     * Nothing is done:
-     *     - if red and blue were already in blooms with a common base
-     *       exits trivially and immediately.
-     *     - if no paths were found from red and blue to exposed vertices or to a common
-     *       vertex (barrier). This should not happen at all (observation 1) and is a
-     *       serious bug.
+     * The trails cannot enter into nodes visited by the other trail, identified by their
+     * color, even if the other trail has meanwhile backtracked out of that node. This
+     * guarantees the two trails never intersect. In practice, the implementation
+     * maintains two trail heads r and b, and the parent trail pointers are attached to
+     * the nodes as they are visited. The two trail heads may collide, at which point
+     * backtracking is performed on b first by convention.
+     *
+     * Along the ddfs we may need to backtrack along one of the two trails. Being
+     * optimistic, while advancing we can just take predecessor edges at will and hope we
+     * don't collide the two trails, and then "backtrack" one of the two trails in case of
+     * collision, by convention b. If the first backtracking fails, we try the second
+     * trail, and if that fails we found a "barrier" node that is a common ancestor of all
+     * the nodes visited by the ddfs (and the ones skipped over). Indeed all prop edges
+     * emanating from this barrier node are visited, to ensure there is no way around it.
+     * Backtracking succeeds if the trail can get "around" the collision point, and fails
+     * otherwise. Getting "around" means finding another reachable node at the same or
+     * lower depth than the collision point. In case of failure the trail head is commited
+     * to the collision point and its other trail's turn to backtrack.
+     *
+     * To backtrack efficiently we maintain an arc index attached to each of the nodes,
+     * which identify the next predecessor to take at that node after backtracking to it
+     * along a trail. If the index is invalid, there are no more predecessors and further
+     * backtracking is needed.
+     *
+     * Saved data:
+     * The augmenting path subroutine will need to reuse the colored trails found during
+     * ddfs, going backwards from the found exposed nodes. The blooms formed also maintain
+     * predecessor (petal) and successor (trail) node relationships. Therefore to traverse
+     * the bloom we just need to follow the pointers, and no dfs is required.
+     *
+     * The bloom formation subroutine will need to perform dfs again (this time with
+     * no major fuss) to assign maxlevels, bloom ids and identify new bridges. It will
+     * also need to form two primary colored petals starting from the base.
+     *
+     * Nothing is done by ddfs if red and blue were already in blooms with the same base*.
      *
      * Observation 1 (correctness optimization)
      * - A node Q is unerased iff it has not been used in an augmenting path
      *   and there is still a path from it to an exposed vertex.
      * - After augmentations, function erase_successors() erases nodes that have
-     *   become unreachable from exposed vertices. Our ddfs implementation requires this
-     *   procedure to be implemented properly - when advancing into a node u, there
+     *   become unreachable from exposed vertices. Our ddfs implementation requires
+     *   this procedure to be implemented properly - when advancing into a node u, there
      *   must be some path from that node to an exposed node.
-     * - The predecessors of a node we're going to advance to can be stored in arbitrary
-     *   order. As such, as we iterate over the predecessor array of a node u, we can
-     *   eliminate nodes that have been erased by swapping them with the last element.
-     *   We can also ask our implementation of erase_successors to guarantee that the
-     *   first element of the predecessors array is always an unerased predecessor, to
-     *   make this simpler (see Node Erasure).
-     *
+     * - The predecessors of a node we're going to advance to can be stored in
+     *   arbitrary order. As such, as we iterate over the predecessor array of a node u,
+     *   we can eliminate nodes that have been erased by swapping them with the last
+     *   element.
+     * *
      * ***** Data structures
      *
      * * Three pointers: r (red, left), b (blue, right), barrier (for b).
-     * * Two trail vectors, trail[0] for r and trail[1] for b.
-     *   - The list of nodes leading to the root (in case of r), or to the barrier in
-     *     the case of b.
-     * * Two arc vectors, arc[0] for r and arc[1] for b.
-     *   - Have the usual meaning. Keep track of the 'current' index into the node_pred
-     *     array of a node in trail[0] or trail[1], plus r and b themselves.
-     *     - The invariant len(arc[.]) = len(trail[.])+1 holds for r and b.
-     *     When advancing from e.g. r, the dfs takes the path through node_pred[i]
-     *     where i is the index given by the arc, and then i incremented so it always
-     *     stays one index ahead of the actual trail.
-     *     The position (after) of r and b is at the back of the arc.
-     *
-     * The "stack" of dfs nodes is the pair (trail[c],arc[c]).
-     *
-     * If backtracking fails for either r or b, the respective stack will become empty.
-     * If backtracking failed for b the barrier is lowered to r and b is reset (but the
-     * stack is not reset, which is what acts as a barrier in practice). We try
-     * backtracking blue first, and if backtracking red fails too we found a bloom.
-     * Otherwise we eventually find an augmenting path.
-     *
-     * In case we find an augmenting path we rerun dfs for blue to restore the erased
-     * part of the trail.
+     * * One arc index per node
+     * * Four trail pointers per node, two for each color.
+     *   Given a node u, if the trail head is at u and a predecessor edge to v is taken,
+     *   and w=base*(v) is the next trail head, then we set
+     *       w.trail.hi:=u,   w.trail.lo:=v.   w.arc:=index of next(v)
+     *   Colored trail pointers are necessary for the bloom bases.
      *
      * ***** Algorithm
      *
-     * - Advance whichever of r and b is closest to red/blue (i.e. largest min_level)
+     * - Advance whichever of r and b is further from the roots (i.e. largest min_level)
      *   advancing r in case of a tie.
      *   - When advancing into nodes that belong to blooms skip directly to the
      *     bloom's base star (recursive base).
      *   - Be careful not to advance into nodes that have been erased (by a previous
      *     augmentation in the same search) (observation 2)
-     *   - Notice that advancing casually (i.e. not while backtracking) only one step at
-     *     a time guarantees the two paths can only cross at their endpoints (when r==b)
-     *     and not somewhere in between. This is not necessarily true while backtracking
-     *     either r or b as we usually need to backtrack and readvance several steps.
+     *   - Notice that advancing casually (i.e. not while backtracking) only one step
+     *     at a time guarantees the two paths can only cross at their endpoints (when
+     *     r==b) and not somewhere in between. This is not necessarily true while
+     *     backtracking either r or b as we usually need to backtrack and readvance
+     *     several steps.
      *
-     * - If r == b meet at the same node, this node is the dcv (deepest common vertex).
-     *   - We backtrack b first. We greedily pop nodes from b's stack and readvance on
-     *     their other predecessors (back-and-forth greedily) until we succeed and find
-     *     a node !=r at a depth <=r, or we fail and pop the entire stack.
-     *     - If this succeeds we can resume advancing.
-     *   - Otherwise, b's stack is empty and there is no other path for b.
-     *     - We set the barrier:=r to this node, and reset b:=barrier.
-     *     - Notice that b's stack will never hold a node that is above the barrier.
-     *   - We backtrack r second, the same way.
-     *     - If this succeeds we can resume advancing.
-     *   - Otherwise the barrier is a bottleneck and we've identified a bloom.
-     *     * We return the bloom barrier.
+     * - If r == b meet at the same node, this node is a bottleneck.
+     *   - Backtrack b first. Repeat, until there are no more nodes to search or the
+     *     trail has gone around the bottleneck:
+     *     - Pop nodes from the trail until one has more predecessor nodes to go to,
+     *     or until we reach the barrier.
+     *     - Advance the trail greedily along predecessor nodes, until the head collides
+     *     with the other trail, revisits an old node, or goes around the trail.
+     *     - Backtracking fails when the head is equal to the barrier and there are no
+     *     more predecessor edges; otherwise it succeeds. In this case, set barrier to
+     *     this bottleneck and backtrack r.
      *
      * - If at any point both r!=b have no predecessors, i.e. they are exposed roots,
      *   we are done and found an augmenting path.
-     *   * The augmenting path data are the two filled ddfs stacks.
-     *   * Reconstruct the blue path's erased portion.
+     * - If neither trail can get around the bottleneck, the bottleneck is the base of
+     *   a new bloom.
      */
 
     void push_dfs(int& h, bool c, int v, int w) {
-        assert(node[h].vis != ddfsid || (node[h].color == c && node[h].arc[c] > 1));
+        assert(node[h].vis != ddfsid || (node[h].color == c && node[h].arc > 1));
         node[h].vis = ddfsid;
         node[h].color = c;
-        node[w].arc[c] = 0;
+        node[w].arc = 0;
         node[w].trail[c].hi = h;
         node[w].trail[c].lo = v;
         h = w;
     }
 
+    bool pop_dfs(int& h, bool c) {
+        h = node[h].trail[c].hi;
+        int i = node[h].arc, s = pred[h].size();
+        return i < s;
+    }
+
     void advance_dfs(int& h, bool c) {
-        int& i = node[h].arc[c];
+        int& i = node[h].arc;
         int v = pred[h][i++], w = findstar(v);
         lazy_erase_predecessors(h, i);
         push_dfs(h, c, v, w);
     }
 
-    bool pop_dfs(int& h, bool c) {
-        h = node[h].trail[c].hi;
-        int i = node[h].arc[c], s = pred[h].size();
-        return i < s;
-    }
-
     bool reverse_dfs(int& h, int c, int b) {
-        if (h == b)
-            return false;
-        bool ok;
-        do {
+        bool ok = false;
+        while (!ok && h != b) {
             ok = pop_dfs(h, c);
-        } while (!ok && h != b);
+        }
         return ok;
     }
 
@@ -425,7 +423,7 @@ struct micali_vazirani {
 
         int red_barrier = r;
         ++ddfsid, barrier = b;
-        node[r].arc[0] = node[b].arc[1] = 0;
+        node[r].arc = node[b].arc = 0;
         node[r].trail[0] = node[b].trail[1] = {};
 
         while (node[r].minlevel != 0 || node[b].minlevel != 0) {
@@ -452,7 +450,7 @@ struct micali_vazirani {
     int MAX() {
         int augmentations = 0;
         for (int peak = bridges.head[phase]; peak != -1; peak = bridges.next[peak]) {
-            int red = edge[peak][0], blue = edge[peak][1];
+            auto [red, blue] = edge[peak];
             if (node[red].erased || node[blue].erased)
                 continue;
 
@@ -497,8 +495,8 @@ struct micali_vazirani {
      *     - the peak bridge (e)
      *     - the base (barrier)
      *
-     * All nodes reachable from the peak through predecessor edges up to the barrier have
-     * been visited and properly colored. All these nodes constitute the bloom.
+     * All nodes reachable from the peak through predecessor edges up to the barrier
+     * have been visited and properly colored. All these nodes constitute the bloom.
      * Every node u in this bloom has been colored red or blue such that:
      *   a) If u is red  there is a red  path from u to the red  peak node.
      *      If u is blue there is a blue path from u to the blue peak node.
@@ -507,54 +505,44 @@ struct micali_vazirani {
      *   c) If u is red there  isn't necessarily a red  path from u to the base.
      *      If u is blue there isn't necessarily a blue path from u to the base.
      *
-     * a) This invariant allow us to find a path from any node u to a peak using only one
-     * color. If an augmenting path is found through the bloom that needs to go "around"
-     * the bloom, this path is used to go from the first node to the peak, making sure
-     * to use only one color as another disjoint path going down must be found too.
-     *   We optimistically assume such an augmenting path will be found, so to facilitate
-     * its construction, we assign bloom successors to every node alongside their
-     * maxlevels. If P(u) is a path of u's color from u to the peak, then the bloom
-     * successor of u is the "guide" prop edge e that leads to the second node in P(u).
-     * Suppose ddfs, to reach u, went from vertex v through edge e, pointing to w.
-     * Then u = base*(w) and the successor prop of u is edge e. The second node in P(u)
-     * is v, before expanding blooms. Storing the edge e instead of v allows us to know
-     * the vertex w immediately to expand the blooms up to u.
+     * a) This invariant allow us to find a path from any node u to a peak using only
+     * one color. If an augmenting path is found through the bloom that needs to go
+     * "around" the bloom, this path is used to go from the first node to the peak,
+     * making sure to use only one color as another disjoint path going down must be
+     * found too. We optimistically assume such an augmenting path will be found, so
+     * to facilitate its construction, we assign bloom successors to every node
+     * alongside their maxlevels. If P(u) is a path of u's color from u to the peak,
+     * then the bloom successor of u is the "guide" prop edge e that leads to the
+     * second node in P(u). Suppose ddfs, to reach u, went from vertex v through edge
+     * e, pointing to w. Then u = base*(w) and the successor prop of u is edge e. The
+     * second node in P(u) is v, before expanding blooms. Storing the edge e instead
+     * of v allows us to know the vertex w immediately to expand the blooms up to u.
      *
-     * b) These paths correspond to the red and blue trails constructed during ddfs. We
-     * didn't store these, but we can recover them quickly with a naive dfs following
-     * predecessors of the same color.
-     *   If an augmenting path is found through the bloom that needs to go "around" the
-     * bloom, this path is used to go down from the peak to the base, making sure to use
-     * the opposite color of that used to go from the first node to the peak.
-     *   To identify this "primary petal" we assign bloom predecessors to the nodes
-     * on it. Only one such petal is constructed for each color.
+     * b) These paths correspond to the red and blue trails constructed during ddfs.
+     * We didn't store these, but we can recover them quickly with a naive dfs
+     * following predecessors of the same color. If an augmenting path is found
+     * through the bloom that needs to go "around" the bloom, this path is used to go
+     * down from the peak to the base, making sure to use the opposite color of that
+     * used to go from the first node to the peak. To identify this "primary petal" we
+     * assign bloom predecessors to the nodes on it. Only one such petal is
+     * constructed for each color.
      *
-     * c) This happens because the ddfs might backtrack successfully more than one node,
-     * leaving for example a blue node with only red predecessor nodes. Such nodes were
-     * removed from the trail but are still part of the bloom.
-     *   If an augmenting path is found through the bloom that needs to "descend" the
-     * bloom directly, i.e. not go "around" it, then the colors don't matter as only a
+     * c) This happens because the ddfs might backtrack successfully more than one
+     * node, leaving for example a blue node with only red predecessor nodes. Such
+     * nodes were removed from the trail but are still part of the bloom. If an
+     * augmenting path is found through the bloom that needs to "descend" the bloom
+     * directly, i.e. not go "around" it, then the colors don't matter as only a
      * single subpath through the bloom is needed, not two disjoint ones.
-     *
-     * Observation 1
-     * - Because the bloom's nodes are found skipping nested blooms, we unfortunately
-     * cannot find the primary petals and assign maxlevels/bloom ids simultaneously.
-     * Therefore we must find the primary petals first and only then assign maxlevels.
-     *
-     * Observation 2
-     * - The bloom may be one-sided, i.e. it is possible for either the red or blue
-     *   trails to be empty (but not both, that would be a ddfs no-op).
      *
      * Be careful not to touch the bloom's base in any way.
      *
      * ***** Algorithm
      *
-     * - Perform greedy dfs to find the primary petals. To avoid revisiting nodes that
-     * lead to deadends give them a dummy pred value, -2.
+     * - To form the primary red and blue petals, walk the trail pointers starting at
+     *   the base. Both color trails have been filled.
+     * - Perform dfs to assign maxlevels, bloom ids, and identify bridges.
      *   - Visit only pred nodes of the same color.
-     *   - Once the base is found stop searching, assign preds and finish quickly.
-     * - Perform dfs to assign maxlevels, bloom successors, and bloom ids.
-     *   - Visit only pred nodes of the same color.
+     *   - Avoid revisiting nodes reachable in multiple ways.
      *   - For bloom nodes with even maxlevel, look for bridges out of the bloom.
      */
 
@@ -562,7 +550,7 @@ struct micali_vazirani {
         for (bool c : {0, 1}) {
             int u = barrier, v = node[u].trail[c].hi;
             while (v != -1) {
-                node[v].lead = node[u].trail[c].lo;
+                node[v].petal = node[u].trail[c].lo;
                 u = v, v = node[u].trail[c].hi;
             }
         }
@@ -622,40 +610,19 @@ struct micali_vazirani {
      * If an augmenting path is found we identify:
      *     - the peak bridge (e)
      *     - the red and blue trails, properly colored, including exposed nodes
-     *
-     *   Unfortunately the blue trail might be partial if the barrier moved down from b,
-     * in which case we just run dfs to reconstruct the missing path.
-     * The red trail is instact, all the way from the red peak to the red exposed node.
-     * Both trails skip nested blooms, which must be expanded. That will be the bane
-     * of our existence here.
+     *       the trails can be walked starting at the exposed nodes
      *
      *   Each trail red/blue identifies a sequence of nodes t=u(0),u(1),u(2),...,u(n)
-     * such that t is the red/blue peak and u(n) is an exposed vertex. The two sequences
-     * are disjoint by construction. To construct the full path with expanded nested
-     * blooms, consider the segment [u(i), u(i+1)]. There is an edge e incident on u(i)
-     * such that v=other(e, u(i)) and u(i+1)=base*(v). To find out the edge e, we can
-     * reuse the arc vector from ddfs; this arc is intact for the red path and is
-     * reconstructed alongside the blue path.
-     *
-     *   If v is not in a bloom then u(i+1)=v and this is a basic segment not requiring
-     * any bloom expansion. Otherwise this segment needs to be expanded with the subpath
-     * from v to u(i+1). This segment may contain blooms nested both recursively (if in
-     * the path from v to base(v) there are nested blooms) and iteratively (if base(v) is
-     * not base*(v)=u(i+1)).
-     *   When "entering" a new bloom, an orientation must be determined based on whether
-     * the entering node is outer or inner. If the entering node is outer (like 3 and 4
-     * in the figure) then the path through the bloom is simply "straight down" to the
-     * base. However, if the entering node is inner (like 1,2,5,6 in the figure)
-     * then the path is "around" the bloom and goes through the bloom's peak bridge.
-     * The path going up and the path going down cannot intersect, which is why we need
-     * colors to guide our walk.
+     * such that t is the red/blue peak and u(n) is an exposed vertex. The two
+     * sequences are disjoint by construction.
      *
      * ***** Algorithm
      *
      * - For each trail red/blue with color c and top t:
-     *   - Expand the initial bloom of t, if it exists.
-     *   - Expand each segment [u(i),u(i+1)], i=0,...,n-1, finding the edge using arc[].
-     *   - Add u(n), the exposed node.
+     *   - Expand the initial bloom-star of t, if it exists.
+     *   - Walk the trail, starting at u(n). Expand the bloom-star contracted in
+     *                        [trail[u(i)][c].lo, u(i)],
+     *     then append u(i), for i=n,n-1,...,1, and finally append t.
      *   - Be careful to maintain the path's correct direction throughout.
      * - Join the two expanded paths.
      * - Augment the constructed path by inverting all edges along it.
@@ -727,7 +694,7 @@ struct micali_vazirani {
         while (u != base) {
             if (node[u].bloom == B) {
                 add_path(path, down, u);
-                u = node[u].lead; // take a predecessor of the same color
+                u = node[u].petal; // take a predecessor of the same color
             } else {
                 add_path(path, down, walk_bloom(u, down));
                 u = bloom[node[u].bloom].base;
@@ -772,13 +739,14 @@ struct micali_vazirani {
         auto rest = find_path(edge[peak][1], 1, true);
         path.splice(end(path), rest);
 
+        assert(path.size() == 2u * phase + 2);
+
         auto ait = begin(path), bit = next(ait);
         while (bit != end(path)) {
             int u = *ait++, v = *bit++;
             assert(!node[u].erased && !node[v].erased);
-            if (mate[v] != u) {
+            if (mate[v] != u)
                 mate[u] = v, mate[v] = u;
-            }
         }
         for (int u : path) {
             node[u].erased = true;
