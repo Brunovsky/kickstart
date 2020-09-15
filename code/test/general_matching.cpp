@@ -6,8 +6,8 @@
 #include "../debug_print.hpp"
 #include "../graph_formats.hpp"
 #include "../graph_generator.hpp"
+#include "chrono.hpp"
 
-using namespace std::chrono;
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;
 
@@ -191,21 +191,21 @@ void scaling_test(int R, int V, int E) {
         shuffle_adj(gs[i]);
     }
 
-    auto now = steady_clock::now();
+    START(run);
     for (int i = 0; i < R; i++) {
         auto vg = to_mv(gs[i]);
         vg.bootstrap();
         vg.max_matching();
     }
-    auto time = duration_cast<milliseconds>(steady_clock::now() - now).count();
+    TIME(run);
+    PRINT(run);
 
-    print("\r time: {}ms\n", time);
-
-    double ratio = 1e6 * time / (1.0 * R * E * sqrt(V));
+    double ratio = 1e6 * time_run / (1.0 * R * E * sqrt(V));
     print("ratio: {:.2f}\n", ratio);
 }
 
 void scaling_tests(double M = 1) {
+    START(scaling);
     scaling_test(M * 2000, 200, 300);
     scaling_test(M * 600, 200, 2000);
     scaling_test(M * 800, 500, 800);
@@ -213,20 +213,26 @@ void scaling_tests(double M = 1) {
     scaling_test(M * 80, 5000, 7000);
     scaling_test(M * 40, 5000, 12000);
     scaling_test(M * 10, 5000, 70000);
-    scaling_test(M * 3, 5000, 230000);
+    scaling_test(M * 3, 5000, 230'000);
     scaling_test(M * 30, 10000, 15000);
     scaling_test(M * 24, 10000, 25000);
-    scaling_test(M * 5, 10000, 150000);
+    scaling_test(M * 5, 10000, 150'000);
     scaling_test(M * 14, 20000, 30000);
     scaling_test(M * 9, 20000, 45000);
-    scaling_test(M * 2, 20000, 400000);
+    scaling_test(M * 2, 20000, 400'000);
     scaling_test(M * 6, 30000, 50000);
     scaling_test(M * 5, 30000, 70000);
-    scaling_test(M * 1, 30000, 550000);
-    scaling_test(M * 2, 50000, 80000);
-    scaling_test(M * 1, 50000, 780000);
-    scaling_test(M * 1, 100000, 150000);
+    scaling_test(M * 1, 30000, 550'000);
+    scaling_test(M * 4, 50000, 80000);
+    scaling_test(M * 1, 50000, 780'000);
+    scaling_test(M * 3, 100000, 150'000);
+    scaling_test(M * 2, 100000, 250'000);
+    scaling_test(M * 2, 100000, 350'000);
     scaling_test(M * 1, 100000, 1'000'000);
+    scaling_test(M * 2, 200000, 300'000);
+    scaling_test(M * 2, 250000, 300'000);
+    TIME(scaling);
+    PRINT(scaling);
 }
 
 void performance_test(int R, int V, int E) {
@@ -245,29 +251,29 @@ void performance_test(int R, int V, int E) {
     print("\n");
 
     // boost
-    auto boost_now = steady_clock::now();
+    START(boost);
     for (int i = 0; i < R; i++) {
         auto bg = to_boost(gs[i]);
         bans[i] = boost_matching_size(bg);
         print("\rboost {}", i + 1);
     }
-    auto boost_time = duration_cast<milliseconds>(steady_clock::now() - boost_now);
-    print("\nboost time: {}ms\n", boost_time.count());
+    TIME(boost);
+    PRINT(boost);
 
     // mv
     int errors = 0;
-    auto mv_now = steady_clock::now();
+    START(mv);
     for (int i = 0; i < R; i++) {
         auto vg = to_mv(gs[i]);
         vg.bootstrap();
         vans[i] = vg.max_matching();
         errors += vans[i] != bans[i];
     }
-    auto mv_time = duration_cast<milliseconds>(steady_clock::now() - mv_now);
-    print("\n   mv time: {}ms\n", mv_time.count());
+    TIME(mv);
+    PRINT(mv);
     print("errors: {}\n", errors);
 
-    double ratio = 1e6 * mv_time.count() / (1.0 * R * E * sqrt(V));
+    double ratio = 1e6 * time_mv / (1.0 * R * E * sqrt(V));
     print("ratio: {:.2f}\n", ratio);
 }
 
@@ -289,12 +295,11 @@ void performance_tests(double M) {
 }
 
 int main() {
-    mt.seed(23);
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
     // run_dataset_tests();
     random_test(10000);
-    scaling_tests(1);
+    scaling_tests(3);
     performance_tests(0.5);
     return 0;
 }

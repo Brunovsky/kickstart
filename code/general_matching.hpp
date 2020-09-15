@@ -2,6 +2,7 @@
 #define GENERAL_MATCHING_HPP
 
 #include "hash.hpp"
+#include "integer_data_structures.hpp"
 
 // *****
 
@@ -24,7 +25,9 @@
  *   - no hashtables used
  *   - no data structure required to hold a bloom's support
  *   - efficient storage of phaselists and bridges
- *   - very good greedy bootstrap algorithm that runs in O(V + E) time
+ *   - two very good greedy maximal matching algorithms that run in O(V + E) time
+ *       - node_bootstrap() generally yields a better maximal matching
+ *       - edge_bootstrap() is simpler and also good
  *   - extended search phases supported, tunable
  */
 struct micali_vazirani {
@@ -45,29 +48,74 @@ struct micali_vazirani {
         E++;
     }
 
-    void bootstrap() {
-        vector<vector<int>> sumbuck(2 * V), minbuck(V);
+    void node_bootstrap() {
+        linked_lists buck(V, V);
+        vector<int> cnt(V, 0);
+        for (int u = 0; u < V; u++) {
+            if (mate[u] == -1 && !adj[u].empty()) {
+                cnt[u] = adj[u].size();
+                buck.push_back(cnt[u], u);
+            }
+        }
+        int s = 1;
+        while (s < V) {
+            if (buck.empty(s)) {
+                s++;
+                continue;
+            }
+            int u = buck.head(s);
+            buck.erase(u);
+            assert(mate[u] == -1);
+            for (int e : adj[u]) {
+                int v = other(e, u);
+                if (mate[v] == -1) {
+                    mate[u] = v, mate[v] = u;
+                    buck.erase(v);
+                    break;
+                }
+            }
+            if (mate[u] == -1)
+                continue;
+            for (int w : {u, mate[u]}) {
+                for (int e : adj[w]) {
+                    int t = other(e, w);
+                    if (mate[t] == -1) {
+                        cnt[t]--;
+                        buck.erase(t);
+                        if (cnt[t] > 0) {
+                            buck.push_back(cnt[t], t);
+                            s = min(s, cnt[t]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void edge_bootstrap() {
+        forward_lists sumbuck(2 * V, E), minbuck(V, E);
         for (int e = 0; e < E; e++) {
             auto [u, v] = edge[e];
             int s = adj[u].size() + adj[v].size();
-            sumbuck[s].push_back(e);
+            sumbuck.push(s, e);
         }
-        for (int s = 0; s < 2 * V; s++) {
-            for (int e : sumbuck[s]) {
+        for (int s = 2 * V - 1; s >= 0; s--) {
+            FOR_EACH_IN_FORWARD_LIST (e, s, sumbuck) {
                 auto [u, v] = edge[e];
                 int m = min(adj[u].size(), adj[v].size());
-                minbuck[m].push_back(e);
+                minbuck.push(m, e);
             }
         }
-        sumbuck.clear();
         for (int m = 0; m < V; m++) {
-            for (int e : minbuck[m]) {
+            FOR_EACH_IN_FORWARD_LIST (e, m, minbuck) {
                 auto [u, v] = edge[e];
                 if (mate[u] == mate[v]) // both -1
                     mate[u] = v, mate[v] = u;
             }
         }
     }
+
+    void bootstrap() { node_bootstrap(); }
 
     int max_matching() {
         int more = 1;
@@ -91,7 +139,7 @@ struct micali_vazirani {
         int minlevel = inf, maxlevel = inf, level[2] = {inf, inf};
         int vis = -1, bloom = -1, petal = -1;
         link_t trail[2] = {};
-        int arc = 0;
+        int arc[2] = {};
         bool color = 0, erased = 0;
 
         inline void clear() { *this = node_t(); }
@@ -376,10 +424,10 @@ struct micali_vazirani {
      */
 
     void push_dfs(int& h, bool c, int v, int w) {
-        assert(node[h].vis != ddfsid || (node[h].color == c && node[h].arc > 1));
+        assert(node[h].vis != ddfsid || (node[h].color == c && node[h].arc[c] > 1));
         node[h].vis = ddfsid;
         node[h].color = c;
-        node[w].arc = 0;
+        node[w].arc[c] = 0;
         node[w].trail[c].hi = h;
         node[w].trail[c].lo = v;
         h = w;
@@ -387,18 +435,18 @@ struct micali_vazirani {
 
     bool pop_dfs(int& h, bool c) {
         h = node[h].trail[c].hi;
-        int i = node[h].arc, s = pred[h].size();
+        int i = node[h].arc[c], s = pred[h].size();
         return i < s;
     }
 
     void advance_dfs(int& h, bool c) {
-        int& i = node[h].arc;
+        int& i = node[h].arc[c];
         int v = pred[h][i++], w = findstar(v);
         lazy_erase_predecessors(h, i);
         push_dfs(h, c, v, w);
     }
 
-    bool reverse_dfs(int& h, int c, int b) {
+    bool reverse_dfs(int& h, bool c, int b) {
         bool ok = false;
         while (!ok && h != b) {
             ok = pop_dfs(h, c);
@@ -406,7 +454,7 @@ struct micali_vazirani {
         return ok;
     }
 
-    bool backtrack_dfs(int& h, int c, int b) {
+    bool backtrack_dfs(int& h, bool c, int b) {
         int x = h, lvl = node[x].minlevel;
         while ((h == x || node[h].minlevel > lvl) && reverse_dfs(h, c, b)) {
             do {
@@ -423,7 +471,7 @@ struct micali_vazirani {
 
         int red_barrier = r;
         ++ddfsid, barrier = b;
-        node[r].arc = node[b].arc = 0;
+        node[r].arc[0] = node[b].arc[1] = 0;
         node[r].trail[0] = node[b].trail[1] = {};
 
         while (node[r].minlevel != 0 || node[b].minlevel != 0) {

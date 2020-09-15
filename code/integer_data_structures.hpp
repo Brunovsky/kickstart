@@ -20,47 +20,65 @@ using namespace std;
  */
 
 /**
+ * Dynamic queue over the integers [0...M), allowing ints to be released from anywhere
+ * in the queue.
+ */
+struct int_freelist {
+    int N, head = 0;
+    vector<int> next;
+
+    // N: number of integers (integers[0...N))
+    explicit int_freelist(int N = 0) { assign(N); }
+
+    bool empty() const { return head == N; }
+    bool taken(int n) { return next[n] != -1; }
+    int request(int n = 0) { return n = head, head = next[n], next[n] = -1, n; }
+    void release(int n) { assert(next[n] == -1), next[n] = head, head = n; }
+    void clear() { head = N, fill(begin(next), end(next), -1); }
+    void reset() { head = 0, iota(begin(next), end(next), 1); }
+    void assign(int N) { this->N = N, next.resize(N), reset(); }
+};
+
+/**
  * Numbered collection of forward linked lists over the integers [0...N).
  * Each list maintains a head pointer and each int maintains a next pointer.
  * With appropriate usage the lists are kept acyclic and disjoint, but the usage can
  * be more exotic.
  * Caution: next pointers are not reset by clear()
+ * Usage examples:
+ *     forward adjacency lists for directed graphs
+ *         fl.push(u, e) // add edge e to node u's adjacency list
+ *         FOR_EACH_IN_FORWARD_LIST(e, u, fl) // iterate u's outedges
+ *     directed trees with only parent pointers
+ *         fl.push(p, c) // set the parent of c to p
+ *     bucket sorting
+ *         fl.push(b, n) // add value n to bucket b
  */
 struct forward_lists {
     int L, N;
-    vector<int> head, next;
+    vector<int> next;
 
-    // L: number of lists (lists [0...L)), N: number of integers (integers [0...N))
+    // L: lists are [0...L), N: integers are [0...N)
     explicit forward_lists(int L = 0, int N = 0) { assign(L, N); }
 
-    // start a new list l with the integer n
-    void init(int l, int n) { head[l] = n, next[n] = -1; }
-    // copy list b to list l
-    void copy(int l, int b) { head[l] = head[b]; }
-    // set the start of list l to integer n
-    void view(int l, int n) { head[l] = n; }
-    // swap lists l and t
-    void swap(int l, int t) { swap(head[l], head[t]); }
-    // whether list l is empty
-    bool empty(int l) const { return head[l] == -1; }
-    // clear list l
-    void clear(int l) { head[l] = -1; }
+    int rep(int l) const { return l + N; }
+    int head(int l) const { return next[rep(l)]; }
+    bool empty(int l) const { return head(l) == -1; }
 
-    // push integer n into the head of list l
-    void push(int l, int n) { next[n] = head[l], head[l] = n; }
+    void init(int l, int n) { next[rep(l)] = n, next[n] = -1; }
+    void clear(int l) { next[rep(l)] = -1; }
+    void exchange(int l, int t) { swap(next[rep(l)], next[rep(t)]); }
 
-    // clear all lists
-    void clear() { fill(begin(head), end(head), -1); }
+    void push(int l, int n) { insert(rep(l), n); }
+    void insert(int i, int n) { next[n] = next[i], next[i] = n; }
+    void pop(int l) { assert(head(l) != -1), next[rep(l)] = next[head(l)]; }
 
-    // reset the structure
-    void assign(int L, int N) {
-        this->L = L, this->N = N;
-        head.assign(L, -1), next.assign(N, -1);
-    }
+    void clear() { fill(begin(next) + N, end(next), -1); }
+    void assign(int L, int N) { this->L = L, this->N = N, next.assign(L + N, -1); }
 };
 
 #define FOR_EACH_IN_FORWARD_LIST(i, l, lists) \
-    for (int i = lists.head[l]; i != -1; i = lists.next[i])
+    for (int i = lists.head(l); i != -1; i = lists.next[i])
 
 /**
  * Numbered collection of doubly linked lists over the integers [0...N)
@@ -73,105 +91,49 @@ struct linked_lists {
     int L, N;
     vector<int> next, prev;
 
-    // L: number of lists (lists [0...L)), N: number of integers (integers [0...N))
+    // L: lists are [0...L), N: integers are [0...N)
     explicit linked_lists(int L = 0, int N = 0) { assign(L, N); }
 
-    // start a new list l with the integer n.
-    void init(int l, int n) { meet(rep(l), n, rep(l)); }
-    // head of a list l (first integer)
-    int head(int l) const { return next[rep(l)]; }
-    // tail of a list l (last integer)
-    int tail(int l) const { return prev[rep(l)]; }
-    // representative of a list l.
     int rep(int l) const { return l + N; }
-    // whether list l is empty
+    int head(int l) const { return next[rep(l)]; }
+    int tail(int l) const { return prev[rep(l)]; }
     bool empty(int l) const { return next[rep(l)] == rep(l); }
-    // clear list l
+
+    void init(int l, int n) { meet(rep(l), n, rep(l)); }
     void clear(int l) { next[rep(l)] = prev[rep(l)] = rep(l); }
-    // swap lists l and t
-    void swap(int l, int t) {
-        std::swap(next[rep(l)], next[rep(t)]);
-        std::swap(prev[rep(l)], prev[rep(t)]);
+    void exchange(int l, int t) {
+        swap(next[rep(l)], next[rep(t)]), swap(prev[rep(l)], prev[rep(t)]);
     }
 
-    // insert integer n into the front of list l.
     void push_front(int l, int n) { meet(rep(l), n, head(l)); }
-    // insert integer n into the back of list l.
     void push_back(int l, int n) { meet(tail(l), n, rep(l)); }
-    // insert integer n before integer i into i's list.
     void insert_before(int i, int n) { meet(prev[i], n, i); }
-    // insert integer n after integer i into i's list.
     void insert_after(int i, int n) { meet(i, n, next[i]); }
-    // erase integer n from its list.
     void erase(int n) { meet(prev[n], next[n]); }
+    void pop_front(int l) { meet(rep(l), next[head(l)]); }
+    void pop_back(int l) { meet(prev[tail(l)], rep(l)); }
 
-    // splice list b into the front of list l, and clear list b.
     void splice_front(int l, int b) { assert(l != b), splice_before(head(l), b); }
-    // splice list b into the back of list l, and clear list b.
     void splice_back(int l, int b) { assert(l != b), splice_after(tail(l), b); }
-    // splice list b before integer i into i's list, and clear list b. i must have a prev.
     void splice_before(int i, int b) {
         if (!empty(b))
             meet(prev[i], head(b)), meet(tail(b), i), clear(b);
     }
-    // splice list b after integer i into i's list, and clear list b. i must have a next.
     void splice_after(int i, int b) {
         if (!empty(b))
             meet(tail(b), next[i]), meet(i, head(b)), clear(b);
     }
 
-    // clear all lists
     void clear() {
-        iota(begin(next) + N, end(next), N);
-        iota(begin(prev) + N, end(prev), N);
+        iota(begin(next) + N, end(next), N), iota(begin(prev) + N, end(prev), N);
     }
-
-    // reset the structure
     void assign(int L, int N) {
-        this->L = L, this->N = N;
-        next.resize(N + L), prev.resize(N + L);
-        clear();
+        this->L = L, this->N = N, next.resize(N + L), prev.resize(N + L), clear();
     }
 
   private:
     inline void meet(int u, int v) { next[u] = v, prev[v] = u; }
     inline void meet(int u, int v, int w) { meet(u, v), meet(v, w); }
-};
-
-/**
- * Linked lists augmented with a list of unused list numbers, so that an unused list can
- * be requested when needed and released when used.
- */
-template <typename lists>
-struct ondemand_lists : lists {
-    int h = 0;
-    vector<int> que;
-
-    // L: number of lists (lists [0...L)), N: number of integers (integers [0...N))
-    explicit ondemand_lists(int L = 0, int N = 0) { assign(L, N); }
-
-    // request a new unused list number
-    int demand() { return give_one(); }
-    // clear list l and release it
-    void clear(int l) { lists::clear(l), take_one(l); }
-    // clear all lists
-    void clear() { lists::clear(), take_all(); }
-    // reset the structure
-    void assign(int L, int N) { lists::assign(L, N), que.resize(L), take_all(); }
-
-  private:
-    int give_one() {
-        assert(h != lists::L);
-        int u = h;
-        h = que[h], que[u] = -1;
-        return u;
-    }
-    void take_one(int l) {
-        if (que[l] == -1) {
-            que[l] = h, h = l;
-        }
-    }
-    void take_all() { h = 0, iota(begin(que), end(que), 1); }
 };
 
 #define FOR_EACH_IN_LINKED_LIST(i, l, lists) \
@@ -181,7 +143,7 @@ struct ondemand_lists : lists {
     for (int i = lists.tail(l); i != lists.rep(l); i = lists.prev[i])
 
 /**
- * Forest of rooted trees over the integers [0...N)
+ * Forest of rooted trees over the integers [0...N) with basic splice operations only
  * Each node maintains a parent pointer and next/prev pointers for its siblings. Each
  * node may or may not belong to the forest. The forest is implicitly rooted on the
  * phantom node N. Roots of the forest are the childs of N. Each node n has a
@@ -191,79 +153,81 @@ struct ondemand_lists : lists {
  */
 struct int_forest {
     int N, S;
+    vector<int> parent, next;
+
+    // N: integers are [0...N), do_init: call init(u) for every u.
+    explicit int_forest(int N = 0, bool do_init = 0) { assign(N, do_init); }
+
+    int rep(int n) const { return n + N + 1; }
+    int head(int n) const { return next[rep(n)]; }
+    bool contains(int n) const { return parent[n] != -1; }
+    bool empty(int n) const { return head(n) > N; }
+    bool empty() const { return empty(N); }
+
+    void init(int n) { assert(parent[n] == -1), adopt(N, n); }
+    void clear(int n) {
+        assert(empty(n));
+        if (parent[n] != -1) {
+            assert(n == head(parent[n]));
+            next[rep(parent[n])] = next[n], parent[n] = -1;
+        }
+    }
+    void adopt(int p, int n) {
+        assert(0 <= n && n < N && 0 <= p && p <= N && n != p && parent[n] != p);
+        next[n] = next[rep(p)], next[rep(p)] = n, parent[n] = p;
+    }
+    void insert(int i, int n) {
+        assert(0 <= i && i < N && 0 <= n && n < N && i != n);
+        next[n] = next[i], next[i] = n, parent[n] = parent[i];
+    }
+
+    void clear(bool do_init = 0) {
+        int R = N + 1, P = do_init ? N : -1;
+        auto x = parent.data(), n = next.data();
+        fill(x + 0, x + N, P); // parent[n] = N or -1
+        iota(n + 0, n + R, R); // next[n] = rep(n)
+        iota(n + R, n + S, R); // next[rep(n)] = rep(n)
+        x[N] = N;
+    }
+    void assign(int N, bool do_init = 0) {
+        this->N = N, this->S = 2 * N + 2;
+        parent.resize(N + 1), next.resize(S);
+        clear(do_init);
+    }
+};
+
+struct linked_int_forest {
+    int N, S;
     vector<int> parent, next, prev;
 
-    explicit int_forest(int N = 0, bool empty_forest = 1) { assign(N, empty_forest); }
+    // N: integers are [0...N), do_init: call init(u) for every u.
+    explicit linked_int_forest(int N = 0, bool do_init = 0) { assign(N, do_init); }
 
-    // representative of a node n.
     int rep(int n) const { return n + N + 1; }
-    // head of the sibling list of node n (first element)
     int head(int n) const { return next[rep(n)]; }
-    // tail of the sibling list of node n (last element)
     int tail(int n) const { return prev[rep(n)]; }
-    // head and tail of sibling list of node n
-    pair<int, int> sibl(int n) const { return {head(n), tail(n)}; }
-    // next sibling of n.
-    int next_sibling(int n) const { return next[n]; }
-    // prev sibling of n.
-    int prev_sibling(int n) const { return prev[n]; }
-    // whether node n is in the forest.
+    void init(int n) { assert(parent[n] == -1), splice(N, n); }
     bool contains(int n) const { return parent[n] != -1; }
-    // whether the tree rooted at n has no children.
     bool empty(int n) const { return head(n) > N; }
-    // whether the forest has no trees.
     bool empty() const { return empty(N); }
-    // whether n is a representative node.
+    void clear(int n) { assert(empty(n)), meet(prev[n], next[n]), parent[n] = -1; }
     bool is_rep(int n) const { return n > N; }
 
-    // place n in the forest as a unit tree (n must not be in the forest)
-    void place(int n) { assert(parent[n] == -1), splice(N, n); }
-    // drop n from the forest (n must not have any children)
-    void drop(int n) { assert(empty(n)), meet(prev[n], next[n]), parent[n] = -1; }
-
-    // splice n's tree and place it after node s, so that n and s becomes siblings.
     void splice_after(int s, int n) {
-        assert(n < N && s <= N && parent[s] != -1);
+        assert(0 <= n && n < N && 0 <= s && s <= N && s != n && parent[s] != -1);
         meet(prev[n], next[n]), meet(s, n, next[s]), parent[n] = parent[s];
     }
-    // splice n's tree and place it after node s, so that n and s becomes siblings.
     void splice_before(int s, int n) {
-        assert(n < N && s <= N && parent[s] != -1);
+        assert(0 <= n && n < N && 0 <= s && s <= N && s != n && parent[s] != -1);
         meet(prev[n], next[n]), meet(prev[s], n, s), parent[n] = parent[s];
     }
-    // splice n's tree and set n's parent to p, anywhere in p's child list.
     void splice(int p, int n) {
         assert(n < N && p <= N && n != p && p != -1 && parent[n] != p);
         meet(prev[n], next[n]), meet(tail(p), n, rep(p)), parent[n] = p;
     }
 
-    // swap n and m tree positions. careful of cycles.
-    void swap_places(int n, int m) {
-        assert(n < N && m < N && n != m);
-        swap(parent[n], parent[m]), permute(n, m);
-    }
-
-    // swap n with its parent in O(#siblings(n)) time
-    void promote(int n) {
-        assert(n < N && parent[n] != -1 && parent[n] < N && !empty(parent[n]));
-        int p = parent[n];
-        int rn = rep(n), hn = head(n), tn = tail(n);
-        int rp = rep(p), hp = head(p), tp = tail(p);
-        parent[n] = parent[p], permute(n, p);
-        if (empty(n)) {
-            meet(rn, hp), meet(tp, rn);
-            next[rp] = prev[rp] = rp;
-        } else {
-            meet(rp, hn), meet(tn, rp);
-            meet(rn, hp), meet(tp, rn);
-        }
-        for (int i = head(n); i != rep(n); i = next[i])
-            parent[i] = n;
-    }
-
-    // reset the forest to either an empty forest or N unit trees
-    void clear(bool empty_forest = 1) {
-        int R = N + 1, P = empty_forest ? -1 : N;
+    void clear(bool do_init = 0) {
+        int R = N + 1, P = do_init ? N : -1;
         auto x = parent.data(), n = next.data(), p = prev.data();
         fill(x + 0, x + N, P); // parent[n] = N or -1
         iota(n + 0, n + R, R); // next[n] = rep(n)
@@ -272,26 +236,15 @@ struct int_forest {
         iota(p + R, p + S, R); // prev[rep(n)] = rep(n)
         x[N] = N;
     }
-
-    // reset the structure, updating N
-    void assign(int N, bool empty_forest = 1) {
+    void assign(int N, bool do_init = 0) {
         this->N = N, this->S = 2 * N + 2;
         parent.resize(N + 1), next.resize(S), prev.resize(S);
-        clear(empty_forest);
+        clear(do_init);
     }
 
   private:
     inline void meet(int n, int m) { next[n] = m, prev[m] = n; }
     inline void meet(int n, int m, int k) { meet(n, m), meet(m, k); }
-    inline void permute(int n, int m) {
-        int a = prev[n], b = next[n], c = prev[m], d = next[m];
-        if (b == m) // a n m d --> a m n d
-            meet(a, m, n), meet(m, n, d);
-        else if (a == m) // c m n b --> c n m b
-            meet(c, n, m), meet(n, m, b);
-        else // a n b .. c m d --> a m b .. c n d
-            meet(a, m, b), meet(c, n, d);
-    }
 };
 
 #define FOR_EACH_CHILD_INT_TREE(i, n, forest) \
@@ -301,10 +254,10 @@ struct int_forest {
     for (int i = forest.tail(n); !forest.is_rep(i); i = forest.prev[i])
 
 #define FOR_EACH_NEXT_SIBLING_INT_TREE(i, s, forest) \
-    for (int i = forest.next_sibling(s); !forest.is_rep(i); i = forest.next[i])
+    for (int i = forest.next[s]; !forest.is_rep(i); i = forest.next[i])
 
 #define FOR_EACH_PREV_SIBLING_INT_TREE(i, s, forest) \
-    for (int i = forest.prev_sibling(s); !forest.is_rep(i); i = forest.prev[i])
+    for (int i = forest.prev[s]; !forest.is_rep(i); i = forest.prev[i])
 
 #define FOR_EACH_ANCESTOR_INT_TREE(i, n, forest) \
     for (int i = forest.parent[n]; i != forest.N; i = forest.parent[i])
@@ -354,8 +307,9 @@ struct binary_heap {
 
   private:
     void heapify_up(int i) {
-        while (i > 0 && comp(c[i], c[(i - 1) >> 1])) // while c[i] < c[parent(i)]
+        while (i > 0 && comp(c[i], c[(i - 1) >> 1])) { // while c[i] < c[parent(i)]
             exchange(i, (i - 1) >> 1), i = (i - 1) >> 1;
+        }
     }
 
     void heapify_down(int i) {

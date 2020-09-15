@@ -285,7 +285,7 @@ void add_grid_edges(Graph& g, int X, int Y, int dx, int dy) {
 }
 
 template <typename Graph>
-void add_circular_grid_edges(Graph& g, int X, int Y, bool dx, bool dy) {
+void add_circular_grid_edges(Graph& g, int X, int Y, int dx, int dy) {
     assert((dx || dy) && 0 <= dx && 0 <= dy);
     for (int x = 0; x < X; x++)
         for (int y = 0; y < Y; y++)
@@ -293,7 +293,7 @@ void add_circular_grid_edges(Graph& g, int X, int Y, bool dx, bool dy) {
 }
 
 template <typename Graph>
-void add_grid3_edges(Graph& g, int X, int Y, int Z, bool dx, bool dy, bool dz) {
+void add_grid3_edges(Graph& g, int X, int Y, int Z, int dx, int dy, int dz) {
     assert(dx || dy || dz);
     assert(0 <= dx && dx <= X && 0 <= dy && dy <= Y && 0 <= dz && dz <= Z);
     for (int x = 0; x + dx < X; x++)
@@ -304,7 +304,7 @@ void add_grid3_edges(Graph& g, int X, int Y, int Z, bool dx, bool dy, bool dz) {
 }
 
 template <typename Graph>
-void add_circular_grid3_edges(Graph& g, int X, int Y, int Z, bool dx, bool dy, bool dz) {
+void add_circular_grid3_edges(Graph& g, int X, int Y, int Z, int dx, int dy, int dz) {
     assert((dx || dy || dz) && 0 <= dx && 0 <= dy && 0 <= dz);
     for (int x = 0; x < X; x++)
         for (int y = 0; y < Y; y++)
