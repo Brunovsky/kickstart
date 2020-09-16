@@ -8,6 +8,19 @@
 
 // *****
 
+void test_dancing_links() {
+    dancing_links_matrix dl(6, 6);
+
+    assert(dl.north({4, 4}) == int2({3, 4}));
+    assert(dl.south({4, 4}) == int2({5, 4}));
+    assert(dl.west({4, 4}) == int2({4, 3}));
+    assert(dl.west({5, 1}) == int2({5, 0}));
+    assert(dl.east({4, 4}) == int2({4, 5}));
+    assert(dl.east({2, 5}) == int2({2, 6}));
+    dl.remove({3, 4});
+    assert(dl.north({4, 4}) == int2({2, 4}));
+}
+
 void test_forward_lists() {
     forward_lists fl(6, 20);
     //                 0  1  2  3  4  5
@@ -325,6 +338,7 @@ void test_heap(const string& name, int R) {
 int main() {
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
+    test_dancing_links();
     test_forward_lists();
     test_linked_lists();
     test_freelist();
