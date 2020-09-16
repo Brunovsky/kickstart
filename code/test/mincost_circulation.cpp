@@ -71,8 +71,8 @@ void run_test(Test& test) {
     } else {
         print("infeasible | ----\n");
     }
-    debug(g.flow);
-    debug(g.cost);
+    debugn(g.flow);
+    debugn(g.cost);
 }
 
 void run_dataset_tests() {

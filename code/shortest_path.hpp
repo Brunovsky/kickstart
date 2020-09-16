@@ -254,7 +254,9 @@ struct bellman_ford {
 
         for (int e = 0; e < E; e++) {
             int u = source[e], v = target[e];
-            assert(dist[u] + weight[e] >= dist[v]);
+            if (dist[u] + weight[e] >= dist[v]) {
+                throw runtime_error("bellman_ford: negative cycle detected");
+            }
         }
     }
 
@@ -320,7 +322,9 @@ struct johnsons {
 
         for (int e = 0; e < E; e++) {
             int u = source[e], v = target[e];
-            assert(dist[s][u] + weight[e] >= dist[s][v]);
+            if (dist[s][u] + weight[e] >= dist[s][v]) {
+                throw runtime_error("bellman_ford: negative cycle detected");
+            }
         }
     }
 

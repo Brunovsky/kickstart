@@ -57,7 +57,7 @@ inline void reverse_bits(uint& v) {
     for (uint s##subset = (mask), subset = s##subset & (s##subset - 1); subset; \
          subset = s##subset & (subset - 1))
 
-inline string lsbits(uint v, uint bits = 32) {
+string lsbits(uint v, uint bits = 32) {
     string s(bits, '0');
     FOR_EACH_BIT (v, n, bit)
         if (n < bits)
@@ -65,7 +65,7 @@ inline string lsbits(uint v, uint bits = 32) {
     return s;
 }
 
-inline string msbits(uint v, uint bits = 32) {
+string msbits(uint v, uint bits = 32) {
     string s(bits, '0');
     FOR_EACH_BIT (v, n, bit)
         if (n < bits)

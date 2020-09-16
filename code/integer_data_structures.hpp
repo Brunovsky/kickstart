@@ -1,13 +1,8 @@
 #ifndef INTEGER_DATA_STRUCTURES_HPP
 #define INTEGER_DATA_STRUCTURES_HPP
 
-#include <cassert>
-#include <cstdlib>
-#include <list>
-#include <numeric>
-#include <vector>
-
-using namespace std;
+#include "bits.hpp"
+#include "debug_print.hpp"
 
 // *****
 
@@ -143,103 +138,170 @@ struct linked_lists {
     for (int i = lists.tail(l); i != lists.rep(l); i = lists.prev[i])
 
 /**
- * Forest of rooted trees over the integers [0...N) with basic splice operations only
- * Each node maintains a parent pointer and next/prev pointers for its siblings. Each
+ * Forest of rooted trees over the integers [0...N) with basic splice operations
+ * for forward lists.
+ * Each node maintains a parent pointer and a next pointer for its siblings. Each
  * node may or may not belong to the forest. The forest is implicitly rooted on the
  * phantom node N. Roots of the forest are the childs of N. Each node n has a
- * representative rep(n) which is used to maintain the next/prev pointers, just like
- * in linked_lists. With appropriate usage the trees are kept acyclic and disjoint,
- * but the usage can be more exotic.
+ * representative rep(n) which is the first node of its child list.
+ * With appropriate usage the trees are kept acyclic and disjoint, but the usage can be
+ * more exotic.
  */
 struct int_forest {
-    int N, S;
+    int N, S = 0;
     vector<int> parent, next;
 
-    // N: integers are [0...N), do_init: call init(u) for every u.
-    explicit int_forest(int N = 0, bool do_init = 0) { assign(N, do_init); }
+    // N: integers are [0...N)
+    explicit int_forest(int N = 0) { assign(N); }
 
+    bool is_root(int n) const { return n < N && parent[n] == N; }
     int rep(int n) const { return n + N + 1; }
     int head(int n) const { return next[rep(n)]; }
     bool contains(int n) const { return parent[n] != -1; }
-    bool empty(int n) const { return head(n) > N; }
-    bool empty() const { return empty(N); }
+    bool empty(int n) const { return head(n) == -1; }
+    bool empty() const { return S == 0; }
 
-    void init(int n) { assert(parent[n] == -1), adopt(N, n); }
+    void init(int n) { splice_front(N, n); }
     void clear(int n) {
-        assert(empty(n));
-        if (parent[n] != -1) {
-            assert(n == head(parent[n]));
-            next[rep(parent[n])] = next[n], parent[n] = -1;
-        }
+        assert(0 <= n && n < N && contains(n) && n == head(parent[n]));
+        S--, next[rep(parent[n])] = next[n], parent[n] = -1;
     }
-    void adopt(int p, int n) {
-        assert(0 <= n && n < N && 0 <= p && p <= N && n != p && parent[n] != p);
-        next[n] = next[rep(p)], next[rep(p)] = n, parent[n] = p;
+    void splice_front(int p, int n) {
+        assert(0 <= n && n < N && 0 <= p && p <= N && p != n && parent[n] != p);
+        assert((!contains(n) || n != head(parent[n])) && contains(p));
+        S += !contains(n), next[n] = next[rep(p)], next[rep(p)] = n, parent[n] = p;
     }
-    void insert(int i, int n) {
+    void splice_after(int i, int n) {
         assert(0 <= i && i < N && 0 <= n && n < N && i != n);
-        next[n] = next[i], next[i] = n, parent[n] = parent[i];
+        assert((!contains(n) || n != head(parent[n])) && contains(i));
+        S += !contains(n), next[n] = next[i], next[i] = n, parent[n] = parent[i];
+    }
+    void splice_children_front(int p, int n) {
+        assert(0 <= n && n < N && 0 <= p && p <= N && p != n && contains(p));
+        int v, u = head(n);
+        while (u != -1)
+            v = next[u], splice_front(p, u), u = v;
+        next[rep(n)] = -1;
+    }
+    void splice_children_after(int i, int n) {
+        assert(0 <= n && n < N && 0 <= i && i < N && i != n && contains(i));
+        int v, u = head(n);
+        while (u != -1)
+            v = next[u], splice_after(i, u), u = v;
+        next[rep(n)] = -1;
+    }
+    void sibling_adopt_self(int n) {
+        assert(0 <= n && n < N && next[n] != -1 && contains(n));
+        int m = next[n], u = next[m];    // n->m->u   becomes   n->u
+        splice_front(n, m), next[n] = u; //                     m
+    }
+    void sibling_adopt_next(int n) {
+        assert(0 <= n && n != N && next[n] != -1 && next[next[n]] != -1);
+        int m = next[n], u = next[m];    // n->m->u   becomes   n->u
+        splice_front(u, m), next[n] = u; //                        m
     }
 
-    void clear(bool do_init = 0) {
-        int R = N + 1, P = do_init ? N : -1;
+    void clear() {
+        int R = N + 1, E = 2 * R;
         auto x = parent.data(), n = next.data();
-        fill(x + 0, x + N, P); // parent[n] = N or -1
-        iota(n + 0, n + R, R); // next[n] = rep(n)
-        iota(n + R, n + S, R); // next[rep(n)] = rep(n)
-        x[N] = N;
+        S = 0;
+        fill(x, x + N, -1); // parent[n] = -1
+        fill(n, n + E, -1); // next[n] = head(n) = -1
     }
-    void assign(int N, bool do_init = 0) {
-        this->N = N, this->S = 2 * N + 2;
-        parent.resize(N + 1), next.resize(S);
-        clear(do_init);
+    void assign(int N) {
+        this->N = N;
+        parent.resize(N), next.resize(2 * N + 2);
+        clear();
     }
 };
 
+/**
+ * Forest of rooted trees over the integers [0...N) with basic splice operations
+ * for doubly linked lists.
+ * Each node maintains a parent pointer and a next/prev pointer for its siblings. Each
+ * node may or may not belong to the forest. The forest is implicitly rooted on the
+ * phantom node N. Roots of the forest are the childs of N. Each node n has a
+ * representative rep(n) which is the first node of its child list.
+ * With appropriate usage the trees are kept acyclic and disjoint, but the usage can be
+ * more exotic.
+ */
 struct linked_int_forest {
-    int N, S;
+    int N, S = 0;
     vector<int> parent, next, prev;
 
-    // N: integers are [0...N), do_init: call init(u) for every u.
-    explicit linked_int_forest(int N = 0, bool do_init = 0) { assign(N, do_init); }
+    // N: integers are [0...N)
+    explicit linked_int_forest(int N = 0) { assign(N); }
 
+    bool is_rep(int n) const { return n > N; }
+    bool is_root(int n) const { return n < N && parent[n] == N; }
     int rep(int n) const { return n + N + 1; }
     int head(int n) const { return next[rep(n)]; }
     int tail(int n) const { return prev[rep(n)]; }
-    void init(int n) { assert(parent[n] == -1), splice(N, n); }
     bool contains(int n) const { return parent[n] != -1; }
     bool empty(int n) const { return head(n) > N; }
-    bool empty() const { return empty(N); }
-    void clear(int n) { assert(empty(n)), meet(prev[n], next[n]), parent[n] = -1; }
-    bool is_rep(int n) const { return n > N; }
+    bool empty() const { return S == 0; }
 
+    void init(int n) { splice_back(N, n); }
+    void clear(int n) {
+        assert(0 <= n && n < N && contains(n) && empty(n));
+        S--, parent[n] = -1;
+        meet(prev[n], next[n]), prev[n] = next[n] = rep(n);
+    }
+    void splice_front(int p, int n) {
+        assert(0 <= n && n < N && 0 <= p && p <= N && n != p && (p == N || contains(p)));
+        S += !contains(n), parent[n] = p;
+        meet(prev[n], next[n]), meet(rep(p), n, head(p));
+    }
+    void splice_back(int p, int n) {
+        assert(0 <= n && n < N && 0 <= p && p <= N && n != p && (p == N || contains(p)));
+        S += !contains(n), parent[n] = p;
+        meet(prev[n], next[n]), meet(tail(p), n, rep(p));
+    }
     void splice_after(int s, int n) {
-        assert(0 <= n && n < N && 0 <= s && s <= N && s != n && parent[s] != -1);
-        meet(prev[n], next[n]), meet(s, n, next[s]), parent[n] = parent[s];
+        assert(0 <= n && n < N && 0 <= s && s <= N && s != n && contains(s));
+        S += !contains(n), parent[n] = parent[s];
+        meet(prev[n], next[n]), meet(s, n, next[s]);
     }
     void splice_before(int s, int n) {
-        assert(0 <= n && n < N && 0 <= s && s <= N && s != n && parent[s] != -1);
-        meet(prev[n], next[n]), meet(prev[s], n, s), parent[n] = parent[s];
+        assert(0 <= n && n < N && 0 <= s && s <= N && s != n && contains(s));
+        S += !contains(n), parent[n] = parent[s];
+        meet(prev[n], next[n]), meet(prev[s], n, s);
     }
-    void splice(int p, int n) {
-        assert(n < N && p <= N && n != p && p != -1 && parent[n] != p);
-        meet(prev[n], next[n]), meet(tail(p), n, rep(p)), parent[n] = p;
+    void splice_children_front(int p, int n) {
+        assert(0 <= n && n < N && 0 <= p && p <= N && n != p && (p == N || contains(p)));
+        while (!empty(n))
+            splice_front(p, head(n));
+    }
+    void splice_children_back(int p, int n) {
+        assert(0 <= n && n < N && 0 <= p && p <= N && n != p && (p == N || contains(p)));
+        while (!empty(n))
+            splice_back(p, head(n));
+    }
+    void splice_children_after(int s, int n) {
+        assert(0 <= n && n < N && 0 <= s && s < N && n != s && contains(s));
+        while (!empty(n))
+            splice_after(s, head(n));
+    }
+    void splice_children_before(int s, int n) {
+        assert(0 <= n && n < N && 0 <= s && s < N && n != s && contains(s));
+        while (!empty(n))
+            splice_before(s, head(n));
     }
 
-    void clear(bool do_init = 0) {
-        int R = N + 1, P = do_init ? N : -1;
+    void clear() {
+        int R = N + 1, E = 2 * R;
         auto x = parent.data(), n = next.data(), p = prev.data();
-        fill(x + 0, x + N, P); // parent[n] = N or -1
-        iota(n + 0, n + R, R); // next[n] = rep(n)
-        iota(n + R, n + S, R); // next[rep(n)] = rep(n)
-        iota(p + 0, p + R, R); // prev[n] = rep(n)
-        iota(p + R, p + S, R); // prev[rep(n)] = rep(n)
-        x[N] = N;
+        S = 0;
+        fill(x + 0, x + N, -1); // parent[n] = -1
+        iota(n + 0, n + R, R);  // next[n] = rep(n)
+        iota(n + R, n + E, R);  // next[rep(n)] = rep(n)
+        iota(p + 0, p + R, R);  // prev[n] = rep(n)
+        iota(p + R, p + E, R);  // prev[rep(n)] = rep(n)
     }
-    void assign(int N, bool do_init = 0) {
-        this->N = N, this->S = 2 * N + 2;
-        parent.resize(N + 1), next.resize(S), prev.resize(S);
-        clear(do_init);
+    void assign(int N) {
+        this->N = N;
+        parent.resize(N), next.resize(2 * N + 2), prev.resize(2 * N + 2);
+        clear();
     }
 
   private:
@@ -267,54 +329,50 @@ struct linked_int_forest {
  * By default a min-heap, but you'll usually need a custom compare (e.g. dijkstra).
  */
 template <typename Compare = less<>>
-struct binary_heap {
-    vector<int> c, idx;
+struct binary_int_heap {
+    vector<int> c, id;
     Compare comp;
 
-    explicit binary_heap(int N = 0, const Compare& comp = Compare())
-        : c(0, 0), idx(N, -1), comp(comp) {}
+    explicit binary_int_heap(int N = 0, const Compare& comp = Compare())
+        : c(0, 0), id(N, -1), comp(comp) {}
 
     bool empty() const { return c.empty(); }
-    uint size() const { return c.size(); }
-    bool contains(int n) const { return idx[n] != -1; }
-    int top() const { return assert(!empty()), c[0]; }
-    void clear() {
-        for (int n : c)
-            idx[n] = -1;
-        c.clear();
-    }
+    size_t size() const { return c.size(); }
+    bool contains(int n) const { return id[n] != -1; }
+    int top() const { return c[0]; }
 
     void push(int n) {
         assert(!contains(n));
-        idx[n] = c.size(), c.push_back(n);
-        heapify_up(idx[n]);
+        id[n] = c.size(), c.push_back(n);
+        heapify_up(id[n]);
     }
 
     int pop() {
         assert(!empty());
         int n = c[0];
         swap(c[0], c.back());
-        idx[c[0]] = 0, idx[n] = -1;
+        id[c[0]] = 0, id[n] = -1;
         c.pop_back();
         heapify_down(0);
         return n;
     }
 
-    void improve(int n) { assert(contains(n)), heapify_up(idx[n]); }
-    void decline(int n) { assert(contains(n)), heapify_down(idx[n]); }
+    void improve(int n) { assert(contains(n)), heapify_up(id[n]); }
+    void decline(int n) { assert(contains(n)), heapify_down(id[n]); }
     void push_or_improve(int n) { contains(n) ? improve(n) : push(n); }
     void push_or_decline(int n) { contains(n) ? decline(n) : push(n); }
 
   private:
+    inline int parent(int i) const { return (i - 1) >> 1; }
+    inline int child(int i) const { return i << 1 | 1; }
     void heapify_up(int i) {
-        while (i > 0 && comp(c[i], c[(i - 1) >> 1])) { // while c[i] < c[parent(i)]
-            exchange(i, (i - 1) >> 1), i = (i - 1) >> 1;
+        while (i > 0 && comp(c[i], c[parent(i)])) { // while c[i] < c[parent(i)]
+            exchange(i, parent(i)), i = parent(i);
         }
     }
-
     void heapify_down(int i) {
         int k, S = c.size();
-        while ((k = i << 1 | 1) < S) {
+        while ((k = child(i)) < S) {
             if (k + 1 < S && !comp(c[k], c[k + 1])) // if c[rchild(i)] <= c[lchild(i)]
                 k++;
             if (!comp(c[k], c[i])) // break if c[i] <= c[minchild(i)]
@@ -322,8 +380,99 @@ struct binary_heap {
             exchange(i, k), i = k;
         }
     }
+    void exchange(int i, int j) { swap(id[c[i]], id[c[j]]), swap(c[i], c[j]); }
+};
 
-    void exchange(int i, int j) { swap(idx[c[i]], idx[c[j]]), swap(c[i], c[j]); }
+/**
+ * Pairing heap over the unique integers [0...N)
+ * By default a min-heap, but you'll usually need a custom compare.
+ * Unfortunately slower than binary_int_heap in practice.
+ *
+ * Operation complexities
+ *             O(1)      push(u)
+ *             O(1)      decrease_key(u)
+ *             O(1)      top()
+ *           O(log n)*   pop()
+ */
+template <typename Compare = less<>>
+struct pairing_int_heap {
+    linked_int_forest forest;
+    Compare comp;
+
+    explicit pairing_int_heap(int N, const Compare& comp = Compare())
+        : forest(N), comp(comp) {}
+
+    bool empty() const { return forest.empty(); }
+    size_t size() const { return forest.S; }
+    bool contains(int n) const { return forest.contains(n); }
+    int top() const { return forest.head(forest.N); }
+
+    void push(int n) {
+        assert(0 <= n && n < forest.N && !contains(n));
+        if (forest.empty()) {
+            forest.init(n);
+        } else {
+            make_root(n);
+        }
+    }
+
+    int pop() {
+        assert(!empty());
+        int n = top();
+        forest.splice_children_back(forest.N, n);
+        forest.clear(n);
+        multi_pass_pairing();
+        return n;
+    }
+
+    void improve(int n) {
+        assert(0 <= n && n < forest.N && contains(n));
+        if (forest.parent[n] != forest.N && comp(n, forest.parent[n])) {
+            make_root(n);
+        }
+    }
+    void push_or_improve(int n) { contains(n) ? improve(n) : push(n); }
+
+  private:
+    void make_root(int n) {
+        if (comp(n, top())) {
+            forest.splice_front(forest.N, n);
+        } else {
+            forest.splice_back(forest.N, n);
+        }
+    }
+    int meld(int u, int v) {
+        if (comp(u, v)) {
+            forest.splice_front(u, v);
+            return u;
+        } else {
+            forest.splice_front(v, u);
+            return v;
+        }
+    }
+    void two_pass_pairing() {
+        if (empty())
+            return;
+        int u = top(), v = forest.next[u];
+        while (!forest.is_rep(u) && !forest.is_rep(v)) {
+            u = forest.next[meld(u, v)], v = forest.next[u];
+        }
+        u = forest.tail(forest.N), v = forest.prev[u];
+        while (!forest.is_rep(v)) {
+            u = meld(u, v), v = forest.prev[u];
+        }
+    }
+    void multi_pass_pairing() {
+        if (empty())
+            return;
+        int u = top(), v = forest.next[u];
+        while (!forest.is_rep(v)) {
+            do {
+                u = forest.next[meld(u, v)], v = forest.next[u];
+            } while (!forest.is_rep(u) && !forest.is_rep(v));
+            u = top(), v = forest.next[u];
+        }
+    }
 };
 
 #endif // INTEGER_DATA_STRUCTURES_HPP
