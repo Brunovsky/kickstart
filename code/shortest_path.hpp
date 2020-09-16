@@ -47,9 +47,8 @@ struct dijkstra {
                 break;
             }
             vis[u] = true;
-            for (auto edge : adj[u]) {
-                int v = edge.first;
-                long cost = dist[u] + edge.second;
+            for (auto [v, w] : adj[u]) {
+                long cost = dist[u] + w;
                 if (!vis[v] && cost < dist[v]) {
                     dist[v] = cost;
                     prev[v] = u;
@@ -118,9 +117,8 @@ struct astar {
                 break;
             }
             vis[u] = true;
-            for (auto edge : adj[u]) {
-                int v = edge.first;
-                long cost = dist[u] + edge.second;
+            for (auto [v, w] : adj[u]) {
+                long cost = dist[u] + w;
                 if (!vis[v] && cost < dist[v]) {
                     dist[v] = cost;
                     prev[v] = u;

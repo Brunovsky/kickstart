@@ -290,7 +290,7 @@ struct linked_int_forest {
     explicit linked_int_forest(int N = 0) { assign(N); }
 
     bool is_rep(int n) const { return n > N; }
-    bool is_root(int n) const { return n < N && parent[n] == N; }
+    bool is_root(int n) const { return parent[n] == N; }
     int rep(int n) const { return n + N + 1; }
     int head(int n) const { return next[rep(n)]; }
     int tail(int n) const { return prev[rep(n)]; }
@@ -326,23 +326,49 @@ struct linked_int_forest {
     }
     void splice_children_front(int p, int n) {
         assert(0 <= n && n < N && 0 <= p && p <= N && n != p && (p == N || contains(p)));
-        while (!empty(n))
-            splice_front(p, head(n));
+        if (!empty(n)) {
+            reparent(head(n), rep(n), p);
+            meet(rep(p), head(n)), meet(tail(n), head(p));
+            next[rep(n)] = prev[rep(n)] = rep(n);
+        }
     }
     void splice_children_back(int p, int n) {
         assert(0 <= n && n < N && 0 <= p && p <= N && n != p && (p == N || contains(p)));
-        while (!empty(n))
-            splice_back(p, head(n));
+        if (!empty(n)) {
+            reparent(head(n), rep(n), p);
+            meet(tail(p), head(n)), meet(tail(n), rep(p));
+            next[rep(n)] = prev[rep(n)] = rep(n);
+        }
     }
     void splice_children_after(int s, int n) {
         assert(0 <= n && n < N && 0 <= s && s < N && n != s && contains(s));
-        while (!empty(n))
-            splice_after(s, head(n));
+        if (!empty(n)) {
+            reparent(head(n), rep(n), parent[s]);
+            meet(tail(n), next[s]), meet(s, head(n));
+            next[rep(n)] = prev[rep(n)] = rep(n);
+        }
     }
     void splice_children_before(int s, int n) {
         assert(0 <= n && n < N && 0 <= s && s < N && n != s && contains(s));
-        while (!empty(n))
-            splice_before(s, head(n));
+        if (!empty(n)) {
+            reparent(head(n), rep(n), parent[s]);
+            meet(prev[s], head(n)), meet(tail(n), s);
+            next[rep(n)] = prev[rep(n)] = rep(n);
+        }
+    }
+    void splice_children_front_unsafe(int n) {
+        assert(0 <= n && n < N);
+        if (!empty(n)) {
+            meet(rep(N), head(n)), meet(tail(n), head(N));
+            next[rep(n)] = prev[rep(n)] = rep(n);
+        }
+    }
+    void splice_children_back_unsafe(int n) {
+        assert(0 <= n && n < N);
+        if (!empty(n)) {
+            meet(tail(N), head(n)), meet(tail(n), rep(N));
+            next[rep(n)] = prev[rep(n)] = rep(n);
+        }
     }
 
     void clear() {
@@ -364,6 +390,10 @@ struct linked_int_forest {
   private:
     inline void meet(int n, int m) { next[n] = m, prev[m] = n; }
     inline void meet(int n, int m, int k) { meet(n, m), meet(m, k); }
+    inline void reparent(int u, int e, int p) {
+        while (u != e)
+            parent[u] = p, u = next[u];
+    }
 };
 
 #define FOR_EACH_CHILD_INT_TREE(i, n, forest) \
@@ -482,7 +512,7 @@ struct pairing_int_heap {
     int pop() {
         assert(!empty());
         int n = top();
-        forest.splice_children_back(forest.N, n);
+        forest.splice_children_back_unsafe(n);
         forest.clear(n);
         multi_pass_pairing();
         return n;
@@ -490,7 +520,7 @@ struct pairing_int_heap {
 
     void improve(int n) {
         assert(0 <= n && n < forest.N && contains(n));
-        if (forest.parent[n] != forest.N && comp(n, forest.parent[n])) {
+        if (!forest.is_root(n) && comp(n, forest.parent[n])) {
             make_root(n);
         }
     }
@@ -524,6 +554,7 @@ struct pairing_int_heap {
         while (!forest.is_rep(v)) {
             u = meld(u, v), v = forest.prev[u];
         }
+        forest.parent[u] = forest.N;
     }
     void multi_pass_pairing() {
         if (empty())
@@ -535,6 +566,7 @@ struct pairing_int_heap {
             } while (!forest.is_rep(u) && !forest.is_rep(v));
             u = top(), v = forest.next[u];
         }
+        forest.parent[u] = forest.N;
     }
 };
 
