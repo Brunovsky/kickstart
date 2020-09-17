@@ -435,4 +435,13 @@ struct pairing_int_heaps {
     }
 };
 
+template <typename Container>
+auto less_container(const Container& cont) {
+    return [&cont](int u, int v) { return cont[u] < cont[v]; };
+}
+template <typename Container>
+auto greater_container(const Container& cont) {
+    return [&cont](int u, int v) { return cont[u] > cont[v]; };
+}
+
 #endif // INTEGER_DATA_STRUCTURES_HPP

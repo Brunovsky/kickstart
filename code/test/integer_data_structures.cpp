@@ -202,8 +202,7 @@ void test_pairing_heaps() {
     constexpr int R = 5, N = 15;
 
     long cost[N] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28};
-    auto cmp = [&](int u, int v) { return cost[u] > cost[v]; };
-    pairing_int_heaps<decltype(cmp)> heaps(R, N, cmp);
+    pairing_int_heaps heaps(R, N, greater_container(cost));
     int u;
     (void)u;
 
@@ -317,10 +316,8 @@ void test_heaps(int R) {
         auto g = add_costs(random_uniform_rooted_dag_connected(V, p), 100'000);
 
         vector<long> dist[3];
-        auto cmp1 = [&](int u, int v) { return dist[1][u] < dist[1][v]; };
-        auto cmp2 = [&](int u, int v) { return dist[2][u] < dist[2][v]; };
-        pairing_int_heap<decltype(cmp1)> pairing_heap(V, cmp1);
-        binary_int_heap<decltype(cmp2)> binary_heap(V, cmp2);
+        pairing_int_heap pairing_heap(V, less_container(dist[1]));
+        binary_int_heap binary_heap(V, less_container(dist[2]));
 
         START(dijkstra);
         for (int s = 0; s < V; s += step)
