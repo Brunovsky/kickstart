@@ -3,10 +3,11 @@
 #include "../debug_print.hpp"
 #include "../graph_convert.hpp"
 #include "../graph_generator.hpp"
-#include "../shortest_path.hpp"
 #include "chrono.hpp"
 
 // *****
+
+using int2 = array<int, 2>;
 
 void test_dancing_links() {
     dancing_links_matrix dl(6, 6);
@@ -19,6 +20,8 @@ void test_dancing_links() {
     assert(dl.east({2, 5}) == int2({2, 6}));
     dl.remove({3, 4});
     assert(dl.north({4, 4}) == int2({2, 4}));
+
+    print("OK dancing_links\n");
 }
 
 void test_forward_lists() {
@@ -40,14 +43,15 @@ void test_forward_lists() {
         FOR_EACH_IN_FORWARD_LIST (i, l, fl)
             seen[l].push_back(i);
 
-    print("forward_lists\n");
-    debugh(seen);
+    // print("forward_lists\n"), debugh(seen);
     assert(seen[0] == vector<int>({}));
     assert(seen[1] == vector<int>({2}));
     assert(seen[2] == vector<int>({0, 9, 7, 4, 3}));
     assert(seen[3] == vector<int>({6, 1, 5}));
     assert(seen[4] == vector<int>({8}));
     assert(seen[5] == vector<int>({}));
+
+    print("OK forward_list\n");
 }
 
 void test_linked_lists() {
@@ -100,8 +104,7 @@ void test_linked_lists() {
             bw[l].push_back(i);
     }
 
-    print("linked_lists\n");
-    debugh(fw), debugh(bw);
+    // print("linked_lists\n"), debugh(fw), debugh(bw);
     assert(fw[0] == vector<int>({3, 1, 7, 4, 5, 6, 2}));
     assert(fw[1] == vector<int>({}));
     assert(fw[2] == vector<int>({13, 14, 15, 9, 11, 8, 12, 19, 10, 18, 17, 16}));
@@ -112,6 +115,8 @@ void test_linked_lists() {
     assert(bw[2] == vector<int>({16, 17, 18, 10, 19, 12, 8, 11, 9, 15, 14, 13}));
     assert(bw[3] == vector<int>({}));
     assert(bw[4] == vector<int>({}));
+
+    print("OK linked_list\n");
 }
 
 void test_freelist() {
@@ -178,8 +183,7 @@ void test_freelist() {
             bw[l].push_back(i);
     }
 
-    print("linked_lists + int_freelist\n");
-    debugh(fw), debugh(bw);
+    // print("linked_lists + int_freelist\n"), debugh(fw), debugh(bw);
     assert(fw[0] == vector<int>({3, 1, 7, 4, 5, 6, 2}));
     assert(fw[1] == vector<int>({}));
     assert(fw[2] == vector<int>({13, 14, 15, 9, 11, 8, 12, 19, 10, 18, 17, 16}));
@@ -190,83 +194,98 @@ void test_freelist() {
     assert(bw[2] == vector<int>({16, 17, 18, 10, 19, 12, 8, 11, 9, 15, 14, 13}));
     assert(bw[3] == vector<int>({}));
     assert(bw[4] == vector<int>({}));
+
+    print("OK linked_list + int_freelist\n");
 }
 
-void test_int_forest() {
-    int N = 15;
-    linked_int_forest f(N);
-    f.init(0);
-    f.init(1);
-    f.init(2); // N(0,1,2)
-    assert(f.S == 3);
+void test_pairing_heaps() {
+    constexpr int R = 5, N = 15;
 
-    f.splice_back(1, 3);
-    f.splice_back(1, 4); // N(0,1(3,4),2)
-    f.splice_back(2, 5);
-    f.splice_back(2, 6); // N(0,1(3,4),2(5,6))
-    assert(f.S == 7);
+    long cost[N] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28};
+    auto cmp = [&](int u, int v) { return cost[u] > cost[v]; };
+    pairing_int_heaps<decltype(cmp)> heaps(R, N, cmp);
+    int u;
+    (void)u;
 
-    f.splice_back(0, 2); // N(0(2(5,6)),1(3,4))
-    assert(f.S == 7);
+    heaps.push(0, 1);
+    heaps.push(0, 3);
 
-    f.splice_before(6, 7);
-    f.splice_after(3, 8); // N(0(2(5,7,6)),1(3,8,4))
-    assert(f.S == 9);
+    heaps.push(1, 4);
+    heaps.push(1, 5);
+    heaps.push(1, 2);
+    heaps.push(1, 0);
+    u = heaps.pop(1);
+    assert(u == 5);
 
-    f.clear(5);
-    assert(f.S == 8);
+    heaps.merge(0, 1);
+    assert(heaps.empty(1));
+    u = heaps.pop(0);
+    assert(u == 4);
+    u = heaps.pop(0);
+    assert(u == 3); // 0,1,2 left
 
-    f.init(5);
-    f.init(9); // N(0(2(7,6)),1(3,8,4),5,9)
-    assert(f.S == 10);
+    heaps.push(1, 5);
+    heaps.push(1, 9);
+    u = heaps.pop(1);
+    assert(u == 9);
 
-    f.splice_back(9, 10);
-    f.splice_back(9, 11);
-    f.splice_back(9, 12); // N(0(2(7,6)),1(3,8,4),5,9(10,11,12))
-    f.splice_back(2, 13); // N(0(2(7,6,13)),1(3,8,4),5,9(10,11,12))
-    assert(f.S == 14);
+    heaps.push(2, 7);
+    heaps.push(2, 8);
+    heaps.push(2, 9);
+    u = heaps.pop(2);
+    assert(u == 9);
+    u = heaps.pop(2);
+    assert(u == 8);
+    assert(heaps.top(2) == 7);
 
-    f.init(6);              // N(0(2(7,13)),1(3,8,4),5,9(10,11,12),6)
-    f.splice_before(13, 9); // N(0(2(7,9(10,11,12),13)),1(3,8,4),5,6)
-    f.splice_back(0, 14);   // N(0(2(7,9(10,11,12),13),14),1(3,8,4),5,6)
-    f.splice_back(8, 9);    // N(0(2(7,13),14),1(8(9(10,11,12)),3,4),5,6)
-    assert(f.S == 15);
+    cost[0] = 5;
+    assert(heaps.top(0) == 2);
+    heaps.improve(0, 0);
+    assert(heaps.top(0) == 0);
+    u = heaps.pop(0);
+    assert(u == 0);
+    u = heaps.pop(0);
+    assert(u == 2);
 
-    vector<vector<int>> par(N + 1), child(N + 1);
+    heaps.push_or_improve(0, 3);
+    assert(heaps.top(0) == 3);
 
-    for (int n = 0; n <= N; n++) {
-        FOR_EACH_CHILD_INT_TREE (i, n, f)
-            child[n].push_back(i);
-        if (n < N)
-            FOR_EACH_ANCESTOR_INT_TREE (i, n, f)
-                par[n].push_back(i);
-    }
-
-    print("int_forest\n");
-    diota("u", f.S);
-    debugn(f.parent);
-    debugn(f.next);
-    debugn(f.prev);
-    debugh(par), debugh(child);
+    print("OK pairing_int_heaps\n");
 }
 
-dijkstra to_dijkstra(const cost_digraph& g) {
-    dijkstra runner(g.V);
-    for (int e = 0; e < g.E; e++) {
-        runner.add(g.source[e], g.target[e], g.cost[e]);
-    }
-    return runner;
-}
-
-template <typename Heap>
-void run_dijkstra(const cost_digraph& g, int s, vector<long>& dist, vector<int>& prev,
-                  Heap& Q) {
+void run_normal(const cost_digraph& g, int s, vector<long>& dist) {
     static constexpr long inf = LONG_MAX / 2;
     int V = g.V;
     dist.assign(V, inf);
-    prev.assign(V, -1);
     dist[s] = 0;
-    prev[s] = s;
+
+    using int2 = pair<long, int>;
+    priority_queue<int2, vector<int2>, greater<int2>> Q;
+    Q.push({0, s});
+
+    while (!Q.empty()) {
+        auto [ucost, u] = Q.top();
+        Q.pop();
+        if (dist[u] < ucost) {
+            continue;
+        }
+        for (auto e : g.adj[u]) {
+            int v = g.target[e];
+            long cost = dist[u] + g.cost[e];
+            if (cost < dist[v]) {
+                dist[v] = cost;
+                Q.push({cost, v});
+            }
+        }
+    }
+}
+
+template <typename Heap>
+void run_dijkstra(const cost_digraph& g, int s, vector<long>& dist, Heap& Q) {
+    static constexpr long inf = LONG_MAX / 2;
+    int V = g.V;
+    dist.assign(V, inf);
+    dist[s] = 0;
 
     vector<bool> vis(V, false);
     assert(Q.empty());
@@ -274,65 +293,71 @@ void run_dijkstra(const cost_digraph& g, int s, vector<long>& dist, vector<int>&
 
     while (!Q.empty()) {
         int u = Q.pop();
-        assert(!vis[u]);
-        vis[u] = true;
         for (auto e : g.adj[u]) {
             int v = g.target[e];
             long cost = dist[u] + g.cost[e];
-            if (!vis[v] && cost < dist[v]) {
+            if (cost < dist[v]) {
                 dist[v] = cost;
-                prev[v] = u;
                 Q.push_or_improve(v);
             }
         }
     }
 }
 
-template <template <typename...> typename Heap>
-void test_heap(const string& name, int R) {
-    intd distV(320, 400);
-    reald density(90.0, 150.0);
-    size_t dijkstra_sum = 0, heap_sum = 0;
+void test_heaps(int R) {
+    intd distV(50, 60);
+    reald density(8.0, 12.0);
+    int step = 10;
+    size_t dijkstra_sum = 0, pairing_heap_sum = 0, binary_heap_sum = 0;
 
     for (int i = 1; i <= R; i++) {
-        print("\rtest heap {} {}...", name, i);
+        print("\rtest heap {}...", i);
         int V = distV(mt);
         double p = density(mt) / V;
-        auto g = add_costs(random_uniform_rooted_dag_connected(V, p), 10);
-        dijkstra runner = to_dijkstra(g);
+        auto g = add_costs(random_uniform_rooted_dag_connected(V, p), 100'000);
 
-        vector<long> dist;
-        vector<int> prev;
-        auto cmp = [&](int u, int v) {
-            return dist[u] < dist[v];
-        };
-        using heap_t = Heap<decltype(cmp)>;
-        heap_t Q(V, cmp);
+        vector<long> dist[3];
+        auto cmp1 = [&](int u, int v) { return dist[1][u] < dist[1][v]; };
+        auto cmp2 = [&](int u, int v) { return dist[2][u] < dist[2][v]; };
+        pairing_int_heap<decltype(cmp1)> pairing_heap(V, cmp1);
+        binary_int_heap<decltype(cmp2)> binary_heap(V, cmp2);
 
         START(dijkstra);
-        for (int s = 0; s < V; s++)
-            runner.compute(s);
+        for (int s = 0; s < V; s += step)
+            run_normal(g, s, dist[0]);
         TIME_SHORT(dijkstra);
 
-        START(heap);
-        for (int s = 0; s < V; s++)
-            run_dijkstra(g, s, dist, prev, Q);
-        TIME_SHORT(heap);
+        START(pairing_heap);
+        for (int s = 0; s < V; s += step)
+            run_dijkstra(g, s, dist[1], pairing_heap);
+        TIME_SHORT(pairing_heap);
 
-        if (runner.dist != dist) {
+        START(binary_heap);
+        for (int s = 0; s < V; s += step)
+            run_dijkstra(g, s, dist[2], binary_heap);
+        TIME_SHORT(binary_heap);
+
+        if (dist[0] != dist[1] || dist[0] != dist[2]) {
             print("\n-- wrong answer\n");
-            debugn(dist);
-            debugn(runner.dist);
+            debugn(dist[0]);
+            debugn(dist[1]);
+            debugn(dist[2]);
             break;
         }
 
         dijkstra_sum += time_dijkstra;
-        heap_sum += time_heap;
+        pairing_heap_sum += time_pairing_heap;
+        binary_heap_sum += time_binary_heap;
     }
 
+    double pairingf = 100.0 * pairing_heap_sum / dijkstra_sum;
+    double binaryf = 100.0 * binary_heap_sum / dijkstra_sum;
+
     print("\n");
-    print(" {:>8}ms dijkstra\n", dijkstra_sum / 1000);
-    print(" {:>8}ms heap\n", heap_sum / 1000);
+    print("\t\t{:>8}ms\tstd::priority_queue\n", dijkstra_sum / 1000);
+    print("\t{:4.1f}%\t{:>8}ms\tpairing_int_heap\n", pairingf, pairing_heap_sum / 1000);
+    print("\t{:4.1f}%\t{:>8}ms\tbinary_int_heap\n", binaryf, binary_heap_sum / 1000);
+    print("OK pairing_int_heap\n");
 }
 
 int main() {
@@ -342,8 +367,7 @@ int main() {
     test_forward_lists();
     test_linked_lists();
     test_freelist();
-    test_int_forest();
-    test_heap<pairing_int_heap>("pairing_int_heap", 100);
-    test_heap<binary_int_heap>("binary_int_heap", 100);
+    test_pairing_heaps();
+    test_heaps(200);
     return 0;
 }

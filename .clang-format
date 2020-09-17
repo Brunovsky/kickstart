@@ -20,7 +20,7 @@ AllowShortCaseLabelsOnASingleLine: false
 #AllowShortFunctionsOnASingleLine: All
 AllowShortFunctionsOnASingleLine: All
 #AllowShortLambdasOnASingleLine: All
-AllowShortLambdasOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterReturnType: None

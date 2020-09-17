@@ -34,30 +34,27 @@ struct dijkstra {
         prev[s] = s;
 
         using int2 = pair<long, int>;
-        vector<bool> vis(V, false);
         priority_queue<int2, vector<int2>, greater<int2>> Q;
         Q.push({0, s});
 
         while (!Q.empty()) {
-            int u = Q.top().second;
+            auto [ucost, u] = Q.top();
             Q.pop();
-            if (vis[u]) {
+            if (dist[u] < ucost) {
                 continue;
             } else if (u == t) {
-                break;
+                return dist[t];
             }
-            vis[u] = true;
             for (auto [v, w] : adj[u]) {
                 long cost = dist[u] + w;
-                if (!vis[v] && cost < dist[v]) {
+                if (dist[v] > cost) {
                     dist[v] = cost;
                     prev[v] = u;
                     Q.push({cost, v});
                 }
             }
         }
-
-        return t == -1 ? 0 : dist[t];
+        return -1;
     }
 
     auto path(int v) {
