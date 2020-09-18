@@ -198,7 +198,7 @@ void scaling_test(int R, int V, int E) {
         vg.max_matching();
     }
     TIME(run);
-    PRINT(run);
+    CHRONO_PRINT(run);
 
     double ratio = 1e6 * time_run / (1.0 * R * E * sqrt(V));
     print("ratio: {:.2f}\n", ratio);
@@ -232,7 +232,7 @@ void scaling_tests(double M = 1) {
     scaling_test(M * 2, 200000, 300'000);
     scaling_test(M * 2, 250000, 300'000);
     TIME(scaling);
-    PRINT(scaling);
+    CHRONO_PRINT(scaling);
 }
 
 void performance_test(int R, int V, int E) {
@@ -257,7 +257,7 @@ void performance_test(int R, int V, int E) {
         print("\rboost {}", i + 1);
     }
     TIME(boost);
-    PRINT(boost);
+    CHRONO_PRINT(boost);
 
     // mv
     int errors = 0;
@@ -269,7 +269,7 @@ void performance_test(int R, int V, int E) {
         errors += vans[i] != bans[i];
     }
     TIME(mv);
-    PRINT(mv);
+    CHRONO_PRINT(mv);
     print("errors: {}\n", errors);
 
     double ratio = 1e6 * time_mv / (1.0 * R * E * sqrt(V));

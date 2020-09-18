@@ -2,121 +2,176 @@
 
 #include "../debug_print.hpp"
 #include "../graph_generator.hpp"
-
-using namespace std::chrono;
-using ms = chrono::milliseconds;
+#include "chrono.hpp"
 
 // *****
 
 // T = # tests, A = # test subjects, R = # random tests
-constexpr int T = 5, A = 4, R = 100;
-const char* names[T] = {"sparse flow networks", "dense flow networks",
-                        "very dense flow networks", "large sparse flow networks",
-                        "huge sparse flow networks"};
-int quantity[T] = {1000, 500, 200, 100, 20};
-bool hard[T] = {0, 0, 0, 1, 1};
-vector<flow_graph> graphs[T];
+constexpr int T = 10, A = 4, R = 100;
+const char* names[T] = {"sparse long level flow networks",
+                        "sparse wide level flow networks",
+                        "moderate long level flow networks",
+                        "moderate wide level flow networks",
+                        "dense long level flow networks",
+                        "dense wide level flow networks",
+                        "large sparse long flow networks",
+                        "large sparse wide flow networks",
+                        "complete flow networks",
+                        "3d grid flow networks"};
+int quantity[T] = {400, 400, 400, 400, 400, 400, 30, 30, 100, 500};
+vector<edges_t> graphs;
+vector<cap_t> caps;
+vector<int> gV;
 vector<long> flows[A];
 
-auto generate(int i) {
-    intd distV(30, 200);
-    intd largeV(2000, 4000);
-    intd hugeV(10000, 50000);
-    reald sparse(4.0, 12.0);
-    int V;
-    switch (i) {
-    case 0:
-        V = distV(mt);
-        return random_flow_graph(V, sparse(mt) / V, 100'000'000);
-    case 1:
-        V = distV(mt);
-        return random_flow_graph(V, 0.25, 100'000'000);
-    case 2:
-        V = distV(mt);
-        return random_flow_graph(V, 1.0, 100'000'000);
-    case 3:
-        V = largeV(mt);
-        return random_flow_graph(V, sparse(mt) / V, 100'000'000);
-    case 4:
-        V = hugeV(mt);
-        return random_flow_graph(V, sparse(mt) / V, 100'000'000);
-    default:
-        assert(false);
-    }
-    __builtin_unreachable();
+auto random_cap(int E, long max_cap) {
+    longd dist(1, max_cap);
+    cap_t cap(E);
+    for (int e = 0; e < E; e++)
+        cap[e] = dist(mt);
+    return cap;
 }
 
-void generate_randoms() {
-    for (int t = 0; t < T; t++) {
-        for (int i = 0; i < quantity[t]; i++) {
-            print("\rGenerating {} {}...", names[t], i + 1);
-            graphs[t].push_back(generate(t));
-        }
-        print("\n");
+int generate(int i, edges_t& g, cap_t& cap, long max_cap = 99) {
+    intd smallV(30, 50);
+    intd distV(900, 1300);
+    intd largeV(2000, 3000);
+    intd hugeV(8000, 11000);
+    intd completeV(600, 900);
+    intd gridV(10, 40);
+    reald sparse(5.0, 12.0);
+    reald dense(0.3, 0.6);
+    intd rankd;
+    int V = -1, ranks, m, X, Y, Z;
+    double p;
+    switch (i) {
+    case -1:
+        V = smallV(mt), p = min(1.0, sparse(mt) / sqrt(V));
+        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 0:
+        V = distV(mt), p = sparse(mt) / V;
+        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 1:
+        V = distV(mt), p = sparse(mt) / V;
+        rankd = intd(5, min(V, 20)), ranks = rankd(mt), m = min(20, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 2:
+        V = distV(mt), p = min(1.0, sparse(mt) / sqrt(V));
+        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 3:
+        V = distV(mt), p = min(1.0, sparse(mt) / sqrt(V));
+        rankd = intd(5, min(V, 20)), ranks = rankd(mt), m = min(20, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 4:
+        V = distV(mt), p = min(1.0, dense(mt));
+        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 5:
+        V = distV(mt), p = min(1.0, dense(mt));
+        rankd = intd(5, min(V, 20)), ranks = rankd(mt), m = min(20, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 6:
+        V = hugeV(mt), p = sparse(mt) / V;
+        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 7:
+        V = largeV(mt), p = sparse(mt) / V;
+        rankd = intd(5, min(V, 20)), ranks = rankd(mt), m = min(20, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 8:
+        V = completeV(mt);
+        g = complete_directed(V);
+        break;
+    case 9:
+        X = gridV(mt), Y = gridV(mt), Z = gridV(mt), V = X * Y * Z;
+        g = grid3_directed(X, Y, Z);
+        break;
     }
+    int E = g.size();
+    cap = random_cap(E, max_cap);
+    return V;
+}
+
+void generate_randoms(int t, long max_cap = 100'000) {
+    int Q = quantity[t];
+    graphs.resize(Q);
+    caps.resize(Q);
+    gV.resize(Q);
+    for (int i = 0; i < Q; i++) {
+        print("\rGenerating {} {}...", names[t], i + 1);
+        gV[i] = generate(t, graphs[i], caps[i], max_cap);
+    }
+    print("\n");
 }
 
 template <typename MF, int k>
-void speed_test(const string& name, int t) {
-    int G = graphs[t].size();
-    flows[k].resize(G);
+void speed_test(const string& name) {
+    int T = graphs.size();
+    flows[k].resize(T);
 
-    auto now = steady_clock::now();
-    for (int i = 0; i < G; i++) {
-        const auto& f = graphs[t][i];
-        int V = f.V;
-        MF mf(V);
-        for (int u = 0; u < V; u++) {
-            for (int e : f.adj[u]) {
-                mf.add(u, f.target[e], f.cap[e]);
-            }
-        }
+    START(flow);
+    for (int i = 0; i < T; i++) {
+        int V = gV[i];
+        const auto& g = graphs[i];
+        const auto& cap = caps[i];
+        MF mf(V, g, cap);
         flows[k][i] = mf.maxflow(0, V - 1);
-        if (hard[t])
-            print("\r{} {}", i + 1, flows[k][i]);
+        print("\r{:>4} {}", i + 1, flows[k][i]);
     }
-    auto time = duration_cast<ms>(steady_clock::now() - now);
-
-    print("\r{}\r{}\t{}\n", string(50, ' '), time.count(), name.data());
+    TIME(flow);
+    CHRONO_PRINT_NAME(flow, name);
 }
 
 void test_speed() {
-    generate_randoms();
     for (int t = 0; t < T; t++) {
+        generate_randoms(t);
         print("--- {}  {}\n", t, names[t]);
-        if (!hard[t])
-            speed_test<edmonds_karp, 0>("edmonds karp", t);
-        speed_test<dinitz_flow, 1>("dinitz flow", t);
-        speed_test<push_relabel, 2>("push relabel", t);
-        speed_test<tidal_flow, 3>("tidal flow", t);
+        speed_test<dinitz_flow, 1>("dinitz flow");
+        speed_test<push_relabel, 2>("push relabel");
+        // speed_test<tidal_flow, 3>("tidal flow", t);
 
         print("\n");
+        if (flows[1] != flows[2]) {
+            print("Different answers!\n");
+            int Q = quantity[t], c = 0;
+            for (int i = 0; i < Q && c < 10; i++) {
+                if (flows[1][i] != flows[2][i]) {
+                    print("dinitz: {:8} | ", flows[1][i]);
+                    print("preflow: {:8}\n", flows[2][i]);
+                    c++;
+                }
+            }
+        }
     }
 }
 
 void test_equal(int i) {
     intd distV(10, 20);
-    int V = distV(mt);
-    flow_graph f = random_flow_graph(V, 5.0 / V, 100000);
+    edges_t g;
+    cap_t cap;
+    int V = generate(-1, g, cap, 100'000);
 
-    edmonds_karp flow1(V);
-    dinitz_flow flow2(V);
-    push_relabel flow3(V);
-    tidal_flow flow4(V);
-
-    for (int u = 0; u < V; u++) {
-        for (int e : f.adj[u]) {
-            flow1.add(u, f.target[e], f.cap[e]);
-            flow2.add(u, f.target[e], f.cap[e]);
-            flow3.add(u, f.target[e], f.cap[e]);
-            flow4.add(u, f.target[e], f.cap[e]);
-        }
-    }
+    edmonds_karp flow1(V, g, cap);
+    dinitz_flow flow2(V, g, cap);
+    push_relabel flow3(V, g, cap);
+    // tidal_flow flow4(V, g, cap);
 
     long mf1 = flow1.maxflow(0, V - 1);
     long mf2 = flow2.maxflow(0, V - 1);
     long mf3 = flow3.maxflow(0, V - 1);
-    long mf4 = flow4.maxflow(0, V - 1);
+    long mf4 = mf3; // flow4.maxflow(0, V - 1);
     assert(mf1 != 0);
 
     string spaces(20, ' ');

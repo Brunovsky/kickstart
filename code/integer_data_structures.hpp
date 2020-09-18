@@ -100,13 +100,14 @@ struct int_freelist {
  * be more exotic.
  * Caution: next pointers are not reset by clear()
  * Usage examples:
- *     forward adjacency lists for directed graphs
- *         fl.push(u, e) // add edge e to node u's adjacency list
- *         FOR_EACH_IN_FORWARD_LIST(e, u, fl) // iterate u's outedges
- *     directed trees with only parent pointers
- *         fl.push(p, c) // set the parent of c to p
  *     bucket sorting
- *         fl.push(b, n) // add value n to bucket b
+ *     list of stacks with LIFO semantics
+ *       fl.push(s, n)                     -- add value n to set s
+ *       n = fl.head(s)                    -- read the top of the set s
+ *       fl.pop(s)                         -- pop the top of the set s
+ *       fl.empty(s)                       -- check whether set s is empty
+ *       FOR_EACH_IN_FORWARD_LIST(i,s,fl)  -- iterate the elements of the set
+ *       fl.clear(s)                       -- clear the set s after iterating it
  */
 struct forward_lists {
     int L, N;
@@ -140,6 +141,15 @@ struct forward_lists {
  * With appropriate usage the lists are kept acyclic and disjoint, but the usage can
  * be more exotic.
  * Caution: next/prev pointers (for integers) are not reset by clear()
+ *     bucket sorting
+ *     list of stacks with FIFO semantics
+ *     list of sets with positional insert and erase
+ *       fl.push_back(s, n)                -- add value n to set s
+ *       n = fl.head(s)                    -- read the top of the set s
+ *       fl.pop_front(s)                   -- pop the top of the set s
+ *       fl.empty(s)                       -- check whether set s is empty
+ *       FOR_EACH_IN_LINKED_LIST(i,s,fl)   -- iterate forward the elements of the set s
+ *       fl.clear(s)                       -- clear the set s after iterating it
  */
 struct linked_lists {
     int L, N;
@@ -156,7 +166,9 @@ struct linked_lists {
     void init(int l, int n) { meet(rep(l), n, rep(l)); }
     void clear(int l) { next[rep(l)] = prev[rep(l)] = rep(l); }
     void exchange(int l, int t) {
-        swap(next[rep(l)], next[rep(t)]), swap(prev[rep(l)], prev[rep(t)]);
+        assert(!empty(l) && !empty(t));
+        int a = next[rep(l)], b = next[rep(t)], c = prev[rep(l)], d = prev[rep(t)];
+        meet(rep(t), a), meet(rep(l), b), meet(c, rep(t)), meet(d, rep(l));
     }
 
     void push_front(int l, int n) { meet(rep(l), n, head(l)); }

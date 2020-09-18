@@ -1,11 +1,17 @@
 #include "../integer_data_structures.hpp"
 
 #include "../debug_print.hpp"
-#include "../graph_convert.hpp"
 #include "../graph_generator.hpp"
 #include "chrono.hpp"
 
 // *****
+
+struct cost_graph {
+    int V, E;
+    adjacency_lists_t adj;
+    edges_t edge;
+    vector<long> cost;
+};
 
 using int2 = array<int, 2>;
 
@@ -117,6 +123,126 @@ void test_linked_lists() {
     assert(bw[4] == vector<int>({}));
 
     print("OK linked_list\n");
+}
+
+void test_set_linked_lists() {
+    constexpr int L = 30, N = 5000;
+    intd distL(0, L - 1), distN(0, N - 1), action(0, 99);
+    linked_lists ll(L, N);
+    unordered_set<int> lists[L];
+    unordered_map<int, int> all;
+    int rounds = 500'000;
+    mt.seed(time(nullptr));
+
+    auto walk = [&](int l) {
+        vector<int> a;
+        FOR_EACH_IN_LINKED_LIST (i, l, ll)
+            a.push_back(i);
+        sort(begin(a), end(a));
+        return a;
+    };
+    auto sorted = [&](int l) {
+        vector<int> a(begin(lists[l]), end(lists[l]));
+        sort(begin(a), end(a));
+        return a;
+    };
+    auto verify = [&]() {
+        for (int l = 0; l < L; l++) {
+            if (walk(l) != sorted(l))
+                return false;
+        }
+        return true;
+    };
+
+    for (int i = 1; i <= rounds; i++) {
+        print("\r rounds {}", i);
+        int a = action(mt);
+        if (a < 40) {
+            int l = distL(mt), n = distN(mt), b = action(mt);
+            if (all.count(n)) {
+                ll.erase(n);
+
+                lists[all.at(n)].erase(n), all.erase(n);
+            } else {
+                if (lists[l].empty()) {
+                    ll.init(l, n);
+                } else if (b < 30) {
+                    ll.push_front(l, n);
+                } else if (b < 60) {
+                    ll.push_back(l, n);
+                } else if (b < 80) {
+                    ll.insert_after(ll.head(l), n);
+                } else {
+                    ll.insert_before(ll.tail(l), n);
+                }
+
+                all[n] = l, lists[l].insert(n);
+            }
+        } else if (a < 70) {
+            int l = distL(mt), g = distL(mt), b = action(mt);
+            if (l != g) {
+                if (b < 50 && !lists[l].empty()) {
+                    int n = *lists[l].begin();
+                    if (b < 25) {
+                        ll.splice_after(n, g);
+                    } else {
+                        ll.splice_before(n, g);
+                    }
+                } else if (b < 30) {
+                    ll.splice_front(l, g);
+                } else if (b < 60) {
+                    ll.splice_back(l, g);
+                } else if (b < 80) {
+                    ll.splice_after(ll.head(l), g);
+                } else {
+                    ll.splice_before(ll.tail(l), g);
+                }
+
+                for (int n : lists[g])
+                    all.at(n) = l, lists[l].insert(n);
+                lists[g].clear();
+            }
+        } else if (a < 85) {
+            int l = distL(mt), g = distL(mt);
+            if (!lists[l].empty() && !lists[g].empty()) {
+                ll.exchange(l, g);
+                for (int n : lists[l])
+                    all[n] = g;
+                for (int n : lists[g])
+                    all[n] = l;
+
+                swap(lists[l], lists[g]);
+            }
+        } else if (a < 95) {
+            int l = distL(mt), b = action(mt), n;
+            if (!lists[l].empty()) {
+                if (b < 50) {
+                    n = ll.head(l);
+                    ll.pop_front(l);
+                } else {
+                    n = ll.tail(l);
+                    ll.pop_back(l);
+                }
+
+                assert(lists[l].count(n) && all.at(n) == l);
+                all.erase(n), lists[l].erase(n);
+            }
+        } else {
+            int l = distL(mt);
+            ll.clear(l);
+
+            for (int n : lists[l])
+                all.erase(n);
+            lists[l].clear();
+        }
+        if (action(mt) < 5) {
+            assert(verify());
+        }
+    }
+    if (!verify()) {
+        print("-- incorrect\n");
+    }
+    print("\n");
 }
 
 void test_freelist() {
@@ -252,7 +378,7 @@ void test_pairing_heaps() {
     print("OK pairing_int_heaps\n");
 }
 
-void run_normal(const cost_digraph& g, int s, vector<long>& dist) {
+void run_normal(const cost_graph& g, int s, vector<long>& dist) {
     static constexpr long inf = LONG_MAX / 2;
     int V = g.V;
     dist.assign(V, inf);
@@ -269,7 +395,7 @@ void run_normal(const cost_digraph& g, int s, vector<long>& dist) {
             continue;
         }
         for (auto e : g.adj[u]) {
-            int v = g.target[e];
+            int v = g.edge[e][1];
             long cost = dist[u] + g.cost[e];
             if (cost < dist[v]) {
                 dist[v] = cost;
@@ -280,7 +406,7 @@ void run_normal(const cost_digraph& g, int s, vector<long>& dist) {
 }
 
 template <typename Heap>
-void run_dijkstra(const cost_digraph& g, int s, vector<long>& dist, Heap& Q) {
+void run_dijkstra(const cost_graph& g, int s, vector<long>& dist, Heap& Q) {
     static constexpr long inf = LONG_MAX / 2;
     int V = g.V;
     dist.assign(V, inf);
@@ -293,7 +419,7 @@ void run_dijkstra(const cost_digraph& g, int s, vector<long>& dist, Heap& Q) {
     while (!Q.empty()) {
         int u = Q.pop();
         for (auto e : g.adj[u]) {
-            int v = g.target[e];
+            int v = g.edge[e][1];
             long cost = dist[u] + g.cost[e];
             if (cost < dist[v]) {
                 dist[v] = cost;
@@ -306,14 +432,20 @@ void run_dijkstra(const cost_digraph& g, int s, vector<long>& dist, Heap& Q) {
 void test_heaps(int R) {
     intd distV(50, 60);
     reald density(8.0, 12.0);
+    longd costd(1, 100'000);
     int step = 10;
     size_t dijkstra_sum = 0, pairing_heap_sum = 0, binary_heap_sum = 0;
 
     for (int i = 1; i <= R; i++) {
         print("\rtest heap {}...", i);
-        int V = distV(mt);
+        cost_graph g;
+        int V = g.V = distV(mt);
         double p = density(mt) / V;
-        auto g = add_costs(random_uniform_rooted_dag_connected(V, p), 100'000);
+        g.edge = random_uniform_rooted_dag_connected(V, p);
+        g.E = g.edge.size(), g.adj = make_adjacency_lists_directed(g.edge, V);
+        g.cost.resize(g.E);
+        for (int e = 0; e < g.E; e++)
+            g.cost[e] = costd(mt);
 
         vector<long> dist[3];
         pairing_int_heap pairing_heap(V, less_container(dist[1]));
@@ -363,8 +495,9 @@ int main() {
     test_dancing_links();
     test_forward_lists();
     test_linked_lists();
+    test_set_linked_lists();
     test_freelist();
     test_pairing_heaps();
-    test_heaps(200);
+    // test_heaps(200);
     return 0;
 }
