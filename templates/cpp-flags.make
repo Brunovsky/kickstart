@@ -56,7 +56,7 @@ ifeq ($(COMPILER),clang)
 	WARNS += -Wchar-subscripts -Wshift-sign-overflow
 	WARNS += -Wdynamic-exception-spec
 	WARNS += -Wduplicate-enum -Wduplicate-method-arg -Wduplicate-method-match
-	WARNS += -Wshadow -Wshadow-uncaptured-local
+	WARNS += -Wshadow-uncaptured-local # -Wshadow -Wno-shadow-field-in-constructor
 	WARNS += -Wformat-non-iso -Wformat-pedantic
 	WARNS += -Wextra-semi-stmt -Wnewline-eof
 	WARNS += -Widiomatic-parentheses -Wmissing-braces -Wredundant-parens

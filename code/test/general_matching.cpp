@@ -11,44 +11,20 @@
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;
 
+#pragma clang diagnostic ignored "-Wfloat-conversion"
+
 // *****
 
 const string UNIT_TESTS = "datasets/micali_vazirani.txt";
 const string ERROR_FILE = "datasets/latest_error.txt";
+
+/*
 
 struct Test {
     string name, comment;
     micali_vazirani g;
     int M;
 };
-
-string apply_comment(string lines) {
-    stringstream ss(lines);
-    string commented, line;
-    while (getline(ss, line)) {
-        commented += "# " + line + "\n";
-    }
-    return commented;
-}
-
-[[noreturn]] void logerror(graph& g, micali_vazirani& vg, int M) {
-    ofstream out(ERROR_FILE);
-
-    vector<pair<int, int>> mates;
-    for (int u = 0; u < vg.V; u++)
-        if (u < vg.mate[u])
-            mates.push_back({u, vg.mate[u]});
-
-    int c = mates.size();
-    out << apply_comment(to_dot(g));
-    out << "\nRandom test error\n";
-    out << to_simple(g, format("{} {}", c, M));
-    for (auto [u, v] : mates)
-        out << ' ' << u << ',' << v;
-    out << endl;
-    out.close();
-    exit(0);
-}
 
 micali_vazirani to_mv(const graph& g) {
     micali_vazirani vg(g.V);
@@ -59,43 +35,6 @@ micali_vazirani to_mv(const graph& g) {
         }
     }
     return vg;
-}
-
-bgraph to_boost(const graph& g) {
-    bgraph bg(g.V);
-    for (int u = 0; u < g.V; u++) {
-        for (int v : g.adj[u]) {
-            add_edge(u, v, bg);
-        }
-    }
-    return bg;
-}
-
-int boost_matching_size(const bgraph& bg) {
-    matemap_t mate(num_vertices(bg));
-    boost::edmonds_maximum_cardinality_matching(bg, &mate[0]);
-    int cnt = 0;
-    for (auto& mapped : mate)
-        cnt += mapped != bgraph::null_vertex();
-    return cnt / 2;
-}
-
-int vg_matching_size(graph& g, micali_vazirani& vg, int M) {
-    int ans = vg.max_matching();
-    if (ans != M) {
-        print("Bad matching size\n");
-        logerror(g, vg, M);
-    }
-    return ans;
-}
-
-int vg_matching_size(micali_vazirani& vg) {
-    try {
-        return vg.max_matching();
-    } catch (string error) {
-        print("\r Error: {}\n", error);
-        exit(0);
-    }
 }
 
 Test read_unit_test(istream& in) {
@@ -154,6 +93,69 @@ void run_dataset_tests() {
     read_unit_tests(tests, file);
     for_each(begin(tests), end(tests), run_test);
 }
+*/
+
+string apply_comment(string lines) {
+    stringstream ss(lines);
+    string commented, line;
+    while (getline(ss, line)) {
+        commented += "# " + line + "\n";
+    }
+    return commented;
+}
+
+[[noreturn]] void logerror(const edges_t& g, micali_vazirani& vg, int M) {
+    ofstream out(ERROR_FILE);
+
+    vector<pair<int, int>> mates;
+    for (int u = 0; u < vg.V; u++)
+        if (u < vg.mate[u])
+            mates.push_back({u, vg.mate[u]});
+
+    int c = mates.size();
+    out << apply_comment(compact_dot(g, vg.V));
+    out << "\nRandom test error\n";
+    out << to_simple(g, vg.V, format("{} {}", c, M));
+    for (auto [u, v] : mates)
+        out << ' ' << u << ',' << v;
+    out << endl;
+    out.close();
+    exit(0);
+}
+
+int vg_matching_size(const edges_t& g, micali_vazirani& vg, int M) {
+    int ans = vg.max_matching();
+    if (ans != M) {
+        print("Bad matching size\n");
+        logerror(g, vg, M);
+    }
+    return ans;
+}
+
+int vg_matching_size(micali_vazirani& vg) {
+    try {
+        return vg.max_matching();
+    } catch (string error) {
+        print("\r Error: {}\n", error);
+        exit(0);
+    }
+}
+
+bgraph to_boost(const edges_t& g, int V) {
+    bgraph bg(V);
+    for (auto [u, v] : g)
+        add_edge(u, v, bg);
+    return bg;
+}
+
+int boost_matching_size(const bgraph& bg) {
+    matemap_t mate(num_vertices(bg));
+    boost::edmonds_maximum_cardinality_matching(bg, &mate[0]);
+    int cnt = 0;
+    for (auto& mapped : mate)
+        cnt += mapped != bgraph::null_vertex();
+    return cnt / 2;
+}
 
 void random_test(int R) {
     intd distV(18, 30);
@@ -162,11 +164,10 @@ void random_test(int R) {
 
     for (int i = 1; i <= R; i++) {
         int V = distV(mt), E = int(V * distE(mt));
-        auto g = random_exact_undirected_connected(V, E);
-        g = relabel(g);
-        shuffle_adj(g);
-        bgraph bg = to_boost(g);
-        micali_vazirani vg = to_mv(g);
+        auto g = relabel(random_exact_undirected_connected(V, E), V);
+        shuffle(begin(g), end(g), mt);
+        bgraph bg = to_boost(g, V);
+        micali_vazirani vg(V, g);
         int M = boost_matching_size(bg);
         int ans = vg_matching_size(g, vg, M);
         int missed = V / 2 - M;
@@ -185,15 +186,14 @@ void scaling_test(int R, int V, int E) {
 
     print("x{:<6}  V={:<6}  E={:<6}\n", R, V, E);
 
-    vector<graph> gs(R);
+    vector<edges_t> gs(R);
     for (int i = 0; i < R; i++) {
-        gs[i] = relabel(random_exact_undirected_connected(V, E));
-        shuffle_adj(gs[i]);
+        gs[i] = relabel(random_exact_undirected_connected(V, E), V);
     }
 
     START(run);
     for (int i = 0; i < R; i++) {
-        auto vg = to_mv(gs[i]);
+        micali_vazirani vg(V, gs[i]);
         vg.bootstrap();
         vg.max_matching();
     }
@@ -242,10 +242,9 @@ void performance_test(int R, int V, int E) {
     print("x{:>6}  V={:<6}  E={:<6}\n", R, V, E);
 
     vector<int> bans(R), vans(R);
-    vector<graph> gs(R);
+    vector<edges_t> gs(R);
     for (int i = 0; i < R; i++) {
-        gs[i] = relabel(random_exact_undirected_connected(V, E));
-        shuffle_adj(gs[i]);
+        gs[i] = relabel(random_exact_undirected_connected(V, E), V);
         print("\rGenerating {}...", i + 1);
     }
     print("\n");
@@ -253,7 +252,7 @@ void performance_test(int R, int V, int E) {
     // boost
     START(boost);
     for (int i = 0; i < R; i++) {
-        auto bg = to_boost(gs[i]);
+        auto bg = to_boost(gs[i], V);
         bans[i] = boost_matching_size(bg);
         print("\rboost {}", i + 1);
     }
@@ -264,7 +263,7 @@ void performance_test(int R, int V, int E) {
     int errors = 0;
     START(mv);
     for (int i = 0; i < R; i++) {
-        auto vg = to_mv(gs[i]);
+        micali_vazirani vg(V, gs[i]);
         vg.bootstrap();
         vans[i] = vg.max_matching();
         errors += vans[i] != bans[i];
@@ -299,7 +298,7 @@ int main() {
     setbuf(stderr, nullptr);
     // run_dataset_tests();
     random_test(10000);
-    scaling_tests(3);
-    performance_tests(0.5);
+    // scaling_tests(3);
+    performance_tests(1);
     return 0;
 }

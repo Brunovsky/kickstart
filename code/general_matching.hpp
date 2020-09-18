@@ -1,6 +1,7 @@
 #ifndef GENERAL_MATCHING_HPP
 #define GENERAL_MATCHING_HPP
 
+#include "debug_print.hpp"
 #include "hash.hpp"
 #include "integer_data_structures.hpp"
 
@@ -32,28 +33,30 @@
  */
 struct micali_vazirani {
     int V, E = 0;
-    vector<vector<int>> adj;
+    vector<int> adj, off, mate;
     vector<array<int, 2>> edge;
-    vector<int> mate;
 
-    explicit micali_vazirani(int V = 0) : V(V), adj(V), mate(V, -1) {}
+    micali_vazirani(int V, vector<array<int, 2>> input)
+        : V(V), E(input.size()), adj(2 * E), off(V + 1, 0), mate(V, -1),
+          edge(move(input)) {
+        for (auto [u, v] : edge)
+            off[u + 1]++, off[v + 1]++;
+        inclusive_scan(begin(off), end(off), begin(off));
+        vector<int> cur = off;
+        int e = 0;
+        for (auto [u, v] : edge)
+            adj[cur[u]++] = adj[cur[v]++] = e++;
+    }
 
     inline int other(int e, int u) const { return u ^ edge[e][0] ^ edge[e][1]; }
-
-    void add(int u, int v) {
-        assert(0 <= u && u < V && 0 <= v && v < V && u != v);
-        adj[u].push_back(E);
-        adj[v].push_back(E);
-        edge.push_back({u, v});
-        E++;
-    }
+    inline int len(int u) const { return off[u + 1] - off[u]; }
 
     void node_bootstrap() {
         linked_lists buck(V, V);
         vector<int> cnt(V, 0);
         for (int u = 0; u < V; u++) {
-            if (mate[u] == -1 && !adj[u].empty()) {
-                cnt[u] = adj[u].size();
+            if (mate[u] == -1 && len(u)) {
+                cnt[u] = len(u);
                 buck.push_back(cnt[u], u);
             }
         }
@@ -66,8 +69,8 @@ struct micali_vazirani {
             int u = buck.head(s);
             buck.erase(u);
             assert(mate[u] == -1);
-            for (int e : adj[u]) {
-                int v = other(e, u);
+            for (int i = off[u]; i < off[u + 1]; i++) {
+                int e = adj[i], v = other(e, u);
                 if (mate[v] == -1) {
                     mate[u] = v, mate[v] = u;
                     buck.erase(v);
@@ -77,8 +80,8 @@ struct micali_vazirani {
             if (mate[u] == -1)
                 continue;
             for (int w : {u, mate[u]}) {
-                for (int e : adj[w]) {
-                    int t = other(e, w);
+                for (int i = off[w]; i < off[w + 1]; i++) {
+                    int e = adj[i], t = other(e, w);
                     if (mate[t] == -1) {
                         cnt[t]--;
                         buck.erase(t);
@@ -96,13 +99,13 @@ struct micali_vazirani {
         forward_lists sumbuck(2 * V, E), minbuck(V, E);
         for (int e = 0; e < E; e++) {
             auto [u, v] = edge[e];
-            int s = adj[u].size() + adj[v].size();
+            int s = len(u) + len(v);
             sumbuck.push(s, e);
         }
         for (int s = 2 * V - 1; s >= 0; s--) {
             FOR_EACH_IN_FORWARD_LIST (e, s, sumbuck) {
                 auto [u, v] = edge[e];
-                int m = min(adj[u].size(), adj[v].size());
+                int m = min(len(u), len(v));
                 minbuck.push(m, e);
             }
         }
@@ -139,7 +142,7 @@ struct micali_vazirani {
         int minlevel = inf, maxlevel = inf, level[2] = {inf, inf};
         int vis = -1, bloom = -1, petal = -1;
         link_t trail[2] = {};
-        int arc[2] = {};
+        int arc[2] = {}, preds = 0, succs = 0;
         bool color = 0, erased = 0;
 
         inline void clear() { *this = node_t(); }
@@ -159,7 +162,7 @@ struct micali_vazirani {
         void resize(int N, int M) { head.resize(N, -1), next.resize(M); }
     };
 
-    vector<vector<int>> pred, succ;
+    vector<int> pred, succ;
     vector<node_t> node;
     vector<bloom_t> bloom;
     lists_t phaselist, bridges;
@@ -185,16 +188,14 @@ struct micali_vazirani {
      * Add exposed nodes
      */
     void init() {
-        pred.resize(V);
-        succ.resize(V);
+        pred.resize(2 * E);
+        succ.resize(2 * E);
         node.resize(V);
         phaselist.resize(V, V);
         bridges.resize(V, E);
 
         count_matched = 0;
         for (int u = 0; u < V; u++) {
-            pred[u].reserve(adj[u].size());
-            succ[u].reserve(adj[u].size());
             assert(mate[u] == -1 || mate[mate[u]] == u);
             count_matched += u < mate[u];
         }
@@ -204,8 +205,6 @@ struct micali_vazirani {
         phase = blooms = ddfsid = pending = 0;
         phaselist.clear(), bridges.clear();
         for (int u = 0; u < V; u++) {
-            pred[u].clear();
-            succ[u].clear();
             node[u].clear();
             if (mate[u] == -1) {
                 add_phase(u, 0);
@@ -269,8 +268,8 @@ struct micali_vazirani {
             add_phase(v, phase + 1);
         }
         assert(node[v].minlevel == phase + 1 && node[v].level[!parity] == phase + 1);
-        pred[v].push_back(u);
-        succ[u].push_back(v);
+        pred[off[v] + node[v].preds++] = u;
+        succ[off[u] + node[u].succs++] = v;
         seen[e] = true;
     }
 
@@ -303,14 +302,14 @@ struct micali_vazirani {
             if (node[u].erased)
                 continue;
             if (parity == 0) {
-                for (int e : adj[u]) {
-                    int v = other(e, u);
+                for (int i = off[u]; i < off[u + 1]; i++) {
+                    int e = adj[i], v = other(e, u);
                     if (mate[u] != v && !seen[e] && !node[v].erased)
                         bfs_visit(e, u, v);
                 }
             } else if (!node[mate[u]].erased) {
-                for (int e : adj[u]) {
-                    int v = other(e, u);
+                for (int i = off[u]; i < off[u + 1]; i++) {
+                    int e = adj[i], v = other(e, u);
                     if (mate[u] == v && !seen[e])
                         bfs_visit(e, u, v);
                     if (mate[u] == v)
@@ -435,13 +434,13 @@ struct micali_vazirani {
 
     bool pop_dfs(int& h, bool c) {
         h = node[h].trail[c].hi;
-        int i = node[h].arc[c], s = pred[h].size();
+        int i = node[h].arc[c], s = node[h].preds;
         return i < s;
     }
 
     void advance_dfs(int& h, bool c) {
         int& i = node[h].arc[c];
-        int v = pred[h][i++], w = findstar(v);
+        int v = pred[off[h] + i++], w = findstar(v);
         lazy_erase_predecessors(h, i);
         push_dfs(h, c, v, w);
     }
@@ -616,15 +615,15 @@ struct micali_vazirani {
         node[u].maxlevel = node[u].level[lvl % 2] = lvl;
         add_phase(u, lvl);
 
-        for (int v : pred[u]) {
-            int w = findstar(v);
+        for (int i = 0; i < node[u].preds; i++) {
+            int v = pred[off[u] + i], w = findstar(v);
             if (node[w].bloom == -1 && node[u].color == node[w].color)
                 bloom_dfs_level(w);
         }
 
         if (lvl % 2 == 0) {
-            for (int e : adj[u]) {
-                int v = other(e, u);
+            for (int i = off[u]; i < off[u + 1]; i++) {
+                int e = adj[i], v = other(e, u);
                 if (!node[v].erased && !seen[e] && node[v].level[0] < inf)
                     visit_bridge(e, 0);
             }
@@ -758,7 +757,7 @@ struct micali_vazirani {
         while (u != base) {
             if (node[u].bloom == B) {
                 add_path(path, down, u);
-                u = pred[u].front(); // any predecessor works to go down
+                u = pred[off[u]]; // any predecessor works to go down
             } else {
                 add_path(path, down, walk_bloom(u, down));
                 u = bloom[node[u].bloom].base;
@@ -806,7 +805,8 @@ struct micali_vazirani {
         while (!path.empty()) {
             int u = path.front();
             path.pop_front();
-            for (int v : succ[u]) {
+            for (int i = 0; i < node[u].succs; i++) {
+                int v = succ[off[u] + i];
                 if (!node[v].erased && lazy_erase_predecessors(v)) {
                     node[v].erased = true;
                     path.push_back(v);
@@ -816,9 +816,9 @@ struct micali_vazirani {
     }
 
     inline bool lazy_erase_predecessors(int v, int i = 0) {
-        int s = pred[v].size();
-        while (i < s && node[pred[v][i]].erased) {
-            swap(pred[v][i], pred[v].back()), pred[v].pop_back(), s--;
+        int& s = node[v].preds;
+        while (i < s && node[pred[off[v] + i]].erased) {
+            swap(pred[off[v] + i], pred[off[v] + s - 1]), s--;
         }
         return i == s; // erased all after i?
     }

@@ -6,67 +6,60 @@
 
 // *****
 
-/**
- * Relabel the nodes of this graph randomly, and return a new graph.
- */
-graph relabel(const graph& g) {
-    vector<int> label(g.V);
-    iota(begin(label), end(label), 0);
-    shuffle(begin(label), end(label), mt);
-    graph h(g.V);
-    for (int u = 0; u < g.V; u++) {
-        for (int v : g.adj[u]) {
-            h.adj[label[u]].push_back(label[v]);
-        }
-    }
-    h.E = g.E;
-    return h;
+auto make_adjacency_lists_undirected(const edges_t& g, int V) {
+    adjacency_lists_t adj(V);
+    for (auto [u, v] : g)
+        adj[u].push_back(v), adj[v].push_back(u);
+    return adj;
 }
 
-digraph relabel(const digraph& g) {
-    vector<int> label(g.V);
-    iota(begin(label), end(label), 0);
-    shuffle(begin(label), end(label), mt);
-    digraph h(g.V);
-    for (int u = 0; u < g.V; u++) {
-        for (int v : g.adj[u]) {
-            h.add(label[u], label[v]);
-        }
-    }
-    h.E = g.E;
-    return h;
+auto make_adjacency_lists_directed(const edges_t& g, int V) {
+    adjacency_lists_t adj(V);
+    for (auto [u, v] : g)
+        adj[u].push_back(v);
+    return adj;
 }
 
-/**
- * Shuffle adjacency list
- */
-template <typename Graph>
-void shuffle_adj(Graph& g) {
-    for (int u = 0; u < g.V; u++) {
-        shuffle(begin(g.adj[u]), end(g.adj[u]), mt);
-    }
+auto make_adjacency_lists_reverse(const edges_t& g, int V) {
+    adjacency_lists_t adj(V);
+    for (auto [u, v] : g)
+        adj[v].push_back(u);
+    return adj;
+}
+
+auto relabel(const edges_t& g, int V) {
+    vector<int> label(V);
+    iota(begin(label), end(label), 0);
+    shuffle(begin(label), end(label), mt);
+
+    edges_t h;
+    h.reserve(g.size());
+    for (auto [u, v] : g)
+        h.push_back({label[u], label[v]});
+    return h;
 }
 
 /**
  * Reverse the edges of the graph, and return a new graph.
  */
-digraph reverse(const digraph& g) {
-    digraph rev(g);
-    swap(rev.adj, rev.rev);
-    return rev;
+auto reverse(const edges_t& g) {
+    edges_t h;
+    h.reserve(g.size());
+    for (auto [u, v] : g)
+        h.push_back({v, u});
+    return h;
 }
 
 /**
  * Check if a graph is (strongly) connected
  */
-template <typename Graph>
-int count_reachable(const Graph& g, int s = 0) {
-    uint i = 0, S = 1, V = g.V;
-    vector<bool> vis(V, false);
+int count_reachable(const adjacency_lists_t& adj, int s = 0) {
+    int i = 0, S = 1, V = adj.size();
     vector<int> bfs{s};
+    vector<bool> vis(V, false);
     vis[s] = true;
     while (i++ < S && S < V) {
-        for (int v : g.adj[bfs[i - 1]]) {
+        for (int v : adj[bfs[i - 1]]) {
             if (!vis[v]) {
                 vis[v] = true;
                 S++;
@@ -77,13 +70,13 @@ int count_reachable(const Graph& g, int s = 0) {
     return S;
 }
 
-template <typename Graph>
-bool reachable(const Graph& g, int s, int t) {
-    uint i = 0, S = 1, V = g.V;
+bool reachable(const adjacency_lists_t& adj, int s, int t) {
+    uint i = 0, S = 1, V = adj.size();
     vector<bool> vis(V, false);
     vector<int> bfs{s};
+    vis[s] = true;
     while (i++ < S && S < V) {
-        for (int v : g.adj[bfs[i - 1]]) {
+        for (int v : adj[bfs[i - 1]]) {
             if (!vis[v]) {
                 vis[v] = true;
                 S++;
@@ -96,51 +89,33 @@ bool reachable(const Graph& g, int s, int t) {
     return false;
 }
 
-bool is_connected(const graph& g) {
-    if (g.V == 0)
-        return true;
-    return count_reachable(g) == g.V;
+bool is_connected_undirected(const edges_t& g, int V) {
+    assert(V > 0);
+    auto adj = make_adjacency_lists_undirected(g, V);
+    return count_reachable(adj) == V;
 }
 
-bool is_connected(const digraph& g) {
-    if (g.V == 0)
-        return true;
-    return count_reachable(g) == g.V && count_reachable(reverse(g)) == g.V;
+bool is_connected_directed(const edges_t& g, int V) {
+    assert(V > 0);
+    auto adj = make_adjacency_lists_directed(g, V);
+    if (count_reachable(adj, V) != V)
+        return false;
+    adj = make_adjacency_lists_reverse(g, V);
+    return count_reachable(adj) == V;
 }
 
-bool is_rooted(const digraph& g, int s = 0) {
-    if (g.V == 0)
-        return true;
-    return count_reachable(g, s) == g.V;
+bool is_rooted_directed(const edges_t& g, int V, int s = 0) {
+    assert(V > 0);
+    auto adj = make_adjacency_lists_directed(g, V);
+    return count_reachable(adj, s) == V;
 }
 
 /**
  * Join two graphs together.
  * The new graph has the two graphs joined as disconnected subgraphs.
  */
-graph& join(graph& g, const graph& h) {
-    int n = g.V, V = g.V + h.V, E = g.E + h.E;
-    g.V = V, g.E = E;
-    g.adj.resize(V);
-    for (int u = 0; u < h.V; u++) {
-        for (int v : h.adj[u]) {
-            g.adj[u + n].push_back(v + n);
-        }
-    }
-    return g;
-}
-
-digraph& join(digraph& g, const digraph& h) {
-    int n = g.V, V = g.V + h.V, E = g.E + h.E;
-    g.V = V, g.E = E;
-    g.adj.resize(V);
-    g.rev.resize(V);
-    for (int u = 0; u < h.V; u++) {
-        for (int v : h.adj[u]) {
-            g.adj[u + n].push_back(v + n);
-            g.rev[v + n].push_back(u + n);
-        }
-    }
+auto& join(edges_t& g, const edges_t& h) {
+    g.insert(end(g), begin(h), end(h));
     return g;
 }
 

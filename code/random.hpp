@@ -1,6 +1,7 @@
 #ifndef RANDOM_HPP
 #define RANDOM_HPP
 
+#include "graph.hpp"
 #include "hash.hpp"
 
 // *****
@@ -13,23 +14,19 @@ using reald = uniform_real_distribution<double>;
 using binomd = binomial_distribution<int>;
 using boold = bernoulli_distribution;
 
+using adjacency_lists_t = vector<vector<int>>;
 using edge_t = array<int, 2>;
 using int_sample_t = vector<int>;
 using pair_sample_t = vector<edge_t>;
-using parent_t = vector<int>;
 using partition_t = vector<int>;
-using ranks_t = vector<int>;
-using offsets_t = vector<int>;
-using degrees_t = vector<int>;
-using edges_t = vector<edge_t>;
-using edgeset_t = unordered_set<edge_t, pair_hasher>;
 
 int different(int u, int v1, int v2) {
     assert(v1 <= v2 && (v1 != u || v2 != u));
-    intd dist(v1, v2);
-    while (true)
-        if ((v1 = dist(mt)) != u)
-            return v1;
+    if (v1 == v2)
+        return v1;
+    intd dist(v1, v2 - 1);
+    int n = dist(mt);
+    return n + (n >= u);
 }
 
 /**
