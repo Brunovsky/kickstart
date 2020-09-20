@@ -141,10 +141,16 @@ void test_generator() {
           random_uniform_rooted_dag_connected(9, 0.2));
     showd("Random uniform rooted dag connected 9,0.8",
           random_uniform_rooted_dag_connected(9, 0.8));
+    showd("Random uniform directed connected 10,0.2",
+          random_uniform_directed_connected(10, 0.2));
+    showd("Random uniform directed connected 10,0.8",
+          random_uniform_directed_connected(10, 0.8));
     showu("Random exact undirected connected 12,26",
           random_exact_undirected_connected(12, 26));
     showd("Random exact rooted dag connected 12,26",
           random_exact_rooted_dag_connected(12, 26));
+    showd("Random exact directed connected 12,26",
+          random_exact_directed_connected(12, 26));
 
     showu("Random regular 15,6", random_regular(15, 6));
     showu("Random regular 16,4 connected", random_regular_connected(16, 4));
@@ -176,6 +182,25 @@ void test_generator() {
     showd("Grid3 directed 3x4x3", grid3_directed(3, 4, 3));
     showu("Grid3 circular undirected 3x4x3", circular_grid3_undirected(3, 4, 3));
     showd("Grid3 circular directed 3x4x3", circular_grid3_directed(3, 4, 3));
+
+    for (int S : {10, 20, 50, 100, 500, 2000, 5000, 15000, 30000}) {
+        print("Flow Networks  S={}\n", S);
+        for (int i = 0; i < int(FN_END); i++) {
+            auto fn = generate_flow_network(flow_network_kind(i), S);
+            auto& name = flow_kind_name[i];
+            print(" {:2} {:30} -- V:{:<8} E:{:<13}\n", i, name, fn.V, fn.E);
+        }
+        print("\n");
+    }
+    for (int S : {10, 20, 50, 100, 500, 2000, 5000, 15000, 30000}) {
+        print("Circulation Networks  S={}\n", S);
+        for (int i = 0; i < int(CN_END); i++) {
+            auto fn = generate_circulation_network(circulation_network_kind(i), S);
+            auto& name = circulation_kind_name[i];
+            print(" {:2} {:30} -- V:{:<8} E:{:<13}\n", i, name, fn.V, fn.E);
+        }
+        print("\n");
+    }
 }
 
 int main() {

@@ -36,9 +36,8 @@ struct micali_vazirani {
     vector<int> adj, off, mate;
     vector<array<int, 2>> edge;
 
-    micali_vazirani(int V, vector<array<int, 2>> input)
-        : V(V), E(input.size()), adj(2 * E), off(V + 1, 0), mate(V, -1),
-          edge(move(input)) {
+    micali_vazirani(int V, vector<array<int, 2>> g)
+        : V(V), E(g.size()), adj(2 * E), off(V + 1, 0), mate(V, -1), edge(move(g)) {
         for (auto [u, v] : edge)
             off[u + 1]++, off[v + 1]++;
         inclusive_scan(begin(off), end(off), begin(off));
@@ -144,8 +143,6 @@ struct micali_vazirani {
         link_t trail[2] = {};
         int arc[2] = {}, preds = 0, succs = 0;
         bool color = 0, erased = 0;
-
-        inline void clear() { *this = node_t(); }
     };
 
     struct bloom_t {
@@ -205,7 +202,7 @@ struct micali_vazirani {
         phase = blooms = ddfsid = pending = 0;
         phaselist.clear(), bridges.clear();
         for (int u = 0; u < V; u++) {
-            node[u].clear();
+            node[u] = node_t();
             if (mate[u] == -1) {
                 add_phase(u, 0);
                 node[u].minlevel = node[u].level[0] = 0;

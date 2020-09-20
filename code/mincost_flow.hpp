@@ -1,11 +1,12 @@
 #ifndef MINCOST_FLOW_HPP
 #define MINCOST_FLOW_HPP
 
-#include <bits/stdc++.h>
-
-using namespace std;
+#include "integer_data_structures.hpp"
 
 // *****
+
+using caps_t = vector<long>;
+using costs_t = vector<long>;
 
 /**
  * Edmonds-Karp augmenting paths for simple mincost flow.
@@ -14,27 +15,21 @@ using namespace std;
  */
 struct mincost_edmonds_karp {
     int V, E = 0;
-    vector<vector<int>> adj, rev, res;
-    vector<int> source, target;
+    vector<vector<int>> res;
+    edges_t edge;
     vector<long> flow, cap, cost;
 
-    explicit mincost_edmonds_karp(int V = 0) : V(V), adj(V), rev(V), res(V) {}
-
-    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
-
-    void add(int u, int v, long c, long w) {
-        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0 && w >= 0);
-        int uv = 2 * E;
-        int vu = 2 * E + 1;
-        adj[u].push_back(uv);
-        rev[v].push_back(uv);
-        res[u].push_back(uv);
-        res[v].push_back(vu);
-        source.push_back(u), source.push_back(v);
-        target.push_back(v), target.push_back(u);
-        cap.push_back(c), cap.push_back(0);
-        cost.push_back(w), cost.push_back(-w);
-        E++;
+    mincost_edmonds_karp(int V, const edges_t& g, const caps_t& caps,
+                         const costs_t& costs)
+        : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E),
+          cost(2 * E) {
+        int e = 0, c = 0;
+        for (auto [u, v] : g) {
+            res[u].push_back(e), edge[e] = {u, v};
+            cost[e] = costs[c], cap[e++] = caps[c];
+            res[v].push_back(e), edge[e] = {v, u};
+            cost[e] = -costs[c++], cap[e++] = 0;
+        }
     }
 
     vector<long> dist, pi;
@@ -47,23 +42,21 @@ struct mincost_edmonds_karp {
         dist[s] = 0;
 
         using int2 = pair<long, int>;
-        vector<bool> vis(V, false);
         priority_queue<int2, vector<int2>, greater<int2>> Q;
         Q.push({0, s});
 
         while (!Q.empty()) {
-            int u = Q.top().second;
+            auto [ucost, u] = Q.top();
             Q.pop();
-            if (vis[u]) {
+            if (dist[u] < ucost) {
                 continue;
             } else if (u == t) {
                 break;
             }
-            vis[u] = true;
             for (int e : res[u]) {
-                int v = other(e, u);
+                int v = edge[e][1];
                 long w = dist[u] + pi[u] - pi[v] + cost[e];
-                if (!vis[v] && flow[e] < cap[e] && dist[v] > w) {
+                if (flow[e] < cap[e] && dist[v] > w) {
                     dist[v] = w;
                     prev[v] = e;
                     Q.push({w, v});
@@ -84,14 +77,13 @@ struct mincost_edmonds_karp {
         vector<int> path;
         while (prev[v] != -1) {
             path.push_back(prev[v]);
-            v = other(prev[v], v);
+            v = edge[prev[v]][0];
         }
         return path;
     }
 
     pair<long, long> mincost_flow(int s, int t, long F = inf) {
         pi.assign(V, 0);
-        flow.assign(2 * E, 0);
 
         long sflow = 0;
         while (sflow < F && dijkstra(s, t)) {

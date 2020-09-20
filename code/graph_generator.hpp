@@ -62,13 +62,35 @@ void add_parent_edges(edges_t& g, const parent_t& parent, int u1, int u2,
     }
 }
 
+void add_reverse_edges(edges_t& g) {
+    int E = g.size();
+    g.reserve(2 * E);
+    for (int e = 0; e < E; e++) {
+        auto [u, v] = g[e];
+        g.push_back({v, u});
+    }
+}
+
+void add_uniform_self_loops(edges_t& g, int u1, int u2, double p) {
+    int V = u2 - u1;
+    if (V >= 10 && p <= 0.25) {
+        binomd distk(V, p);
+        for (int u : int_sample(distk(mt), u1, u2 - 1))
+            g.push_back({u, u});
+    } else {
+        boold distp(p);
+        for (int u = u1; u < u2; u++)
+            if (distp(mt))
+                g.push_back({u, u});
+    }
+}
+
 void add_uniform_edges_undirected(edges_t& g, int u1, int u2, double p) {
-    if (u2 - u1 >= 10 && p <= 0.25) {
-        for (int u = u1 + 1; u < u2; u++) {
-            binomd distk(u - u1, p);
-            for (int v : int_sample(distk(mt), u1, u - 1))
-                g.push_back({u, v});
-        }
+    int V = u2 - u1;
+    if (V >= 10 && p <= 0.25) {
+        longbinomd distk(1L * V * (V - 1) / 2, p);
+        for (auto [u, v] : choose_sample(distk(mt), u1, u2 - 1, false))
+            g.push_back({u, v});
     } else {
         boold distp(p);
         for (int u = u1 + 1; u < u2; u++)
@@ -79,12 +101,12 @@ void add_uniform_edges_undirected(edges_t& g, int u1, int u2, double p) {
 }
 
 void add_uniform_edges_directed(edges_t& g, int u1, int u2, double p) {
-    if (u2 - u1 >= 10 && p <= 0.25) {
-        binomd distk(u2 - u1, p);
-        for (int u = u1; u < u2; u++)
-            for (int v : int_sample(distk(mt), u1, u2 - 1))
-                if (u != v)
-                    g.push_back({u, v});
+    int V = u2 - u1;
+    if (V >= 10 && p <= 0.25) {
+        longbinomd distk(1L * V * (V - 1), p);
+        for (auto [u, v] : pair_sample(distk(mt), u1, u2 - 1, u1, u2 - 1))
+            if (u != v)
+                g.push_back({u, v});
     } else {
         boold distp(p);
         for (int u = u1; u < u2; u++)
@@ -95,12 +117,11 @@ void add_uniform_edges_directed(edges_t& g, int u1, int u2, double p) {
 }
 
 void add_uniform_edges_bipartite(edges_t& g, int u1, int u2, int v1, int v2, double p) {
-    if (u2 - u1 >= 10 && v2 - v1 >= 10 && p <= 0.25) {
-        binomd distk(v2 - v1, p);
-        for (int u = u1; u < u2; u++)
-            for (int v : int_sample(distk(mt), v1, v2 - 1))
-                if (u != v)
-                    g.push_back({u, v});
+    int U = u2 - u1, V = v2 - v1;
+    if (1L * U * V >= 100 && p <= 0.25) {
+        longbinomd distk(1L * U * V, p);
+        for (auto [u, v] : pair_sample(distk(mt), u1, u2 - 1, v1, v2 - 1))
+            g.push_back({u, v});
     } else {
         boold distp(p);
         for (int u = u1; u < u2; u++)
@@ -172,6 +193,28 @@ void add_edges_except_directed(edges_t& g, const edges_t& edges, const parent_t&
     assert(S == 0);
 }
 
+void add_edges_missing_undirected(edges_t& g, const edges_t& edges, int S) {
+    auto adj = make_adjacency_set_undirected(g);
+    for (auto [u, v] : edges) {
+        if (S == 0)
+            break;
+        if (u != v && !adj.count({u, v}) && !adj.count({v, u}))
+            g.push_back({u, v}), S--;
+    }
+    assert(S == 0);
+}
+
+void add_edges_missing_directed(edges_t& g, const edges_t& edges, int S) {
+    auto adj = make_adjacency_set_directed(g);
+    for (auto [u, v] : edges) {
+        if (S == 0)
+            break;
+        if (u != v && !adj.count({u, v}))
+            g.push_back({u, v}), S--;
+    }
+    assert(S == 0);
+}
+
 void add_all_edges_undirected(edges_t& g, int u1, int u2) {
     for (int u = u1; u < u2; u++)
         for (int v = u + 1; v < u2; v++)
@@ -200,19 +243,6 @@ void add_all_edges_bidirectional(edges_t& g, int u1, int u2) {
 /** More exotic methods for adding edges to graphs
  */
 
-void add_uniform_self_loops(edges_t& g, int u1, int u2, double p) {
-    if (u2 - u1 >= 20 && p <= 0.25) {
-        binomd distk(u2 - u1, p);
-        for (int u : int_sample(distk(mt), u1, u2 - 1))
-            g.push_back({u, u});
-    } else {
-        boold distp(p);
-        for (int u = u1; u < u2; u++)
-            if (distp(mt))
-                g.push_back({u, u});
-    }
-}
-
 void remove_uniform(edges_t& g, double p) {
     edges_t f;
     boold distp(p);
@@ -220,6 +250,46 @@ void remove_uniform(edges_t& g, double p) {
         if (!distp(mt))
             f.push_back({u, v});
     g = move(f);
+}
+
+void add_tarjan_back_edges(edges_t& g, int V, int s = 0) {
+    adjacency_lists_t adj = make_adjacency_lists_directed(g, V);
+    vector<int> start(V, -1), lowlink(V, -1), rev(V);
+    int time = 0;
+    function<void(int)> dfs = [&](int u) -> void {
+        rev[time] = u, start[u] = lowlink[u] = time++;
+        for (int v : adj[u]) {
+            if (start[v] == -1) {
+                dfs(v), lowlink[u] = min(lowlink[u], lowlink[v]);
+            } else {
+                lowlink[u] = min(lowlink[u], start[v]);
+            }
+        }
+        if (start[u] > 0 && start[u] == lowlink[u]) {
+            int x = intd(start[u], time - 1)(mt);
+            int y = intd(0, start[u] - 1)(mt);
+            int v = rev[x], w = rev[y];
+            adj[v].push_back(w), g.push_back({v, w});
+            lowlink[u] = y;
+        }
+    };
+    dfs(s);
+}
+
+void add_uniform_missing_undirected(edges_t& g, int V, double p) {
+    auto adj = make_adjacency_set_undirected(g);
+    longbinomd dist(1L * V * (V - 1) / 2, p);
+    for (auto [u, v] : choose_sample(dist(mt), 0, V - 1, false))
+        if (!adj.count({u, v}) && !adj.count({v, u}))
+            g.push_back({u, v});
+}
+
+void add_uniform_missing_directed(edges_t& g, int V, double p) {
+    auto adj = make_adjacency_set_directed(g);
+    longbinomd dist(1L * V * (V - 1), p);
+    for (auto [u, v] : pair_sample(dist(mt), 0, V - 1, 0, V - 1))
+        if (u != v && !adj.count({u, v}))
+            g.push_back({u, v});
 }
 
 void add_circulant_arcs(edges_t& g, int u1, int u2, int o = 1) {
@@ -280,82 +350,82 @@ void add_circular_grid3_edges(edges_t& g, int X, int Y, int Z, int dx, int dy, i
 }
 
 void add_uniform_grid_edges(edges_t& g, int X, int Y, double p, int dx, int dy) {
-    assert((dx || dy) && 0 <= dx && dx <= X && 0 <= dy && dy <= Y);
-    if (dx < X && dy < Y && p <= 0.25) {
-        binomd distk((X - dx) * (Y - dy), p);
-        auto edges = pair_sample(distk(mt), 0, X - dx - 1, 0, Y - dy - 1);
-        for (auto [x, y] : edges)
-            g.push_back({calc_grid2(X, x, y), calc_grid2(X, x + dx, y + dy)});
-    } else {
-        boold distp(p);
-        for (int x = 0; x + dx < X; x++)
-            for (int y = 0; y + dy < Y; y++)
-                if (distp(mt))
-                    g.push_back({calc_grid2(X, x, y), calc_grid2(X, x + dx, y + dy)});
-    }
+    assert((dx || dy) && 0 <= dx && dx < X && 0 <= dy && dy < Y);
+    longbinomd distk((X - dx) * (Y - dy), p);
+    for (auto [x, y] : pair_sample(distk(mt), 0, X - dx - 1, 0, Y - dy - 1))
+        g.push_back({calc_grid2(X, x, y), calc_grid2(X, x + dx, y + dy)});
 }
 
 void add_uniform_circular_grid_edges(edges_t& g, int X, int Y, double p, int dx, int dy) {
-    assert((dx || dy) && 0 <= dx && 0 <= dy);
-    if (dx < X && dy < Y && p <= 0.25) {
-        binomd distk(X * Y, p);
-        auto edges = pair_sample(distk(mt), 0, X - 1, 0, Y - 1);
-        for (auto [x, y] : edges)
-            g.push_back({calc_grid2(X, x, y), calc_grid2(X, (x + dx) % X, (y + dy) % Y)});
-    } else {
-        boold distp(p);
-        for (int x = 0; x < X; x++)
-            for (int y = 0; y < Y; y++)
-                if (distp(mt))
-                    g.push_back(
-                        {calc_grid2(X, x, y), calc_grid2(X, (x + dx) % X, (y + dy) % Y)});
-    }
+    assert((dx || dy) && 0 <= dx && dx < X && 0 <= dy && dy < Y);
+    longbinomd distk(1L * X * Y, p);
+    for (auto [x, y] : pair_sample(distk(mt), 0, X - 1, 0, Y - 1))
+        g.push_back({calc_grid2(X, x, y), calc_grid2(X, (x + dx) % X, (y + dy) % Y)});
 }
 
 void add_uniform_grid3_edges(edges_t& g, int X, int Y, int Z, double p, int dx, int dy,
                              int dz) {
     assert(dx || dy || dz);
-    assert(0 <= dx && dx <= X && 0 <= dy && dy <= Y && 0 <= dz && dz <= Z);
-    if (dx < X && dy < Y && dz < Z && p <= 0.25) {
-        for (int z = 0; z + dz < Z; z++) {
-            binomd distk((X - dx) * (Y - dy), p);
-            auto edges = pair_sample(distk(mt), 0, X - dx - 1, 0, Y - dy - 1);
-            for (auto [x, y] : edges)
-                g.push_back({calc_grid3(X, Y, x, y, z),
-                             calc_grid3(X, Y, x + dx, y + dy, z + dz)});
-        }
-    } else {
+    assert(0 <= dx && dx < X && 0 <= dy && dy < Y && 0 <= dz && dz < Z);
+    auto add = [&](int x, int y, int z) {
+        g.push_back(
+            {calc_grid3(X, Y, x, y, z), calc_grid3(X, Y, x + dx, y + dy, z + dz)});
+    };
+    if (1L * (X - dx) * (Y - dy) * (Z - dz) < 1000 || p > 0.25) {
         boold distp(p);
         for (int x = 0; x + dx < X; x++)
             for (int y = 0; y + dy < Y; y++)
                 for (int z = 0; z + dz < Z; z++)
                     if (distp(mt))
-                        g.push_back({calc_grid3(X, Y, x, y, z),
-                                     calc_grid3(X, Y, x + dx, y + dy, z + dz)});
+                        add(x, y, z);
+    } else if (X - dx == min(X - dx, min(Y - dy, Z - dz))) {
+        longbinomd dist(1L * (Y - dy) * (Z - dz), p);
+        for (int x = 0; x + dx < X; x++)
+            for (auto [y, z] : pair_sample(dist(mt), 0, Y - dy - 1, 0, Z - dz - 1))
+                add(x, y, z);
+    } else if (Y - dy == min(X - dx, min(Y - dy, Z - dz))) {
+        longbinomd dist(1L * (X - dx) * (Z - dz), p);
+        for (int y = 0; y + dy < Y; y++)
+            for (auto [x, z] : pair_sample(dist(mt), 0, X - dx - 1, 0, Z - dz - 1))
+                add(x, y, z);
+    } else {
+        longbinomd dist(1L * (X - dx) * (Y - dy), p);
+        for (int z = 0; z + dz < Z; z++)
+            for (auto [x, y] : pair_sample(dist(mt), 0, X - dx - 1, 0, Y - dy - 1))
+                add(x, y, z);
     }
 }
 
 void add_uniform_circular_grid3_edges(edges_t& g, int X, int Y, int Z, double p, int dx,
                                       int dy, int dz) {
     assert(dx || dy || dz);
-    assert(0 <= dx && dx <= X && 0 <= dy && dy <= Y && 0 <= dz && dz <= Z);
-    if (dx < X && dy < Y && dz < Z && p <= 0.25) {
-        for (int z = 0; z < Z; z++) {
-            binomd distk(X * Y, p);
-            auto edges = pair_sample(distk(mt), 0, X - 1, 0, Y - 1);
-            for (auto [x, y] : edges)
-                g.push_back({calc_grid3(X, Y, x, y, z),
-                             calc_grid3(X, Y, (x + dx) % X, (y + dy) % Y, (z + dz) % Z)});
-        }
-    } else {
+    assert(0 <= dx && dx < X && 0 <= dy && dy < Y && 0 <= dz && dz < Z);
+    auto add = [&](int x, int y, int z) {
+        g.push_back({calc_grid3(X, Y, x, y, z),
+                     calc_grid3(X, Y, (x + dx) % X, (y + dy) % Y, (z + dz) % Z)});
+    };
+    if (1L * X * Y * Z < 1000 || p > 0.25) {
         boold distp(p);
         for (int x = 0; x < X; x++)
             for (int y = 0; y < Y; y++)
                 for (int z = 0; z < Z; z++)
                     if (distp(mt))
-                        g.push_back(
-                            {calc_grid3(X, Y, x, y, z),
-                             calc_grid3(X, Y, (x + dx) % X, (y + dy) % Y, (z + dz) % Z)});
+                        add(x, y, z);
+    } else if (X == min(X, min(Y, Z))) {
+        longbinomd dist(1L * Y * Z, p);
+        for (int x = 0; x < X; x++)
+            for (auto [y, z] : pair_sample(dist(mt), 0, Y - 1, 0, Z - 1))
+                add(x, y, z);
+    } else if (Y == min(X, min(Y, Z))) {
+        longbinomd dist(1L * X * Z, p);
+        for (int y = 0; y < Y; y++)
+            for (auto [x, z] : pair_sample(dist(mt), 0, X - 1, 0, Z - 1))
+                add(x, y, z);
+    } else {
+        longbinomd dist(1L * X * Y, p);
+        for (int z = 0; z < Z; z++)
+            for (auto [x, y] : pair_sample(dist(mt), 0, X - 1, 0, Y - 1))
+                add(x, y, z);
     }
 }
 
@@ -373,19 +443,12 @@ void add_level_step_uniform(edges_t& g, int u1, int u2, int v1, int v2, double p
     if (u1 == u2 || v1 == v2)
         return;
 
-    vector<bool> out(u2 - u1, false), in(v2 - v1, false);
-    if (long(u2 - u1) * long(v2 - v1) >= 100 && p <= 0.25) {
-        binomd distk(v2 - v1, p);
-        for (int u = u1; u < u2; u++)
-            for (int v : int_sample(distk(mt), v1, v2 - 1))
-                g.push_back({u, v}), out[u - u1] = true, in[v - v1] = true;
-    } else {
-        boold distp(p);
-        for (int u = u1; u < u2; u++)
-            for (int v = v1; v < v2; v++)
-                if (distp(mt))
-                    g.push_back({u, v}), out[u - u1] = true, in[v - v1] = true;
-    }
+    int U = u2 - u1, V = v2 - v1;
+    vector<bool> out(U, false), in(V, false);
+    longbinomd distk(1L * U * V, p);
+    auto sample = pair_sample(distk(mt), u1, u2 - 1, v1, v2 - 1);
+    for (auto [u, v] : sample)
+        g.push_back({u, v}), out[u - u1] = in[v - v1] = true;
 
     if (mustout) {
         intd distv(v1, v2 - 1);
@@ -893,12 +956,22 @@ auto random_uniform_rooted_dag_connected(int V, double p) {
     return g;
 }
 
+auto random_uniform_directed_connected(int V, double p) {
+    edges_t g;
+    auto parent = parent_sample(V);
+    add_parent_edges(g, parent, 1, V, false, true);
+    add_tarjan_back_edges(g, V);
+    assert(is_connected_directed(g, V));
+    add_uniform_missing_directed(g, V, p);
+    return g;
+}
+
 auto random_exact_undirected_connected(int V, int E) {
     assert(V - 1 <= E && E <= 1L * V * (V - 1) / 2);
     edges_t g;
     auto parent = parent_sample(V);
     add_parent_edges(g, parent, 1, V);
-    if (E == V - 1)
+    if (E == g.size())
         return g;
 
     int k = min(1L * V * (V - 1) / 2, 0L + E + V);
@@ -911,16 +984,33 @@ auto random_exact_undirected_connected(int V, int E) {
 auto random_exact_rooted_dag_connected(int V, int E) {
     assert(V - 1 <= E && E <= 1L * V * (V - 1) / 2);
     edges_t g;
-
     auto parent = parent_sample(V);
     add_parent_edges(g, parent, 1, V, false, true);
-    if (E == V - 1)
+    if (E == g.size())
         return g;
 
     int k = min(1L * V * (V - 1) / 2, 0L + E + V);
     auto f = choose_sample(k, 0, V - 1, false);
     shuffle(begin(f), end(f), mt);
     add_edges_except_directed(g, f, parent, E - (V - 1));
+    return g;
+}
+
+auto random_exact_directed_connected(int V, int E) {
+    assert(2 * V - 2 <= E && E <= 1L * V * (V - 1));
+    edges_t g;
+    auto parent = parent_sample(V);
+    add_parent_edges(g, parent, 1, V, false, true);
+    add_tarjan_back_edges(g, V);
+    assert(is_connected_directed(g, V));
+    assert(g.size() <= E);
+    if (E == g.size())
+        return g;
+
+    int n = g.size(), k = min(1L * V * V, 0L + E + V);
+    auto f = pair_sample(k, 0, V - 1, 0, V - 1);
+    shuffle(begin(f), end(f), mt);
+    add_edges_missing_directed(g, f, E - n);
     return g;
 }
 
@@ -1028,14 +1118,321 @@ auto random_uniform_level_flow(int V, double p, int ranks, int m = 1, bool loop 
     return g;
 }
 
-// ***** Convert to flow network (temporary)
+/** Flow networks
+ */
 
-// flow_graph random_flow_graph(int V, double p, long max_cap) {
-//     intd rankd(3, max(3, V / 3));
-//     int ranks = rankd(mt), m = min(7, V / ranks);
-//     p = min(1.0, p);
-//     digraph g = random_uniform_level_flow(V, p, ranks, m, false);
-//     return add_caps(g, max_cap);
-// }
+struct flow_network {
+    int V, E, s, t;
+    edges_t g;
+};
+
+struct cap_flow_network : flow_network {
+    flows_t cap;
+};
+
+struct cap_cost_flow_network : cap_flow_network {
+    costs_t cost;
+};
+
+enum flow_network_kind : int {
+    FN_UNIFORM_SPARSE = 0,
+    FN_UNIFORM_MODERATE = 1,
+    FN_UNIFORM_DENSE = 2,
+    FN_UNIFORM_LEVEL_LONG_SPARSE = 3,
+    FN_UNIFORM_LEVEL_WIDE_SPARSE = 4,
+    FN_UNIFORM_LEVEL_LONG_MODERATE = 5,
+    FN_UNIFORM_LEVEL_WIDE_MODERATE = 6,
+    FN_UNIFORM_LEVEL_LONG_DENSE = 7,
+    FN_UNIFORM_LEVEL_WIDE_DENSE = 8,
+    FN_COMPLETE = 9,
+    FN_NORMAL_GRID2 = 10,
+    FN_CIRCULAR_GRID2 = 11,
+    FN_NORMAL_GRID3 = 12,
+    FN_CIRCULAR_GRID3 = 13,
+    FN_KCONNECTED_COMPLETE = 14,
+    FN_END = 15,
+};
+
+string flow_kind_name[] = {
+    "random uniform sparse",
+    "random uniform moderate",
+    "random uniform dense",
+    "uniform level long sparse",
+    "uniform level wide sparse",
+    "uniform level long moderate",
+    "uniform level wide moderate",
+    "uniform level long dense",
+    "uniform level wide dense",
+    "complete",
+    "normal 2d grid",
+    "circular 2d grid",
+    "normal 3d grid",
+    "circular 3d grid",
+    "k-connected complete",
+    "---",
+};
+
+// S arbitrates network size/complexity.
+auto generate_flow_network(flow_network_kind i, int S) {
+    assert(10 <= S && S <= 50000);
+    const int a = int(pow(S, 0.90)), b = int(pow(S, 0.75)), c = int(pow(S, 0.68));
+    const int d = int(pow(S, 0.57)), s = int(pow(S, 0.50)), f = int(pow(S, 0.40));
+    const int t = int(pow(S, 0.37)), u = int(pow(S, 0.30)), v = int(pow(S, 0.20));
+
+    intd Sd(S, S + s), ad(a, a + s), bd(b, b + f), cd(c, c + f), dd(d, d + u);
+    intd sd(s, s + v), fd(f, f + v), td(t, t + v), ud(u, u + v);
+    reald sparsed(5.0, 12.0);
+    reald moderated(4.0, 9.0);
+    reald densed(0.6, 0.9);
+
+    edges_t g;
+    int V = -1, ranks, m, X, Y, Z, k;
+    double p;
+
+    const auto sparse = [&]() { return min(1.0, sparsed(mt) / V); };
+    const auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(V)); };
+    const auto dense = [&]() { return densed(mt); };
+    const auto longlevel = [&]() { return min(V, intd(20, max(20, V / 5))(mt)); };
+    const auto widelevel = [&]() { return min(V, intd(5, clamp(V, 5, 12))(mt)); };
+    const auto longm = [&]() { return min(8, V / ranks); };
+    const auto widem = [&]() { return min(20, V / ranks); };
+
+    switch (i) {
+    case FN_UNIFORM_SPARSE:
+        V = Sd(mt), p = sparse();
+        g = random_uniform_directed_connected(V, p);
+        break;
+    case FN_UNIFORM_MODERATE:
+        V = bd(mt), p = moderate();
+        g = random_uniform_directed_connected(V, p);
+        break;
+    case FN_UNIFORM_DENSE:
+        V = cd(mt), p = dense();
+        g = random_uniform_directed_connected(V, p);
+        break;
+    case FN_UNIFORM_LEVEL_LONG_SPARSE:
+        V = ad(mt), p = sparse(), ranks = longlevel(), m = longm();
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case FN_UNIFORM_LEVEL_WIDE_SPARSE:
+        V = bd(mt), p = sparse(), ranks = widelevel(), m = widem();
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case FN_UNIFORM_LEVEL_LONG_MODERATE:
+        V = ad(mt), p = moderate(), ranks = longlevel(), m = longm();
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case FN_UNIFORM_LEVEL_WIDE_MODERATE:
+        V = bd(mt), p = moderate(), ranks = widelevel(), m = widem();
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case FN_UNIFORM_LEVEL_LONG_DENSE:
+        V = ad(mt), p = dense(), ranks = longlevel(), m = longm();
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case FN_UNIFORM_LEVEL_WIDE_DENSE:
+        V = bd(mt), p = dense(), ranks = widelevel(), m = widem();
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case FN_COMPLETE:
+        V = cd(mt);
+        g = complete_directed(V);
+        break;
+    case FN_NORMAL_GRID2:
+        X = dd(mt), Y = dd(mt), V = X * Y;
+        g = grid_directed(X, Y);
+        break;
+    case FN_CIRCULAR_GRID2:
+        X = dd(mt), Y = dd(mt), V = X * Y;
+        g = circular_grid_directed(X, Y);
+        break;
+    case FN_NORMAL_GRID3:
+        X = td(mt), Y = td(mt), Z = td(mt), V = X * Y * Z;
+        g = grid3_directed(X, Y, Z);
+        break;
+    case FN_CIRCULAR_GRID3:
+        X = td(mt), Y = td(mt), Z = td(mt), V = X * Y * Z;
+        g = circular_grid3_directed(X, Y, Z);
+        break;
+    case FN_KCONNECTED_COMPLETE:
+        m = cd(mt), k = ud(mt), V = m * k;
+        g = k_connected_complete_directed(m, k);
+        break;
+    default:
+        throw runtime_error("Invalid flow network kind");
+    }
+    int E = g.size();
+    return flow_network{V, E, 0, V - 1, g};
+}
+
+auto generate_cap_flow_network(flow_network_kind i, int S, flow_t maxcap = 99,
+                               flow_t mincap = 1) {
+    auto fn = generate_flow_network(i, S);
+    auto cap = int_gen<flow_t>(fn.E, mincap, maxcap);
+    return cap_flow_network{fn, cap};
+}
+
+auto generate_cap_cost_flow_network(flow_network_kind i, int S, flow_t maxcap = 99,
+                                    flow_t mincap = 1, cost_t maxcost = 99,
+                                    cost_t mincost = 1) {
+    auto fn = generate_flow_network(i, S);
+    auto cap = int_gen<flow_t>(fn.E, mincap, maxcap);
+    auto cost = int_gen<cost_t>(fn.E, mincost, maxcost);
+    return cap_cost_flow_network{{fn, cap}, cost};
+}
+
+/** Circulation networks
+ */
+
+struct circulation_network {
+    int V, E;
+    edges_t g;
+};
+
+struct supply_circulation_network : circulation_network {
+    flows_t supply, cap;
+    costs_t cost;
+};
+
+enum circulation_network_kind : int {
+    CN_UNIFORM_SPARSE = 0,
+    CN_UNIFORM_MODERATE = 1,
+    CN_UNIFORM_DENSE = 2,
+    CN_UNIFORM_LEVEL_LONG_SPARSE = 3,
+    CN_UNIFORM_LEVEL_WIDE_SPARSE = 4,
+    CN_UNIFORM_LEVEL_LONG_MODERATE = 5,
+    CN_UNIFORM_LEVEL_WIDE_MODERATE = 6,
+    CN_UNIFORM_LEVEL_LONG_DENSE = 7,
+    CN_UNIFORM_LEVEL_WIDE_DENSE = 8,
+    CN_COMPLETE = 9,
+    CN_CIRCULAR_GRID2 = 10,
+    CN_CIRCULAR_GRID3 = 11,
+    CN_CIRCULANT = 12,
+    CN_MULTIPARTITE = 13,
+    CN_END = 14,
+};
+
+string circulation_kind_name[] = {
+    "random uniform sparse",
+    "random uniform moderate",
+    "random uniform dense",
+    "uniform level long sparse",
+    "uniform level wide sparse",
+    "uniform level long moderate",
+    "uniform level wide moderate",
+    "uniform level long dense",
+    "uniform level wide dense",
+    "complete",
+    "circular 2d grid",
+    "circular 3d grid",
+    "circulant",
+    "multipartite",
+    "---",
+};
+
+// S arbitrates network size/complexity.
+auto generate_circulation_network(circulation_network_kind i, int S) {
+    assert(10 <= S && S <= 50000);
+    const int a = int(pow(S, 0.90)), b = int(pow(S, 0.75)), c = int(pow(S, 0.68));
+    const int d = int(pow(S, 0.57)), s = int(pow(S, 0.50)), f = int(pow(S, 0.40));
+    const int t = int(pow(S, 0.37)), u = int(pow(S, 0.30)), v = int(pow(S, 0.20));
+
+    intd Sd(S, S + s), ad(a, a + s), bd(b, b + f), cd(c, c + f), dd(d, d + u);
+    intd sd(s, s + v), fd(f, f + v), td(t, t + v), ud(u, u + v);
+    reald sparsed(5.0, 12.0);
+    reald moderated(4.0, 9.0);
+    reald densed(0.6, 0.9);
+
+    edges_t g;
+    int V = -1, ranks, m, X, Y, Z, k;
+    double p;
+    offsets_t ints;
+
+    const auto sparse = [&]() { return min(1.0, sparsed(mt) / V); };
+    const auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(V)); };
+    const auto dense = [&]() { return densed(mt); };
+    const auto longlevel = [&]() { return min(V, intd(20, max(20, V / 5))(mt)); };
+    const auto widelevel = [&]() { return min(V, intd(5, clamp(V, 5, 12))(mt)); };
+    const auto longm = [&]() { return min(8, V / ranks); };
+    const auto widem = [&]() { return min(20, V / ranks); };
+    auto sqrtk = [&]() { return int(sqrt(V) + 1); };
+
+    switch (i) {
+    case CN_UNIFORM_SPARSE:
+        V = Sd(mt), p = sparse();
+        g = random_uniform_directed_connected(V, p);
+        break;
+    case CN_UNIFORM_MODERATE:
+        V = bd(mt), p = moderate();
+        g = random_uniform_directed_connected(V, p);
+        break;
+    case CN_UNIFORM_DENSE:
+        V = cd(mt), p = dense();
+        g = random_uniform_directed_connected(V, p);
+        break;
+    case CN_UNIFORM_LEVEL_LONG_SPARSE:
+        V = ad(mt), p = sparse(), ranks = longlevel(), m = longm();
+        g = random_uniform_level_flow(V, p, ranks, m, true);
+        break;
+    case CN_UNIFORM_LEVEL_WIDE_SPARSE:
+        V = bd(mt), p = sparse(), ranks = widelevel(), m = widem();
+        g = random_uniform_level_flow(V, p, ranks, m, true);
+        break;
+    case CN_UNIFORM_LEVEL_LONG_MODERATE:
+        V = ad(mt), p = moderate(), ranks = longlevel(), m = longm();
+        g = random_uniform_level_flow(V, p, ranks, m, true);
+        break;
+    case CN_UNIFORM_LEVEL_WIDE_MODERATE:
+        V = bd(mt), p = moderate(), ranks = widelevel(), m = widem();
+        g = random_uniform_level_flow(V, p, ranks, m, true);
+        break;
+    case CN_UNIFORM_LEVEL_LONG_DENSE:
+        V = ad(mt), p = dense(), ranks = longlevel(), m = longm();
+        g = random_uniform_level_flow(V, p, ranks, m, true);
+        break;
+    case CN_UNIFORM_LEVEL_WIDE_DENSE:
+        V = bd(mt), p = dense(), ranks = widelevel(), m = widem();
+        g = random_uniform_level_flow(V, p, ranks, m, true);
+        break;
+    case CN_COMPLETE:
+        V = cd(mt);
+        g = complete_directed(V);
+        break;
+    case CN_CIRCULAR_GRID2:
+        X = dd(mt), Y = dd(mt), V = X * Y;
+        g = circular_grid_directed(X, Y);
+        break;
+    case CN_CIRCULAR_GRID3:
+        X = td(mt), Y = td(mt), Z = td(mt), V = X * Y * Z;
+        g = circular_grid3_directed(X, Y, Z);
+        break;
+    case CN_CIRCULANT:
+        V = bd(mt), k = sqrtk(), ints = int_sample(k, 2, V - 1);
+        ints.push_back(1);
+        g = circulant(V, ints);
+        break;
+    case CN_MULTIPARTITE:
+        V = bd(mt), k = sqrtk(), ints = partition_sample(V, k);
+        g = complete_multipartite(ints), add_reverse_edges(g);
+        break;
+    default:
+        throw runtime_error("Invalid flow network kind");
+    }
+
+    cout << S << ' ' << V << endl;
+    int E = g.size();
+    return circulation_network{V, E, g};
+}
+
+auto generate_supply_circulation_network(circulation_network_kind i, int S, flow_t sum,
+                                         int positives, int negatives, flow_t maxcap = 99,
+                                         cost_t maxcost = 99, flow_t mincap = 1,
+                                         cost_t mincost = 1) {
+    auto fn = generate_circulation_network(i, S);
+    auto cap = int_gen<flow_t>(fn.E, mincap, maxcap);
+    auto cost = int_gen<cost_t>(fn.E, mincost, maxcost);
+    auto supply = supply_sample<flow_t>(fn.E, positives, negatives, sum);
+    return supply_circulation_network{fn, cap, cost, supply};
+}
 
 #endif // GRAPH_GENERATOR_HPP

@@ -12,6 +12,7 @@ using longd = uniform_int_distribution<long>;
 using ulongd = uniform_int_distribution<size_t>;
 using reald = uniform_real_distribution<double>;
 using binomd = binomial_distribution<int>;
+using longbinomd = binomial_distribution<long>;
 using boold = bernoulli_distribution;
 
 using adjacency_lists_t = vector<vector<int>>;
@@ -204,13 +205,14 @@ parent_t parent_sample(int n) {
  * It must hold that k > 0.
  * Complexity: faster than linear
  */
-partition_t partition_sample(int n, int k, int m = 1) {
-    partition_t parts(k, m);
+template <typename I = int>
+auto partition_sample(I n, int k, I m = 1) {
+    vector<I> parts(k, m);
     intd dist(0, k - 1);
     n -= m * k;
     assert(n >= 0);
     while (n > 0) {
-        int add = (n + k - 1) / k;
+        I add = (n + k - 1) / k;
         parts[dist(mt)] += add;
         n -= add;
     }
@@ -220,11 +222,50 @@ partition_t partition_sample(int n, int k, int m = 1) {
 /**
  * Like partition_sample but the first and last levels have size exactly 1.
  */
-partition_t partition_sample_flow(int V, int ranks, int m = 1) {
+template <typename I = int>
+auto partition_sample_flow(I V, I ranks, I m = 1) {
     auto R = partition_sample(V - 2, ranks - 2, m);
     R.insert(R.begin(), 1);
     R.insert(R.end(), 1);
     return R;
+}
+
+/**
+ * Generate a supply partition with n elements whose total sum is c and minimum is m.
+ */
+template <typename I = int>
+auto supply_sample(int n, int positives, int negatives, I sum, I m = 1) {
+    assert(n && positives && negatives && sum && positives + negatives <= n);
+    vector<I> vec(n, 0);
+    auto pos = partition_sample(sum, positives, m);
+    auto neg = partition_sample(sum, negatives, m);
+    auto idx = int_sample(positives + negatives, 0, n - 1);
+    shuffle(begin(idx), end(idx), mt);
+    for (int i = 0; i < positives; i++)
+        vec[idx[i]] = pos[i];
+    for (int i = 0; i < negatives; i++)
+        vec[idx[i + positives]] = neg[i];
+    return vec;
+}
+
+/**
+ * Vector of size n with elements taken uniformly from [a,b], possibly repeated
+ */
+template <typename T = int>
+auto int_gen(int n, T a, T b) {
+    vector<T> vec(n);
+    uniform_int_distribution<T> dist(a, b);
+    for (int i = 0; i < n; i++)
+        vec[i] = dist(mt);
+    return vec;
+}
+template <typename T = int>
+auto real_gen(int n, T a, T b) {
+    vector<T> vec(n);
+    uniform_real_distribution<T> dist(a, b);
+    for (int i = 0; i < n; i++)
+        vec[i] = dist(mt);
+    return vec;
 }
 
 #endif // RANDOM_HPP

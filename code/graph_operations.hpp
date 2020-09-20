@@ -27,6 +27,27 @@ auto make_adjacency_lists_reverse(const edges_t& g, int V) {
     return adj;
 }
 
+auto make_adjacency_set_undirected(const edges_t& g) {
+    edgeset_t adj;
+    for (auto [u, v] : g)
+        adj.insert({u, v}), adj.insert({v, u});
+    return adj;
+}
+
+auto make_adjacency_set_directed(const edges_t& g) {
+    edgeset_t adj;
+    for (auto [u, v] : g)
+        adj.insert({u, v});
+    return adj;
+}
+
+auto make_adjacency_set_reverse(const edges_t& g) {
+    edgeset_t adj;
+    for (auto [u, v] : g)
+        adj.insert({v, u});
+    return adj;
+}
+
 auto relabel(const edges_t& g, int V) {
     vector<int> label(V);
     iota(begin(label), end(label), 0);
@@ -61,8 +82,7 @@ int count_reachable(const adjacency_lists_t& adj, int s = 0) {
     while (i++ < S && S < V) {
         for (int v : adj[bfs[i - 1]]) {
             if (!vis[v]) {
-                vis[v] = true;
-                S++;
+                vis[v] = true, S++;
                 bfs.push_back(v);
             }
         }
@@ -78,8 +98,7 @@ bool reachable(const adjacency_lists_t& adj, int s, int t) {
     while (i++ < S && S < V) {
         for (int v : adj[bfs[i - 1]]) {
             if (!vis[v]) {
-                vis[v] = true;
-                S++;
+                vis[v] = true, S++;
                 bfs.push_back(v);
                 if (v == t)
                     return true;
@@ -98,7 +117,7 @@ bool is_connected_undirected(const edges_t& g, int V) {
 bool is_connected_directed(const edges_t& g, int V) {
     assert(V > 0);
     auto adj = make_adjacency_lists_directed(g, V);
-    if (count_reachable(adj, V) != V)
+    if (count_reachable(adj) != V)
         return false;
     adj = make_adjacency_lists_reverse(g, V);
     return count_reachable(adj) == V;

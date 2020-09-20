@@ -6,183 +6,102 @@
 
 // *****
 
-// T = # tests, A = # test subjects, R = # random tests
-constexpr int T = 10, A = 4, R = 100;
-const char* names[T] = {"sparse long level flow networks",
-                        "sparse wide level flow networks",
-                        "moderate long level flow networks",
-                        "moderate wide level flow networks",
-                        "dense long level flow networks",
-                        "dense wide level flow networks",
-                        "large sparse long flow networks",
-                        "large sparse wide flow networks",
-                        "complete flow networks",
-                        "3d grid flow networks"};
-int quantity[T] = {400, 400, 400, 400, 400, 400, 30, 30, 100, 500};
-vector<edges_t> graphs;
-vector<cap_t> caps;
-vector<int> gV;
-vector<long> flows[A];
-
-auto random_cap(int E, long max_cap) {
-    longd dist(1, max_cap);
-    cap_t cap(E);
-    for (int e = 0; e < E; e++)
-        cap[e] = dist(mt);
-    return cap;
+bool eq(flow_t a, flow_t b, flow_t c) { return a == b && b == c; }
+bool eq(flow_t a, flow_t b, flow_t c, flow_t d) { return a == b && eq(b, c, d); }
+bool eq(flow_t a, flow_t b, flow_t c, flow_t d, flow_t e) {
+    return a == b && eq(b, c, d, e);
 }
 
-int generate(int i, edges_t& g, cap_t& cap, long max_cap = 99) {
-    intd smallV(30, 50);
-    intd distV(900, 1300);
-    intd largeV(2000, 3000);
-    intd hugeV(8000, 11000);
-    intd completeV(600, 900);
-    intd gridV(10, 40);
-    reald sparse(5.0, 12.0);
-    reald dense(0.3, 0.6);
-    intd rankd;
-    int V = -1, ranks, m, X, Y, Z;
-    double p;
-    switch (i) {
-    case -1:
-        V = smallV(mt), p = min(1.0, sparse(mt) / sqrt(V));
-        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
-        g = random_uniform_level_flow(V, p, ranks, m);
-        break;
-    case 0:
-        V = distV(mt), p = sparse(mt) / V;
-        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
-        g = random_uniform_level_flow(V, p, ranks, m);
-        break;
-    case 1:
-        V = distV(mt), p = sparse(mt) / V;
-        rankd = intd(5, min(V, 20)), ranks = rankd(mt), m = min(20, V / ranks);
-        g = random_uniform_level_flow(V, p, ranks, m);
-        break;
-    case 2:
-        V = distV(mt), p = min(1.0, sparse(mt) / sqrt(V));
-        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
-        g = random_uniform_level_flow(V, p, ranks, m);
-        break;
-    case 3:
-        V = distV(mt), p = min(1.0, sparse(mt) / sqrt(V));
-        rankd = intd(5, min(V, 20)), ranks = rankd(mt), m = min(20, V / ranks);
-        g = random_uniform_level_flow(V, p, ranks, m);
-        break;
-    case 4:
-        V = distV(mt), p = min(1.0, dense(mt));
-        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
-        g = random_uniform_level_flow(V, p, ranks, m);
-        break;
-    case 5:
-        V = distV(mt), p = min(1.0, dense(mt));
-        rankd = intd(5, min(V, 20)), ranks = rankd(mt), m = min(20, V / ranks);
-        g = random_uniform_level_flow(V, p, ranks, m);
-        break;
-    case 6:
-        V = hugeV(mt), p = sparse(mt) / V;
-        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
-        g = random_uniform_level_flow(V, p, ranks, m);
-        break;
-    case 7:
-        V = largeV(mt), p = sparse(mt) / V;
-        rankd = intd(5, min(V, 20)), ranks = rankd(mt), m = min(20, V / ranks);
-        g = random_uniform_level_flow(V, p, ranks, m);
-        break;
-    case 8:
-        V = completeV(mt);
-        g = complete_directed(V);
-        break;
-    case 9:
-        X = gridV(mt), Y = gridV(mt), Z = gridV(mt), V = X * Y * Z;
-        g = grid3_directed(X, Y, Z);
-        break;
-    }
-    int E = g.size();
-    cap = random_cap(E, max_cap);
-    return V;
-}
+void speed_test(flow_network_kind i, int S, int T) {
+    START_ACC(dinitz);
+    START_ACC(push_relabel);
+    START_ACC(tidal);
+    START_ACC(mpm);
 
-void generate_randoms(int t, long max_cap = 100'000) {
-    int Q = quantity[t];
-    graphs.resize(Q);
-    caps.resize(Q);
-    gV.resize(Q);
-    for (int i = 0; i < Q; i++) {
-        print("\rGenerating {} {}...", names[t], i + 1);
-        gV[i] = generate(t, graphs[i], caps[i], max_cap);
-    }
-    print("\n");
-}
+    vector<flow_t> mf[4];
+    mf[0] = mf[1] = mf[2] = mf[3] = flows_t(T);
 
-template <typename MF, int k>
-void speed_test(const string& name) {
-    int T = graphs.size();
-    flows[k].resize(T);
-
-    START(flow);
-    for (int i = 0; i < T; i++) {
-        int V = gV[i];
-        const auto& g = graphs[i];
-        const auto& cap = caps[i];
-        MF mf(V, g, cap);
-        flows[k][i] = mf.maxflow(0, V - 1);
-        print("\r{:>4} {}", i + 1, flows[k][i]);
-    }
-    TIME(flow);
-    CHRONO_PRINT_NAME(flow, name);
-}
-
-void test_speed() {
     for (int t = 0; t < T; t++) {
-        generate_randoms(t);
-        print("--- {}  {}\n", t, names[t]);
-        speed_test<dinitz_flow, 1>("dinitz flow");
-        speed_test<push_relabel, 2>("push relabel");
-        // speed_test<tidal_flow, 3>("tidal flow", t);
+        print("\rspeed test {} {}...", t + 1, flow_kind_name[i]);
+        auto network = generate_cap_flow_network(i, S, 100'000);
 
-        print("\n");
-        if (flows[1] != flows[2]) {
-            print("Different answers!\n");
-            int Q = quantity[t], c = 0;
-            for (int i = 0; i < Q && c < 10; i++) {
-                if (flows[1][i] != flows[2][i]) {
-                    print("dinitz: {:8} | ", flows[1][i]);
-                    print("preflow: {:8}\n", flows[2][i]);
-                    c++;
-                }
+        START(dinitz);
+        dinitz_flow g0(network.V, network.g, network.cap);
+        mf[0][t] = g0.maxflow(network.s, network.t);
+        ADD_TIME(dinitz);
+
+        START(push_relabel);
+        push_relabel g1(network.V, network.g, network.cap);
+        mf[1][t] = g1.maxflow(network.s, network.t, true);
+        ADD_TIME(push_relabel);
+
+        START(tidal);
+        tidal_flow g2(network.V, network.g, network.cap);
+        mf[2][t] = g2.maxflow(network.s, network.t);
+        ADD_TIME(tidal);
+
+        START(mpm);
+        mpm_flow g3(network.V, network.g, network.cap);
+        mf[3][t] = g3.maxflow(network.s, network.t);
+        ADD_TIME(mpm);
+    }
+
+    print("\r speed test {} (S={}, x{}):\n", flow_kind_name[i], S, T);
+    PRINT_ACC(dinitz);
+    PRINT_ACC(push_relabel);
+    PRINT_ACC(tidal);
+    PRINT_ACC(mpm);
+
+    if (mf[0] != mf[1] || mf[1] != mf[2] || mf[2] != mf[3]) {
+        print("WARNING: Different answers\n");
+        for (int c = 0, t = 0; t < T && c < 5; t++) {
+            if (!eq(mf[0][t], mf[1][t], mf[2][t], mf[3][t])) {
+                print(" -- {:>9} {:>9} {:>9}\n", mf[0][t], mf[1][t], mf[2][t], mf[3][t]);
             }
         }
     }
 }
 
+constexpr int N = 5;
+constexpr int sizes[] = {500, 1800, 6000, 12000, 20000};
+constexpr int amounts[] = {5000, 1000, 100, 40, 10};
+
+void test_speed() {
+    for (int n = 0; n < N; n++) {
+        for (int i = 0; i < int(FN_END); i++) {
+            speed_test(flow_network_kind(i), sizes[n], amounts[n]);
+        }
+    }
+}
+
 void test_equal(int i) {
-    intd distV(10, 20);
-    edges_t g;
-    cap_t cap;
-    int V = generate(-1, g, cap, 100'000);
+    auto network = generate_cap_flow_network(FN_COMPLETE, 100, 100'000);
+    int V = network.V;
+    const auto &g = network.g;
+    const auto &cap = network.cap;
 
     edmonds_karp flow1(V, g, cap);
     dinitz_flow flow2(V, g, cap);
     push_relabel flow3(V, g, cap);
-    // tidal_flow flow4(V, g, cap);
+    tidal_flow flow4(V, g, cap);
+    mpm_flow flow5(V, g, cap);
 
     long mf1 = flow1.maxflow(0, V - 1);
     long mf2 = flow2.maxflow(0, V - 1);
     long mf3 = flow3.maxflow(0, V - 1);
-    long mf4 = mf3; // flow4.maxflow(0, V - 1);
+    long mf4 = flow4.maxflow(0, V - 1);
+    long mf5 = flow5.maxflow(0, V - 1);
     assert(mf1 != 0);
 
-    string spaces(20, ' ');
-    print("\rrandom test #{}: {} {} {} {}{}", i, mf1, mf2, mf3, mf4, spaces);
-    if (!(mf1 == mf2 && mf2 == mf3 && mf3 == mf4)) {
+    print("\r{}", string(60, ' '));
+    print("\rrandom test #{}: {} {} {} {} {}", i, mf1, mf2, mf3, mf4, mf5);
+    if (!eq(mf1, mf2, mf3, mf4, mf5)) {
         print("\nRandom test failed\n");
         exit(1);
     }
 }
 
-void test_equals() {
+void test_equals(int R = 100) {
     for (int i = 1; i <= R; i++) {
         test_equal(i);
     }
@@ -190,6 +109,7 @@ void test_equals() {
 }
 
 int main() {
+    mt.seed(73);
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
     test_equals();

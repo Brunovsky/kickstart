@@ -3,34 +3,21 @@
 #include "../debug_print.hpp"
 #include "../graph.hpp"
 #include "../graph_generator.hpp"
-
-using namespace std::chrono;
-using ms = chrono::milliseconds;
+#include "chrono.hpp"
 
 // *****
 
 const string UNIT_TESTS = "datasets/mincost_flow.txt";
 
-template <typename MCF>
-MCF convert(const cost_flow_graph& g) {
-    MCF mcf(g.V);
-    for (int e = 0; e < 2 * g.E; e += 2) {
-        int u = g.source[e], v = g.target[e], c = g.cap[e], w = g.cost[e];
-        mcf.add(u, v, c, w);
-    }
-    return mcf;
-}
-
 struct Test {
     string name, comment;
-    cost_flow_graph g;
-    vector<long> f;
-    int s, t;
+    edges_t g;
+    vector<long> f, caps, costs;
+    int V, E, s, t;
 };
 
 auto read_unit_test(istream& in) {
     Test test;
-    auto& g = test.g;
     while (in.peek() == '#') {
         string line;
         getline(in, line);
@@ -40,15 +27,17 @@ auto read_unit_test(istream& in) {
     getline(in, test.name);
 
     int V, E, F;
-    in >> ws >> V >> E >> test.s >> test.t >> ws;
+    in >> ws >> V >> test.s >> test.t >> ws;
     assert(V > 0 && E > 0);
     assert(!in.bad());
+    test.V = V, test.E = E;
 
-    g = cost_flow_graph(V);
     for (int i = 0; i < E; i++) {
         int u, v, c, w;
         in >> u >> v >> c >> w >> ws;
-        g.add(u, v, c, w);
+        test.g.push_back({u, v});
+        test.caps.push_back(c);
+        test.costs.push_back(w);
     }
     in >> F;
     test.f.resize(F);
@@ -69,7 +58,7 @@ void read_unit_tests(vector<Test>& tests, istream& in = cin) {
 template <typename MCF>
 void run_test(Test& test) {
     print("{}", test.comment);
-    auto g = convert<MCF>(test.g);
+    MCF g(test.V, test.g, test.caps, test.costs);
     int s = test.s, t = test.t;
     for (long f : test.f) {
         auto [flow, cost] = g.mincost_flow(s, t, f);
@@ -95,40 +84,82 @@ const char* names[T] = {"sparse flow networks", "dense flow networks",
                         "huge sparse flow networks"};
 int quantity[T] = {1000, 500, 300, 100, 20};
 bool hard[T] = {0, 0, 0, 1, 1};
-vector<cost_flow_graph> graphs[T];
+vector<edges_t> graphs;
+vector<vector<long>> caps, costs;
 vector<pair<long, long>> flows[A];
 
-auto make_flow(int V, double p, long max_cap, long max_cost) {
-    auto g = random_flow_graph(V, p, max_cap);
-    return add_costs(g, max_cost);
-}
-
-auto generate(int i) {
-    intd distV(30, 50);
-    intd largeV(150, 250);
-    intd hugeV(800, 1100);
-    reald sparse(4.0, 12.0);
-    int V;
+int generate(int i, edges_t& g, caps_t& caps, costs_t& costs, long max_cap = 99,
+             long max_cost) {
+    intd smallV(30, 50);
+    intd distV(200, 300);
+    intd largeV(600, 800);
+    intd hugeV(1200, 1500);
+    intd completeV(600, 900);
+    intd gridV(10, 20);
+    reald sparse(5.0, 12.0);
+    reald dense(0.3, 0.6);
+    intd rankd;
+    int V = -1, ranks, m, X, Y, Z;
+    double p;
     switch (i) {
+    case -1:
+        V = smallV(mt), p = min(1.0, sparse(mt) / sqrt(V));
+        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
     case 0:
-        V = distV(mt);
-        return make_flow(V, sparse(mt) / V, 100'000, 100'000);
+        V = distV(mt), p = sparse(mt) / V;
+        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
     case 1:
-        V = distV(mt);
-        return make_flow(V, 0.25, 100'000, 100'000);
+        V = distV(mt), p = sparse(mt) / V;
+        rankd = intd(5, min(V, 20)), ranks = rankd(mt), m = min(20, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
     case 2:
-        V = distV(mt);
-        return make_flow(V, 1.0, 100'000, 100'000);
+        V = distV(mt), p = min(1.0, sparse(mt) / sqrt(V));
+        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
     case 3:
-        V = largeV(mt);
-        return make_flow(V, sparse(mt) / V, 100'000, 100'000);
+        V = distV(mt), p = min(1.0, sparse(mt) / sqrt(V));
+        rankd = intd(5, min(V, 20)), ranks = rankd(mt), m = min(20, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
     case 4:
-        V = hugeV(mt);
-        return make_flow(V, sparse(mt) / V, 100'000, 100'000);
-    default:
-        assert(false);
+        V = distV(mt), p = min(1.0, dense(mt));
+        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 5:
+        V = distV(mt), p = min(1.0, dense(mt));
+        rankd = intd(5, min(V, 20)), ranks = rankd(mt), m = min(20, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 6:
+        V = hugeV(mt), p = sparse(mt) / V;
+        rankd = intd(3, max(3, V / 6)), ranks = rankd(mt), m = min(8, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 7:
+        V = largeV(mt), p = sparse(mt) / V;
+        rankd = intd(5, min(V, 20)), ranks = rankd(mt), m = min(20, V / ranks);
+        g = random_uniform_level_flow(V, p, ranks, m);
+        break;
+    case 8:
+        V = completeV(mt);
+        g = complete_directed(V);
+        break;
+    case 9:
+        X = gridV(mt), Y = gridV(mt), Z = gridV(mt), V = X * Y * Z;
+        g = grid3_directed(X, Y, Z);
+        break;
     }
-    __builtin_unreachable();
+    int E = g.size();
+    caps = int_gen<long>(E, 1, max_cap);
+    costs = int_gen<long>(E, 1, max_cost);
+    return V;
 }
 
 void generate_randoms() {

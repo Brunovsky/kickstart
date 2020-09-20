@@ -299,7 +299,7 @@ struct pairing_int_heap {
     int root = -1;
     Compare comp;
 
-    explicit pairing_int_heap(int N, const Compare& comp = Compare())
+    explicit pairing_int_heap(int N = 0, const Compare& comp = Compare())
         : node(N), comp(comp) {}
 
     bool empty() const { return root == -1; }
@@ -383,7 +383,7 @@ struct pairing_int_heaps {
     vector<node_t> node;
     Compare comp;
 
-    explicit pairing_int_heaps(int R, int N, const Compare& comp = Compare())
+    explicit pairing_int_heaps(int R = 0, int N = 0, const Compare& comp = Compare())
         : root(R, -1), node(N), comp(comp) {}
 
     bool empty(int h) const { return root[h] == -1; }
