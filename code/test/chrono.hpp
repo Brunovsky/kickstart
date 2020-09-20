@@ -1,11 +1,14 @@
 #ifndef CHRONO_HPP
 #define CHRONO_HPP
 
+#include <fmt/format.h>
+
 #include <chrono>
 
 using namespace std::chrono;
 using ms = milliseconds;
 using us = microseconds;
+using fmt::print, fmt::format;
 
 #define START_ACC(var) size_t acc_##var = 0
 

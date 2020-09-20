@@ -42,25 +42,31 @@ struct edmonds_karp {
                 if (pred[v] == -1 && v != s && flow[e] < cap[e]) {
                     pred[v] = e;
                     bfs.push_back(v), S++;
+                    if (v == t)
+                        return true;
                 }
             }
         }
-        return pred[t] != -1;
+        return false;
+    }
+
+    long augment(int t) {
+        long aug_flow = inf;
+        for (int e = pred[t]; e != -1; e = pred[edge[e][0]]) {
+            aug_flow = min(aug_flow, cap[e] - flow[e]);
+        }
+        for (int e = pred[t]; e != -1; e = pred[edge[e][0]]) {
+            flow[e] += aug_flow;
+            flow[e ^ 1] -= aug_flow;
+        }
+        return aug_flow;
     }
 
     long maxflow(int s, int t) {
         pred.resize(V);
         long max_flow = 0;
         while (bfs(s, t)) {
-            long aug_flow = inf;
-            for (int e = pred[t]; e != -1; e = pred[edge[e][0]]) {
-                aug_flow = min(aug_flow, cap[e] - flow[e]);
-            }
-            for (int e = pred[t]; e != -1; e = pred[edge[e][0]]) {
-                flow[e] += aug_flow;
-                flow[e ^ 1] -= aug_flow;
-            }
-            max_flow += aug_flow;
+            max_flow += augment(t);
         }
         return max_flow;
     }
@@ -103,12 +109,11 @@ struct dinitz_flow {
                     level[v] = level[u] + 1;
                     bfs.push_back(v), S++;
                     if (v == t)
-                        goto found;
+                        return true;
                 }
             }
         }
-    found:
-        return level[t] != -1;
+        return false;
     }
 
     long dfs(int u, int t, long mincap) {
@@ -355,7 +360,7 @@ struct push_relabel {
 
     void gap(int at) {
         if (at < V && labeled.empty(at)) {
-            for (int h = at + 1; h < V; h++) {
+            for (int h = at + 1; h < V && !labeled.empty(h); h++) {
                 FOR_EACH_IN_LINKED_LIST (v, h, labeled) {
                     height[v] = V + 1;
                     if (excess[v] > 0)
@@ -366,7 +371,8 @@ struct push_relabel {
         }
     }
 
-    void global_relabel(int s, int t, bool sink) {
+    template <bool sink> // 1=push phase (heights<V), 0=recover phase (heights>V)
+    void global_relabel(int s, int t) {
         vector<int> new_height(V, 2 * V), bfs{sink ? t : s};
         new_height[s] = V, new_height[t] = 0;
         reverse_bfs(bfs, new_height);
@@ -375,7 +381,7 @@ struct push_relabel {
                 height[u] = new_height[u];
                 if (excess[u] > 0)
                     active.erase(u), active.push_back(height[u], u);
-                if (0 < height[u] && height[u] < V)
+                if (sink && 0 < height[u] && height[u] < V)
                     labeled.erase(u), labeled.push_back(height[u], u);
             }
         }
@@ -394,9 +400,10 @@ struct push_relabel {
         excess[v] += df;
     }
 
+    template <bool sink> // 1=push phase (heights<V), 0=recover phase (heights>V)
     void relabel(int u) {
         relabel_count++;
-        if (height[u] < V)
+        if (sink)
             labeled.erase(u);
         height[u] = 2 * V;
         for (int i = 0, vsize = res[u].size(); i < vsize; i++) {
@@ -406,19 +413,20 @@ struct push_relabel {
                 arc[u] = i;
             }
         }
-        if (height[u] < V) {
+        if (sink && height[u] < V) {
             labeled.push_back(height[u], u);
             gap(b);
         }
         b = height[u];
     }
 
-    void discharge(int u, bool sink) {
+    template <bool sink> // 1=push phase (heights<V), 0=recover phase (heights>V)
+    void discharge(int u) {
         int& i = arc[u];
         int vsize = res[u].size();
         while (excess[u] > 0) {
             if (i == vsize) {
-                relabel(u);
+                relabel<sink>(u);
                 if (sink && height[u] >= V) {
                     active.push_back(height[u], u);
                     return;
@@ -450,21 +458,19 @@ struct push_relabel {
 
         b = V - 1;
         while (true) {
-            b = min(b, V - 1);
-            while (b >= 0 && active.empty(b))
-                b--;
-            if (b < 0)
-                break;
             if (relabel_count >= threshold) {
                 relabel_count = 0;
-                global_relabel(s, t, 1);
+                global_relabel<1>(s, t);
                 b = V - 1;
-            } else {
-                int u = active.tail(b);
-                active.pop_back(b);
-                if (u != s && u != t)
-                    discharge(u, 1);
             }
+            b = min(b, V - 1);
+            while (b > 0 && active.empty(b))
+                b--;
+            if (b <= 0)
+                break;
+            int u = active.tail(b);
+            active.pop_back(b);
+            discharge<1>(u);
         }
 
         if (value_only)
@@ -472,20 +478,18 @@ struct push_relabel {
 
         b = 2 * V - 1;
         while (true) {
-            while (b >= V && active.empty(b))
-                b--;
-            if (b < V)
-                break;
             if (relabel_count >= threshold) {
                 relabel_count = 0;
-                global_relabel(s, t, 0);
+                global_relabel<0>(s, t);
                 b = 2 * V - 1;
-            } else {
-                int u = active.head(b);
-                active.pop_front(b);
-                if (u != s && u != t)
-                    discharge(u, 0);
             }
+            while (b > V && active.empty(b))
+                b--;
+            if (b <= V)
+                break;
+            int u = active.head(b);
+            active.pop_front(b);
+            discharge<0>(u);
         }
 
         return excess[t];
@@ -562,7 +566,7 @@ struct tidal_flow {
             p[e] = min(p[e], min(h[w] - l[w], l[v]));
             l[v] -= p[e];
             l[w] += p[e];
-        }
+        } // 1=push phase, 0=recover phase
         fill(begin(h), end(h), 0);
         h[s] = l[s];
         for (auto e : edges) {
@@ -582,9 +586,8 @@ struct tidal_flow {
         l.assign(V, 0);
         p.assign(2 * E, 0);
         flow.assign(2 * E, 0);
-        long max_flow = 0;
+        long max_flow = 0, df;
         while (bfs(s, t)) {
-            long df;
             do {
                 df = tide(s, t);
                 max_flow += df;
