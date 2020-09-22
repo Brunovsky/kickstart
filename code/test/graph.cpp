@@ -201,6 +201,15 @@ void test_generator() {
         }
         print("\n");
     }
+    for (int S : {10, 20, 50, 100, 500, 2000, 5000, 15000, 30000}) {
+        print("Distance Graphs  S={}\n", S);
+        for (int i = 0; i < int(DG_END); i++) {
+            auto fn = generate_distance_graph(distance_graph_kind(i), S);
+            auto& name = distance_kind_name[i];
+            print(" {:2} {:30} -- V:{:<8} E:{:<13}\n", i, name, fn.V, fn.E);
+        }
+        print("\n");
+    }
 }
 
 int main() {

@@ -220,7 +220,7 @@ struct linked_lists {
  *           O(log n)-       decrease_key(u)
  *           O(log n)        pop()
  *           O(log n)        erase(u)     not implemented
- *           O(n)            clear()      not implemented
+ *           O(n)            clear()
  */
 template <typename Compare = less<>>
 struct binary_int_heap {
@@ -232,27 +232,32 @@ struct binary_int_heap {
 
     bool empty() const { return c.empty(); }
     size_t size() const { return c.size(); }
-    bool contains(int n) const { return id[n] != -1; }
+    bool contains(int u) const { return id[u] != -1; }
     int top() const { return assert(!empty()), c[0]; }
 
-    void push(int n) {
-        assert(!contains(n));
-        id[n] = c.size(), c.push_back(n);
-        heapify_up(id[n]);
+    void push(int u) {
+        assert(!contains(u));
+        id[u] = c.size(), c.push_back(u);
+        heapify_up(id[u]);
     }
     int pop() {
         assert(!empty());
-        int n = c[0];
+        int u = c[0];
         swap(c[0], c.back());
-        id[c[0]] = 0, id[n] = -1;
+        id[c[0]] = 0, id[u] = -1;
         c.pop_back();
         heapify_down(0);
-        return n;
+        return u;
     }
-    void improve(int n) { assert(contains(n)), heapify_up(id[n]); }
-    void decline(int n) { assert(contains(n)), heapify_down(id[n]); }
-    void push_or_improve(int n) { contains(n) ? improve(n) : push(n); }
-    void push_or_decline(int n) { contains(n) ? decline(n) : push(n); }
+    void improve(int u) { assert(contains(u)), heapify_up(id[u]); }
+    void decline(int u) { assert(contains(u)), heapify_down(id[u]); }
+    void push_or_improve(int u) { contains(u) ? improve(u) : push(u); }
+    void push_or_decline(int u) { contains(u) ? decline(u) : push(u); }
+    void clear() {
+        for (int u : c)
+            id[u] = -1;
+        c.clear();
+    }
 
   private:
     static int parent(int i) { return (i - 1) >> 1; }
@@ -288,7 +293,7 @@ struct binary_int_heap {
  *           O(log log n)*   decrease_key(u)
  *           O(log n)*       pop()
  *           O(log n)*       erase(u)     not implemented
- *           O(n)            clear()      not implemented
+ *           O(n)            clear()
  */
 template <typename Compare = less<>>
 struct pairing_int_heap {
@@ -324,6 +329,10 @@ struct pairing_int_heap {
             take(u), root = meld(root, u);
     }
     void push_or_improve(int u) { contains(u) ? improve(u) : push(u); }
+    void clear() {
+        if (root != -1)
+            clear_dive(root), root = -1;
+    }
 
   private:
     int meld(int u, int v) { return comp(u, v) ? splice(u, v) : splice(v, u); }
@@ -356,6 +365,11 @@ struct pairing_int_heap {
             w = node[v].next, u = meld(u, v), v = w;
         }
         return u;
+    }
+    void clear_dive(int u) {
+        for (int v = node[u].child; v != -1; v = node[v].next)
+            clear_dive(v);
+        node[u] = node_t();
     }
 };
 
@@ -412,6 +426,10 @@ struct pairing_int_heaps {
         if (h != g && !empty(g))
             root[h] = empty(h) ? root[g] : meld(root[h], root[g]), root[g] = -1;
     }
+    void clear(int h) {
+        if (root[h] != -1)
+            clear_dive(root[h]), root[h] = -1;
+    }
 
   private:
     int meld(int u, int v) { return comp(u, v) ? splice(u, v) : splice(v, u); }
@@ -444,6 +462,11 @@ struct pairing_int_heaps {
             w = node[v].next, u = meld(u, v), v = w;
         }
         return u;
+    }
+    void clear_dive(int u) {
+        for (int v = node[u].child; v != -1; v = node[v].next)
+            clear_dive(v);
+        node[u] = node_t();
     }
 };
 

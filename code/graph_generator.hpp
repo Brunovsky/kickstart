@@ -1265,15 +1265,15 @@ auto generate_flow_network(flow_network_kind i, int S) {
     return flow_network{V, E, 0, V - 1, g};
 }
 
-auto generate_cap_flow_network(flow_network_kind i, int S, flow_t maxcap = 99,
+auto generate_cap_flow_network(flow_network_kind i, int S, flow_t maxcap,
                                flow_t mincap = 1) {
     auto fn = generate_flow_network(i, S);
     auto cap = int_gen<flow_t>(fn.E, mincap, maxcap);
     return cap_flow_network{fn, cap};
 }
 
-auto generate_cap_cost_flow_network(flow_network_kind i, int S, flow_t maxcap = 99,
-                                    flow_t mincap = 1, cost_t maxcost = 99,
+auto generate_cap_cost_flow_network(flow_network_kind i, int S, flow_t maxcap,
+                                    cost_t maxcost, flow_t mincap = 1,
                                     cost_t mincost = 1) {
     auto fn = generate_flow_network(i, S);
     auto cap = int_gen<flow_t>(fn.E, mincap, maxcap);
@@ -1396,7 +1396,7 @@ auto generate_circulation_network(circulation_network_kind i, int S) {
         break;
     case CN_COMPLETE:
         V = cd(mt);
-        g = complete_directed(V);
+        g = complete_directed(V), add_reverse_edges(g);
         break;
     case CN_CIRCULAR_GRID2:
         X = dd(mt), Y = dd(mt), V = X * Y;
@@ -1412,14 +1412,13 @@ auto generate_circulation_network(circulation_network_kind i, int S) {
         g = circulant(V, ints);
         break;
     case CN_MULTIPARTITE:
-        V = bd(mt), k = sqrtk(), ints = partition_sample(V, k);
+        V = cd(mt), k = sqrtk(), ints = partition_sample(V, k);
         g = complete_multipartite(ints), add_reverse_edges(g);
         break;
     default:
-        throw runtime_error("Invalid flow network kind");
+        throw runtime_error("Invalid circulation network kind");
     }
 
-    cout << S << ' ' << V << endl;
     int E = g.size();
     return circulation_network{V, E, g};
 }
@@ -1433,6 +1432,127 @@ auto generate_supply_circulation_network(circulation_network_kind i, int S, flow
     auto cost = int_gen<cost_t>(fn.E, mincost, maxcost);
     auto supply = supply_sample<flow_t>(fn.E, positives, negatives, sum);
     return supply_circulation_network{fn, cap, cost, supply};
+}
+
+/** Distance networks
+ */
+
+struct distance_graph {
+    int V, E;
+    edges_t g;
+};
+
+struct weighted_distance_graph : distance_graph {
+    costs_t weights;
+};
+
+enum distance_graph_kind : int {
+    DG_UNIFORM_SPARSE = 0,
+    DG_UNIFORM_MODERATE = 1,
+    DG_UNIFORM_DENSE = 2,
+    DG_COMPLETE = 3,
+    DG_MULTIPARTITE = 4,
+    DG_DISJOINT_MULTIPARTITE = 5,
+    DG_REGULAR_RING = 6,
+    DG_NORMAL_GRID2 = 7,
+    DG_CIRCULAR_GRID2 = 8,
+    DG_NORMAL_GRID3 = 9,
+    DG_CIRCULAR_GRID3 = 10,
+    DG_END = 11,
+};
+
+string distance_kind_name[] = {
+    "random uniform sparse", "random uniform moderate",
+    "random uniform dense",  "complete",
+    "multipartite",          "disjoint multipartite",
+    "regular ring",          "normal 2d grid",
+    "circular 2d grid",      "normal 3d grid",
+    "circular 3d grid",      "---",
+};
+
+// S arbitrates network size/complexity.
+auto generate_distance_graph(distance_graph_kind i, int S, bool bidirectional = true) {
+    assert(10 <= S && S <= 50000);
+    const int a = int(pow(S, 0.90)), b = int(pow(S, 0.82)), c = int(pow(S, 0.68));
+    const int d = int(pow(S, 0.57)), s = int(pow(S, 0.50)), f = int(pow(S, 0.40));
+    const int t = int(pow(S, 0.37)), u = int(pow(S, 0.30)), v = int(pow(S, 0.20));
+    const int r = int(pow(S, 0.85));
+
+    intd Sd(S, S + s), ad(a, a + s), bd(b, b + f), cd(c, c + f), dd(d, d + u);
+    intd sd(s, s + v), fd(f, f + v), td(t, t + v), ud(u, u + v), rd(r, r + s);
+    reald sparsed(5.0, 12.0);
+    reald moderated(4.0, 9.0);
+    reald densed(0.6, 0.9);
+
+    edges_t g;
+    int V = -1, X, Y, Z, k, n;
+    double p;
+    offsets_t ints;
+
+    const auto sparse = [&]() { return min(1.0, sparsed(mt) / V); };
+    const auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(V)); };
+    const auto dense = [&]() { return densed(mt); };
+    const auto add_reverse = [&]() { bidirectional ? add_reverse_edges(g) : (void)0; };
+    auto sqrtk = [&]() { return int(sqrt(V) + 1); };
+
+    switch (i) {
+    case DG_UNIFORM_SPARSE:
+        V = ad(mt), p = sparse();
+        g = random_uniform_directed_connected(V, p);
+        break;
+    case DG_UNIFORM_MODERATE:
+        V = ad(mt), p = moderate();
+        g = random_uniform_directed_connected(V, p);
+        break;
+    case DG_UNIFORM_DENSE:
+        V = bd(mt), p = dense();
+        g = random_uniform_directed_connected(V, p);
+        break;
+    case DG_COMPLETE:
+        V = bd(mt);
+        g = complete_directed(V), add_reverse();
+        break;
+    case DG_MULTIPARTITE:
+        V = bd(mt), k = sqrtk(), ints = partition_sample(V, k);
+        g = complete_multipartite(ints), add_reverse();
+        break;
+    case DG_DISJOINT_MULTIPARTITE:
+        n = dd(mt), k = fd(mt), V = n * k;
+        g = disjoint_complete_directed(n, k), add_reverse();
+        break;
+    case DG_REGULAR_RING:
+        V = rd(mt), k = sqrtk();
+        g = regular_ring(V, k), add_reverse();
+        break;
+    case DG_NORMAL_GRID2:
+        X = sd(mt), Y = sd(mt), V = X * Y;
+        g = grid_directed(X, Y), add_reverse();
+        break;
+    case DG_CIRCULAR_GRID2:
+        X = sd(mt), Y = sd(mt), V = X * Y;
+        g = circular_grid_directed(X, Y), add_reverse();
+        break;
+    case DG_NORMAL_GRID3:
+        X = ud(mt), Y = ud(mt), Z = ud(mt), V = X * Y * Z;
+        g = grid3_directed(X, Y, Z), add_reverse();
+        break;
+    case DG_CIRCULAR_GRID3:
+        X = ud(mt), Y = ud(mt), Z = ud(mt), V = X * Y * Z;
+        g = circular_grid3_directed(X, Y, Z), add_reverse();
+        break;
+    default:
+        throw runtime_error("Invalid distance graph kind");
+    }
+
+    int E = g.size();
+    return distance_graph{V, E, g};
+}
+
+auto generate_distance_weighted_graph(distance_graph_kind i, int S, cost_t maxweight,
+                                      cost_t minweight, bool bidirectional = true) {
+    auto dg = generate_distance_graph(i, S, bidirectional);
+    auto weight = int_gen<cost_t>(dg.E, minweight, maxweight);
+    return weighted_distance_graph{dg, weight};
 }
 
 #endif // GRAPH_GENERATOR_HPP

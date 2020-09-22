@@ -11,38 +11,43 @@ bool eq(A&& a, T&&... args) {
     return ((a == args) && ...);
 }
 
-void speed_test(flow_network_kind i, int S, int T) {
+void speed_unit_test(flow_network_kind i, int S, int T) {
     START_ACC(dinitz);
     START_ACC(push_relabel);
     START_ACC(tidal);
     START_ACC(mpm);
 
-    vector<flow_t> mf[4];
-    mf[0] = mf[1] = mf[2] = mf[3] = flows_t(T);
+    int errors = 0, max_errors = 10;
 
     for (int t = 0; t < T; t++) {
         print("\rspeed test {} {}...", t + 1, flow_kind_name[i]);
         auto network = generate_cap_flow_network(i, S, 100'000'000'000);
+        flow_t mf[4];
 
         START(dinitz);
         dinitz_flow g0(network.V, network.g, network.cap);
-        mf[0][t] = g0.maxflow(network.s, network.t);
+        mf[0] = g0.maxflow(network.s, network.t);
         ADD_TIME(dinitz);
 
         START(push_relabel);
         push_relabel g1(network.V, network.g, network.cap);
-        mf[1][t] = g1.maxflow(network.s, network.t, true);
+        mf[1] = g1.maxflow(network.s, network.t, true);
         ADD_TIME(push_relabel);
 
         START(tidal);
         tidal_flow g2(network.V, network.g, network.cap);
-        mf[2][t] = g2.maxflow(network.s, network.t);
+        mf[2] = g2.maxflow(network.s, network.t);
         ADD_TIME(tidal);
 
         START(mpm);
         mpm_flow g3(network.V, network.g, network.cap);
-        mf[3][t] = g3.maxflow(network.s, network.t);
+        mf[3] = g3.maxflow(network.s, network.t);
         ADD_TIME(mpm);
+
+        if (errors < max_errors && !eq(mf[0], mf[1], mf[2], mf[3])) {
+            print(" -- {:>9} {:>9} {:>9} {:>9}\n", mf[0], mf[1], mf[2], mf[3]);
+            errors++;
+        }
     }
 
     print("\r speed test {} (S={}, x{}):\n", flow_kind_name[i], S, T);
@@ -50,16 +55,6 @@ void speed_test(flow_network_kind i, int S, int T) {
     PRINT_ACC(push_relabel);
     PRINT_ACC(tidal);
     PRINT_ACC(mpm);
-
-    if (!eq(mf[0], mf[1], mf[2], mf[3])) {
-        print("WARNING: Different answers\n");
-        for (int c = 0, t = 0; t < T && c < 5; t++) {
-            if (!eq(mf[0][t], mf[1][t], mf[2][t], mf[3][t])) {
-                print(" -- {:>9} {:>9} {:>9} {:>9}\n", //
-                      mf[0][t], mf[1][t], mf[2][t], mf[3][t]);
-            }
-        }
-    }
 }
 
 constexpr int N = 5;
@@ -68,13 +63,14 @@ constexpr int amounts[] = {3000, 800, 100, 40, 10};
 
 void test_speed() {
     for (int n = 0; n < N; n++) {
+        print("Speed test S={} x{}\n", sizes[n], amounts[n]);
         for (int i = 0; i < int(FN_END); i++) {
-            speed_test(flow_network_kind(i), sizes[n], amounts[n]);
+            speed_unit_test(flow_network_kind(i), sizes[n], amounts[n]);
         }
     }
 }
 
-void test_equal(int i) {
+void equal_unit_test(int i) {
     auto network = generate_cap_flow_network(FN_COMPLETE, 100, 100'000);
     int V = network.V;
     const auto& g = network.g;
@@ -104,7 +100,7 @@ void test_equal(int i) {
 
 void test_equals(int R = 100) {
     for (int i = 1; i <= R; i++) {
-        test_equal(i);
+        equal_unit_test(i);
     }
     print("\n");
 }
