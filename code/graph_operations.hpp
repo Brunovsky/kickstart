@@ -48,6 +48,9 @@ auto make_adjacency_set_reverse(const edges_t& g) {
     return adj;
 }
 
+/**
+ * Generate a permutation pi of [0...N) and replace u with pi(u) for all u.
+ */
 auto relabel(const edges_t& g, int V) {
     vector<int> label(V);
     iota(begin(label), end(label), 0);

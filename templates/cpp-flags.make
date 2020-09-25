@@ -56,7 +56,7 @@ ifeq ($(COMPILER),clang)
 	WARNS += -Wchar-subscripts -Wshift-sign-overflow
 	WARNS += -Wdynamic-exception-spec
 	WARNS += -Wduplicate-enum -Wduplicate-method-arg -Wduplicate-method-match
-	WARNS += -Wshadow-uncaptured-local # -Wshadow -Wno-shadow-field-in-constructor
+	WARNS += -Wshadow-uncaptured-local
 	WARNS += -Wformat-non-iso -Wformat-pedantic
 	WARNS += -Wextra-semi-stmt -Wnewline-eof
 	WARNS += -Widiomatic-parentheses -Wmissing-braces -Wredundant-parens
@@ -75,11 +75,15 @@ ifeq ($(COMPILER),clang)
 
     # Good warnings but disabled
     # WARNS += -Wheader-hygiene
+
+    # Broken in clang 10
+    # -Wshadow -Wno-shadow-field-in-constructor
 endif
 
 # Not errors
 WARNS += -Wno-unused-function
 WARNS += -Wno-missing-declarations
+WARNS += -Wno-unknown-pragmas
 
 # Too many spurious warnings
 WARNS += -Wno-null-dereference
@@ -112,6 +116,8 @@ endif
 # Memory leak detector. Incompatible with =thread
 # ? https://github.com/google/sanitizers/wiki/AddressSanitizerLeakSanitizer
 LEAK_SANIT := -fsanitize=address -fsanitize=leak
+LEAK_SANIT += -fsanitize=pointer-compare
+LEAK_SANIT += -fsanitize=pointer-subtract
 
 # Thread sanitizer, fast data race sanitizer. Incompatible with =address, =leak
 # ? https://github.com/google/sanitizers/wiki#threadsanitizer
@@ -122,23 +128,23 @@ SANIT := $(LEAK_SANIT)
 #SANIT := $(THREAD_SANIT)
 
 # Undefined Behaviour detector.
-SANIT += -fsanitize=pointer-compare
-SANIT += -fsanitize=pointer-subtract
-SANIT += -fsanitize=pointer-overflow
-SANIT += -fsanitize=builtin
-SANIT += -fsanitize=undefined
-SANIT +=   -fsanitize=shift
-SANIT +=     -fsanitize=shift-base
-SANIT +=     -fsanitize=shift-exponent
-SANIT +=   -fsanitize=integer-divide-by-zero
-SANIT +=   -fsanitize=return
-SANIT +=   -fsanitize=signed-integer-overflow
-SANIT +=   -fsanitize=bounds
-SANIT +=   -fsanitize=float-divide-by-zero
-SANIT +=   -fsanitize=float-cast-overflow
-SANIT +=   -fsanitize=bool
-SANIT +=   -fsanitize=enum
-SANIT +=   -fsanitize=vptr
+UB_SANIT := -fsanitize=pointer-overflow
+UB_SANIT += -fsanitize=builtin
+UB_SANIT += -fsanitize=undefined
+UB_SANIT +=   -fsanitize=shift
+UB_SANIT +=     -fsanitize=shift-base
+UB_SANIT +=     -fsanitize=shift-exponent
+UB_SANIT +=   -fsanitize=integer-divide-by-zero
+UB_SANIT +=   -fsanitize=return
+UB_SANIT +=   -fsanitize=signed-integer-overflow
+UB_SANIT +=   -fsanitize=bounds
+UB_SANIT +=   -fsanitize=float-divide-by-zero
+UB_SANIT +=   -fsanitize=float-cast-overflow
+UB_SANIT +=   -fsanitize=bool
+UB_SANIT +=   -fsanitize=enum
+UB_SANIT +=   -fsanitize=vptr
+
+SANIT += $(UB_SANIT)
 
 SANIT_LIST := $(subst -fsanitize=,,${SANIT})
 

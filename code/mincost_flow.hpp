@@ -1,6 +1,7 @@
 #ifndef MINCOST_FLOW_HPP
 #define MINCOST_FLOW_HPP
 
+#include "graph.hpp"
 #include "integer_data_structures.hpp"
 
 // *****

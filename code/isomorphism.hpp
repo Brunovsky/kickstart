@@ -22,9 +22,10 @@
 using hashtable_t = vector<size_t>;
 using hashset_t = unordered_set<size_t>;
 using bfs_t = vector<unordered_map<int, int>>;
-using cnt_t = vector<int>;
+using counts_t = vector<int>;
 
-void build_bfs_cnt(const graph& g, int n, bfs_t& bfs, cnt_t& cnt) {
+void build_bfs_cnt(const vector<int>& adj, const vector<int>& off, int n, bfs_t& bfs,
+                   counts_t& cnt) {
     vector<bool> seen(g.V, false);
     vector<int> curr{n}, next;
     seen[n] = true;
@@ -82,7 +83,7 @@ size_t build_hash(const bfs_t& bfs, const hashtable_t& ht) {
  *   - generate hashes of graphs to allow quick and dirty isomorphism test with
  *     low probability of false positives and no false negatives.
  */
-hashtable_t hash_graph_vertices(const graph& g, int iterations = 3) {
+hashtable_t hash_graph_vertices(const edges_t& g, int iterations = 3) {
     int V = g.V;
     hashtable_t hashtable(V);
     hashset_t hashset;
@@ -91,7 +92,7 @@ hashtable_t hash_graph_vertices(const graph& g, int iterations = 3) {
 
     // step 1: build bfs and counting hash
     for (int n = 0; n < V; n++) {
-        cnt_t cnt;
+        counts_t cnt;
         build_bfs_cnt(g, n, bfs[n], cnt);
         auto h = hasher(cnt);
         hashtable[n] = h;

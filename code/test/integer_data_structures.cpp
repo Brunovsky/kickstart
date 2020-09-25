@@ -434,7 +434,9 @@ void test_heaps(int R) {
     reald density(8.0, 12.0);
     longd costd(1, 100'000);
     int step = 10;
-    size_t dijkstra_sum = 0, pairing_heap_sum = 0, binary_heap_sum = 0;
+    START_ACC(dijkstra);
+    START_ACC(pairing);
+    START_ACC(binary);
 
     for (int i = 1; i <= R; i++) {
         print("\rtest heap {}...", i);
@@ -454,17 +456,17 @@ void test_heaps(int R) {
         START(dijkstra);
         for (int s = 0; s < V; s += step)
             run_normal(g, s, dist[0]);
-        TIME_SHORT(dijkstra);
+        ADD_TIME(dijkstra);
 
-        START(pairing_heap);
+        START(pairing);
         for (int s = 0; s < V; s += step)
             run_dijkstra(g, s, dist[1], pairing_heap);
-        TIME_SHORT(pairing_heap);
+        ADD_TIME(pairing);
 
-        START(binary_heap);
+        START(binary);
         for (int s = 0; s < V; s += step)
             run_dijkstra(g, s, dist[2], binary_heap);
-        TIME_SHORT(binary_heap);
+        ADD_TIME(binary);
 
         if (dist[0] != dist[1] || dist[0] != dist[2]) {
             print("\n-- wrong answer\n");
@@ -473,19 +475,11 @@ void test_heaps(int R) {
             debugn(dist[2]);
             break;
         }
-
-        dijkstra_sum += time_dijkstra;
-        pairing_heap_sum += time_pairing_heap;
-        binary_heap_sum += time_binary_heap;
     }
 
-    double pairingf = 100.0 * pairing_heap_sum / dijkstra_sum;
-    double binaryf = 100.0 * binary_heap_sum / dijkstra_sum;
-
-    print("\n");
-    print("\t\t{:>8}ms\tstd::priority_queue\n", dijkstra_sum / 1000);
-    print("\t{:4.1f}%\t{:>8}ms\tpairing_int_heap\n", pairingf, pairing_heap_sum / 1000);
-    print("\t{:4.1f}%\t{:>8}ms\tbinary_int_heap\n", binaryf, binary_heap_sum / 1000);
+    PRINT_ACC(dijkstra);
+    PRINT_ACC(pairing);
+    PRINT_ACC(binary);
     print("OK pairing_int_heap\n");
 }
 

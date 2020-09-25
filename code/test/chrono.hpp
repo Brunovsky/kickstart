@@ -5,8 +5,8 @@
 
 #include <chrono>
 
+using namespace std;
 using namespace std::chrono;
-using ms = milliseconds;
 using us = microseconds;
 using fmt::print, fmt::format;
 

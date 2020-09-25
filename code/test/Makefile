@@ -19,6 +19,7 @@ LIBS := -lfmt
 
 include ../../templates/cpp-flags.make
 CXXFLAGS += $(LIBS) -Wno-sign-compare
+SANIT := $(THREAD_SANIT)
 
 default: debug
 

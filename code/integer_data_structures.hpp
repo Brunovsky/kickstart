@@ -471,12 +471,17 @@ struct pairing_int_heaps {
 };
 
 template <typename Container>
-auto less_container(const Container& cont) {
-    return [&cont](int u, int v) { return cont[u] < cont[v]; };
-}
+struct less_container {
+    const Container& cont;
+    explicit less_container(const Container& cont) : cont(cont) {}
+    inline bool operator()(int u, int v) const { return cont[u] < cont[v]; }
+};
+
 template <typename Container>
-auto greater_container(const Container& cont) {
-    return [&cont](int u, int v) { return cont[u] > cont[v]; };
-}
+struct greater_container {
+    const Container& cont;
+    explicit greater_container(const Container& cont) : cont(cont) {}
+    inline bool operator()(int u, int v) const { return cont[u] > cont[v]; }
+};
 
 #endif // INTEGER_DATA_STRUCTURES_HPP

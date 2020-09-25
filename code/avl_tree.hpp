@@ -55,12 +55,11 @@
  * is 0-balanced.
  *
  * AVL functions
- * We handle rotations and rebalancing professionally, namely:
- *   - roots which are unbalanced 'know' how to rebalance themselves
- *   - rotation functions maintain invariants themselves
- *   - rotation functions should compose, so that e.g. a left-right rotation can
- *     be literally coded as a right rotation followed by a left rotation and
- *     the result will be exactly what is expected, with invariants maintained
+ * We handle rotations and rebalancing modularly, namely:
+ *   - y knows how to rebalance itself
+ *   - rotation functions themselves maintain invariants on y and x
+ *   - rotation functions compose, so that a left-right rotation can be literally coded as
+ *     a right rotation followed by a left rotation and the result is what's expected.
  */
 
 /**
@@ -205,27 +204,27 @@ struct avl_tree {
 
     ~avl_tree() noexcept { delete head; }
 
-    inline void clear() noexcept {
+    void clear() noexcept {
         delete head->link[0];
         head->link[0] = nullptr;
         min_node = max_node = head;
         node_count = 0;
     }
-    inline void swap(avl_tree& other) noexcept {
+    void swap(avl_tree& other) noexcept {
         std::swap(head, other.head);
         std::swap(min_node, other.min_node);
         std::swap(max_node, other.max_node);
         std::swap(node_count, other.node_count);
     }
-    friend inline void swap(avl_tree& lhs, avl_tree& rhs) noexcept { lhs.swap(rhs); }
+    friend void swap(avl_tree& lhs, avl_tree& rhs) noexcept { lhs.swap(rhs); }
 
-    inline node_t* minimum() noexcept { return min_node; }
-    inline const node_t* minimum() const noexcept { return min_node; }
-    inline node_t* maximum() noexcept { return max_node; }
-    inline const node_t* maximum() const noexcept { return max_node; }
+    node_t* minimum() noexcept { return min_node; }
+    const node_t* minimum() const noexcept { return min_node; }
+    node_t* maximum() noexcept { return max_node; }
+    const node_t* maximum() const noexcept { return max_node; }
 
   private:
-    inline void update_minmax() {
+    void update_minmax() {
         if (head->link[0]) {
             min_node = node_t::minimum(head->link[0]);
             max_node = node_t::maximum(head->link[0]);
@@ -233,16 +232,16 @@ struct avl_tree {
             min_node = max_node = head;
         }
     }
-    static inline void drop_node(node_t* node) {
+    static void drop_node(node_t* node) {
         node->link[0] = node->link[1] = nullptr;
         delete node;
     }
-    static inline void adopt_node(node_t* parent, node_t* child, bool side) {
+    static void adopt_node(node_t* parent, node_t* child, bool side) {
         parent->link[side] = child;
         if (child)
             child->parent = parent;
     }
-    static inline void clear_node(node_t* node) {
+    static void clear_node(node_t* node) {
         node->link[0] = node->link[1] = nullptr;
         node->parent = node;
         node->balance = 0;
@@ -593,7 +592,7 @@ struct avl_tree {
         }
     }
 
-    static inline std::string print_node(const node_t* node) noexcept {
+    static std::string print_node(const node_t* node) noexcept {
         using std::to_string;
         std::string s;
         s += to_string(node->data);

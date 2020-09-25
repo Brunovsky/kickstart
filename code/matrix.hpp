@@ -21,12 +21,12 @@ struct mat {
     inline auto& operator()(int x, int y) { return arr[x][y]; }
     inline const auto& operator()(int x, int y) const { return arr[x][y]; }
 
-    bool operator<(const mat& b) { return tie(n, m, arr) < tie(b.n, b.m, b.arr); }
-    bool operator>(const mat& b) { return b < *this; }
-    bool operator<=(const mat& b) { return !(b < *this); }
-    bool operator>=(const mat& b) { return !(*this < b); }
-    bool operator==(const mat& b) { return n == b.n && m == b.m && arr == b.arr; }
-    bool operator!=(const mat& b) { return !(*this == b); }
+    bool operator<(const mat& b) const { return tie(n, m, arr) < tie(b.n, b.m, b.arr); }
+    bool operator>(const mat& b) const { return b < *this; }
+    bool operator<=(const mat& b) const { return !(b < *this); }
+    bool operator>=(const mat& b) const { return !(*this < b); }
+    bool operator==(const mat& b) const { return n == b.n && m == b.m && arr == b.arr; }
+    bool operator!=(const mat& b) const { return !(*this == b); }
 
     static mat identity(int n) {
         mat a(n, n);

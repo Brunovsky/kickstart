@@ -166,27 +166,27 @@ struct rb_tree {
 
     ~rb_tree() noexcept { delete head; }
 
-    inline void clear() noexcept {
+    void clear() noexcept {
         delete head->link[0];
         head->link[0] = nullptr;
         min_node = max_node = head;
         node_count = 0;
     }
-    inline void swap(rb_tree& other) noexcept {
+    void swap(rb_tree& other) noexcept {
         std::swap(head, other.head);
         std::swap(min_node, other.min_node);
         std::swap(max_node, other.max_node);
         std::swap(node_count, other.node_count);
     }
-    friend inline void swap(rb_tree& lhs, rb_tree& rhs) noexcept { lhs.swap(rhs); }
+    friend void swap(rb_tree& lhs, rb_tree& rhs) noexcept { lhs.swap(rhs); }
 
-    inline node_t* minimum() noexcept { return min_node; }
-    inline const node_t* minimum() const noexcept { return min_node; }
-    inline node_t* maximum() noexcept { return max_node; }
-    inline const node_t* maximum() const noexcept { return max_node; }
+    node_t* minimum() noexcept { return min_node; }
+    const node_t* minimum() const noexcept { return min_node; }
+    node_t* maximum() noexcept { return max_node; }
+    const node_t* maximum() const noexcept { return max_node; }
 
   private:
-    inline void update_minmax() {
+    void update_minmax() {
         if (head->link[0]) {
             min_node = node_t::minimum(head->link[0]);
             max_node = node_t::maximum(head->link[0]);
@@ -194,16 +194,16 @@ struct rb_tree {
             min_node = max_node = head;
         }
     }
-    static inline void drop_node(node_t* node) {
+    static void drop_node(node_t* node) {
         node->link[0] = node->link[1] = nullptr;
         delete node;
     }
-    static inline void adopt_node(node_t* parent, node_t* child, bool side) {
+    static void adopt_node(node_t* parent, node_t* child, bool side) {
         parent->link[side] = child;
         if (child)
             child->parent = parent;
     }
-    static inline void clear_node(node_t* node) {
+    static void clear_node(node_t* node) {
         node->link[0] = node->link[1] = nullptr;
         node->parent = nullptr;
         node->color = rb_red;
@@ -218,13 +218,13 @@ struct rb_tree {
         return clone;
     }
 
-    static inline bool is_black(const node_t* node) noexcept {
+    static bool is_black(const node_t* node) noexcept {
         return !node || node->color == rb_black;
     }
-    static inline bool is_red(const node_t* node) noexcept {
+    static bool is_red(const node_t* node) noexcept {
         return node && node->color == rb_red;
     }
-    static inline bool is_black_blob(const node_t* node) noexcept {
+    static bool is_black_blob(const node_t* node) noexcept {
         return node && node->color == rb_black && is_black(node->link[0]) &&
                is_black(node->link[1]);
     }
