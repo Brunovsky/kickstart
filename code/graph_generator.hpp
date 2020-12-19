@@ -13,7 +13,7 @@
 // ***** Auxiliary methods
 
 bool verify_edges_undirected(const edges_t& g, int V, int E = -1) {
-    if (E != -1 && int(g.size() != E))
+    if (E != -1 && int(g.size()) != E)
         return false;
     edgeset_t edgeset;
     for (auto [u, v] : g) {
@@ -21,11 +21,12 @@ bool verify_edges_undirected(const edges_t& g, int V, int E = -1) {
             return false;
         if (u < 0 || V <= u || v < 0 || V <= v)
             return false;
+        edgeset.insert({u, v});
     }
     return true;
 }
 bool verify_edges_directed(const edges_t& g, int V, int E = -1) {
-    if (E != -1 && int(g.size() != E))
+    if (E != -1 && int(g.size()) != E)
         return false;
     edgeset_t edgeset;
     for (auto [u, v] : g) {
@@ -33,11 +34,12 @@ bool verify_edges_directed(const edges_t& g, int V, int E = -1) {
             return false;
         if (u < 0 || V <= u || v < 0 || V <= v)
             return false;
+        edgeset.insert({u, v});
     }
     return true;
 }
 bool verify_edges_bipartite(const edges_t& g, int U, int V, int E = -1) {
-    if (E != -1 && int(g.size() != E))
+    if (E != -1 && int(g.size()) != E)
         return false;
     edgeset_t edgeset;
     for (auto [u, v] : g) {
@@ -45,6 +47,58 @@ bool verify_edges_bipartite(const edges_t& g, int U, int V, int E = -1) {
             return false;
         if (u < 0 || U <= u || v < 0 || V <= v)
             return false;
+        edgeset.insert({u, v});
+    }
+    return true;
+}
+bool verify_edges_undirected(const edges_t& g, int V, degrees_t D) {
+    assert(V == int(D.size()));
+    int E = g.size();
+    if (2 * E != accumulate(begin(D), end(D), 0L))
+        return false;
+    edgeset_t edgeset;
+    for (auto [u, v] : g) {
+        if (edgeset.count({u, v}) || edgeset.count({v, u}))
+            return false;
+        if (u < 0 || V <= u || v < 0 || V <= v)
+            return false;
+        if (D[u]-- <= 0 || D[v]-- <= 0)
+            return false;
+        edgeset.insert({u, v});
+    }
+    return true;
+}
+bool verify_edges_directed(const edges_t& g, int V, degrees_t I, degrees_t O) {
+    assert(V == int(I.size()) && V == int(O.size()));
+    int E = g.size();
+    if (E != accumulate(begin(I), end(I), 0L) || E != accumulate(begin(O), end(O), 0L))
+        return false;
+    edgeset_t edgeset;
+    for (auto [u, v] : g) {
+        if (edgeset.count({u, v}))
+            return false;
+        if (u < 0 || V <= u || v < 0 || V <= v)
+            return false;
+        if (O[u]-- <= 0 || I[v]-- <= 0)
+            return false;
+        edgeset.insert({u, v});
+    }
+    return true;
+}
+bool verify_edges_bipartite(const edges_t& g, int U, int V, degrees_t A, degrees_t B) {
+    assert(V == int(A.size()) && V == int(B.size()));
+    int E = g.size();
+    if (E != accumulate(begin(A), end(A), 0L) || E != accumulate(begin(B), end(B), 0L))
+        return false;
+    edgeset_t edgeset;
+    for (auto [u, v] : g) {
+        if (edgeset.count({u, v}))
+            return false;
+        if (u < 0 || U <= u || v < 0 || V <= v)
+            return false;
+        if (A[u]-- <= 0 || B[v]-- <= 0)
+            return false;
+        edgeset.insert({u, v});
     }
     return true;
 }
@@ -52,16 +106,18 @@ bool verify_edges_bipartite(const edges_t& g, int U, int V, int E = -1) {
 /** Basic auxiliary methods for adding edges to graphs
  */
 
-void add_parent_edges(edges_t& g, const parent_t& parent, int u1, int u2,
+// if par[u] is the parent of u, add parent and/or child edges for [u1,u2)
+void add_parent_edges(edges_t& g, const parent_t& par, int u1, int u2,
                       bool toparent = true, bool tochild = false) {
     for (int u = u1; u < u2; u++) {
         if (toparent)
-            g.push_back({u, parent[u]});
+            g.push_back({u, par[u]});
         if (tochild)
-            g.push_back({parent[u], u});
+            g.push_back({par[u], u});
     }
 }
 
+// add all the reverse edges of g to itself
 void add_reverse_edges(edges_t& g) {
     int E = g.size();
     g.reserve(2 * E);
@@ -71,6 +127,7 @@ void add_reverse_edges(edges_t& g) {
     }
 }
 
+// add self-loops for [u1,u2) with probability p
 void add_uniform_self_loops(edges_t& g, int u1, int u2, double p) {
     int V = u2 - u1;
     if (V >= 10 && p <= 0.25) {
@@ -85,11 +142,12 @@ void add_uniform_self_loops(edges_t& g, int u1, int u2, double p) {
     }
 }
 
+// add edges for the empty undirected subgraph [u1,u2) uniformly with probability p
 void add_uniform_edges_undirected(edges_t& g, int u1, int u2, double p) {
     int V = u2 - u1;
     if (V >= 10 && p <= 0.25) {
-        longbinomd distk(1L * V * (V - 1) / 2, p);
-        for (auto [u, v] : choose_sample(distk(mt), u1, u2 - 1, false))
+        binomd distk(1L * V * (V - 1) / 2, p);
+        for (auto [u, v] : choose_sample(distk(mt), u1, u2 - 1))
             g.push_back({u, v});
     } else {
         boold distp(p);
@@ -100,10 +158,11 @@ void add_uniform_edges_undirected(edges_t& g, int u1, int u2, double p) {
     }
 }
 
+// add edges for the empty directed subgraph [u1,u2) uniformly with probability p
 void add_uniform_edges_directed(edges_t& g, int u1, int u2, double p) {
     int V = u2 - u1;
     if (V >= 10 && p <= 0.25) {
-        longbinomd distk(1L * V * (V - 1), p);
+        binomd distk(1L * V * (V - 1), p);
         for (auto [u, v] : pair_sample(distk(mt), u1, u2 - 1, u1, u2 - 1))
             if (u != v)
                 g.push_back({u, v});
@@ -116,10 +175,11 @@ void add_uniform_edges_directed(edges_t& g, int u1, int u2, double p) {
     }
 }
 
+// add edges for the empty bipartite subgraph [u1,u2)x[v1,v2) uniformly with probability p
 void add_uniform_edges_bipartite(edges_t& g, int u1, int u2, int v1, int v2, double p) {
     int U = u2 - u1, V = v2 - v1;
     if (1L * U * V >= 100 && p <= 0.25) {
-        longbinomd distk(1L * U * V, p);
+        binomd distk(1L * U * V, p);
         for (auto [u, v] : pair_sample(distk(mt), u1, u2 - 1, v1, v2 - 1))
             g.push_back({u, v});
     } else {
@@ -131,28 +191,32 @@ void add_uniform_edges_bipartite(edges_t& g, int u1, int u2, int v1, int v2, dou
     }
 }
 
-void add_edges_undirected(edges_t& g, const edges_t& edges) {
-    for (auto [u, v] : edges) {
+// merge the undirected graph h into g, verifying constraints
+void add_edges_undirected(edges_t& g, const edges_t& h) {
+    for (auto [u, v] : h) {
         assert(u < v);
         g.push_back({u, v});
     }
 }
 
-void add_edges_directed(edges_t& g, const edges_t& edges) {
-    for (auto [u, v] : edges) {
+// merge the directed graph h into g, verifying constraints
+void add_edges_directed(edges_t& g, const edges_t& h) {
+    for (auto [u, v] : h) {
         assert(u != v);
         g.push_back({u, v});
     }
 }
 
-void add_edges_bipartite(edges_t& g, const edges_t& edges) {
-    for (auto [u, v] : edges) {
+// merge the bipartite graph h into g, verifying constraints
+void add_edges_bipartite(edges_t& g, const edges_t& h) {
+    for (auto [u, v] : h) {
         g.push_back({u, v});
     }
 }
 
-void add_nontrivial_edges_undirected(edges_t& g, const edges_t& edges, int S) {
-    for (auto [u, v] : edges) {
+// merge the first S edges of the undirected graph h that aren't self loops into g
+void add_nontrivial_edges_undirected(edges_t& g, const edges_t& h, int S) {
+    for (auto [u, v] : h) {
         if (S == 0)
             break;
         if (u != v)
@@ -161,8 +225,9 @@ void add_nontrivial_edges_undirected(edges_t& g, const edges_t& edges, int S) {
     assert(S == 0);
 }
 
-void add_nontrivial_edges_directed(edges_t& g, const edges_t& edges, int S) {
-    for (auto [u, v] : edges) {
+// merge the first S edges of the directed graph h that aren't self loops into g
+void add_nontrivial_edges_directed(edges_t& g, const edges_t& h, int S) {
+    for (auto [u, v] : h) {
         if (S == 0)
             break;
         if (u != v)
@@ -171,9 +236,10 @@ void add_nontrivial_edges_directed(edges_t& g, const edges_t& edges, int S) {
     assert(S == 0);
 }
 
-void add_edges_except_undirected(edges_t& g, const edges_t& edges, const parent_t& par,
+// merge the first S edges of the undirected graph h that aren't parent edges into g
+void add_edges_except_undirected(edges_t& g, const edges_t& h, const parent_t& par,
                                  int S) {
-    for (auto [u, v] : edges) {
+    for (auto [u, v] : h) {
         if (S == 0)
             break;
         if (u != v && u != par[v] && v != par[u])
@@ -182,6 +248,7 @@ void add_edges_except_undirected(edges_t& g, const edges_t& edges, const parent_
     assert(S == 0);
 }
 
+// merge the first S edges of the directed graph h that aren't parent edges into g
 void add_edges_except_directed(edges_t& g, const edges_t& edges, const parent_t& par,
                                int S) {
     for (auto [u, v] : edges) {
@@ -193,6 +260,7 @@ void add_edges_except_directed(edges_t& g, const edges_t& edges, const parent_t&
     assert(S == 0);
 }
 
+// merge the first S edges of the undirected graph h that aren't in g into g
 void add_edges_missing_undirected(edges_t& g, const edges_t& edges, int S) {
     auto adj = make_adjacency_set_undirected(g);
     for (auto [u, v] : edges) {
@@ -204,6 +272,7 @@ void add_edges_missing_undirected(edges_t& g, const edges_t& edges, int S) {
     assert(S == 0);
 }
 
+// merge the first S edges of the directed graph h that aren't in g into g
 void add_edges_missing_directed(edges_t& g, const edges_t& edges, int S) {
     auto adj = make_adjacency_set_directed(g);
     for (auto [u, v] : edges) {
@@ -215,24 +284,28 @@ void add_edges_missing_directed(edges_t& g, const edges_t& edges, int S) {
     assert(S == 0);
 }
 
+// fill the undirected subgraph [u1,u2) of g
 void add_all_edges_undirected(edges_t& g, int u1, int u2) {
     for (int u = u1; u < u2; u++)
         for (int v = u + 1; v < u2; v++)
             g.push_back({u, v});
 }
 
+// fill the directed subgraph [u1,u2) of g with edges oriented toward higher nodes
 void add_all_edges_directed(edges_t& g, int u1, int u2) {
     for (int u = u1; u < u2; u++)
         for (int v = u + 1; v < u2; v++)
             g.push_back({u, v});
 }
 
+// fill the bipartite subgraph [u1,u2)x[v1,v2) of g
 void add_all_edges_bipartite(edges_t& g, int u1, int u2, int v1, int v2) {
     for (int u = u1; u < u2; u++)
         for (int v = v1; v < v2; v++)
             g.push_back({u, v});
 }
 
+// fill the directed subgraph []
 void add_all_edges_bidirectional(edges_t& g, int u1, int u2) {
     for (int u = u1; u < u2; u++)
         for (int v = u1; v < u2; v++)
@@ -240,9 +313,10 @@ void add_all_edges_bidirectional(edges_t& g, int u1, int u2) {
                 g.push_back({u, v});
 }
 
-/** More exotic methods for adding edges to graphs
+/** More exotic methods for adding and removing edges
  */
 
+// remove edges from g, each with uniform probability p
 void remove_uniform(edges_t& g, double p) {
     edges_t f;
     boold distp(p);
@@ -252,12 +326,13 @@ void remove_uniform(edges_t& g, double p) {
     g = move(f);
 }
 
+// add edges to directed g deterministically such that g becomes strongly connected
 void add_tarjan_back_edges(edges_t& g, int V, int s = 0) {
     adjacency_lists_t adj = make_adjacency_lists_directed(g, V);
     vector<int> start(V, -1), lowlink(V, -1), rev(V);
-    int time = 0;
+    int t = 0;
     function<void(int)> dfs = [&](int u) -> void {
-        rev[time] = u, start[u] = lowlink[u] = time++;
+        rev[t] = u, start[u] = lowlink[u] = t++;
         for (int v : adj[u]) {
             if (start[v] == -1) {
                 dfs(v), lowlink[u] = min(lowlink[u], lowlink[v]);
@@ -266,7 +341,7 @@ void add_tarjan_back_edges(edges_t& g, int V, int s = 0) {
             }
         }
         if (start[u] > 0 && start[u] == lowlink[u]) {
-            int x = intd(start[u], time - 1)(mt);
+            int x = intd(start[u], t - 1)(mt);
             int y = intd(0, start[u] - 1)(mt);
             int v = rev[x], w = rev[y];
             adj[v].push_back(w), g.push_back({v, w});
@@ -276,28 +351,32 @@ void add_tarjan_back_edges(edges_t& g, int V, int s = 0) {
     dfs(s);
 }
 
+// add missing edges to undirected g, each with uniform probability p
 void add_uniform_missing_undirected(edges_t& g, int V, double p) {
     auto adj = make_adjacency_set_undirected(g);
-    longbinomd dist(1L * V * (V - 1) / 2, p);
-    for (auto [u, v] : choose_sample(dist(mt), 0, V - 1, false))
+    binomd dist(1L * V * (V - 1) / 2, p);
+    for (auto [u, v] : choose_sample(dist(mt), 0, V - 1))
         if (!adj.count({u, v}) && !adj.count({v, u}))
             g.push_back({u, v});
 }
 
+// add missing edges to directed g, each with uniform probability p
 void add_uniform_missing_directed(edges_t& g, int V, double p) {
     auto adj = make_adjacency_set_directed(g);
-    longbinomd dist(1L * V * (V - 1), p);
+    binomd dist(1L * V * (V - 1), p);
     for (auto [u, v] : pair_sample(dist(mt), 0, V - 1, 0, V - 1))
         if (u != v && !adj.count({u, v}))
             g.push_back({u, v});
 }
 
+// add circulant forward arcs to subgraph [u1,u2) of g, with jump length o
 void add_circulant_arcs(edges_t& g, int u1, int u2, int o = 1) {
     int V = u2 - u1, cap = 2 * o == V ? V / 2 : V;
     for (int s = 0; s < cap; s++)
         g.push_back({u1 + s, u1 + (s + o) % V});
 }
 
+// add a regular ring lattice to subgraph [u1,u2) of g by repeatedly adding circulant arcs
 void add_regular_ring_lattice(edges_t& g, int u1, int u2, int k) {
     int V = u2 - u1, max_jump = min(k / 2, (V - 1) / 2);
     for (int o = 1; o <= max_jump; o++)
@@ -316,6 +395,7 @@ void add_regular_ring_lattice(edges_t& g, int u1, int u2, int k) {
 inline int calc_grid2(int X, int x, int y) { return y * X + x; }
 inline int calc_grid3(int X, int Y, int x, int y, int z) { return z * X * Y + y * X + x; }
 
+// add the edges of an XxY grid with deltas dx,dy
 void add_grid_edges(edges_t& g, int X, int Y, int dx, int dy) {
     assert((dx || dy) && 0 <= dx && dx <= X && 0 <= dy && dy <= Y);
     for (int x = 0; x + dx < X; x++)
@@ -323,6 +403,7 @@ void add_grid_edges(edges_t& g, int X, int Y, int dx, int dy) {
             g.push_back({calc_grid2(X, x, y), calc_grid2(X, x + dx, y + dy)});
 }
 
+// add the edges of an XxY grid with deltas dx,dy, wrapping around
 void add_circular_grid_edges(edges_t& g, int X, int Y, int dx, int dy) {
     assert((dx || dy) && 0 <= dx && 0 <= dy);
     for (int x = 0; x < X; x++)
@@ -330,6 +411,7 @@ void add_circular_grid_edges(edges_t& g, int X, int Y, int dx, int dy) {
             g.push_back({calc_grid2(X, x, y), calc_grid2(X, (x + dx) % X, (y + dy) % Y)});
 }
 
+// add the edges of an XxYxZ grid with deltas dx,dy,dz
 void add_grid3_edges(edges_t& g, int X, int Y, int Z, int dx, int dy, int dz) {
     assert(dx || dy || dz);
     assert(0 <= dx && dx <= X && 0 <= dy && dy <= Y && 0 <= dz && dz <= Z);
@@ -340,6 +422,7 @@ void add_grid3_edges(edges_t& g, int X, int Y, int Z, int dx, int dy, int dz) {
                              calc_grid3(X, Y, x + dx, y + dy, z + dz)});
 }
 
+// add the edges of an XxYxZ grid with deltas dx,dy,dz, wrapping around
 void add_circular_grid3_edges(edges_t& g, int X, int Y, int Z, int dx, int dy, int dz) {
     assert((dx || dy || dz) && 0 <= dx && 0 <= dy && 0 <= dz);
     for (int x = 0; x < X; x++)
@@ -349,20 +432,23 @@ void add_circular_grid3_edges(edges_t& g, int X, int Y, int Z, int dx, int dy, i
                              calc_grid3(X, Y, (x + dx) % X, (y + dy) % Y, (z + dz) % Z)});
 }
 
+// add the edges of an XxY grid with deltas dx,dy with probability p
 void add_uniform_grid_edges(edges_t& g, int X, int Y, double p, int dx, int dy) {
     assert((dx || dy) && 0 <= dx && dx < X && 0 <= dy && dy < Y);
-    longbinomd distk((X - dx) * (Y - dy), p);
+    binomd distk((X - dx) * (Y - dy), p);
     for (auto [x, y] : pair_sample(distk(mt), 0, X - dx - 1, 0, Y - dy - 1))
         g.push_back({calc_grid2(X, x, y), calc_grid2(X, x + dx, y + dy)});
 }
 
+// add the edges of an XxY grid with deltas dx,dy with probability p, wrapping around
 void add_uniform_circular_grid_edges(edges_t& g, int X, int Y, double p, int dx, int dy) {
     assert((dx || dy) && 0 <= dx && dx < X && 0 <= dy && dy < Y);
-    longbinomd distk(1L * X * Y, p);
+    binomd distk(1L * X * Y, p);
     for (auto [x, y] : pair_sample(distk(mt), 0, X - 1, 0, Y - 1))
         g.push_back({calc_grid2(X, x, y), calc_grid2(X, (x + dx) % X, (y + dy) % Y)});
 }
 
+// add the edges of an XxYxZ grid with deltas dx,dy,dz with probability p
 void add_uniform_grid3_edges(edges_t& g, int X, int Y, int Z, double p, int dx, int dy,
                              int dz) {
     assert(dx || dy || dz);
@@ -379,23 +465,24 @@ void add_uniform_grid3_edges(edges_t& g, int X, int Y, int Z, double p, int dx, 
                     if (distp(mt))
                         add(x, y, z);
     } else if (X - dx == min(X - dx, min(Y - dy, Z - dz))) {
-        longbinomd dist(1L * (Y - dy) * (Z - dz), p);
+        binomd dist(1L * (Y - dy) * (Z - dz), p);
         for (int x = 0; x + dx < X; x++)
             for (auto [y, z] : pair_sample(dist(mt), 0, Y - dy - 1, 0, Z - dz - 1))
                 add(x, y, z);
     } else if (Y - dy == min(X - dx, min(Y - dy, Z - dz))) {
-        longbinomd dist(1L * (X - dx) * (Z - dz), p);
+        binomd dist(1L * (X - dx) * (Z - dz), p);
         for (int y = 0; y + dy < Y; y++)
             for (auto [x, z] : pair_sample(dist(mt), 0, X - dx - 1, 0, Z - dz - 1))
                 add(x, y, z);
     } else {
-        longbinomd dist(1L * (X - dx) * (Y - dy), p);
+        binomd dist(1L * (X - dx) * (Y - dy), p);
         for (int z = 0; z + dz < Z; z++)
             for (auto [x, y] : pair_sample(dist(mt), 0, X - dx - 1, 0, Y - dy - 1))
                 add(x, y, z);
     }
 }
 
+// add the edges of an XxYxZ grid with deltas dx,dy,dz with probability p, wrapping around
 void add_uniform_circular_grid3_edges(edges_t& g, int X, int Y, int Z, double p, int dx,
                                       int dy, int dz) {
     assert(dx || dy || dz);
@@ -412,17 +499,17 @@ void add_uniform_circular_grid3_edges(edges_t& g, int X, int Y, int Z, double p,
                     if (distp(mt))
                         add(x, y, z);
     } else if (X == min(X, min(Y, Z))) {
-        longbinomd dist(1L * Y * Z, p);
+        binomd dist(1L * Y * Z, p);
         for (int x = 0; x < X; x++)
             for (auto [y, z] : pair_sample(dist(mt), 0, Y - 1, 0, Z - 1))
                 add(x, y, z);
     } else if (Y == min(X, min(Y, Z))) {
-        longbinomd dist(1L * X * Z, p);
+        binomd dist(1L * X * Z, p);
         for (int y = 0; y < Y; y++)
             for (auto [x, z] : pair_sample(dist(mt), 0, X - 1, 0, Z - 1))
                 add(x, y, z);
     } else {
-        longbinomd dist(1L * X * Y, p);
+        binomd dist(1L * X * Y, p);
         for (int z = 0; z < Z; z++)
             for (auto [x, y] : pair_sample(dist(mt), 0, X - 1, 0, Y - 1))
                 add(x, y, z);
@@ -432,12 +519,14 @@ void add_uniform_circular_grid3_edges(edges_t& g, int X, int Y, int Z, double p,
 /** Auxiliary methods for level (ranked) graphs and complete multipartite graphs
  */
 
+// add all the edges of the bipartite subgraph [u1,u2)x[v1,v2) to g
 void add_level_step_full(edges_t& g, int u1, int u2, int v1, int v2) {
     for (int u = u1; u < u2; u++)
         for (int v = v1; v < v2; v++)
             g.push_back({u, v});
 }
 
+// add each edge of the bipartite subgraph [u1,u2)x[v1,v2) to g with probability p
 void add_level_step_uniform(edges_t& g, int u1, int u2, int v1, int v2, double p,
                             bool mustout = false, bool mustin = false) {
     if (u1 == u2 || v1 == v2)
@@ -445,7 +534,7 @@ void add_level_step_uniform(edges_t& g, int u1, int u2, int v1, int v2, double p
 
     int U = u2 - u1, V = v2 - v1;
     vector<bool> out(U, false), in(V, false);
-    longbinomd distk(1L * U * V, p);
+    binomd distk(1L * U * V, p);
     auto sample = pair_sample(distk(mt), u1, u2 - 1, v1, v2 - 1);
     for (auto [u, v] : sample)
         g.push_back({u, v}), out[u - u1] = in[v - v1] = true;
@@ -464,6 +553,7 @@ void add_level_step_uniform(edges_t& g, int u1, int u2, int v1, int v2, double p
     }
 }
 
+// add all edges to g to fill the level layers specified by R, optionally looping
 void link_levels_full(edges_t& g, const ranks_t& R, bool loop = false) {
     int start = 0, ranks = R.size();
     for (int r = 0; r + 1 < ranks; r++) {
@@ -477,6 +567,7 @@ void link_levels_full(edges_t& g, const ranks_t& R, bool loop = false) {
     }
 }
 
+// add edges to g to fill the level layers specified by R with probability p
 void link_levels_uniform(edges_t& g, double p, const ranks_t& R, bool loop = false,
                          bool mustout = true, bool mustin = true) {
     int start = 0, ranks = R.size();
@@ -498,16 +589,14 @@ void add_level_back_edges(edges_t& g, int u1, int u2, double q, const ranks_t& R
         int mid = start + R[r];
         int universe = u2 - mid;
         binomd distk(universe, q);
-        for (int u = start; u < mid; u++) {
-            int k = distk(mt);
-            for (int v : int_sample(k, mid, u2 - 1)) {
+        for (int u = start; u < mid; u++)
+            for (int v : int_sample(distk(mt), mid, u2 - 1))
                 g.push_back({v, u});
-            }
-        }
         start = mid;
     }
 }
 
+// add all edges for each undirected subgraph specified by R to g
 void complete_levels_undirected(edges_t& g, const ranks_t& R) {
     int start = 0, ranks = R.size();
     for (int r = 0; r < ranks; r++) {
@@ -516,6 +605,7 @@ void complete_levels_undirected(edges_t& g, const ranks_t& R) {
     }
 }
 
+// add all edges for each directed subgraph specified by R to g
 void complete_levels_directed(edges_t& g, const ranks_t& R) {
     int start = 0, ranks = R.size();
     for (int r = 0; r < ranks; r++) {
@@ -550,54 +640,54 @@ auto grid_undirected(int W, int H) {
 
 auto grid_directed(int W, int H) {
     edges_t g;
-    add_grid_edges(g, W, H, 0, 1);
     add_grid_edges(g, W, H, 1, 0);
+    add_grid_edges(g, W, H, 0, 1);
     return g;
 }
 
 auto circular_grid_undirected(int W, int H) {
     edges_t g;
-    add_circular_grid_edges(g, W, H, 0, 1);
     add_circular_grid_edges(g, W, H, 1, 0);
+    add_circular_grid_edges(g, W, H, 0, 1);
     return g;
 }
 
 auto circular_grid_directed(int W, int H) {
     edges_t g;
-    add_circular_grid_edges(g, W, H, 0, 1);
     add_circular_grid_edges(g, W, H, 1, 0);
+    add_circular_grid_edges(g, W, H, 0, 1);
     return g;
 }
 
 auto grid3_undirected(int X, int Y, int Z) {
     edges_t g;
-    add_grid3_edges(g, X, Y, Z, 0, 0, 1);
-    add_grid3_edges(g, X, Y, Z, 0, 1, 0);
     add_grid3_edges(g, X, Y, Z, 1, 0, 0);
+    add_grid3_edges(g, X, Y, Z, 0, 1, 0);
+    add_grid3_edges(g, X, Y, Z, 0, 0, 1);
     return g;
 }
 
 auto grid3_directed(int X, int Y, int Z) {
     edges_t g;
-    add_grid3_edges(g, X, Y, Z, 0, 0, 1);
-    add_grid3_edges(g, X, Y, Z, 0, 1, 0);
     add_grid3_edges(g, X, Y, Z, 1, 0, 0);
+    add_grid3_edges(g, X, Y, Z, 0, 1, 0);
+    add_grid3_edges(g, X, Y, Z, 0, 0, 1);
     return g;
 }
 
 auto circular_grid3_undirected(int X, int Y, int Z) {
     edges_t g;
-    add_circular_grid3_edges(g, X, Y, Z, 0, 0, 1);
-    add_circular_grid3_edges(g, X, Y, Z, 0, 1, 0);
     add_circular_grid3_edges(g, X, Y, Z, 1, 0, 0);
+    add_circular_grid3_edges(g, X, Y, Z, 0, 1, 0);
+    add_circular_grid3_edges(g, X, Y, Z, 0, 0, 1);
     return g;
 }
 
 auto circular_grid3_directed(int X, int Y, int Z) {
     edges_t g;
-    add_circular_grid3_edges(g, X, Y, Z, 0, 0, 1);
-    add_circular_grid3_edges(g, X, Y, Z, 0, 1, 0);
     add_circular_grid3_edges(g, X, Y, Z, 1, 0, 0);
+    add_circular_grid3_edges(g, X, Y, Z, 0, 1, 0);
+    add_circular_grid3_edges(g, X, Y, Z, 0, 0, 1);
     return g;
 }
 
@@ -909,7 +999,7 @@ auto random_uniform_bipartite(int U, int V, double p) {
 
 auto random_exact_undirected(int V, int E) {
     assert(E <= 1L * V * (V - 1) / 2);
-    return choose_sample(E, 0, V - 1, false);
+    return choose_sample(E, 0, V - 1);
 }
 
 auto random_exact_directed(int V, int E) {
@@ -975,7 +1065,7 @@ auto random_exact_undirected_connected(int V, int E) {
         return g;
 
     int k = min(1L * V * (V - 1) / 2, 0L + E + V);
-    auto f = choose_sample(k, 0, V - 1, false);
+    auto f = choose_sample(k, 0, V - 1);
     shuffle(begin(f), end(f), mt);
     add_edges_except_undirected(g, f, parent, E - (V - 1));
     return g;
@@ -990,7 +1080,7 @@ auto random_exact_rooted_dag_connected(int V, int E) {
         return g;
 
     int k = min(1L * V * (V - 1) / 2, 0L + E + V);
-    auto f = choose_sample(k, 0, V - 1, false);
+    auto f = choose_sample(k, 0, V - 1);
     shuffle(begin(f), end(f), mt);
     add_edges_except_directed(g, f, parent, E - (V - 1));
     return g;
@@ -1121,19 +1211,6 @@ auto random_uniform_level_flow(int V, double p, int ranks, int m = 1, bool loop 
 /** Flow networks
  */
 
-struct flow_network {
-    int V, E, s, t;
-    edges_t g;
-};
-
-struct cap_flow_network : flow_network {
-    flows_t cap;
-};
-
-struct cap_cost_flow_network : cap_flow_network {
-    costs_t cost;
-};
-
 enum flow_network_kind : int {
     FN_UNIFORM_SPARSE = 0,
     FN_UNIFORM_MODERATE = 1,
@@ -1151,6 +1228,26 @@ enum flow_network_kind : int {
     FN_CIRCULAR_GRID3 = 13,
     FN_KCONNECTED_COMPLETE = 14,
     FN_END = 15,
+};
+
+struct flow_network {
+    edges_t g;
+    flow_network_kind kind;
+    int V, E, S, s, t;
+    int X, Y, Z;        // for grid graphs
+    int levels, lo, hi; // for level graphs
+    int k;              // for complete and multipartite graphs
+    vector<int> R;      // for level graphs
+    vector<int> cap;    // edge capacities
+    vector<int> cost;   // edge costs
+};
+
+struct cap_flow_network : flow_network {
+    flows_t cap;
+};
+
+struct cap_cost_flow_network : cap_flow_network {
+    costs_t cost;
 };
 
 string flow_kind_name[] = {
@@ -1175,15 +1272,15 @@ string flow_kind_name[] = {
 // S arbitrates network size/complexity.
 auto generate_flow_network(flow_network_kind i, int S) {
     assert(10 <= S && S <= 50000);
-    const int a = int(pow(S, 0.90)), b = int(pow(S, 0.75)), c = int(pow(S, 0.68));
-    const int d = int(pow(S, 0.57)), s = int(pow(S, 0.50)), f = int(pow(S, 0.40));
-    const int t = int(pow(S, 0.37)), u = int(pow(S, 0.30)), v = int(pow(S, 0.20));
 
-    intd Sd(S, S + s), ad(a, a + s), bd(b, b + f), cd(c, c + f), dd(d, d + u);
-    intd sd(s, s + v), fd(f, f + v), td(t, t + v), ud(u, u + v);
     reald sparsed(5.0, 12.0);
     reald moderated(4.0, 9.0);
     reald densed(0.6, 0.9);
+
+    const auto dV = [&](double e) {
+        int n = max(1, int(ceil(pow(S, e)))), s = int(sqrt(n));
+        return intd(n, n + s)(mt);
+    };
 
     edges_t g;
     int V = -1, ranks, m, X, Y, Z, k;
@@ -1192,75 +1289,78 @@ auto generate_flow_network(flow_network_kind i, int S) {
     const auto sparse = [&]() { return min(1.0, sparsed(mt) / V); };
     const auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(V)); };
     const auto dense = [&]() { return densed(mt); };
-    const auto longlevel = [&]() { return min(V, intd(20, max(20, V / 5))(mt)); };
-    const auto widelevel = [&]() { return min(V, intd(5, clamp(V, 5, 12))(mt)); };
-    const auto longm = [&]() { return min(8, V / ranks); };
-    const auto widem = [&]() { return min(20, V / ranks); };
+    const auto longlevel = [&]() {
+        ranks = min(V, intd(20, max(20, V / 5))(mt)), m = min(8, V / ranks);
+    };
+    const auto widelevel = [&]() {
+        ranks = min(V, intd(5, clamp(V, 5, 12))(mt)), m = min(20, V / ranks);
+    };
 
     switch (i) {
     case FN_UNIFORM_SPARSE:
-        V = Sd(mt), p = sparse();
+        V = dV(1.00), p = sparse();
         g = random_uniform_directed_connected(V, p);
         break;
     case FN_UNIFORM_MODERATE:
-        V = bd(mt), p = moderate();
+        V = dV(0.95), p = moderate();
         g = random_uniform_directed_connected(V, p);
         break;
     case FN_UNIFORM_DENSE:
-        V = cd(mt), p = dense();
+        V = dV(0.85), p = dense();
         g = random_uniform_directed_connected(V, p);
         break;
     case FN_UNIFORM_LEVEL_LONG_SPARSE:
-        V = ad(mt), p = sparse(), ranks = longlevel(), m = longm();
+        V = dV(0.90), p = sparse(), longlevel();
         g = random_uniform_level_flow(V, p, ranks, m);
         break;
     case FN_UNIFORM_LEVEL_WIDE_SPARSE:
-        V = bd(mt), p = sparse(), ranks = widelevel(), m = widem();
+        V = dV(0.75), p = sparse(), widelevel();
         g = random_uniform_level_flow(V, p, ranks, m);
         break;
     case FN_UNIFORM_LEVEL_LONG_MODERATE:
-        V = ad(mt), p = moderate(), ranks = longlevel(), m = longm();
+        V = dV(0.90), p = moderate(), longlevel();
         g = random_uniform_level_flow(V, p, ranks, m);
         break;
     case FN_UNIFORM_LEVEL_WIDE_MODERATE:
-        V = bd(mt), p = moderate(), ranks = widelevel(), m = widem();
+        V = dV(0.75), p = moderate(), widelevel();
         g = random_uniform_level_flow(V, p, ranks, m);
         break;
     case FN_UNIFORM_LEVEL_LONG_DENSE:
-        V = ad(mt), p = dense(), ranks = longlevel(), m = longm();
+        V = dV(0.90), p = dense(), longlevel();
         g = random_uniform_level_flow(V, p, ranks, m);
         break;
     case FN_UNIFORM_LEVEL_WIDE_DENSE:
-        V = bd(mt), p = dense(), ranks = widelevel(), m = widem();
+        V = dV(0.75), p = dense(), widelevel();
         g = random_uniform_level_flow(V, p, ranks, m);
         break;
     case FN_COMPLETE:
-        V = cd(mt);
+        V = dV(0.68);
         g = complete_directed(V);
         break;
     case FN_NORMAL_GRID2:
-        X = dd(mt), Y = dd(mt), V = X * Y;
+        X = dV(0.57), Y = dV(0.57), V = X * Y;
         g = grid_directed(X, Y);
         break;
     case FN_CIRCULAR_GRID2:
-        X = dd(mt), Y = dd(mt), V = X * Y;
+        X = dV(0.57), Y = dV(0.57), V = X * Y;
         g = circular_grid_directed(X, Y);
         break;
     case FN_NORMAL_GRID3:
-        X = td(mt), Y = td(mt), Z = td(mt), V = X * Y * Z;
+        X = dV(0.37), Y = dV(0.37), Z = dV(0.37), V = X * Y * Z;
         g = grid3_directed(X, Y, Z);
         break;
     case FN_CIRCULAR_GRID3:
-        X = td(mt), Y = td(mt), Z = td(mt), V = X * Y * Z;
+        X = dV(0.37), Y = dV(0.37), Z = dV(0.37), V = X * Y * Z;
         g = circular_grid3_directed(X, Y, Z);
         break;
     case FN_KCONNECTED_COMPLETE:
-        m = cd(mt), k = ud(mt), V = m * k;
+        m = dV(0.68), k = dV(0.30), V = m * k;
         g = k_connected_complete_directed(m, k);
         break;
     default:
         throw runtime_error("Invalid flow network kind");
     }
+    assert(verify_edges_directed(g, V) && is_connected_directed(g, V));
     int E = g.size();
     return flow_network{V, E, 0, V - 1, g};
 }

@@ -11,8 +11,7 @@ using intd = uniform_int_distribution<int>;
 using longd = uniform_int_distribution<long>;
 using ulongd = uniform_int_distribution<size_t>;
 using reald = uniform_real_distribution<double>;
-using binomd = binomial_distribution<int>;
-using longbinomd = binomial_distribution<long>;
+using binomd = binomial_distribution<long>;
 using boold = bernoulli_distribution;
 
 using adjacency_lists_t = vector<vector<int>>;
@@ -88,15 +87,15 @@ int_sample_t int_sample(int k, int a, int b, bool complement = false) {
 
 /**
  * Generate a sorted sample of k integer pairs (x,y) where x, y are taken from the range
- * [a..b] and x <= y if eq or x < y if !eq.
+ * [a..b] and x < y.
  * It must hold that a <= b and k <= (n choose 2) where n = b - a + 1.
  * Complexity: O(k) with E[mt] <= 6k.
  */
-pair_sample_t choose_sample(int k, int a, int b, bool eq, bool complement = false) {
-    long ab = 1L * (b - a + 1) * (b - a + 2) / 2 - !eq * (b - a + 1);
+pair_sample_t choose_sample(int k, int a, int b, bool complement = false) {
+    long ab = 1L * (b - a + 1) * (b - a + 2) / 2 - (b - a + 1);
     assert(a <= b && 0 <= k && k <= ab);
     if (3 * k >= 2 * ab) {
-        return choose_sample(ab - k, a, b, eq, !complement);
+        return choose_sample(ab - k, a, b, !complement);
     }
 
     intd dist(a, b);
@@ -106,19 +105,19 @@ pair_sample_t choose_sample(int k, int a, int b, bool eq, bool complement = fals
         pair<int, int> p;
         do {
             p = minmax(dist(mt), dist(mt));
-        } while ((!eq && p.first == p.second) || seen.count(p));
+        } while (p.first == p.second || seen.count(p));
         seen.insert(p);
     }
 
     pair_sample_t sample;
     if (complement) {
         for (int x = a; x <= b; x++)
-            for (int y = x + !eq; y <= b; y++)
+            for (int y = x + 1; y <= b; y++)
                 if (!seen.count({x, y}))
                     sample.push_back({x, y});
     } else if (3 * k >= b - a + 1) {
         for (int x = a; x <= b; x++)
-            for (int y = x + !eq; y <= b; y++)
+            for (int y = x + 1; y <= b; y++)
                 if (seen.count({x, y}))
                     sample.push_back({x, y});
     } else {
