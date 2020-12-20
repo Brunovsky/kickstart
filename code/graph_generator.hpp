@@ -1234,20 +1234,8 @@ struct flow_network {
     edges_t g;
     flow_network_kind kind;
     int V, E, S, s, t;
-    int X, Y, Z;        // for grid graphs
-    int levels, lo, hi; // for level graphs
-    int k;              // for complete and multipartite graphs
-    vector<int> R;      // for level graphs
-    vector<int> cap;    // edge capacities
-    vector<int> cost;   // edge costs
-};
-
-struct cap_flow_network : flow_network {
-    flows_t cap;
-};
-
-struct cap_cost_flow_network : cap_flow_network {
-    costs_t cost;
+    vector<long> cap;  // edge capacities
+    vector<long> cost; // edge costs
 };
 
 string flow_kind_name[] = {
@@ -1283,17 +1271,17 @@ auto generate_flow_network(flow_network_kind i, int S) {
     };
 
     edges_t g;
-    int V = -1, ranks, m, X, Y, Z, k;
+    int V = -1, levels, m, X, Y, Z, k;
     double p;
 
     const auto sparse = [&]() { return min(1.0, sparsed(mt) / V); };
     const auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(V)); };
     const auto dense = [&]() { return densed(mt); };
     const auto longlevel = [&]() {
-        ranks = min(V, intd(20, max(20, V / 5))(mt)), m = min(8, V / ranks);
+        levels = min(V, intd(20, max(20, V / 5))(mt)), m = min(8, V / levels);
     };
     const auto widelevel = [&]() {
-        ranks = min(V, intd(5, clamp(V, 5, 12))(mt)), m = min(20, V / ranks);
+        levels = min(V, intd(5, clamp(V, 5, 12))(mt)), m = min(20, V / levels);
     };
 
     switch (i) {
@@ -1302,36 +1290,36 @@ auto generate_flow_network(flow_network_kind i, int S) {
         g = random_uniform_directed_connected(V, p);
         break;
     case FN_UNIFORM_MODERATE:
-        V = dV(0.95), p = moderate();
+        V = dV(0.75), p = moderate();
         g = random_uniform_directed_connected(V, p);
         break;
     case FN_UNIFORM_DENSE:
-        V = dV(0.85), p = dense();
+        V = dV(0.68), p = dense();
         g = random_uniform_directed_connected(V, p);
         break;
     case FN_UNIFORM_LEVEL_LONG_SPARSE:
-        V = dV(0.90), p = sparse(), longlevel();
-        g = random_uniform_level_flow(V, p, ranks, m);
+        V = dV(0.80), p = sparse(), longlevel();
+        g = random_uniform_level_flow(V, p, levels, m);
         break;
     case FN_UNIFORM_LEVEL_WIDE_SPARSE:
         V = dV(0.75), p = sparse(), widelevel();
-        g = random_uniform_level_flow(V, p, ranks, m);
+        g = random_uniform_level_flow(V, p, levels, m);
         break;
     case FN_UNIFORM_LEVEL_LONG_MODERATE:
-        V = dV(0.90), p = moderate(), longlevel();
-        g = random_uniform_level_flow(V, p, ranks, m);
+        V = dV(0.80), p = moderate(), longlevel();
+        g = random_uniform_level_flow(V, p, levels, m);
         break;
     case FN_UNIFORM_LEVEL_WIDE_MODERATE:
         V = dV(0.75), p = moderate(), widelevel();
-        g = random_uniform_level_flow(V, p, ranks, m);
+        g = random_uniform_level_flow(V, p, levels, m);
         break;
     case FN_UNIFORM_LEVEL_LONG_DENSE:
         V = dV(0.90), p = dense(), longlevel();
-        g = random_uniform_level_flow(V, p, ranks, m);
+        g = random_uniform_level_flow(V, p, levels, m);
         break;
     case FN_UNIFORM_LEVEL_WIDE_DENSE:
         V = dV(0.75), p = dense(), widelevel();
-        g = random_uniform_level_flow(V, p, ranks, m);
+        g = random_uniform_level_flow(V, p, levels, m);
         break;
     case FN_COMPLETE:
         V = dV(0.68);
@@ -1354,42 +1342,43 @@ auto generate_flow_network(flow_network_kind i, int S) {
         g = circular_grid3_directed(X, Y, Z);
         break;
     case FN_KCONNECTED_COMPLETE:
-        m = dV(0.68), k = dV(0.30), V = m * k;
+        m = dV(0.62), k = dV(0.30), V = m * k;
         g = k_connected_complete_directed(m, k);
         break;
     default:
         throw runtime_error("Invalid flow network kind");
     }
-    assert(verify_edges_directed(g, V) && is_connected_directed(g, V));
+    assert(verify_edges_directed(g, V) && is_rooted_directed(g, V));
     int E = g.size();
-    return flow_network{V, E, 0, V - 1, g};
+    flow_network fn;
+    fn.g = move(g);
+    fn.kind = i;
+    fn.V = V, fn.E = E, fn.S = S, fn.s = 0, fn.t = V - 1;
+    return fn;
 }
 
 auto generate_cap_flow_network(flow_network_kind i, int S, flow_t maxcap,
                                flow_t mincap = 1) {
     auto fn = generate_flow_network(i, S);
-    auto cap = int_gen<flow_t>(fn.E, mincap, maxcap);
-    return cap_flow_network{fn, cap};
+    fn.cap = int_gen<flow_t>(fn.E, mincap, maxcap);
+    return fn;
 }
 
 auto generate_cap_cost_flow_network(flow_network_kind i, int S, flow_t maxcap,
                                     cost_t maxcost, flow_t mincap = 1,
                                     cost_t mincost = 1) {
     auto fn = generate_flow_network(i, S);
-    auto cap = int_gen<flow_t>(fn.E, mincap, maxcap);
-    auto cost = int_gen<cost_t>(fn.E, mincost, maxcost);
-    return cap_cost_flow_network{{fn, cap}, cost};
+    fn.cap = int_gen<flow_t>(fn.E, mincap, maxcap);
+    fn.cost = int_gen<cost_t>(fn.E, mincost, maxcost);
+    return fn;
 }
 
 /** Circulation networks
  */
 
 struct circulation_network {
-    int V, E;
     edges_t g;
-};
-
-struct supply_circulation_network : circulation_network {
+    int V, E, S;
     flows_t supply, cap;
     costs_t cost;
 };
@@ -1518,32 +1507,33 @@ auto generate_circulation_network(circulation_network_kind i, int S) {
     default:
         throw runtime_error("Invalid circulation network kind");
     }
+    assert(verify_edges_directed(g, V) && is_connected_directed(g, V));
 
     int E = g.size();
-    return circulation_network{V, E, g};
+    circulation_network cn;
+    cn.g = move(g);
+    cn.V = V, cn.E = E, cn.S = S;
+    return cn;
 }
 
 auto generate_supply_circulation_network(circulation_network_kind i, int S, flow_t sum,
                                          int positives, int negatives, flow_t maxcap = 99,
                                          cost_t maxcost = 99, flow_t mincap = 1,
                                          cost_t mincost = 1) {
-    auto fn = generate_circulation_network(i, S);
-    auto cap = int_gen<flow_t>(fn.E, mincap, maxcap);
-    auto cost = int_gen<cost_t>(fn.E, mincost, maxcost);
-    auto supply = supply_sample<flow_t>(fn.E, positives, negatives, sum);
-    return supply_circulation_network{fn, cap, cost, supply};
+    auto cn = generate_circulation_network(i, S);
+    cn.cap = int_gen<flow_t>(cn.E, mincap, maxcap);
+    cn.cost = int_gen<cost_t>(cn.E, mincost, maxcost);
+    cn.supply = supply_sample<flow_t>(cn.E, positives, negatives, sum);
+    return cn;
 }
 
 /** Distance networks
  */
 
 struct distance_graph {
-    int V, E;
     edges_t g;
-};
-
-struct weighted_distance_graph : distance_graph {
-    costs_t weights;
+    int V, E, S;
+    costs_t weight;
 };
 
 enum distance_graph_kind : int {
@@ -1643,16 +1633,20 @@ auto generate_distance_graph(distance_graph_kind i, int S, bool bidirectional = 
     default:
         throw runtime_error("Invalid distance graph kind");
     }
+    assert(verify_edges_directed(g, V) && is_connected_directed(g, V));
 
     int E = g.size();
-    return distance_graph{V, E, g};
+    distance_graph dg;
+    dg.g = move(g);
+    dg.V = V, dg.E = E, dg.S = S;
+    return dg;
 }
 
 auto generate_distance_weighted_graph(distance_graph_kind i, int S, cost_t maxweight,
                                       cost_t minweight, bool bidirectional = true) {
     auto dg = generate_distance_graph(i, S, bidirectional);
-    auto weight = int_gen<cost_t>(dg.E, minweight, maxweight);
-    return weighted_distance_graph{dg, weight};
+    dg.weight = int_gen<cost_t>(dg.E, minweight, maxweight);
+    return dg;
 }
 
 #endif // GRAPH_GENERATOR_HPP

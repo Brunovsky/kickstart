@@ -14,9 +14,9 @@ bool eq(A&& a, T&&... args) {
 namespace all_pairs {
 
 template <typename SP>
-bool compute(const weighted_distance_graph& dg, vector<vector<long>>& dist) {
+bool compute(const distance_graph& dg, vector<vector<long>>& dist) {
     try {
-        SP g(dg.V, dg.g, dg.weights);
+        SP g(dg.V, dg.g, dg.weight);
         g.compute();
         dist = move(g.dist);
         return false;
@@ -90,9 +90,9 @@ void test_speed() {
 namespace negatives {
 
 template <typename SP>
-bool compute(const weighted_distance_graph& dg, int s, vector<long>& dist) {
+bool compute(const distance_graph& dg, int s, vector<long>& dist) {
     try {
-        SP g(dg.V, dg.g, dg.weights);
+        SP g(dg.V, dg.g, dg.weight);
         g.compute(s);
         dist = move(g.dist);
         return false;
@@ -198,8 +198,8 @@ void test_random_equals(int R = 2000) {
 namespace positives {
 
 template <typename SP>
-void compute(const weighted_distance_graph& dg, int s, vector<long>& dist) {
-    SP g(dg.V, dg.g, dg.weights);
+void compute(const distance_graph& dg, int s, vector<long>& dist) {
+    SP g(dg.V, dg.g, dg.weight);
     g.compute(s);
     dist = move(g.dist);
 }
