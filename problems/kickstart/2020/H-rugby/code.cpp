@@ -45,7 +45,7 @@ auto solve() {
             L = M1 + 1;
         }
     }
-    long x = cost(L, 0) < cost(R, 0) ? L : R;
+    long x = (cost(L, 0) < cost(R, 0)) ? L : R;
 
     L = -1'010'000'000, R = 1'010'000'000;
     while (L <= R) {
@@ -59,7 +59,7 @@ auto solve() {
             L = M1 + 1;
         }
     }
-    long y = cost(x, L) < cost(x, R) ? L : R;
+    long y = (cost(x, L) < cost(x, R)) ? L : R;
 
     return cost(x, y);
 }
