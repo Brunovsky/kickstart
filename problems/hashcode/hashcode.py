@@ -75,7 +75,7 @@ readmefile.close()
 if template == "cpp":
     shutil.copy("templates/cpp/code.cpp", folder)
     shutil.copy("templates/cpp/run.sh", folder)
-    os.symlink("../../templates/cpp/Makefile",
+    os.symlink("../templates/cpp/Makefile",
                f"{folder}/Makefile")
     subprocess.call(["code",
                      f"{folder}/README.md",
