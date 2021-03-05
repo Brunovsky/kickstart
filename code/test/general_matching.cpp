@@ -95,6 +95,11 @@ void run_dataset_tests() {
 }
 */
 
+void print_ratio(int64_t time, int R, int E, int V) {
+    double ratio = 1e6 * time / (1.0 * R * E * sqrt(V));
+    print("ratio: {:.2f}\n", ratio);
+}
+
 string apply_comment(string lines) {
     stringstream ss(lines);
     string commented, line;
@@ -271,9 +276,7 @@ void performance_test(int R, int V, int E) {
     TIME(mv);
     PRINT_TIME(mv);
     print("errors: {}\n", errors);
-
-    double ratio = 1e6 * time_mv / (1.0 * R * E * sqrt(V));
-    print("ratio: {:.2f}\n", ratio);
+    print_ratio(time_mv, R, E, V);
 }
 
 void performance_tests(double M) {

@@ -62,7 +62,7 @@ struct mat {
     friend mat operator-(mat a, const mat& b) { return a -= b; }
 
     friend mat operator*(const mat& a, const mat& b) {
-        assert(a.m == b.n);
+        assert(a.m == b.n && "Unequal matrix multiplication operand dimensions");
         mat c(a.n, b.m);
         for (int i = 0; i < a.n; i++)
             for (int j = 0; j < b.m; j++)
@@ -72,7 +72,7 @@ struct mat {
     }
 
     friend mat operator^(mat a, int e) {
-        assert(a.n == a.m);
+        assert(a.n == a.m && "Matrix exponentiation operand is not square");
         mat c = identity(a.n);
         while (e > 0) {
             if (e & 1)
@@ -84,7 +84,7 @@ struct mat {
     }
 
     friend vec operator*(const mat& a, const vec& b) {
-        assert(a.m == int(b.size()));
+        assert(a.m == b.size() && "Matrix and vector operand have unequal dimensions");
         vec c(a.m);
         for (int i = 0; i < a.n; i++)
             for (int j = 0; j < a.m; j++)
@@ -101,7 +101,7 @@ struct mat {
     }
 
     friend mat inverse(mat a) {
-        assert(a.n == a.m);
+        assert(a.n == a.m && "Matrix inverse operand is not square");
         int n = a.n;
         mat b = identity(n);
         for (int j = 0, i; j < n; j++) {
@@ -131,7 +131,7 @@ struct mat {
     }
 
     friend vec gauss(mat a, vec b) {
-        assert(a.n == int(b.size()) && a.n == a.m);
+        assert(a.n == b.size() && a.n == a.m);
         int n = a.n;
         for (int i = 0; i < n; i++)
             a[i].push_back(b[i]);
