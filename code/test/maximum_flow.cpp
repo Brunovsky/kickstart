@@ -1,17 +1,15 @@
 #include "../maximum_flow.hpp"
 
-#include "../debug_print.hpp"
 #include "../graph_generator.hpp"
-#include "chrono.hpp"
+#include "test_utils.hpp"
 
 // *****
 
-template <typename A, typename... T>
-bool eq(A&& a, T&&... args) {
-    return ((a == args) && ...);
-}
+constexpr int N = 5;
+constexpr int sizes[] = {500, 1800, 6000, 12000, 20000};
+constexpr int amounts[] = {3000, 800, 100, 40, 10};
 
-void speed_unit_test(flow_network_kind i, int S, int T) {
+void test_speed(flow_network_kind i, int S, int T) {
     START_ACC(dinitz);
     START_ACC(push_relabel);
     START_ACC(tidal);
@@ -20,9 +18,10 @@ void speed_unit_test(flow_network_kind i, int S, int T) {
     int errors = 0, max_errors = 10;
 
     for (int t = 0; t < T; t++) {
-        print("\rspeed test {} {}...", t + 1, flow_kind_name[i]);
-        auto network = generate_cap_flow_network(i, S, 100'000'000'000);
-        flow_t mf[4];
+        print_progress(t, T, flow_kind_name[i]);
+        auto network = generate_flow_network(i, S);
+        add_cap_flow_network(network, 100'000'000'000);
+        vector<flow_t> mf(4);
 
         START(dinitz);
         dinitz_flow g0(network.V, network.g, network.cap);
@@ -44,63 +43,57 @@ void speed_unit_test(flow_network_kind i, int S, int T) {
         mf[3] = g3.maxflow(network.s, network.t);
         ADD_TIME(mpm);
 
-        if (errors < max_errors && !eq(mf[0], mf[1], mf[2], mf[3])) {
-            print(" -- {:>9} {:>9} {:>9} {:>9}\n", mf[0], mf[1], mf[2], mf[3]);
+        if (errors < max_errors && !all_eq(mf)) {
+            print(" -- {:>9}\n", fmt::join(mf, " "));
             errors++;
         }
     }
 
-    print("\r speed test {} (S={}, x{}):\n", flow_kind_name[i], S, T);
-    PRINT_ACC(dinitz);
-    PRINT_ACC(push_relabel);
-    PRINT_ACC(tidal);
-    PRINT_ACC(mpm);
+    clear_line();
+    print(" speed test {} (S={}, x{}):\n", flow_kind_name[i], S, T);
+    PRINT_TIME(dinitz);
+    PRINT_TIME(push_relabel);
+    PRINT_TIME(tidal);
+    PRINT_TIME(mpm);
 }
-
-constexpr int N = 5;
-constexpr int sizes[] = {500, 1800, 6000, 12000, 20000};
-constexpr int amounts[] = {3000, 800, 100, 40, 10};
 
 void test_speed() {
     for (int n = 0; n < N; n++) {
-        print("Speed test S={} x{}\n", sizes[n], amounts[n]);
+        print("speed test group S={}, x{}\n", sizes[n], amounts[n]);
         for (int i = 0; i < int(FN_END); i++) {
-            speed_unit_test(flow_network_kind(i), sizes[n], amounts[n]);
+            test_speed(flow_network_kind(i), sizes[n], amounts[n]);
         }
     }
 }
 
-void equal_unit_test(int i) {
-    auto network = generate_cap_flow_network(FN_COMPLETE, 100, 100'000);
-    int V = network.V;
-    const auto& g = network.g;
-    const auto& cap = network.cap;
+void test_random_equals(int T = 10000) {
+    print("random test ");
+    for (int t = 0; t < T; t++) {
+        auto network = generate_flow_network(FN_COMPLETE, 100);
+        add_cap_flow_network(network, 100'000);
+        int V = network.V;
+        const auto& g = network.g;
+        const auto& cap = network.cap;
 
-    edmonds_karp flow1(V, g, cap);
-    dinitz_flow flow2(V, g, cap);
-    push_relabel flow3(V, g, cap);
-    tidal_flow flow4(V, g, cap);
-    mpm_flow flow5(V, g, cap);
+        edmonds_karp flow1(V, g, cap);
+        dinitz_flow flow2(V, g, cap);
+        push_relabel flow3(V, g, cap);
+        tidal_flow flow4(V, g, cap);
+        mpm_flow flow5(V, g, cap);
 
-    long mf1 = flow1.maxflow(0, V - 1);
-    long mf2 = flow2.maxflow(0, V - 1);
-    long mf3 = flow3.maxflow(0, V - 1);
-    long mf4 = flow4.maxflow(0, V - 1);
-    long mf5 = flow5.maxflow(0, V - 1);
-    assert(mf1 != 0);
+        vector<flow_t> mf(5);
+        mf[0] = flow1.maxflow(0, V - 1);
+        mf[1] = flow2.maxflow(0, V - 1);
+        mf[2] = flow3.maxflow(0, V - 1);
+        mf[3] = flow4.maxflow(0, V - 1);
+        mf[4] = flow5.maxflow(0, V - 1);
+        assert(mf[0] != 0);
 
-    print("\r{}", string(80, ' '));
-    print("\rrandom test #{}: {} {} {} {} {}", i, //
-          mf1, mf2, mf3, mf4, mf5);
-    if (!eq(mf1, mf2, mf3, mf4, mf5)) {
-        print("\nRandom test failed\n");
-        exit(1);
-    }
-}
+        print_progress(t, T, format("{}", fmt::join(mf, " ")));
 
-void test_equals(int R = 100) {
-    for (int i = 1; i <= R; i++) {
-        equal_unit_test(i);
+        if (!all_eq(mf)) {
+            fail("Random test failed (see above)");
+        }
     }
     print("\n");
 }
@@ -108,7 +101,7 @@ void test_equals(int R = 100) {
 int main() {
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
-    test_equals();
+    test_random_equals();
     test_speed();
     return 0;
 }

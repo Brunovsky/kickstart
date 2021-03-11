@@ -1265,7 +1265,7 @@ auto generate_flow_network(flow_network_kind i, int S) {
     reald moderated(4.0, 9.0);
     reald densed(0.6, 0.9);
 
-    const auto dV = [&](double e) {
+    auto dV = [&](double e) {
         int n = max(1, int(ceil(pow(S, e)))), s = int(sqrt(n));
         return intd(n, n + s)(mt);
     };
@@ -1274,13 +1274,13 @@ auto generate_flow_network(flow_network_kind i, int S) {
     int V = -1, levels, m, X, Y, Z, k;
     double p;
 
-    const auto sparse = [&]() { return min(1.0, sparsed(mt) / V); };
-    const auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(V)); };
-    const auto dense = [&]() { return densed(mt); };
-    const auto longlevel = [&]() {
+    auto sparse = [&]() { return min(1.0, sparsed(mt) / V); };
+    auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(V)); };
+    auto dense = [&]() { return densed(mt); };
+    auto longlevel = [&]() {
         levels = min(V, intd(20, max(20, V / 5))(mt)), m = min(8, V / levels);
     };
-    const auto widelevel = [&]() {
+    auto widelevel = [&]() {
         levels = min(V, intd(5, clamp(V, 5, 12))(mt)), m = min(20, V / levels);
     };
 
@@ -1349,6 +1349,7 @@ auto generate_flow_network(flow_network_kind i, int S) {
         throw runtime_error("Invalid flow network kind");
     }
     assert(verify_edges_directed(g, V) && is_rooted_directed(g, V));
+
     int E = g.size();
     flow_network fn;
     fn.g = move(g);
@@ -1357,20 +1358,17 @@ auto generate_flow_network(flow_network_kind i, int S) {
     return fn;
 }
 
-auto generate_cap_flow_network(flow_network_kind i, int S, flow_t maxcap,
-                               flow_t mincap = 1) {
-    auto fn = generate_flow_network(i, S);
+auto add_cap_flow_network(flow_network& fn, flow_t mincap, flow_t maxcap) {
     fn.cap = int_gen<flow_t>(fn.E, mincap, maxcap);
-    return fn;
 }
-
-auto generate_cap_cost_flow_network(flow_network_kind i, int S, flow_t maxcap,
-                                    cost_t maxcost, flow_t mincap = 1,
-                                    cost_t mincost = 1) {
-    auto fn = generate_flow_network(i, S);
-    fn.cap = int_gen<flow_t>(fn.E, mincap, maxcap);
-    fn.cost = int_gen<cost_t>(fn.E, mincost, maxcost);
-    return fn;
+auto add_cap_flow_network(flow_network& fn, flow_t maxcap) {
+    return add_cap_flow_network(fn, 1, maxcap);
+}
+auto add_cost_flow_network(flow_network& fn, cost_t mincost, cost_t maxcost) {
+    fn.cap = int_gen<cost_t>(fn.E, mincost, maxcost);
+}
+auto add_cost_flow_network(flow_network& fn, cost_t maxcost) {
+    return add_cost_flow_network(fn, 1, maxcost);
 }
 
 /** Circulation networks
@@ -1422,86 +1420,88 @@ string circulation_kind_name[] = {
 // S arbitrates network size/complexity.
 auto generate_circulation_network(circulation_network_kind i, int S) {
     assert(10 <= S && S <= 50000);
-    const int a = int(pow(S, 0.90)), b = int(pow(S, 0.75)), c = int(pow(S, 0.68));
-    const int d = int(pow(S, 0.57)), s = int(pow(S, 0.50)), f = int(pow(S, 0.40));
-    const int t = int(pow(S, 0.37)), u = int(pow(S, 0.30)), v = int(pow(S, 0.20));
 
-    intd Sd(S, S + s), ad(a, a + s), bd(b, b + f), cd(c, c + f), dd(d, d + u);
-    intd sd(s, s + v), fd(f, f + v), td(t, t + v), ud(u, u + v);
     reald sparsed(5.0, 12.0);
     reald moderated(4.0, 9.0);
     reald densed(0.6, 0.9);
 
+    auto dV = [&](double e) {
+        int n = max(1, int(ceil(pow(S, e)))), s = int(sqrt(n));
+        return intd(n, n + s)(mt);
+    };
+
     edges_t g;
-    int V = -1, ranks, m, X, Y, Z, k;
+    int V = -1, levels, m, X, Y, Z, k;
     double p;
     offsets_t ints;
 
-    const auto sparse = [&]() { return min(1.0, sparsed(mt) / V); };
-    const auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(V)); };
-    const auto dense = [&]() { return densed(mt); };
-    const auto longlevel = [&]() { return min(V, intd(20, max(20, V / 5))(mt)); };
-    const auto widelevel = [&]() { return min(V, intd(5, clamp(V, 5, 12))(mt)); };
-    const auto longm = [&]() { return min(8, V / ranks); };
-    const auto widem = [&]() { return min(20, V / ranks); };
+    auto sparse = [&]() { return min(1.0, sparsed(mt) / V); };
+    auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(V)); };
+    auto dense = [&]() { return densed(mt); };
+    auto longlevel = [&]() {
+        levels = min(V, intd(20, max(20, V / 5))(mt)), m = min(8, V / levels);
+    };
+    auto widelevel = [&]() {
+        levels = min(V, intd(5, clamp(V, 5, 12))(mt)), m = min(20, V / levels);
+    };
     auto sqrtk = [&]() { return int(sqrt(V) + 1); };
 
     switch (i) {
     case CN_UNIFORM_SPARSE:
-        V = Sd(mt), p = sparse();
+        V = dV(1.00), p = sparse();
         g = random_uniform_directed_connected(V, p);
         break;
     case CN_UNIFORM_MODERATE:
-        V = bd(mt), p = moderate();
+        V = dV(0.75), p = moderate();
         g = random_uniform_directed_connected(V, p);
         break;
     case CN_UNIFORM_DENSE:
-        V = cd(mt), p = dense();
+        V = dV(0.68), p = dense();
         g = random_uniform_directed_connected(V, p);
         break;
     case CN_UNIFORM_LEVEL_LONG_SPARSE:
-        V = ad(mt), p = sparse(), ranks = longlevel(), m = longm();
-        g = random_uniform_level_flow(V, p, ranks, m, true);
+        V = dV(0.80), p = sparse(), longlevel();
+        g = random_uniform_level_flow(V, p, levels, m, true);
         break;
     case CN_UNIFORM_LEVEL_WIDE_SPARSE:
-        V = bd(mt), p = sparse(), ranks = widelevel(), m = widem();
-        g = random_uniform_level_flow(V, p, ranks, m, true);
+        V = dV(0.75), p = sparse(), widelevel();
+        g = random_uniform_level_flow(V, p, levels, m, true);
         break;
     case CN_UNIFORM_LEVEL_LONG_MODERATE:
-        V = ad(mt), p = moderate(), ranks = longlevel(), m = longm();
-        g = random_uniform_level_flow(V, p, ranks, m, true);
+        V = dV(0.80), p = moderate(), longlevel();
+        g = random_uniform_level_flow(V, p, levels, m, true);
         break;
     case CN_UNIFORM_LEVEL_WIDE_MODERATE:
-        V = bd(mt), p = moderate(), ranks = widelevel(), m = widem();
-        g = random_uniform_level_flow(V, p, ranks, m, true);
+        V = dV(0.75), p = moderate(), widelevel();
+        g = random_uniform_level_flow(V, p, levels, m, true);
         break;
     case CN_UNIFORM_LEVEL_LONG_DENSE:
-        V = ad(mt), p = dense(), ranks = longlevel(), m = longm();
-        g = random_uniform_level_flow(V, p, ranks, m, true);
+        V = dV(0.80), p = dense(), longlevel();
+        g = random_uniform_level_flow(V, p, levels, m, true);
         break;
     case CN_UNIFORM_LEVEL_WIDE_DENSE:
-        V = bd(mt), p = dense(), ranks = widelevel(), m = widem();
-        g = random_uniform_level_flow(V, p, ranks, m, true);
+        V = dV(0.75), p = dense(), widelevel();
+        g = random_uniform_level_flow(V, p, levels, m, true);
         break;
     case CN_COMPLETE:
-        V = cd(mt);
+        V = dV(0.68);
         g = complete_directed(V), add_reverse_edges(g);
         break;
     case CN_CIRCULAR_GRID2:
-        X = dd(mt), Y = dd(mt), V = X * Y;
+        X = dV(0.57), Y = dV(0.57), V = X * Y;
         g = circular_grid_directed(X, Y);
         break;
     case CN_CIRCULAR_GRID3:
-        X = td(mt), Y = td(mt), Z = td(mt), V = X * Y * Z;
+        X = dV(0.37), Y = dV(0.37), Z = dV(0.37), V = X * Y * Z;
         g = circular_grid3_directed(X, Y, Z);
         break;
     case CN_CIRCULANT:
-        V = bd(mt), k = sqrtk(), ints = int_sample(k, 2, V - 1);
+        V = dV(0.75), k = sqrtk(), ints = int_sample(k, 2, V - 1);
         ints.push_back(1);
         g = circulant(V, ints);
         break;
     case CN_MULTIPARTITE:
-        V = cd(mt), k = sqrtk(), ints = partition_sample(V, k);
+        V = dV(0.68), k = sqrtk(), ints = partition_sample(V, k);
         g = complete_multipartite(ints), add_reverse_edges(g);
         break;
     default:
@@ -1516,15 +1516,25 @@ auto generate_circulation_network(circulation_network_kind i, int S) {
     return cn;
 }
 
-auto generate_supply_circulation_network(circulation_network_kind i, int S, flow_t sum,
-                                         int positives, int negatives, flow_t maxcap = 99,
-                                         cost_t maxcost = 99, flow_t mincap = 1,
-                                         cost_t mincost = 1) {
-    auto cn = generate_circulation_network(i, S);
+auto add_supply_circulation_network(circulation_network& cn, flow_t minsupply,
+                                    flow_t maxsupply) {
+    cn.cap = int_gen<flow_t>(cn.E, minsupply, maxsupply);
+}
+auto add_supply_circulation_network(circulation_network& cn, flow_t maxsupply) {
+    return add_supply_circulation_network(cn, 1, maxsupply);
+}
+auto add_cap_circulation_network(circulation_network& cn, flow_t mincap, flow_t maxcap) {
     cn.cap = int_gen<flow_t>(cn.E, mincap, maxcap);
-    cn.cost = int_gen<cost_t>(cn.E, mincost, maxcost);
-    cn.supply = supply_sample<flow_t>(cn.E, positives, negatives, sum);
-    return cn;
+}
+auto add_cap_circulation_network(circulation_network& cn, flow_t maxcap) {
+    return add_cap_circulation_network(cn, 1, maxcap);
+}
+auto add_cost_circulation_network(circulation_network& cn, cost_t mincost,
+                                  cost_t maxcost) {
+    cn.cap = int_gen<cost_t>(cn.E, mincost, maxcost);
+}
+auto add_cost_circulation_network(circulation_network& cn, cost_t maxcost) {
+    return add_cost_circulation_network(cn, 1, maxcost);
 }
 
 /** Distance networks
@@ -1563,71 +1573,70 @@ string distance_kind_name[] = {
 // S arbitrates network size/complexity.
 auto generate_distance_graph(distance_graph_kind i, int S, bool bidirectional = true) {
     assert(10 <= S && S <= 50000);
-    const int a = int(pow(S, 0.90)), b = int(pow(S, 0.82)), c = int(pow(S, 0.68));
-    const int d = int(pow(S, 0.57)), s = int(pow(S, 0.50)), f = int(pow(S, 0.40));
-    const int t = int(pow(S, 0.37)), u = int(pow(S, 0.30)), v = int(pow(S, 0.20));
-    const int r = int(pow(S, 0.85));
 
-    intd Sd(S, S + s), ad(a, a + s), bd(b, b + f), cd(c, c + f), dd(d, d + u);
-    intd sd(s, s + v), fd(f, f + v), td(t, t + v), ud(u, u + v), rd(r, r + s);
     reald sparsed(5.0, 12.0);
     reald moderated(4.0, 9.0);
     reald densed(0.6, 0.9);
+
+    auto dV = [&](double e) {
+        int n = max(1, int(ceil(pow(S, e)))), s = int(sqrt(n));
+        return intd(n, n + s)(mt);
+    };
 
     edges_t g;
     int V = -1, X, Y, Z, k, n;
     double p;
     offsets_t ints;
 
-    const auto sparse = [&]() { return min(1.0, sparsed(mt) / V); };
-    const auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(V)); };
-    const auto dense = [&]() { return densed(mt); };
-    const auto add_reverse = [&]() { bidirectional ? add_reverse_edges(g) : (void)0; };
+    auto sparse = [&]() { return min(1.0, sparsed(mt) / V); };
+    auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(V)); };
+    auto dense = [&]() { return densed(mt); };
+    auto add_reverse = [&]() { bidirectional ? add_reverse_edges(g) : (void)0; };
     auto sqrtk = [&]() { return int(sqrt(V) + 1); };
 
     switch (i) {
     case DG_UNIFORM_SPARSE:
-        V = ad(mt), p = sparse();
+        V = dV(1.00), p = sparse();
         g = random_uniform_directed_connected(V, p);
         break;
     case DG_UNIFORM_MODERATE:
-        V = ad(mt), p = moderate();
+        V = dV(0.75), p = moderate();
         g = random_uniform_directed_connected(V, p);
         break;
     case DG_UNIFORM_DENSE:
-        V = bd(mt), p = dense();
+        V = dV(0.68), p = dense();
         g = random_uniform_directed_connected(V, p);
         break;
     case DG_COMPLETE:
-        V = bd(mt);
+        V = dV(0.68);
         g = complete_directed(V), add_reverse();
         break;
     case DG_MULTIPARTITE:
-        V = bd(mt), k = sqrtk(), ints = partition_sample(V, k);
+        V = dV(0.68), k = sqrtk(), ints = partition_sample(V, k);
         g = complete_multipartite(ints), add_reverse();
         break;
     case DG_DISJOINT_MULTIPARTITE:
-        n = dd(mt), k = fd(mt), V = n * k;
+        n = dV(0.75), k = dV(0.30), V = n * k;
         g = disjoint_complete_directed(n, k), add_reverse();
         break;
     case DG_REGULAR_RING:
-        V = rd(mt), k = sqrtk();
+        V = dV(0.85), k = sqrtk();
         g = regular_ring(V, k), add_reverse();
         break;
     case DG_NORMAL_GRID2:
-        X = sd(mt), Y = sd(mt), V = X * Y;
+        X = dV(0.57), Y = dV(0.57), V = X * Y;
         g = grid_directed(X, Y), add_reverse();
         break;
     case DG_CIRCULAR_GRID2:
-        X = sd(mt), Y = sd(mt), V = X * Y;
+        X = dV(0.57), Y = dV(0.57), V = X * Y;
         g = circular_grid_directed(X, Y), add_reverse();
         break;
     case DG_NORMAL_GRID3:
-        X = ud(mt), Y = ud(mt), Z = ud(mt), V = X * Y * Z;
+        X = dV(0.37), Y = dV(0.37), Z = dV(0.37), V = X * Y * Z;
         g = grid3_directed(X, Y, Z), add_reverse();
         break;
     case DG_CIRCULAR_GRID3:
-        X = ud(mt), Y = ud(mt), Z = ud(mt), V = X * Y * Z;
+        X = dV(0.37), Y = dV(0.37), Z = dV(0.37), V = X * Y * Z;
         g = circular_grid3_directed(X, Y, Z), add_reverse();
         break;
     default:
@@ -1642,11 +1651,11 @@ auto generate_distance_graph(distance_graph_kind i, int S, bool bidirectional = 
     return dg;
 }
 
-auto generate_distance_weighted_graph(distance_graph_kind i, int S, cost_t maxweight,
-                                      cost_t minweight, bool bidirectional = true) {
-    auto dg = generate_distance_graph(i, S, bidirectional);
+auto add_weight_distance_graph(distance_graph& dg, cost_t minweight, cost_t maxweight) {
     dg.weight = int_gen<cost_t>(dg.E, minweight, maxweight);
-    return dg;
+}
+auto add_weight_distance_graph(distance_graph& dg, cost_t maxweight) {
+    return add_weight_distance_graph(dg, 1, maxweight);
 }
 
 #endif // GRAPH_GENERATOR_HPP

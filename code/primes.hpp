@@ -129,6 +129,8 @@ vector<ulong> factor_simple(ulong n) {
     return primes;
 }
 
+#include <fmt/format.h>
+
 /**
  * Compute a prime factor of composite n.
  * Uses polynomial x^2 + c and retries with a different c if it doesn't find an
@@ -138,17 +140,17 @@ vector<ulong> factor_simple(ulong n) {
  * Returns 0 on failure.
  */
 ulong pollard(ulong n, ulong c = 1) {
-    static const ulong cmax = 17;
+    static const ulong cmax = 173;
+    if ((n % 2) == 0)
+        return n / 2;
     int i = 1, iterations = 37 + int(ceil(sqrt(sqrt(sqrt(n)))));
-    auto f = [n, c](ulong x) {
-        return ((x * x + c) % n) + 1;
-    };
+    auto f = [n, c](ulong x) { return (x * x + c) % n; };
     ulong x = 2, y = 2, g = 1;
     do {
         x = f(x), y = f(f(y));
-        g = __gcd(max(x, y) - min(x, y), n);
+        g = gcd(max(x, y) - min(x, y), n);
     } while (i++ <= iterations && g == 1);
-    return (1 < g && g < n) ? g : (c < cmax ? pollard(n, c + 2) : 0);
+    return (1 < g && g < n) ? g : (c < cmax ? pollard(n, c + 1) : 0);
 }
 
 /**

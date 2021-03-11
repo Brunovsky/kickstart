@@ -6,7 +6,7 @@ This code collection has become quite messy
 |:-------------------:|-----------------------------|--------------|:-------:|-------|
 | Algorithms          |`dynamic_programming        `| Incomplete   |   ✓     | Many algorithms and variations still missing |
 | Algorithms          |`string_search              `| Stable       |   ✓✓    | Needs restyle; suffix array, suffix tree and manacher's algorithm |
-| Algorithms          |`sort                       `| Stable       |   ✓✓✓   | Needs restyle, disorganized |
+| Algorithms          |`sort                       `| Stable       |   ✓✓✓   | |
 | Binary trees        |`avl_tree                   `| Stable       |   ✓✓✓   | |
 | Binary trees        |`bs_map                     `| Stable       |   ✓✓✓   | |
 | Binary trees        |`bs_set                     `| Stable       |   ✓✓✓   | |
@@ -36,8 +36,8 @@ This code collection has become quite messy
 | Graphs algorithms   |`min_spanning_forest        `| Outdated     |   ✓     | Not adapted to new edges_t graph interface |
 | Graphs algorithms   |`planarity                  `| Outdated     |   ✓     | Not adapted to new edges_t graph interface |
 | Graphs algorithms   |`scc                        `| Outdated     |   ✓     | Not adapted to new edges_t graph interface |
-| Graphs algorithms   |`shortest_path              `| Stable       |   ✓✓✓   | |
-| Linear programming  |`simplex                    `| Outdated     |   ✓     | Needs an interface change |
+| Graphs algorithms   |`shortest_path              `| Stable       |   ✓✓✓   | Johnson's not correctly implemented |
+| Linear programming  |`simplex                    `| Stable       |   ✓     | |
 | Linear programming  |`transportation             `| Inadequate   |   ✓     | Inefficient implementation and bad interface |
 | Linear programming  |`travelling_salesman        `| Outdated     |   ✓     | Needs an interface change |
 | Matching            |`general_matching           `| Stable       |   ✓✓✓   | Commented out unit tests |
@@ -48,8 +48,8 @@ This code collection has become quite messy
 | Utilities           |`debug_print                `| Outdated     |         | Add helpful print functions for testing |
 | Utilities           |`hash                       `| Stable       |   ✓     | |
 | Utilities           |`math                       `| Stable       |   ✓     | Add dynamic modnum |
-| Utilities           |`primes                     `| Stable       |   ✓✓    | No test feedback |
-| Utilities           |`random                     `| Outdated     |   ✓✓    | Use {fmt} |
+| Utilities           |`primes                     `| Stable       |   ✓✓    | |
+| Utilities           |`random                     `| Stable       |   ✓✓    | |
 
 Testing:
 - XX ⇒ not testable or not correct

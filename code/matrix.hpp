@@ -10,12 +10,14 @@ using namespace std;
 template <typename T>
 struct mat {
     using vec = vector<T>;
-    int n, m;
+    int n = 0, m = 0;
     vector<vec> arr;
 
-    explicit mat(int n = 0, int m = 0) : n(n), m(m), arr(n, vec(m)) {}
-    mat(vector<vec> v) : n(v.size()), m(n ? v[0].size() : 0), arr(move(v)) {}
+    mat() = default;
+    mat(int n, int m, const T& v = T()) : n(n), m(m), arr(n, vec(m, v)) {}
+    explicit mat(vector<vec> v) : n(v.size()), m(n ? v[0].size() : 0), arr(move(v)) {}
 
+    inline array<int, 2> size() const { return {n, m}; }
     inline auto& operator[](int x) { return arr[x]; }
     inline const auto& operator[](int x) const { return arr[x]; }
     inline auto& operator()(int x, int y) { return arr[x][y]; }
@@ -56,6 +58,32 @@ struct mat {
             for (int j = 0; j < m; j++)
                 arr[i][j] -= b[i][j];
         return *this;
+    }
+
+    void resize(int N, int M, T&& val = T()) {
+        if (n != N)
+            arr.resize(N, vec(M, val));
+        if (m != M)
+            for (auto& row : arr)
+                row.resize(M, val);
+        n = N, m = M;
+    }
+
+    void set_row(int i, T&& val = T(0)) {
+        for (int j = 0; j < m; j++)
+            arr[i][j] = val;
+    }
+    void add_row(int i, T&& add) {
+        for (int j = 0; j < m; j++)
+            arr[i][j] += add;
+    }
+    void mul_row(int i, T&& mul) {
+        for (int j = 0; j < m; j++)
+            arr[i][j] *= mul;
+    }
+    void mul_add(int i, int s, T&& mul = T(1)) {
+        for (int j = 0; j < m; j++)
+            arr[i][j] += mul * arr[s][j];
     }
 
     friend mat operator+(mat a, const mat& b) { return a += b; }
