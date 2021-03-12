@@ -113,7 +113,7 @@ struct mat {
 
     friend vec operator*(const mat& a, const vec& b) {
         assert(a.m == b.size() && "Matrix and vector operand have unequal dimensions");
-        vec c(a.m);
+        vec c(a.n);
         for (int i = 0; i < a.n; i++)
             for (int j = 0; j < a.m; j++)
                 c[i] += a[i][j] * b[j];

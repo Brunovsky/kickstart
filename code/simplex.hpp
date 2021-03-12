@@ -10,8 +10,6 @@
 enum LPState { LP_FEASIBLE = 0, LP_OPTIMAL = 1, LP_UNBOUNDED = 2, LP_IMPOSSIBLE = 3 };
 enum LPConstraintType { LP_LESS = 0, LP_EQUAL = 1, LP_GREATER = 2 };
 
-LPConstraintType flip(LPConstraintType t) { return LPConstraintType(2 * LP_EQUAL - t); }
-
 struct lp_constraint {
     vector<frac> v;
     frac b;
@@ -33,12 +31,9 @@ struct simplex {
     using mat = mat<frac>;
     static inline constexpr frac inf = frac(1, 0);
 
-    int n, m;
+    int n = 0, m = 0; // num variables / num constraints
     mat::vec z;
     vector<lp_constraint> C;
-
-    int num_basis_variables() const { return n; }
-    int num_constraints() const { return m; }
 
     void set_objective(mat::vec f) {
         assert(!n || n == f.size());
@@ -47,8 +42,7 @@ struct simplex {
 
     void add_constraint(lp_constraint constraint) {
         assert(n && constraint.v.size() == n);
-        C.push_back(move(constraint));
-        m++;
+        C.push_back(move(constraint)), m++;
     }
 
     void add_constraints(const vector<lp_constraint>& constraints) {
@@ -63,39 +57,41 @@ struct simplex {
     vector<int> var_to_row;
     vector<int> row_to_var;
 
+    void pivot(int r, int c) {
+        var_to_row[row_to_var[r]] = 0;
+        var_to_row[c] = r, row_to_var[r] = c;
+
+        tab.mul_row(r, 1 / tab[r][c]);
+        for (int i = 0; i <= m; i++) {
+            if (i != r) {
+                tab.mul_add(i, r, -tab[i][c]);
+            }
+        }
+    }
+
     LPState optimize() {
         do {
             int r = 0, c = min_element(begin(tab[0]) + 1, end(tab[0])) - begin(tab[0]);
             if (tab[0][c] >= 0L) {
-                break;
+                return LP_OPTIMAL;
             }
-            auto min_ratio = inf;
+            frac min_ratio = -1;
             for (int i = 1; i <= m; i++) {
-                auto ratio = tab[i][0] / tab[i][c];
-                if (0L < ratio && ratio < min_ratio) {
-                    min_ratio = ratio;
-                    r = i;
+                if (tab[i][c] > 0) {
+                    auto ratio = tab[i][0] / tab[i][c];
+                    if (0L <= ratio && (ratio < min_ratio || r == 0)) {
+                        min_ratio = ratio, r = i;
+                    }
                 }
             }
-            if (min_ratio == inf) {
+            if (r == 0) {
                 return LP_UNBOUNDED;
             }
-
-            var_to_row[row_to_var[r]] = 0;
-            var_to_row[c] = r, row_to_var[r] = c;
-
-            tab.mul_row(r, 1 / tab[r][c]);
-            for (int i = 0; i <= m; i++) {
-                if (i != r) {
-                    tab.mul_add(i, r, -tab[i][c]);
-                }
-            }
+            pivot(r, c);
         } while (true);
-        return LP_OPTIMAL;
     }
 
     pair<LPState, frac> compute() {
-        // 0.1. Count slack and artificial variables
         s = a = 0;
         for (int i = 0; i < m; i++) {
             const auto& [v, b, type] = C[i];
@@ -103,64 +99,66 @@ struct simplex {
             a += (b > 0 && type != LP_LESS) || (b < 0 && type != LP_GREATER);
         }
 
-        // 0.2. Prepare tableau coefficients and basis mappings
         tab = mat(m + 1, n + s + a + 1, 0);
         var_to_row.assign(n + s + a + 1, 0);
         row_to_var.assign(m + 1, 0);
 
-        for (int i = 0, sj = 1 + n, aj = 1 + n + s; i < m; i++) {
-            const auto& [v, b, type] = C[i];
-            tab[i + 1][0] = b;
-            for (int j = 0; j < n; j++) {
-                tab[i + 1][j + 1] = v[j];
+        for (int i = 1, sj = 1 + n, aj = 1 + n + s; i <= m; i++) {
+            const auto& [v, b, type] = C[i - 1];
+            tab[i][0] = b;
+            for (int j = 1; j <= n; j++) {
+                tab[i][j] = v[j - 1];
             }
-            // Add a slack variable for inequalities, set it as a basis variable
             if (type != LP_EQUAL) {
-                var_to_row[sj] = i + 1, row_to_var[i + 1] = sj;
-                tab[i + 1][sj++] = type == LP_LESS ? 1 : -1;
+                var_to_row[sj] = i, row_to_var[i] = sj;
+                tab[i][sj++] = type == LP_LESS ? 1 : -1;
             }
-            // Add an artificial variable if necessary
             if ((b > 0 && type != LP_LESS) || (b < 0 && type != LP_GREATER)) {
-                var_to_row[aj] = i + 1, row_to_var[i + 1] = aj;
-                tab.mul_add(0, i + 1, b > 0 ? -1 : 1); // add to z row
-                tab[i + 1][aj++] = b > 0 ? 1 : -1;
+                var_to_row[row_to_var[i]] = 0;
+                var_to_row[aj] = i, row_to_var[i] = aj;
+                tab.mul_add(0, i, b > 0 ? -1 : 1);
+                tab[i][aj++] = b > 0 ? 1 : -1;
+            }
+            if (row_to_var[i] != 0 && tab[i][row_to_var[i]] != 0) {
+                tab.mul_row(i, 1 / tab[i][row_to_var[i]]);
             }
         }
 
-        print("n={} m={} s={} a={}\n{}\n", n, m, s, a, to_string(tab));
-
-        // 1. Find initial feasible solution if there are artificial variables
         if (a > 0) {
-            // 1.1. Optimize artificial problem
             auto res = optimize();
 
-            // 1.2. Did we find an initial feasible solution?
             if (res != LP_OPTIMAL || tab[0][0] != 0) {
+                assert(tab[0][0] <= 0);
                 return {LP_IMPOSSIBLE, tab[0][0]};
             }
 
-            // 1.3. Clear z row and remove artificial columns
+            for (int v = 0; v < a; v++) {
+                if (int i = var_to_row[1 + n + s + v]; i > 0) {
+                    row_to_var[i] = 0;
+                    for (int j = 1; j <= n + s; j++) {
+                        if (var_to_row[j] == 0 && tab[i][j] != 0) {
+                            pivot(i, j);
+                            break;
+                        }
+                    }
+                }
+            }
+
             tab.resize(m + 1, n + s + 1);
             tab.set_row(0, 0);
         }
 
-        // 2. Find the optimal solution of the original problem
-        // 2.1. Prepare z row
-        for (int j = 0; j < n; j++) {
-            tab[0][j + 1] = -z[j];
+        for (int j = 1; j <= n; j++) {
+            tab[0][j] = -z[j - 1];
         }
-
-        // 2.2. Expand z row
-        for (int j = 0; j < n; j++) {
-            if (int i = var_to_row[j + 1]; i != 0) {
-                assert(tab[i][j + 1] != 0);
-                tab.mul_add(0, i, -tab[0][j + 1] / tab[i][j + 1]);
+        for (int j = 1; j <= n; j++) {
+            if (int i = var_to_row[j]; i != 0) {
+                assert(tab[i][j] != 0);
+                tab.mul_add(0, i, -tab[0][j] * tab[i][j]);
             }
         }
 
-        // 2.3. Optimize and return the result
         auto res = optimize();
-        print("n={} m={} s={} a={}\n{}\n", n, m, s, a, to_string(tab));
         return {res, tab[0][0]};
     }
 };
