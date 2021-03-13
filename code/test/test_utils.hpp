@@ -75,4 +75,6 @@ bool all_eq(const vector<T>& v) {
 // output time (single or multiple)
 #define PRINT_TIME(var) clear_line(), print(" {:>8}ms -- {}\n", time_##var / 1'000, #var)
 
+#define TIME_MS(var) time_##var / 1'000
+
 #endif // TEST_UTILS_HPP

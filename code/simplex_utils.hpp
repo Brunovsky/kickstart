@@ -5,6 +5,24 @@
 
 // *****
 
+bool operator==(const lp_constraint& a, const lp_constraint& b) {
+    return a.b == b.b && a.v == b.v && a.type == b.type;
+}
+
+bool operator==(const simplex& a, const simplex& b) {
+    return a.n == b.n && a.m == b.m && a.z == b.z && a.C == b.C;
+}
+
+string to_string(LPState state) {
+    static const string ss[] = {"feasible", "optimal", "unbounded", "impossible"};
+    return ss[int(state)];
+}
+
+string to_string(LPConstraintType type) {
+    static const string ss[] = {"<=", "==", ">="};
+    return ss[int(type)];
+}
+
 string format_formula(const vector<frac>& x) {
     string s;
     for (int i = 0; i < x.size(); i++) {
@@ -188,6 +206,22 @@ simplex make_dual(const simplex& primal) {
     dual.set_objective(z);
     dual.add_constraints(C);
     return dual;
+}
+
+bool is_feasible(const lp_constraint& c, const vector<frac>& x) {
+    assert(c.v.size() == x.size());
+    frac a = 0;
+    for (int i = 0; i < x.size(); i++) {
+        a += c.v[i] * x[i];
+    }
+    return (c.type == LP_LESS && a <= c.b) || (c.type == LP_EQUAL && a == c.b) ||
+           (c.type == LP_GREATER && a >= c.b);
+}
+
+bool is_feasible(const simplex& lp, const vector<frac>& x) {
+    return all_of(begin(x), end(x), [](frac f) { return f >= 0; }) &&
+           all_of(begin(lp.C), end(lp.C),
+                  [&x](const lp_constraint& c) { return is_feasible(c, x); });
 }
 
 #endif // SIMPLEX_UTILS_HPP

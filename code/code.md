@@ -52,7 +52,7 @@ Tableau layout:
         <=  0            1       0
         <=  b            1       0
         == -b            0      -1
-        ==  0            0       0
+        ==  0            0       1  --> simplification
         ==  b            0       1
         >= -b           -1       0
         >=  0           -1       0
@@ -86,4 +86,4 @@ row `r` as the one where `tab[i][0] / tab[i][c]` is minimal and `tab[i][c] > 0`.
 
 At the end of phase 1 the tableau pivots on every basic artificial variable to remove
 them all from the basis in case of degeneracy. The pivot columns do not matter as the
-variable values will not change.
+variable values will not change, so the first is chosen.

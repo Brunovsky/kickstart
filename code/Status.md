@@ -37,7 +37,7 @@ This code collection has become quite messy
 | Graphs algorithms   |`planarity                  `| Outdated     |   ✓     | Not adapted to new edges_t graph interface |
 | Graphs algorithms   |`scc                        `| Outdated     |   ✓     | Not adapted to new edges_t graph interface |
 | Graphs algorithms   |`shortest_path              `| Stable       |   ✓✓✓   | Johnson's not correctly implemented |
-| Linear programming  |`simplex                    `| Stable       |   ✓✓    | |
+| Linear programming  |`simplex                    `| Stable       |   ✓✓✓   | Missing support for x <= 0 and x in R; output x and complementary slackness tests |
 | Linear programming  |`transportation             `| Inadequate   |   ✓     | Inefficient implementation and bad interface |
 | Linear programming  |`travelling_salesman        `| Outdated     |   ✓     | Needs an interface change |
 | Matching            |`general_matching           `| Stable       |   ✓✓✓   | Commented out unit tests |

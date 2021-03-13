@@ -1,5 +1,6 @@
 #include "../simplex.hpp"
 
+#include "../debug_print.hpp"
 #include "../random.hpp"
 #include "../simplex_utils.hpp"
 #include "test_utils.hpp"
@@ -8,10 +9,6 @@
 
 #define F frac
 
-string to_string(LPState type) {
-    static const string names[] = {"feasible", "optimal", "unbounded", "impossible"};
-    return names[int(type)];
-}
 ostream& operator<<(ostream& out, LPState type) { return out << to_string(type); }
 
 auto generate_lp(int n, int le, int eq, int ge, LPState state = LP_OPTIMAL) {
@@ -30,7 +27,7 @@ auto generate_lp(int n, int le, int eq, int ge, LPState state = LP_OPTIMAL) {
 
     mat<frac> A(m, n);
     for (int i = 0; i < m; i++)
-        fill(A.arr[i], 0, 8, 1);
+        fill(A.arr[i], -5, 5, 1);
 
     vector<frac> b = A * x;
     vector<frac> d(le + ge);
@@ -62,13 +59,6 @@ auto generate_lp(int n, int le, int eq, int ge, LPState state = LP_OPTIMAL) {
     return smp;
 }
 
-bool operator==(const lp_constraint& a, const lp_constraint& b) {
-    return a.b == b.b && a.v == b.v && a.type == b.type;
-}
-bool operator==(const simplex& a, const simplex& b) {
-    return a.n == b.n && a.m == b.m && a.z == b.z && a.C == b.C;
-}
-
 void unit_test_simplex() {
     simplex smp;
 
@@ -80,7 +70,7 @@ void unit_test_simplex() {
         {{5, 5}, 150, LP_LESS},
     });
     auto [res, optimum] = smp.compute();
-    print("optimum #1: {} {}\n", res, optimum);
+    print("optimum #1: {} {} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && optimum == 105L);
 
     smp.clear();
@@ -91,7 +81,7 @@ void unit_test_simplex() {
         {{4, 1, 1}, 6, LP_LESS},
     });
     tie(res, optimum) = smp.compute();
-    print("optimum #2: {} {}\n", res, optimum);
+    print("optimum #2: {} {} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && optimum == 10L);
 
     smp.clear();
@@ -102,7 +92,7 @@ void unit_test_simplex() {
         {{F(5, 2), -5, -3, -2}, 0, LP_LESS},
     });
     tie(res, optimum) = smp.compute();
-    print("optimum #3: {} {}\n", res, optimum);
+    print("optimum #3: {} {} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && optimum == F(381, 13));
 
     smp.clear();
@@ -115,16 +105,15 @@ void unit_test_simplex() {
         {{-2, 7, -4, 9}, 13, LP_LESS},
     });
     tie(res, optimum) = smp.compute();
-    print("optimum #4: {} {}\n", res, optimum);
+    print("optimum #4: {} {} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && optimum == F(829, 7));
 
     smp.add_constraint({{4, 3, 2, 1}, 6, LP_LESS});
     vector<frac> x, sol = {0, 0, F(9, 4), F(3, 2), F(1, 2), 0, F(37, 4), 8, F(17, 2), 0};
 
     tie(res, optimum) = smp.compute();
-    print("optimum #5: {} {}\n", res, optimum);
+    print("optimum #5: {} {} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && optimum == F(345, 4));
-    // print("{} | {}\n", to_string(x), to_string(sol));
 
     smp.clear();
     smp.set_objective({10, 8, 6, 4});
@@ -135,7 +124,7 @@ void unit_test_simplex() {
         {{1, 3, 2, 4}, 6, LP_EQUAL},
     });
     tie(res, optimum) = smp.compute();
-    print("optimum #6: {} {}\n", res, optimum);
+    print("optimum #6: {} {} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && optimum == 32L);
 
     smp.clear();
@@ -147,7 +136,7 @@ void unit_test_simplex() {
         {{1, 3, 2, 4}, 6, LP_EQUAL},
     });
     tie(res, optimum) = smp.compute();
-    print("optimum #7: {} {}\n", res, optimum);
+    print("optimum #7: {} {} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && optimum == F(65, 2));
 
     smp.clear();
@@ -161,7 +150,7 @@ void unit_test_simplex() {
         {{4, -2, -6, -11, 3, -2}, -4, LP_GREATER},
     });
     tie(res, optimum) = smp.compute();
-    print("optimum #8: {} {}\n", res, optimum);
+    print("optimum #8: {} {} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && optimum == 17L);
 
     smp.clear();
@@ -173,16 +162,16 @@ void unit_test_simplex() {
     });
     smp = standardize(smp);
     tie(res, optimum) = smp.compute();
-    print("optimum #9.1: {} {}\n", res, optimum);
+    print("optimum #9.1: {} {} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && optimum == 105);
 
     smp = make_dual(smp);
     tie(res, optimum) = smp.compute();
-    print("optimum #9.2: {} {}\n", res, optimum);
+    print("optimum #9.2: {} {} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && optimum == -105);
 }
 
-void standardize_test(int T, int n, int m) {
+auto standardize_run(int T, int n, int m) {
     int correct = 0;
 
     for (int i = 0; i < T; i++) {
@@ -198,19 +187,55 @@ void standardize_test(int T, int n, int m) {
         auto [res2, opt2] = std.compute();
         auto [res3, opt3] = dual.compute();
 
-        bool ok = res == res2 && opt == opt2;
+        auto x1 = smp.extract();
+        auto x2 = std.extract();
+        auto x3 = dual.extract();
+
+        bool ok = res == res2;
+        ok &= is_feasible(smp, x1) && is_feasible(std, x1);
+        ok &= is_feasible(smp, x2) && is_feasible(std, x2);
         if (res == LP_OPTIMAL) {
-            ok &= res3 == LP_OPTIMAL && opt == -opt3;
+            ok &= opt == opt2 && res3 == LP_OPTIMAL && opt == -opt3;
+            ok &= is_feasible(dual, x3);
         } else if (res == LP_UNBOUNDED) {
             ok &= res3 == LP_IMPOSSIBLE;
         }
         correct += ok;
+
+        if (!ok) {
+            print("optimums: {} {} / {} {} / {} {}\n", res, opt, res2, opt2, res3, opt3);
+            print("  smp, x1 feasible: {}\n", is_feasible(smp, x1));
+            print("  std, x1 feasible: {}\n", is_feasible(std, x1));
+            print("  smp, x2 feasible: {}\n", is_feasible(smp, x2));
+            print("  std, x2 feasible: {}\n", is_feasible(std, x2));
+            print(" dual, x3 feasible: {}\n", is_feasible(dual, x3));
+            print("{}\n", format_simplex(smp));
+            print("{}\n", format_tableau(smp));
+        }
     }
 
-    print("\n correct: {}/{} ({:.1f}%)\n", correct, T, 100.0 * correct / T);
+    clear_line();
+    print(" n={} m={} correct: {}/{} ({:.1f}%)\n", n, m, correct, T, 100.0 * correct / T);
+    return correct;
 }
 
-void speed_test_simplex(int T, int n, int m, LPState state) {
+void stress_test_standardize(int T = 2000) {
+    int min_n = 2, max_n = 12, ns = max_n - min_n + 1;
+    int min_m = 2, max_m = 12, ms = max_m - min_m + 1;
+    int max_sum = 15;
+    mat<int> corrects(ns, ms, 0);
+
+    for (int n = min_n; n <= max_n; n++) {
+        for (int m = min_m; m <= max_m && n + m <= max_sum; m++) {
+            auto correct = standardize_run(T, n, m);
+            corrects[n - min_n][m - min_m] = correct;
+        }
+    }
+
+    print("Corrects:\n{}\n", to_string(corrects));
+}
+
+auto simplex_speed_run(int T, int n, int m, LPState state) {
     START_ACC(simplex);
 
     for (int i = 0; i < T; i++) {
@@ -225,13 +250,32 @@ void speed_test_simplex(int T, int n, int m, LPState state) {
         ADD_TIME(simplex);
     }
 
+    clear_line();
     print("x{} n={} m={} {}\n", T, n, m, to_string(state));
     PRINT_TIME(simplex);
+    return time_simplex / 1000;
+}
+
+void speed_test_simplex(int T = 2000) {
+    int min_n = 2, max_n = 12, ns = max_n - min_n + 1;
+    int min_m = 2, max_m = 12, ms = max_m - min_m + 1;
+    int max_sum = 14;
+    mat<size_t> times(ns, ms, 0);
+
+    for (int n = min_n; n <= max_n; n++) {
+        for (int m = min_m; m <= max_m && n + m <= max_sum; m++) {
+            auto time = simplex_speed_run(T, n, m, LP_OPTIMAL);
+            times[n - min_n][m - min_m] = time;
+        }
+    }
+
+    print("Times:\n{}\n", to_string(times));
 }
 
 int main() {
+    mt.seed(73);
     unit_test_simplex();
-    standardize_test(3000, 5, 6);
-    speed_test_simplex(300, 5, 6, LP_OPTIMAL);
+    stress_test_standardize();
+    speed_test_simplex();
     return 0;
 }
