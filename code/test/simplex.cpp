@@ -59,6 +59,34 @@ auto generate_lp(int n, int le, int eq, int ge, LPState state = LP_OPTIMAL) {
     return smp;
 }
 
+auto compute_slack(const simplex& smp, const vector<frac>& x) {
+    vector<frac> slack(smp.m, 0);
+    for (int i = 0; i < smp.m; i++) {
+        frac c = 0;
+        for (int j = 0; j < smp.n; j++) {
+            c += x[j] * smp.C[i].v[j];
+        }
+        slack[i] = smp.C[i].b - c;
+        assert(slack[i] >= 0 && smp.C[i].type == LP_LESS);
+    }
+    return slack;
+}
+
+bool complementary_slackness(const simplex& primal, const simplex& dual) {
+    auto x = primal.extract(), y = dual.extract();
+    assert(is_feasible(primal, x) && is_feasible(dual, y));
+    auto slack_x = compute_slack(primal, x);
+    auto slack_y = compute_slack(dual, y);
+    bool ok = true;
+    for (int i = 0; i < primal.n && ok; i++) {
+        ok = x[i] == 0 || slack_y[i] == 0;
+    }
+    for (int i = 0; i < dual.n && ok; i++) {
+        ok = y[i] == 0 || slack_x[i] == 0;
+    }
+    return ok;
+}
+
 void unit_test_simplex() {
     simplex smp;
 
@@ -192,13 +220,14 @@ auto standardize_run(int T, int n, int m) {
         auto x3 = dual.extract();
 
         bool ok = res == res2;
-        ok &= is_feasible(smp, x1) && is_feasible(std, x1);
-        ok &= is_feasible(smp, x2) && is_feasible(std, x2);
+        ok = ok && is_feasible(smp, x1) && is_feasible(std, x1);
+        ok = ok && is_feasible(smp, x2) && is_feasible(std, x2);
         if (res == LP_OPTIMAL) {
-            ok &= opt == opt2 && res3 == LP_OPTIMAL && opt == -opt3;
-            ok &= is_feasible(dual, x3);
+            ok = ok && opt == opt2 && res3 == LP_OPTIMAL && opt == -opt3;
+            ok = ok && is_feasible(dual, x3);
+            ok = ok && complementary_slackness(std, dual);
         } else if (res == LP_UNBOUNDED) {
-            ok &= res3 == LP_IMPOSSIBLE;
+            ok = ok && res3 == LP_IMPOSSIBLE;
         }
         correct += ok;
 
