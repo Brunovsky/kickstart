@@ -3,7 +3,7 @@
 
 // *****
 
-void test_gcd() {
+void unit_test_gcd() {
     assert(gcd(135, 54) == 27);
     assert(gcd(135, -54) == 27);
     assert(gcd(-135, -54) == 27);
@@ -22,7 +22,7 @@ void test_gcd() {
     assert(invmod(4, 17) == 13);
 }
 
-void test_others() {
+void unit_test_others() {
     assert(modpow(3, 17, 5) == 3);
     assert(intpow(3, 17) == 129140163);
     assert(intfac(6) == 720);
@@ -47,7 +47,7 @@ void test_others() {
     assert(partitions(120) == 1844349560);
 }
 
-void test_modlog() {
+void unit_test_modlog() {
     assert(modlog(4, 2, 7) == 2);
     assert(modlog(4, 2, 9) == -1);
     assert(modlog(3, 1, 13) == 3);
@@ -70,7 +70,7 @@ void test_modlog() {
     printf("modlog: hit: %d | miss: %d\n", hit, miss);
 }
 
-void test_modsqrt() {
+void unit_test_modsqrt() {
     assert(modsqrt(41, 61) == 38 || modsqrt(41, 61) == 23);
     assert(modpow(38, 2, 61) == 41 && modpow(23, 2, 61) == 41);
 
@@ -87,7 +87,7 @@ void test_modsqrt() {
     printf("modsqrt: hit: %d | miss: %d  (should be equal)\n", hit, miss);
 }
 
-void test_modnum() {
+void unit_test_modnum() {
     using MN = modnum<100>;
     MN n = 20;
     n += 31;
@@ -98,13 +98,22 @@ void test_modnum() {
     assert(n == 731);
     n -= 31;
     assert(n == 0);
+    dmodnum m(20, 100);
+    m += 31;
+    assert(m == 51);
+    m /= 3;
+    assert(m == 17);
+    m /= 7;
+    assert(m == 31);
+    m -= 31;
+    assert(m == 0);
 }
 
 int main() {
-    test_gcd();
-    test_others();
-    test_modsqrt();
-    test_modlog();
-    test_modnum();
+    unit_test_gcd();
+    unit_test_others();
+    unit_test_modsqrt();
+    unit_test_modlog();
+    unit_test_modnum();
     return 0;
 }

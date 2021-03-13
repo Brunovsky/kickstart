@@ -7,9 +7,7 @@ using namespace std;
 
 // *****
 
-/**
- * Compute b^e
- */
+// Compute b^e
 long intpow(long b, long e) {
     long power = 1;
     while (e > 0) {
@@ -22,9 +20,7 @@ long intpow(long b, long e) {
     return power;
 }
 
-/**
- * Compute b^e (mod m)
- */
+// Compute b^e (mod m)
 long modpow(long b, long e, long m) {
     long power = 1;
     b = b % m;
@@ -55,9 +51,7 @@ ulong modfac(ulong n, ulong m) {
     return f;
 }
 
-/**
- * Compute x, y such that ax + by = gcd(a,b)
- */
+// Compute x, y such that ax + by = gcd(a,b)
 long gcd(long a, long b, long& x, long& y) {
     long xn = 1, yn = 0;
     x = 0, y = 1;
@@ -76,9 +70,7 @@ long gcd(long a, long b, long& x, long& y) {
     return b;
 }
 
-/**
- * Compute x such that ax = 1 (mod m) (modular multiplicative inverse)
- */
+// Compute x such that ax = 1 (mod m) (modular multiplicative inverse)
 long invmod(long a, long m) {
     long x, y;
     auto g = gcd(a, m, x, y);
@@ -87,9 +79,7 @@ long invmod(long a, long m) {
     return x >= 0 ? x : x + m;
 }
 
-/**
- * Compute gcd(a,b)
- */
+// Compute gcd(a,b)
 long gcd(long a, long b) {
     while (a != 0) {
         b = b % a;
@@ -98,9 +88,7 @@ long gcd(long a, long b) {
     return abs(b);
 }
 
-/**
- * Compute lcm(a,b)
- */
+// Compute lcm(a,b)
 ulong lcm(ulong a, ulong b) { return a * (b / gcd(a, b)); }
 
 /**
@@ -266,6 +254,26 @@ struct modnum {
     friend modnum operator/(modnum lhs, modnum rhs) { return lhs /= rhs; }
     friend bool operator==(modnum lhs, modnum rhs) { return lhs.n == rhs.n; }
     friend bool operator!=(modnum lhs, modnum rhs) { return lhs.n != rhs.n; }
+};
+
+struct dmodnum {
+    long n, mod;
+
+    static long fit(long v, long mod) { return v = v % mod, v >= 0 ? v : v + mod; }
+
+    dmodnum(long v) : n(v), mod(0) {}
+    dmodnum(long v, long mod) : n(fit(v, mod)), mod(mod) {}
+    explicit operator long() const { return n; }
+    dmodnum& operator+=(dmodnum v) { return n = fit(n + v.n, mod), *this; }
+    dmodnum& operator-=(dmodnum v) { return n = fit(n - v.n, mod), *this; }
+    dmodnum& operator*=(dmodnum v) { return n = (n * v.n) % mod, *this; }
+    dmodnum& operator/=(dmodnum v) { return n = (n * invmod(v.n, mod)) % mod, *this; }
+    friend dmodnum operator+(dmodnum lhs, dmodnum rhs) { return lhs += rhs; }
+    friend dmodnum operator-(dmodnum lhs, dmodnum rhs) { return lhs -= rhs; }
+    friend dmodnum operator*(dmodnum lhs, dmodnum rhs) { return lhs *= rhs; }
+    friend dmodnum operator/(dmodnum lhs, dmodnum rhs) { return lhs /= rhs; }
+    friend bool operator==(dmodnum lhs, dmodnum rhs) { return lhs.n == rhs.n; }
+    friend bool operator!=(dmodnum lhs, dmodnum rhs) { return lhs.n != rhs.n; }
 };
 
 #endif // MATH_HPP

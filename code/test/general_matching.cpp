@@ -6,19 +6,17 @@
 #include "../debug_print.hpp"
 #include "../graph_formats.hpp"
 #include "../graph_generator.hpp"
-#include "chrono.hpp"
+#include "test_utils.hpp"
 
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;
 
-#pragma clang diagnostic ignored "-Wfloat-conversion"
+// #pragma clang diagnostic ignored "-Wfloat-conversion"
 
 // *****
 
 const string UNIT_TESTS = "datasets/micali_vazirani.txt";
 const string ERROR_FILE = "datasets/latest_error.txt";
-
-/*
 
 struct Test {
     string name, comment;
@@ -26,74 +24,64 @@ struct Test {
     int M;
 };
 
-micali_vazirani to_mv(const graph& g) {
-    micali_vazirani vg(g.V);
-    for (int u = 0; u < g.V; u++) {
-        for (int v : g.adj[u]) {
-            if (u < v)
-                vg.add(u, v);
-        }
-    }
-    return vg;
-}
-
-Test read_unit_test(istream& in) {
-    Test test;
-    auto& g = test.g;
+Test read_dataset_test(istream& in) {
+    string name, comment;
     while (in.peek() == '#') {
         string line;
         getline(in, line);
-        test.comment += line + "\n";
+        comment += line + "\n";
     }
     in >> ws;
-    getline(in, test.name);
+    getline(in, name);
 
     int V, E, I, M;
     in >> ws >> V >> E >> I >> M >> ws;
     assert(V >= 0 && E >= 0 && I >= 0 && M >= 0 && I < 2 * V && M < 2 * V && I <= M);
     assert(!in.bad());
 
-    g = micali_vazirani(V);
-    test.M = M;
+    edges_t g;
     for (int i = 0; i < E; i++) {
         int u, v;
         char c;
         in >> u >> ws >> c >> ws >> v;
-        g.add(u, v);
+        g.push_back({u, v});
     }
+
+    micali_vazirani vg(V, g);
+
     for (int i = 0; i < I; i++) {
         int u, v;
         char c;
         in >> u >> ws >> c >> ws >> v;
-        assert(g.mate[u] == -1 && g.mate[v] == -1);
-        g.mate[u] = v, g.mate[v] = u;
+        assert(vg.mate[u] == -1 && vg.mate[v] == -1);
+        vg.mate[u] = v, vg.mate[v] = u;
     }
+
+    Test test{name, comment, move(vg), M};
     return test;
 }
 
-void read_unit_tests(vector<Test>& tests, istream& in = cin) {
+void read_dataset_tests(vector<Test>& tests, istream& in = cin) {
     in >> ws;
     while (!in.eof()) {
-        tests.push_back(read_unit_test(in));
+        tests.push_back(read_dataset_test(in));
         in >> ws;
     }
 }
 
-void run_test(Test& test) {
-    print("{}", test.comment);
+void dataset_test_run(Test& test) {
     int matched = test.g.max_matching();
     print("{:4} -- {:4} {}\n", matched, test.M, test.name);
     assert(matched == test.M);
 }
 
-void run_dataset_tests() {
+void dataset_test() {
     vector<Test> tests;
     ifstream file(UNIT_TESTS);
     assert(file.is_open());
-    read_unit_tests(tests, file);
-    for_each(begin(tests), end(tests), run_test);
+    read_dataset_tests(tests, file);
+    for_each(begin(tests), end(tests), dataset_test_run);
 }
-*/
 
 void print_ratio(int64_t time, int R, int E, int V) {
     double ratio = 1e6 * time / (1.0 * R * E * sqrt(V));
@@ -162,7 +150,7 @@ int boost_matching_size(const bgraph& bg) {
     return cnt / 2;
 }
 
-void random_test(int R) {
+void random_stress_test(int R) {
     intd distV(18, 30);
     reald distE(1.2, 3.0);
     unordered_map<int, int> misscnt;
@@ -209,33 +197,33 @@ void scaling_test(int R, int V, int E) {
     print("ratio: {:.2f}\n", ratio);
 }
 
-void scaling_tests(double M = 1) {
+void scaling_test(double M = 1) {
     START(scaling);
-    scaling_test(M * 2000, 200, 300);
-    scaling_test(M * 600, 200, 2000);
-    scaling_test(M * 800, 500, 800);
-    scaling_test(M * 100, 500, 12000);
-    scaling_test(M * 80, 5000, 7000);
-    scaling_test(M * 40, 5000, 12000);
-    scaling_test(M * 10, 5000, 70000);
-    scaling_test(M * 3, 5000, 230'000);
-    scaling_test(M * 30, 10000, 15000);
-    scaling_test(M * 24, 10000, 25000);
-    scaling_test(M * 5, 10000, 150'000);
-    scaling_test(M * 14, 20000, 30000);
-    scaling_test(M * 9, 20000, 45000);
-    scaling_test(M * 2, 20000, 400'000);
-    scaling_test(M * 6, 30000, 50000);
-    scaling_test(M * 5, 30000, 70000);
-    scaling_test(M * 1, 30000, 550'000);
-    scaling_test(M * 4, 50000, 80000);
-    scaling_test(M * 1, 50000, 780'000);
-    scaling_test(M * 3, 100000, 150'000);
-    scaling_test(M * 2, 100000, 250'000);
-    scaling_test(M * 2, 100000, 350'000);
-    scaling_test(M * 1, 100000, 1'000'000);
-    scaling_test(M * 2, 200000, 300'000);
-    scaling_test(M * 2, 250000, 300'000);
+    scaling_test(int(M * 2000), 200, 300);
+    scaling_test(int(M * 600), 200, 2000);
+    scaling_test(int(M * 800), 500, 800);
+    scaling_test(int(M * 100), 500, 12000);
+    scaling_test(int(M * 80), 5000, 7000);
+    scaling_test(int(M * 40), 5000, 12000);
+    scaling_test(int(M * 10), 5000, 70000);
+    scaling_test(int(M * 3), 5000, 230'000);
+    scaling_test(int(M * 30), 10000, 15000);
+    scaling_test(int(M * 24), 10000, 25000);
+    scaling_test(int(M * 5), 10000, 150'000);
+    scaling_test(int(M * 14), 20000, 30000);
+    scaling_test(int(M * 9), 20000, 45000);
+    scaling_test(int(M * 2), 20000, 400'000);
+    scaling_test(int(M * 6), 30000, 50000);
+    scaling_test(int(M * 5), 30000, 70000);
+    scaling_test(int(M * 1), 30000, 550'000);
+    scaling_test(int(M * 4), 50000, 80000);
+    scaling_test(int(M * 1), 50000, 780'000);
+    scaling_test(int(M * 3), 100000, 150'000);
+    scaling_test(int(M * 2), 100000, 250'000);
+    scaling_test(int(M * 2), 100000, 350'000);
+    scaling_test(int(M * 1), 100000, 1'000'000);
+    scaling_test(int(M * 2), 200000, 300'000);
+    scaling_test(int(M * 2), 250000, 300'000);
     TIME(scaling);
     PRINT_TIME(scaling);
 }
@@ -279,29 +267,29 @@ void performance_test(int R, int V, int E) {
     print_ratio(time_mv, R, E, V);
 }
 
-void performance_tests(double M) {
-    performance_test(M * 20000, 50, 70);
-    performance_test(M * 10000, 100, 150);
-    performance_test(M * 4000, 200, 300);
-    performance_test(M * 2000, 500, 800);
-    performance_test(M * 200, 5000, 7000);
-    performance_test(M * 140, 5000, 12000);
-    performance_test(M * 40, 10000, 15000);
-    performance_test(M * 30, 10000, 25000);
-    performance_test(M * 14, 20000, 30000);
-    performance_test(M * 11, 20000, 45000);
-    performance_test(M * 6, 30000, 50000);
-    performance_test(M * 5, 30000, 70000);
-    performance_test(M * 2, 50000, 80000);
-    performance_test(M * 1, 100000, 150000);
+void speed_test(double M) {
+    performance_test(int(M * 20000), 50, 70);
+    performance_test(int(M * 10000), 100, 150);
+    performance_test(int(M * 4000), 200, 300);
+    performance_test(int(M * 2000), 500, 800);
+    performance_test(int(M * 200), 5000, 7000);
+    performance_test(int(M * 140), 5000, 12000);
+    performance_test(int(M * 40), 10000, 15000);
+    performance_test(int(M * 30), 10000, 25000);
+    performance_test(int(M * 14), 20000, 30000);
+    performance_test(int(M * 11), 20000, 45000);
+    performance_test(int(M * 6), 30000, 50000);
+    performance_test(int(M * 5), 30000, 70000);
+    performance_test(int(M * 2), 50000, 80000);
+    performance_test(int(M * 1), 100000, 150000);
 }
 
 int main() {
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
-    // run_dataset_tests();
-    random_test(10000);
-    scaling_tests(3);
-    performance_tests(1);
+    dataset_test();
+    random_stress_test(10000);
+    scaling_test(3);
+    speed_test(1);
     return 0;
 }

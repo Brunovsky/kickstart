@@ -40,14 +40,14 @@ This code collection has become quite messy
 | Linear programming  |`simplex                    `| Stable       |   ✓✓✓   | Missing support for x <= 0 and x in R |
 | Linear programming  |`transportation             `| Inadequate   |   ✓     | Inefficient implementation and bad interface |
 | Linear programming  |`travelling_salesman        `| Outdated     |   ✓     | Needs an interface change |
-| Matching            |`general_matching           `| Stable       |   ✓✓✓   | Commented out unit tests |
+| Matching            |`general_matching           `| Stable       |   ✓✓✓   | |
 | Matching            |`maximum_matching           `| Outdated     |   ✓     | Not adapted to new edges_t graph interface |
 | Matching            |`mincost_matching           `| Outdated     |   ✓✓✓   | Not adapted to new edges_t graph interface |
 | Threading           |`thread_pool                `| Stable       |   ✓✓✓   | |
 | Utilities           |`bits                       `| Stable       |         | |
-| Utilities           |`debug_print                `| Outdated     |         | Add helpful print functions for testing |
+| Utilities           |`debug_print                `| Stable       |         | |
 | Utilities           |`hash                       `| Stable       |   ✓     | |
-| Utilities           |`math                       `| Stable       |   ✓     | Add dynamic modnum |
+| Utilities           |`math                       `| Stable       |   ✓     | |
 | Utilities           |`primes                     `| Stable       |   ✓✓    | |
 | Utilities           |`random                     `| Stable       |   ✓✓    | |
 
