@@ -42,52 +42,52 @@ string to_string(const pair<U, V>& uv) {
 
 template <typename T, size_t N>
 string to_string(const array<T, N>& v) {
-    string s;
+    string s = " ";
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), '[' + s + ']';
+    return '[' + s + ']';
 }
 template <typename T>
 string to_string(const vector<T>& v) {
-    string s;
+    string s = " ";
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), '[' + s + ']';
+    return '[' + s + ']';
 }
 template <typename T>
 string to_string(const list<T>& v) {
-    string s;
+    string s = " ";
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), '(' + s + ')';
+    return '(' + s + ')';
 }
 template <typename T>
 string to_string(const set<T>& v) {
-    string s;
+    string s = " ";
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), '{' + s + '}';
+    return '{' + s + '}';
 }
 template <typename T>
 string to_string(const unordered_set<T>& v) {
-    string s;
+    string s = " ";
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), '{' + s + '}';
+    return '{' + s + '}';
 }
 template <typename K, typename V>
 string to_string(const map<K, V>& v) {
-    string s;
+    string s = " ";
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), '{' + s + '}';
+    return '{' + s + '}';
 }
 template <typename K, typename V>
 string to_string(const unordered_map<K, V>& v) {
-    string s;
+    string s = " ";
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), '{' + s + '}';
+    return '{' + s + '}';
 }
 
 template <typename T, size_t N>
