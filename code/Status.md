@@ -41,7 +41,7 @@ This code collection has become quite messy
 | Linear programming  |`transportation             `| Inadequate   |   ✓     | Inefficient implementation and bad interface |
 | Linear programming  |`travelling_salesman        `| Outdated     |   ✓     | Needs an interface change |
 | Matching            |`general_matching           `| Stable       |   ✓✓✓   | |
-| Matching            |`maximum_matching           `| Outdated     |   ✓     | Not adapted to new edges_t graph interface |
+| Matching            |`maximum_matching           `| Stable       |   ✓     | |
 | Matching            |`mincost_matching           `| Outdated     |   ✓✓✓   | Not adapted to new edges_t graph interface |
 | Threading           |`thread_pool                `| Stable       |   ✓✓✓   | |
 | Utilities           |`bits                       `| Stable       |         | |

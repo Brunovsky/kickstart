@@ -13,32 +13,34 @@ using namespace std;
  */
 struct maximum_matching {
     int U, V;
-    vector<vector<int>> adj;
+    vector<int> off, mu, mv;
+    vector<array<int, 2>> edge;
 
-    maximum_matching(int U, int V) : U(U), V(V) { adj.assign(U, {}); }
-
-    void add(int u, int v) {
-        assert(0 <= u && u < U && 0 <= v && v < V);
-        adj[u].push_back(v);
+    maximum_matching(int U, int V, vector<array<int, 2>> g)
+        : U(U), V(V), off(U + 1, 0), mu(U, -1), mv(V, -1), edge(move(g)) {
+        for (auto [u, v] : edge)
+            off[u + 1]++;
+        inclusive_scan(begin(off), end(off), begin(off));
+        sort(begin(edge), end(edge));
     }
 
-    vector<int> mu, mv, vis;
+    vector<int> vis;
     int iteration;
     static inline constexpr int inf = INT_MAX / 2;
 
     bool dfs(int u) {
         vis[u] = iteration;
-        for (int v : adj[u]) {
+        for (int e = off[u]; e < off[u + 1]; e++) {
+            int v = edge[e][1];
             if (mv[v] == -1) {
-                mu[u] = v;
-                mv[v] = u;
+                mu[u] = v, mv[v] = u;
                 return true;
             }
         }
-        for (int v : adj[u]) {
+        for (int e = off[u]; e < off[u + 1]; e++) {
+            int v = edge[e][1];
             if (vis[mv[v]] != iteration && dfs(mv[v])) {
-                mu[u] = v;
-                mv[v] = u;
+                mu[u] = v, mv[v] = u;
                 return true;
             }
         }
@@ -72,16 +74,18 @@ struct maximum_matching {
  */
 struct hopcroft_karp {
     int U, V;
-    vector<vector<int>> adj;
+    vector<int> off, mu, mv;
+    vector<array<int, 2>> edge;
 
-    hopcroft_karp(int U, int V) : U(U), V(V), adj(U + 1) {}
-
-    void add(int u, int v) {
-        assert(0 <= u && u < U && 0 <= v && v < V);
-        adj[u + 1].push_back(v + 1);
+    hopcroft_karp(int U, int V, vector<array<int, 2>> g)
+        : U(U), V(V), off(U + 2, 0), mu(U + 1, 0), mv(V + 1, 0), edge(move(g)) {
+        for (auto [u, v] : edge)
+            off[u + 2]++;
+        inclusive_scan(begin(off), end(off), begin(off));
+        sort(begin(edge), end(edge));
     }
 
-    vector<int> mu, mv, vis, dist;
+    vector<int> vis, dist;
     int iteration;
     static inline constexpr int inf = INT_MAX / 2;
 
@@ -100,7 +104,8 @@ struct hopcroft_karp {
             int u = Q.front();
             Q.pop();
             if (dist[u] < dist[0]) {
-                for (int v : adj[u]) {
+                for (int e = off[u]; e < off[u + 1]; e++) {
+                    int v = edge[e][1] + 1;
                     // note: the check v != mu[u] is implicit in dist[mv[v]] == inf
                     if (dist[mv[v]] == inf) {
                         dist[mv[v]] = dist[u] + 1;
@@ -120,7 +125,8 @@ struct hopcroft_karp {
             return false;
         }
         vis[u] = iteration;
-        for (int v : adj[u]) {
+        for (int e = off[u]; e < off[u + 1]; e++) {
+            int v = edge[e][1] + 1;
             if (dist[mv[v]] == dist[u] + 1 && dfs(mv[v])) {
                 mv[v] = u;
                 mu[u] = v;
