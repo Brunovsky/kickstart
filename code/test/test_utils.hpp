@@ -18,6 +18,7 @@ void print_progress(long i, long N) {
     double percent = 100.0 * (i + 1) / N;
     int digits = int(floor(log10(N + .4)));
     print("\033[K\033[s{:5.1f}% {:>{}}/{}\033[u", percent, i + 1, digits, N);
+    fflush(stdout);
 }
 
 template <typename T>
@@ -26,6 +27,7 @@ void print_progress(long i, long N, T&& content) {
     int digits = int(floor(log10(N + .4)));
     string txt = format("{}", forward<T>(content));
     print("\033[K\033[s{:5.1f}% {:>{}}/{} {}\033[u", percent, i + 1, digits, N, txt);
+    fflush(stdout);
 }
 
 template <typename... Ts>

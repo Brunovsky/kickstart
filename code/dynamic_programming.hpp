@@ -8,6 +8,12 @@ using namespace std;
 // *****
 
 /**
+ * TODO:
+ *  - Multibin knapsack (https://developers.google.com/optimization/bin/multiple_knapsack)
+ *  - Bin packing (https://developers.google.com/optimization/bin/bin_packing)
+ */
+
+/**
  * Longest common subsequence of two strings a and b
  * O(ab) time, O(ab) memory to recover subsequence
  */
@@ -220,8 +226,7 @@ bool subset_sum(const vector<int>& nums, int target) {
  * Maximum value repeated knapsack
  * O(nW) time, O(cap) space
  */
-vector<int> repeated_knapsack(int cap, const vector<int>& weight,
-                              const vector<int>& value) {
+auto repeated_knapsack(int cap, const vector<int>& weight, const vector<int>& value) {
     int N = weight.size();
     vector<int> dp(cap + 1, 0);
     vector<int> pred(cap + 1, -1);
@@ -235,20 +240,21 @@ vector<int> repeated_knapsack(int cap, const vector<int>& weight,
         }
     }
 
+    int total = 0, w = cap;
     vector<int> quantity(N, 0);
-    int w = cap;
     while (pred[w] != -1) {
+        total += value[pred[w]];
         quantity[pred[w]]++;
         w -= weight[pred[w]];
     }
-    return quantity;
+    return pair<int, vector<int>>{total, quantity};
 }
 
 /**
  * Maximum value 0-1 knapsack
  * O(nW) time, O(cap) space
  */
-vector<bool> unit_knapsack(int cap, const vector<int>& weight, const vector<int>& value) {
+auto unit_knapsack(int cap, const vector<int>& weight, const vector<int>& value) {
     int N = weight.size();
     vector<vector<int>> dp(N + 1, vector<int>(cap + 1, 0));
 
@@ -261,14 +267,16 @@ vector<bool> unit_knapsack(int cap, const vector<int>& weight, const vector<int>
         }
     }
 
+    int total = 0;
     vector<bool> quantity(N, false);
     for (int w = cap, i = N - 1; w && i >= 0; i--) {
         if (dp[i + 1][w] != dp[i][w]) {
             quantity[i] = true;
+            total += value[i];
             w -= weight[i];
         }
     }
-    return quantity;
+    return pair<int, vector<bool>>{total, quantity};
 }
 
 /**
