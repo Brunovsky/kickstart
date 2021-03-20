@@ -107,4 +107,86 @@ void lsb_radix_sort_idx(vector<int>& idx, const vector<long>& dist) {
     }
 }
 
+/**
+ * Inplace vector radix sort for positive integers (int, long, uint, ulong)
+ */
+
+template <int B = 6, typename I>
+void radix_sort_run(I* out, I* in, int* cnt, int N, int d) {
+    const int s = B * d, P = 1 << B, mask = P - 1;
+    for (int n = 0; n < N; n++) {
+        cnt[(in[n] >> s) & mask]++;
+    }
+    for (int sum = N, i = P - 1; i >= 0; i--) {
+        sum -= cnt[i], cnt[i] = sum;
+    }
+    for (int n = 0; n < N; n++) {
+        out[cnt[(in[n] >> s) & mask]++] = in[n];
+    }
+}
+
+template <int B = 6, typename I>
+void msb_radix_sort_recurse(I* out, I* in, int N, int d, int maxd) {
+    constexpr int P = 1 << B;
+    if (N <= 1 || d == maxd)
+        return;
+    if (N <= 10)
+        return std::sort(out, out + N);
+
+    int cnt[P]{};
+    memcpy(in, out, N * sizeof(I));
+    radix_sort_run<B>(out, in, cnt, N, maxd - d - 1);
+    msb_radix_sort_recurse<B>(out, in, cnt[0], d + 1, maxd);
+    for (int i = 1; i < P; i++) {
+        int len = cnt[i] - cnt[i - 1];
+        msb_radix_sort_recurse<B>(out + cnt[i - 1], in, len, d + 1, maxd);
+    }
+}
+
+template <int B = 6, typename I>
+void msb_radix_sort(vector<I>& v) {
+    constexpr int P = 1 << B;
+    int N = v.size(), maxd = 0;
+    if (N <= 1)
+        return;
+
+    auto max = *max_element(begin(v), end(v));
+    while (max > 0)
+        maxd++, max >>= B;
+    if (maxd == 0)
+        return;
+
+    int cnt[P]{};
+    vector<I> buf = v;
+    radix_sort_run<B>(v.data(), buf.data(), cnt, N, maxd - 1);
+    msb_radix_sort_recurse<B>(v.data(), buf.data(), cnt[0], 1, maxd);
+    for (int i = 1; i < P; i++) {
+        int len = cnt[i] - cnt[i - 1];
+        msb_radix_sort_recurse<B>(v.data() + cnt[i - 1], buf.data(), len, 1, maxd);
+    }
+}
+
+template <int B = 6, typename I>
+void lsb_radix_sort(vector<I>& v) {
+    constexpr int P = 1 << B;
+    int N = v.size(), maxd = 0;
+    if (N <= 1)
+        return;
+
+    auto max = *max_element(begin(v), end(v));
+    while (max > 0)
+        maxd++, max >>= B;
+    if (maxd == 0)
+        return;
+
+    int cnt[P]{};
+    vector<I> buf = v;
+    radix_sort_run<B>(v.data(), buf.data(), cnt, N, 0);
+    for (int d = 1; d < maxd; d++) {
+        memset(cnt, 0, sizeof(cnt));
+        swap(v, buf);
+        radix_sort_run<B>(v.data(), buf.data(), cnt, N, d);
+    }
+}
+
 #endif // SORT_HPP
