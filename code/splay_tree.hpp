@@ -262,21 +262,37 @@ struct splay_tree {
     }
 
     /**
-     * Remove the element at the root of the tree.
+     * Remove the node y from the tree
+     *
+     *        |
+     *        y            case 1: if l is null, we just push r up to y's position
+     *       / \
+     *      l   r          case 2: if r is null, we just push l up to y's position
+     *         / \
+     *        m  [b]       case 3: if m is null, we can replace y with r, adopting l
+     *       / \
+     *      x  [c]         case 4: x exists; we push e to x's position and swap x and y
+     *       \
+     *       [d]
      */
-    void splice() {
-        node_t* root = head->link[0];
-        if (!root->link[0])
-            adopt_node(head, root->link[1], 0);
-        else if (!root->link[1])
-            adopt_node(head, root->link[0], 0);
-        else {
-            node_t* n = root->link[0];
-            while (n->link[1])
-                n = rotate_left(n);
-            adopt_node(n, root->link[1], 1);
-            adopt_node(head, n, 0);
+    void splice(node_t* y) {
+        bool yp = y == y->parent->link[1];
+        if (!y->link[0])
+            adopt_node(y->parent, y->link[1], yp);
+        else if (!y->link[1])
+            adopt_node(y->parent, y->link[0], yp);
+        else if (!y->link[1]->link[0]) {
+            adopt_node(y->parent, y->link[1], yp);
+            adopt_node(y->link[1], y->link[0], 0);
+        } else {
+            node_t* x = node_t::minimum(y->link[1]);
+            adopt_node(x->parent, x->link[1], 0);
+            adopt_node(y->parent, x, yp);
+            adopt_node(x, y->link[0], 0);
+            adopt_node(x, y->link[1], 1);
         }
+        if (y->parent != head)
+            splay(y->parent);
     }
 
     /**
@@ -299,9 +315,9 @@ struct splay_tree {
     void erase_minmax(node_t* y) {
         if (node_count > 1) {
             if (y == min_node)
-                min_node = y->link[1] ? y->link[1] : y->parent;
+                min_node = y->link[1] ? node_t::minimum(y->link[1]) : y->parent;
             else if (y == max_node)
-                max_node = y->link[0] ? y->link[0] : y->parent;
+                max_node = y->link[0] ? node_t::maximum(y->link[0]) : y->parent;
         } else {
             min_node = max_node = head;
         }
@@ -372,8 +388,7 @@ struct splay_tree {
      */
     void erase_node(node_t* y) {
         erase_minmax(y);
-        splay(y);
-        splice();
+        splice(y);
         drop_node(y);
         node_count--;
     }
@@ -383,70 +398,9 @@ struct splay_tree {
      */
     void yank_node(node_t* y) {
         erase_minmax(y);
-        splay(y);
-        splice();
+        splice(y);
         clear_node(y);
         node_count--;
-    }
-
-    void pretty_print() const {
-        int h = get_height(head->link[0]);
-        printf("===== count: %02d ===== height: %02d =====\n", int(node_count), h);
-        print_tree_preorder(head->link[0], "", false);
-        printf("======================================\n");
-    }
-
-    void debug() const {
-        assert(head && !head->link[1] && head->parent == head);
-        // assert(min_node == node_t::minimum(head));
-        // assert(max_node == (head->link[0] ? node_t::maximum(head->link[0]) : head));
-        size_t cnt = 0;
-        debug_node(head->link[0], head, cnt);
-        assert(cnt == node_count);
-    }
-
-  private:
-    void print_tree_preorder(const node_t* n, std::string prefix, bool bar) const {
-        static const char* line[2] = {u8"└──", u8"├──"};
-        static const char* pad[2] = {"    ", u8" |  "};
-        if (!n) {
-            printf("%s %s\n", prefix.data(), line[bar]);
-            return;
-        }
-        printf(u8"%s %s %s\n", prefix.data(), line[bar], print_node(n).data());
-        if (n->link[0] || n->link[1]) {
-            prefix += pad[bar];
-            print_tree_preorder(n->link[0], prefix, true);
-            print_tree_preorder(n->link[1], prefix, false);
-        }
-    }
-
-    static inline std::string print_node(const node_t* node) noexcept {
-        using std::to_string;
-        std::string s;
-        s += to_string(node->data);
-        s += u8"  ╴  ╴  ╴  ╴ ";
-        if (node->parent != node->parent->parent)
-            s += "  ^(" + to_string(node->parent->data) + ")";
-        if (node->link[0])
-            s += "  <(" + to_string(node->link[0]->data) + ")";
-        if (node->link[1])
-            s += "  >(" + to_string(node->link[1]->data) + ")";
-        return s;
-    }
-
-    int debug_node(const node_t* y, const node_t* parent, size_t& cnt) const {
-        if (!y)
-            return 0;
-        cnt++;
-        (void)parent, assert(y->parent == parent);
-        int hl = debug_node(y->link[0], y, cnt);
-        int hr = debug_node(y->link[1], y, cnt);
-        return 1 + std::max(hl, hr);
-    }
-
-    int get_height(const node_t* y) const {
-        return y ? 1 + std::max(get_height(y->link[0]), get_height(y->link[1])) : 0;
     }
 };
 

@@ -579,65 +579,6 @@ struct rb_tree {
         clear_node(y);
         node_count--;
     }
-
-    void pretty_print() const {
-        printf("======== count: %02d ========\n", int(node_count));
-        print_tree_preorder(head->link[0], "", false);
-        printf("===========================\n");
-    }
-
-    void debug() const {
-        assert(head && !head->link[1] && head->color == rb_red && head->parent == head);
-        assert(min_node == node_t::minimum(head));
-        assert(max_node == (head->link[0] ? node_t::maximum(head->link[0]) : head));
-        size_t cnt = 0;
-        debug_node(head->link[0], head, cnt);
-        assert(cnt == node_count);
-    }
-
-  private:
-    void print_tree_preorder(const node_t* n, std::string prefix, bool bar) const {
-        static const char* line[2] = {u8"└──", u8"├──"};
-        static const char* pad[2] = {"    ", u8" |  "};
-        if (!n) {
-            printf("%s %s\n", prefix.data(), line[bar]);
-            return;
-        }
-        printf(u8"%s %s %s\n", prefix.data(), line[bar], print_node(n).data());
-        if (n->link[0] || n->link[1]) {
-            prefix += pad[bar];
-            print_tree_preorder(n->link[0], prefix, true);
-            print_tree_preorder(n->link[1], prefix, false);
-        }
-    }
-
-    static inline std::string print_node(const node_t* node) noexcept {
-        using std::to_string;
-        std::string s;
-        s += to_string(node->data);
-        if (node->color == rb_red)
-            s += "(**)";
-        s += u8"  ╴  ╴  ╴  ╴ ";
-        if (node->parent != node->parent->parent)
-            s += "  ^(" + to_string(node->parent->data) + ")";
-        if (node->link[0])
-            s += "  <(" + to_string(node->link[0]->data) + ")";
-        if (node->link[1])
-            s += "  >(" + to_string(node->link[1]->data) + ")";
-        return s;
-    }
-
-    int debug_node(const node_t* y, const node_t* parent, size_t& cnt) const {
-        if (!y)
-            return 0;
-        cnt++;
-        (void)parent, assert(y->parent == parent);
-        assert(parent->color == rb_black || y->color == rb_black);
-        int bhl = debug_node(y->link[0], y, cnt);
-        int bhr = debug_node(y->link[1], y, cnt);
-        (void)bhr, assert(bhl == bhr);
-        return bhl + y->color;
-    }
 };
 
 #endif // RB_TREE_HPP

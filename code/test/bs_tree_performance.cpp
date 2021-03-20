@@ -20,7 +20,7 @@ template struct std::set<int, greater<int>>;
 template struct std::multiset<int>;
 template struct std::multiset<int, greater<int>>;
 
-struct unordered_insert_int_test {
+struct unordered_insert_test {
     template <typename Set>
     static void run(const string& name, int M, int T, int f) {
         intd distn(0, M);
@@ -41,7 +41,7 @@ struct unordered_insert_int_test {
     }
 };
 
-struct ordered_insert_hint_begin_int_test {
+struct ordered_insert_hint_begin_test {
     template <typename Set>
     static void run(const string& name, int M, int T, int f) {
         intd distn(0, M);
@@ -68,7 +68,7 @@ struct ordered_insert_hint_begin_int_test {
     }
 };
 
-struct ordered_insert_hint_end_int_test {
+struct ordered_insert_hint_end_test {
     template <typename Set>
     static void run(const string& name, int M, int T, int f) {
         intd distn(0, M);
@@ -222,25 +222,25 @@ int main() {
     run<minmax_test>(1'000'000, 500, 10, 20);
 
     print("# ordered hinted insertion begin (int) few collisions -----\n");
-    run<ordered_insert_hint_begin_int_test>(1'000'000, 2000, 20);
+    run<ordered_insert_hint_begin_test>(1'000'000, 2000, 20);
 
     print("# ordered hinted insertion begin (int) many collisions -----\n");
-    run<ordered_insert_hint_begin_int_test>(1'000, 2000, 20);
+    run<ordered_insert_hint_begin_test>(1'000, 2000, 20);
 
     print("# ordered hinted insertion end (int) few collisions -----\n");
-    run<ordered_insert_hint_end_int_test>(1'000'000, 2000, 20);
+    run<ordered_insert_hint_end_test>(1'000'000, 2000, 20);
 
     print("# ordered hinted insertion end (int) many collisions -----\n");
-    run<ordered_insert_hint_end_int_test>(1'000, 2000, 20);
+    run<ordered_insert_hint_end_test>(1'000, 2000, 20);
 
     print("# unordered insertion (int) few collisions -----\n");
-    run<unordered_insert_int_test>(1'000'000, 1000, 20);
+    run<unordered_insert_test>(1'000'000, 1000, 20);
 
     print("# unordered insertion (int) moderate collisions -----\n");
-    run<unordered_insert_int_test>(25'000, 1000, 20);
+    run<unordered_insert_test>(25'000, 1000, 20);
 
     print("# unordered insertion (int) many collisions -----\n");
-    run<unordered_insert_int_test>(1'000, 1000, 20);
+    run<unordered_insert_test>(1'000, 1000, 20);
 
     print("# count query (int) unlikely -----\n");
     run<count_query_test>(1'000'000, 500, 20, 100);

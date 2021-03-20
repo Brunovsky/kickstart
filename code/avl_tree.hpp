@@ -70,6 +70,8 @@
 template <typename T>
 struct avl_node {
     using node_t = avl_node<T>;
+    template <typename Tree>
+    friend struct tree_debugger;
 
     node_t* parent = nullptr;
     node_t* link[2] = {};
@@ -165,6 +167,8 @@ struct avl_node {
 template <typename T>
 struct avl_tree {
     using node_t = avl_node<T>;
+    template <typename Tree>
+    friend struct tree_debugger;
 
     // The real tree's root is head->link[0]. head is never nullptr.
     node_t* head;
@@ -559,64 +563,6 @@ struct avl_tree {
         erase_node_and_rebalance(y);
         clear_node(y);
         node_count--;
-    }
-
-    void pretty_print() const {
-        printf("======== count: %02d ========\n", int(node_count));
-        print_tree_preorder(head->link[0], "", false);
-        printf("===========================\n");
-    }
-
-    void debug() const {
-        assert(head && !head->link[1] && head->balance == 0 && head->parent == head);
-        assert(min_node == node_t::minimum(head));
-        assert(max_node == (head->link[0] ? node_t::maximum(head->link[0]) : head));
-        size_t cnt = 0;
-        debug_node(head->link[0], head, cnt);
-        assert(cnt == node_count);
-    }
-
-  private:
-    void print_tree_preorder(const node_t* n, std::string prefix, bool bar) const {
-        static const char* line[2] = {u8"└──", u8"├──"};
-        static const char* pad[2] = {"    ", u8" |  "};
-        if (!n) {
-            printf("%s %s\n", prefix.data(), line[bar]);
-            return;
-        }
-        printf(u8"%s %s %s\n", prefix.data(), line[bar], print_node(n).data());
-        if (n->link[0] || n->link[1]) {
-            prefix += pad[bar];
-            print_tree_preorder(n->link[0], prefix, true);
-            print_tree_preorder(n->link[1], prefix, false);
-        }
-    }
-
-    static std::string print_node(const node_t* node) noexcept {
-        using std::to_string;
-        std::string s;
-        s += to_string(node->data);
-        s += "(" + to_string(node->balance) + ")";
-        s += u8"  ╴  ╴  ╴  ╴ ";
-        if (node->parent != node->parent->parent)
-            s += "  ^(" + to_string(node->parent->data) + ")";
-        if (node->link[0])
-            s += "  <(" + to_string(node->link[0]->data) + ")";
-        if (node->link[1])
-            s += "  >(" + to_string(node->link[1]->data) + ")";
-        return s;
-    }
-
-    int debug_node(const node_t* y, const node_t* parent, size_t& cnt) const {
-        if (!y)
-            return 0;
-        cnt++;
-        (void)parent, assert(y->parent == parent);
-        assert(-1 <= y->balance && y->balance <= +1);
-        int l = debug_node(y->link[0], y, cnt);
-        int r = debug_node(y->link[1], y, cnt);
-        assert(y->balance == r - l);
-        return 1 + std::max(l, r);
     }
 };
 

@@ -4,6 +4,7 @@
 
 #include "../bs_map.hpp"
 #include "../bs_set.hpp"
+#include "../bs_tree_debug.hpp"
 #include "../debug_print.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
@@ -78,19 +79,19 @@ void merge_test(int T = 500) {
         set_symmetric_difference(ALL(a), ALL(b), inserter(sym));
 
         a.merge(b);
-        a.debug();
-        b.debug();
+        debug_tree(a).debug();
+        debug_tree(b).debug();
 
         assert(a.size() == as + bs);
         assert(b.empty());
 
         assert(uni.size() == itr.size() + sym.size());
         assert(sym.size() == difab.size() + difba.size());
-        uni.debug();
-        difab.debug();
-        difba.debug();
-        sym.debug();
-        itr.debug();
+        debug_tree(uni).debug();
+        debug_tree(difab).debug();
+        debug_tree(difba).debug();
+        debug_tree(sym).debug();
+        debug_tree(itr).debug();
 
         // ping-pong
         bs_multiset<int> c = a;
@@ -123,8 +124,8 @@ void merge_test(int T = 500) {
         set_symmetric_difference(ALL(a), ALL(b), inserter(sym));
 
         a.merge(b);
-        a.debug();
-        b.debug();
+        debug_tree(a).debug();
+        debug_tree(b).debug();
         assert(is_sorted(ALL(a)));
         assert(is_sorted(ALL(b)));
 
@@ -135,18 +136,29 @@ void merge_test(int T = 500) {
         assert(itr.size() == b.size());
         assert(uni.size() == itr.size() + sym.size());
         assert(sym.size() == difab.size() + difba.size());
-        uni.debug();
-        difab.debug();
-        difba.debug();
-        sym.debug();
-        itr.debug();
+        debug_tree(uni).debug();
+        debug_tree(difab).debug();
+        debug_tree(difba).debug();
+        debug_tree(sym).debug();
+        debug_tree(itr).debug();
 
         // ping-pong
         bs_set<int> c = a;
         b.merge(c);
         c.merge(b);
-        b.debug();
-        c.debug();
+        debug_tree(a).debug();
+        debug_tree(b).debug();
+        debug_tree(c).debug();
+        if (a != c) {
+            print("\nTREE a:\n");
+            debug_tree(a).pretty_print();
+            print("\nTREE c:\n");
+            debug_tree(c).pretty_print();
+            vector<int> A(begin(a), end(a));
+            vector<int> C(begin(c), end(c));
+            print("A: {}\n", fmt::join(A, " "));
+            print("C: {}\n", fmt::join(C, " "));
+        }
         assert(a == c);
 
         print_progress(t + T, 3 * T, "merge");
@@ -170,7 +182,7 @@ void merge_test(int T = 500) {
         for (auto&& handle : node_handles) {
             b.insert(move(handle));
         }
-        b.debug();
+        debug_tree(b).debug();
         assert(b == c);
 
         print_progress(t + 2 * T, 3 * T, "merge");
@@ -215,10 +227,10 @@ void construct_test(int T = 500) {
         assert(e.size() == c.size() && e == c);
         assert(e.size() == d.size() && e == d);
 
-        a.debug();
-        b.debug();
-        c.debug();
-        d.debug();
+        debug_tree(a).debug();
+        debug_tree(b).debug();
+        debug_tree(c).debug();
+        debug_tree(d).debug();
 
         print_progress(t, T, "construct");
     }
@@ -233,7 +245,7 @@ void construct_test(int T = 500) {
  *    4 - find(), count()
  *    5 - lower_bound(), upper_bound(), equal_range()
  */
-void iterators_test(int T = 500) {
+void iterator_test(int T = 500) {
     intd dists(0, 50);
     intd distn(-10000, 10000);
 
@@ -253,7 +265,7 @@ void iterators_test(int T = 500) {
         }
         sort(ALL(nums));
         assert(tree.size() == nums.size());
-        tree.debug();
+        debug_tree(tree).debug();
 
         // 1: test iteration
         assert(equal(ALL(nums), ALL(tree)));
@@ -399,8 +411,8 @@ void equality_test(int T = 500) {
         for (int n : nums) {
             rhs.insert(n);
         }
-        lhs.debug();
-        rhs.debug();
+        debug_tree(lhs).debug();
+        debug_tree(rhs).debug();
 
         sort(ALL(nums));
 
@@ -455,7 +467,7 @@ void comparison_test(int T = 500) {
     for (int i = 0; i < T; i++) {
         const auto& tree = trees[i];
         const auto& nums = numsets[i];
-        tree.debug();
+        debug_tree(tree).debug();
         assert(equal(ALL(tree), ALL(nums)));
     }
     for (int i = 0; i + 1 < T; i++) {
@@ -481,7 +493,7 @@ void insert_test(int T = 500) {
         bs_set<int> tree;
         for (int i = 0, s = dists(mt); i < s; i++) {
             tree.insert(distn(mt));
-            tree.debug();
+            debug_tree(tree).debug();
         }
         print_progress(t, T, "insert");
     }
@@ -505,11 +517,11 @@ void erase_test(int T = 500) {
             nums.push_back(n);
             tree.insert(n);
         }
-        tree.debug();
+        debug_tree(tree).debug();
         shuffle(ALL(nums), mt);
         for (int i = 0; i < s; i++) {
             tree.erase(nums[i]);
-            tree.debug();
+            debug_tree(tree).debug();
         }
         print_progress(t, T, "erase");
     }
@@ -528,7 +540,7 @@ void memory_test() {
     stree.insert(c), stree.insert(b);
     stree.insert(a), stree.insert(d);
 
-    stree.debug();
+    debug_tree(stree).debug();
     assert(*stree.begin() == a);
     assert(*stree.rbegin() == d);
 
@@ -537,7 +549,7 @@ void memory_test() {
     vtree.insert(v3), vtree.insert(v2);
     vtree.insert(v1), vtree.insert(v4);
 
-    vtree.debug();
+    debug_tree(vtree).debug();
     assert(*vtree.begin() == v1);
     assert(*vtree.rbegin() == v4);
 
@@ -545,7 +557,7 @@ void memory_test() {
     atree.emplace(3, 4), atree.emplace(2, 1);
     atree.emplace(2, 3), atree.emplace(1, 7);
 
-    atree.debug();
+    debug_tree(atree).debug();
     assert(*atree.begin() == always_allocs(1, 7));
     assert(*atree.rbegin() == always_allocs(3, 4));
 
@@ -604,7 +616,7 @@ void hint_test() {
     tree.erase_unique(5);
     assert(tree.empty());
 
-    tree.debug();
+    debug_tree(tree).debug();
 
     print_ok("hint");
 }
@@ -628,8 +640,8 @@ void emplace_test() {
     b.insert_multi({4, 7}), b.insert_multi({4, 7}), b.insert_multi({7, 4});
 
     assert(a == b);
-    a.debug();
-    b.debug();
+    debug_tree(a).debug();
+    debug_tree(b).debug();
 
     print_ok("emplace");
 }
@@ -691,7 +703,7 @@ void print_example() {
     for (int i = 0; i < 15; i++) {
         set.insert(distn(mt));
     }
-    set.pretty_print();
+    debug_tree(set).pretty_print();
 }
 
 static int bti = 0;
@@ -704,7 +716,6 @@ static int bti = 0;
  *      - emplace_unique(), emplace_hint_unique()
  *      - emplace_multi(), emplace_hint_multi()
  *      - count(), find(), contains()
- *      - debug() -> verify avl invariants
  * Compare the results of all operations with the equivalents ones on std::multiset.
  */
 template <typename Compare = less<pair<int, int>>>
@@ -819,7 +830,7 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
             assert(tree.count(n) == good.count(n));
             assert(tree.size() == good.size());
 
-            tree.debug(); // verify invariants
+            debug_tree(tree).debug(); // verify invariants
 
             if (doclear(mt)) {
                 tree.clear();
@@ -859,7 +870,7 @@ int main() {
     emplace_test();
     equality_test();
     memory_test();
-    iterators_test();
+    iterator_test();
     construct_test();
     comparison_test();
     merge_test();

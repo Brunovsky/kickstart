@@ -350,6 +350,9 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
     using Traits = bst_traits<T, Compare, tag>;
     using node_t = typename Tree<T>::node_t;
 
+    template <typename BSTree>
+    friend struct tree_debugger;
+
     using Traits::get_key;
     using Tree<T>::head;
     using Tree<T>::node_count;
@@ -371,6 +374,8 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
     }
 
   public:
+    const Tree<T>& internal() const { return *this; }
+
     using key_type = typename Traits::key_type;
     using value_type = typename Traits::value_type;
 
@@ -390,8 +395,7 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
     using node_type = bst_node_handle<T, tag>;
     using insert_return_type = bst_insert_return_type<T, tag>;
 
-    bs_tree() {}
-
+    bs_tree() = default;
     explicit bs_tree(const Compare& comp) : comp(comp) {}
 
     bs_tree(const bs_tree& other) = default;
@@ -399,8 +403,6 @@ struct bs_tree : private Tree<T>, public bst_traits<T, Compare, tag> {
     bs_tree& operator=(const bs_tree& other) = default;
     bs_tree& operator=(bs_tree&& other) = default;
 
-    using Tree<T>::debug;
-    using Tree<T>::pretty_print;
     using Tree<T>::clear;
 
     inline size_type size() const noexcept { return node_count; }
