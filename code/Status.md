@@ -7,12 +7,12 @@ This code collection has become quite messy. ✓✓XX
 | Algorithms          |`dynamic_programming        `| Stable       | Stable (U,S)   | Multibin knapsack, minimum bin packing (separate knapsack) |
 | Algorithms          |`string_search              `| Stable       | Stable (S)     | Suffix array, suffix tree, manacher's algorithm |
 | Algorithms          |`sort                       `| Stable       | Stable (P)     | |
-| Binary trees        |`avl_tree                   `| Stable       |                | |
-| Binary trees        |`bs_map                     `| Stable       |                | |
-| Binary trees        |`bs_set                     `| Stable       |                | |
-| Binary trees        |`bs_tree                    `| Stable       |                | Missing some libcpp methods with hints |
-| Binary trees        |`rb_tree                    `| Stable       |                | |
-| Binary trees        |`splay_tree                 `| Stable       |                | |
+| Binary trees        |`avl_tree                   `| Stable       | -              | |
+| Binary trees        |`bs_map                     `| Stable       | Stable (U,S,P) | |
+| Binary trees        |`bs_set                     `| Stable       | Stable (U,S,P) | |
+| Binary trees        |`bs_tree                    `| Stable       | -              | Missing some libcpp methods with hints |
+| Binary trees        |`rb_tree                    `| Stable       | -              | |
+| Binary trees        |`splay_tree                 `| Stable       | -              | |
 | Data structures     |`bigint                     `| Stable       |                | Convoluted, needs cleanup: use debug functions, improve distribution |
 | Data structures     |`disjoint_set               `| Stable       |                | |
 | Data structures     |`fenwick                    `| Stable       |                | |

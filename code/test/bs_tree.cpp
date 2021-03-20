@@ -2,13 +2,11 @@
 #undef NDEBUG
 #endif
 
-#include <algorithm>
-#include <iostream>
-#include <random>
-#include <set>
-
 #include "../bs_map.hpp"
 #include "../bs_set.hpp"
+#include "../debug_print.hpp"
+#include "../random.hpp"
+#include "test_utils.hpp"
 
 using namespace std;
 
@@ -43,28 +41,10 @@ struct always_allocs {
     int *num1, *num2;
 };
 
-ostream& operator<<(ostream& out, pair<int, int> ints) {
-    return out << '(' << ints.first << ',' << ints.second << ')';
-}
-
-void test_step(const string& name, int t) {
-    printf("\r%11s test #%d", name.data(), t);
-    fflush(stdout);
-}
-
-void test_done(const string& name) {
-    printf("\r%11s test OK -----\n", name.data());
-    fflush(stdout);
-}
-
 // Make sure these can be instantianed, at least...
 template struct bs_set<int>;
 template struct bs_set<pair<int, int>>;
 template struct bs_set<int, greater<int>>;
-
-mt19937 mt(random_device{}());
-using intd = uniform_int_distribution<int>;
-using boold = bernoulli_distribution;
 
 /**
  * Test the following:
@@ -78,7 +58,7 @@ void merge_test(int T = 500) {
     intd distn(-70, 70);
 
     // subtest 1: multi merge
-    for (int t = 1; t <= T; t++) {
+    for (int t = 0; t < T; t++) {
         bs_multiset<int> a, b;
         size_t as = dists(mt), bs = dists(mt);
 
@@ -118,11 +98,11 @@ void merge_test(int T = 500) {
         c.merge(b);
         assert(a == c);
 
-        test_step("merge", t);
+        print_progress(t, 3 * T, "merge");
     }
 
     // subtest 2: unique merge
-    for (int t = 1; t <= T; t++) {
+    for (int t = 0; t < T; t++) {
         bs_set<int> a, b;
         size_t as = dists(mt), bs = dists(mt);
 
@@ -169,11 +149,11 @@ void merge_test(int T = 500) {
         c.debug();
         assert(a == c);
 
-        test_step("merge", t + T);
+        print_progress(t + T, 3 * T, "merge");
     }
 
     // subtest 3: extract
-    for (int t = 1; t <= T; t++) {
+    for (int t = 0; t < T; t++) {
         bs_multiset<int> a, b;
         int s = dists(mt);
         for (int i = 0; i < s; i++) {
@@ -193,9 +173,9 @@ void merge_test(int T = 500) {
         b.debug();
         assert(b == c);
 
-        test_step("merge", t + 2 * T);
+        print_progress(t + 2 * T, 3 * T, "merge");
     }
-    test_done("merge");
+    print_ok("merge");
 }
 
 /**
@@ -209,7 +189,7 @@ void construct_test(int T = 500) {
 
     bs_multiset<int> d, e;
 
-    for (int t = 1; t <= T; t++) {
+    for (int t = 0; t < T; t++) {
         bs_multiset<int> a;
         for (int i = 0, s = dists(mt); i < s; i++) {
             a.insert(distn(mt));
@@ -240,9 +220,9 @@ void construct_test(int T = 500) {
         c.debug();
         d.debug();
 
-        test_step("construct", t);
+        print_progress(t, T, "construct");
     }
-    test_done("construct");
+    print_ok("construct");
 }
 
 /**
@@ -257,7 +237,7 @@ void iterators_test(int T = 500) {
     intd dists(0, 50);
     intd distn(-10000, 10000);
 
-    for (int t = 1; t <= T; t++) {
+    for (int t = 0; t < T; t++) {
         bs_multiset<int> tree;
 
         // generate a bunch of numbers, possibly repeated
@@ -390,9 +370,9 @@ void iterators_test(int T = 500) {
             }
         }
 
-        test_step("iterator", t);
+        print_progress(t, T, "iterator");
     }
-    test_done("iterator");
+    print_ok("iterator");
 }
 
 /**
@@ -404,7 +384,7 @@ void equality_test(int T = 500) {
     intd dists(0, 200);
     intd distn(1, 10000);
 
-    for (int t = 1; t <= T; t++) {
+    for (int t = 0; t < T; t++) {
         bs_multiset<int> lhs, rhs;
         vector<int> nums;
         for (int i = 0, s = dists(mt); i < s; i++) {
@@ -437,9 +417,9 @@ void equality_test(int T = 500) {
         assert(!(lhs < rhs));
         assert(!(lhs > rhs));
 
-        test_step("equality", t);
+        print_progress(t, T, "equality");
     }
-    test_done("equality");
+    print_ok("equality");
 }
 
 /**
@@ -449,7 +429,6 @@ void equality_test(int T = 500) {
 void comparison_test(int T = 500) {
     intd dists(0, 100);
     intd distn(-500, 500);
-    test_step("comparison", 1);
 
     vector<bs_tree<int>> trees;
     vector<vector<int>> numsets;
@@ -470,7 +449,6 @@ void comparison_test(int T = 500) {
         numsets.push_back(nums);
     }
 
-    test_step("comparison", 2);
     sort(ALL(trees));
     sort(ALL(numsets));
 
@@ -488,7 +466,7 @@ void comparison_test(int T = 500) {
         }
     }
 
-    test_done("comparison");
+    print_ok("comparison");
 }
 
 /**
@@ -499,15 +477,15 @@ void insert_test(int T = 500) {
     intd distn(0, 1'000);
     intd dists(0, 200);
 
-    for (int t = 1; t <= T; t++) {
+    for (int t = 0; t < T; t++) {
         bs_set<int> tree;
         for (int i = 0, s = dists(mt); i < s; i++) {
             tree.insert(distn(mt));
             tree.debug();
         }
-        test_step("insert", t);
+        print_progress(t, T, "insert");
     }
-    test_done("insert");
+    print_ok("insert");
 }
 
 /**
@@ -518,7 +496,7 @@ void erase_test(int T = 500) {
     intd distn(0, 1'000);
     intd dists(0, 200);
 
-    for (int t = 1; t <= T; t++) {
+    for (int t = 0; t < T; t++) {
         bs_set<int> tree;
         vector<int> nums;
         int s = dists(mt);
@@ -533,9 +511,9 @@ void erase_test(int T = 500) {
             tree.erase(nums[i]);
             tree.debug();
         }
-        test_step("erase", t);
+        print_progress(t, T, "erase");
     }
-    test_done("erase");
+    print_ok("erase");
 }
 
 /**
@@ -582,7 +560,7 @@ void memory_test() {
     atree.emplace(2, 3), atree.emplace(1, 7);
     atree.emplace(3, 4), atree.emplace(2, 1);
 
-    test_done("memory");
+    print_ok("memory");
 }
 
 /**
@@ -628,7 +606,7 @@ void hint_test() {
 
     tree.debug();
 
-    test_done("hint");
+    print_ok("hint");
 }
 
 /**
@@ -653,7 +631,7 @@ void emplace_test() {
     a.debug();
     b.debug();
 
-    test_done("emplace");
+    print_ok("emplace");
 }
 
 /**
@@ -704,7 +682,7 @@ void map_test() {
     a.emplace_hint(a.end(), "500", "400");
     assert(a == b);
 
-    test_done("map");
+    print_ok("map");
 }
 
 void print_example() {
@@ -740,7 +718,7 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
     using constit_t = typename tree_t::const_iterator;
     using stl_t = std::multiset<pair_t, Compare>;
 
-    for (int t = 1; t <= T; t++) {
+    for (int t = 0; t < T; t++) {
         tree_t tree;
         stl_t good;
         assert(tree.empty());
@@ -869,9 +847,9 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
         // punchline
         assert(equal(ALL(good), ALL(tree)));
 
-        test_step("battle " + to_string(bti), t);
+        print_progress(t, T, "battle " + to_string(bti));
     }
-    test_done("battle " + to_string(bti));
+    print_ok("battle " + to_string(bti));
 }
 
 int main() {

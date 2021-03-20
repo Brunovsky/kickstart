@@ -9,12 +9,13 @@ using namespace std;
 using namespace std::chrono;
 using fmt::print, fmt::format;
 using us = microseconds;
+using ms = milliseconds;
 
 // *****
 
 void clear_line() { print("\r\033[2K"); }
 
-void print_ok(string line) { clear_line(), print("{} OK\n", line); }
+void print_ok(string line) { clear_line(), print("OK {}\n", line); }
 
 void print_progress(long i, long N) {
     double percent = 100.0 * (i + 1) / N;
