@@ -14,6 +14,8 @@ using us = microseconds;
 
 void clear_line() { print("\r\033[2K"); }
 
+void print_ok(string line) { clear_line(), print("{} OK\n", line); }
+
 void print_progress(long i, long N) {
     double percent = 100.0 * (i + 1) / N;
     int digits = int(floor(log10(N + .4)));
@@ -74,9 +76,10 @@ bool all_eq(const vector<T>& v) {
 // add chrono (multiple)
 #define ADD_TIME(var) time_##var += CUR_TIME(var).count()
 
-// output time (single or multiple)
-#define PRINT_TIME(var) clear_line(), print(" {:>8}ms -- {}\n", time_##var / 1'000, #var)
-
+// get time in milliseconds
 #define TIME_MS(var) time_##var / 1'000
+
+// output time (single or multiple)
+#define PRINT_TIME(var) clear_line(), print(" {:>8}ms -- {}\n", TIME_MS(var), #var)
 
 #endif // TEST_UTILS_HPP

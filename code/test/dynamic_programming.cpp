@@ -4,15 +4,11 @@
 
 #include "../dynamic_programming.hpp"
 
+#include "../debug_print.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 
 // *****
-
-template <typename T>
-ostream& operator<<(ostream& out, const vector<T>& v) {
-    return out << format("{}\n", fmt::join(v, " "));
-}
 
 // String distance algorithms
 
@@ -103,7 +99,7 @@ void stress_test_subset_sum_run(const vector<int>& nums) {
 void unit_test_subset_sum() {
     vector<int> nums = {17, 63, 49, -71, -23, 84};
     stress_test_subset_sum_run(nums);
-    clear_line(), print("unit test subset sum OK\n");
+    print_ok("unit test subset sum");
 }
 
 vector<array<int, 3>> subset_sum_stress_tests = {
@@ -113,7 +109,7 @@ vector<array<int, 3>> subset_sum_stress_tests = {
     {40, -30, 30},
 };
 
-void stress_test_subset_sum(int T = 100) {
+void stress_test_subset_sum(int T = 50) {
     for (auto [n, min, max] : subset_sum_stress_tests) {
         auto label = format("stress test {} {} {}", n, min, max);
         for (int t = 0; t < T; t++) {
@@ -122,7 +118,7 @@ void stress_test_subset_sum(int T = 100) {
             stress_test_subset_sum_run(nums);
         }
     }
-    clear_line(), print("stress test subset sum OK\n");
+    print_ok("stress test subset sum");
 }
 
 // Knapsack
@@ -136,6 +132,7 @@ void unit_test_knapsack() {
     assert(v1 == 300 && qt1 == (vector<int>{5, 0, 0}));
     assert(v2 == 15 && qt2 == (vector<bool>{1, 1, 1, 1, 0}));
     assert(v3 == 220 && qt3 == (vector<bool>{0, 1, 1}));
+    print_ok("unit test knapsack");
 }
 
 // Subsequences
@@ -145,6 +142,7 @@ void unit_test_longest_common_subsequence() {
     auto sub1 = longest_common_subsequence("amputation", "spanking");
     assert(sub0.size() == 2); // GA, AC or GC
     assert(sub1 == "pain");
+    print_ok("unit test longest common subsequence");
 }
 
 void unit_test_longest_increasing_subsequence() {
@@ -157,6 +155,7 @@ void unit_test_longest_increasing_subsequence() {
     assert(sub1 == (vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
     assert(sub2.size() == 1);
     assert(sub3 == (vector<int>{0, 1}));
+    print_ok("unit test longest increasing subsequence");
 }
 
 int main() {

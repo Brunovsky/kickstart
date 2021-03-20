@@ -1,9 +1,7 @@
 #ifndef STRING_SEARCH_HPP
 #define STRING_SEARCH_HPP
 
-#include <bits/stdc++.h>
-
-using namespace std;
+#include "hash.hpp"
 
 // *****
 
@@ -193,42 +191,6 @@ vector<int> boyer_moore_search_all(const string& text, const BoyerMoore& bm) {
  * Rabin Karp
  * https://en.wikipedia.org/wiki/Rabin-Karp_algorithm
  */
-struct rolling_hasher {
-    static constexpr size_t base = 2001539UL;
-    static constexpr size_t mask = (1 << 26) - 1;
-    size_t n, mul;
-
-    rolling_hasher(size_t n) : n(n), mul(powovf(n) & mask) {}
-
-    size_t operator()(const char* s, const char* e) const noexcept {
-        size_t seed = 0;
-        while (s != e) {
-            seed = (seed * base + *s++) & mask;
-        }
-        return seed;
-    }
-
-    size_t operator()(const string& s) const noexcept {
-        return (*this)(s.data(), s.data() + s.length());
-    }
-
-    size_t roll(size_t seed, unsigned char out, unsigned char in) const noexcept {
-        return (seed * base + in + (mask + 1 - out) * mul) & mask;
-    }
-
-    static constexpr size_t powovf(size_t e) {
-        size_t power = 1, b = base;
-        while (e) {
-            if (e & 1) {
-                power = power * b;
-            }
-            e >>= 1;
-            b = b * b;
-        }
-        return power;
-    }
-};
-
 int rabin_karp_search(const string& text, const string& needle) {
     int T = text.size(), P = needle.size();
     const char *pp = needle.data(), *tp = text.data();
