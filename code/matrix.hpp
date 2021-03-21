@@ -37,6 +37,14 @@ struct mat {
         return a;
     }
 
+    friend mat transpose(const mat& a) {
+        mat b(a.m, a.n);
+        for (int i = 0; i < a.m; i++)
+            for (int j = 0; j < a.n; j++)
+                b[i][j] = a[j][i];
+        return b;
+    }
+
     mat operator-(mat a) {
         for (int i = 0; i < a.n; i++)
             for (int j = 0; j < a.m; j++)
@@ -60,37 +68,11 @@ struct mat {
         return *this;
     }
 
-    void resize(int N, int M, T&& val = T()) {
-        if (n != N)
-            arr.resize(N, vec(M, val));
-        if (m != M)
-            for (auto& row : arr)
-                row.resize(M, val);
-        n = N, m = M;
-    }
-
-    void set_row(int i, T&& val = T(0)) {
-        for (int j = 0; j < m; j++)
-            arr[i][j] = val;
-    }
-    void add_row(int i, T&& add) {
-        for (int j = 0; j < m; j++)
-            arr[i][j] += add;
-    }
-    void mul_row(int i, T&& mul) {
-        for (int j = 0; j < m; j++)
-            arr[i][j] *= mul;
-    }
-    void mul_add(int i, int s, T&& mul = T(1)) {
-        for (int j = 0; j < m; j++)
-            arr[i][j] += mul * arr[s][j];
-    }
-
     friend mat operator+(mat a, const mat& b) { return a += b; }
     friend mat operator-(mat a, const mat& b) { return a -= b; }
 
     friend mat operator*(const mat& a, const mat& b) {
-        assert(a.m == b.n && "Unequal matrix multiplication operand dimensions");
+        assert(a.m == b.n && "Different matrix mul operand dimensions");
         mat c(a.n, b.m);
         for (int i = 0; i < a.n; i++)
             for (int j = 0; j < b.m; j++)
@@ -100,7 +82,7 @@ struct mat {
     }
 
     friend mat operator^(mat a, int e) {
-        assert(a.n == a.m && "Matrix exponentiation operand is not square");
+        assert(a.n == a.m && "Matrix exp operand is not square");
         mat c = identity(a.n);
         while (e > 0) {
             if (e & 1)
@@ -112,7 +94,7 @@ struct mat {
     }
 
     friend vec operator*(const mat& a, const vec& b) {
-        assert(a.m == b.size() && "Matrix and vector operand have unequal dimensions");
+        assert(a.m == b.size() && "Matrix and column operand have unequal dimensions");
         vec c(a.n);
         for (int i = 0; i < a.n; i++)
             for (int j = 0; j < a.m; j++)
@@ -120,87 +102,14 @@ struct mat {
         return c;
     }
 
-    friend mat transpose(const mat& a) {
-        mat b(a.m, a.n);
-        for (int i = 0; i < a.m; i++)
-            for (int j = 0; j < a.n; j++)
-                b[i][j] = a[j][i];
-        return b;
-    }
-
-    friend mat inverse(mat a) {
-        assert(a.n == a.m && "Matrix inverse operand is not square");
-        int n = a.n;
-        mat b = identity(n);
-        for (int j = 0, i; j < n; j++) {
-            for (i = j; i < n; i++) {
-                if (abs(a[i][j]) > 1e-10) {
-                    swap(a[i], a[j]);
-                    break;
-                }
-            }
-            assert(i != n); // degenerate
-            for (int k = 0; k < n; k++)
-                b[j][k] /= a[j][j];
-            for (int k = n - 1; k >= j; k--)
-                a[j][k] /= a[j][j];
-            for (i = j + 1; i < n; i++) {
-                for (int k = 0; k < n; k++)
-                    b[i][k] -= a[i][j] * b[j][k];
-                for (int k = n - 1; k >= j; k--)
-                    a[i][k] -= a[i][j] * a[j][k];
-            }
-        }
-        for (int j = n - 1; j >= 0; j--)
-            for (int i = 0; i < j; i++)
-                for (int k = 0; k < n; k++)
-                    b[i][k] -= a[i][j] * b[j][k];
-        return b;
-    }
-
-    friend vec gauss(mat a, vec b) {
-        assert(a.n == b.size() && a.n == a.m);
-        int n = a.n;
-        for (int i = 0; i < n; i++)
-            a[i].push_back(b[i]);
-        for (int j = 0, i; j < n; j++) {
-            for (i = j; i < n; i++) {
-                if (abs(a[i][j]) > 1e-10) {
-                    swap(a[i], a[j]);
-                    break;
-                }
-            }
-            assert(i != n);
-            for (int k = n; k >= j; k--)
-                a[j][k] /= a[j][j];
-            for (i = j + 1; i < n; i++)
-                for (int k = n; k >= j; k--)
-                    a[i][k] -= a[i][j] * a[j][k];
-        }
-        for (int j = n - 1; j >= 0; j--)
-            for (int i = 0; i < j; i++)
-                a[i][n] -= a[i][j] * a[j][n];
-        for (int i = 0; i < n; i++)
-            b[i] = a[i][n];
-        return b;
+    void resize(int N, int M, T&& val = T()) {
+        if (n != N)
+            arr.resize(N, vec(M, val));
+        if (m != M)
+            for (auto& row : arr)
+                row.resize(M, val);
+        n = N, m = M;
     }
 };
-
-template <typename T>
-string to_string(const mat<T>& a) {
-    vector<vector<string>> cell(a.n, vector<string>(a.m));
-    vector<size_t> w(a.m);
-    for (int i = 0; i < a.n; i++)
-        for (int j = 0; j < a.m; j++)
-            cell[i][j] = to_string(a[i][j]), w[j] = max(w[j], cell[i][j].size());
-    stringstream ss;
-    for (int i = 0; i < a.n; i++) {
-        for (int j = 0; j < a.m; j++) {
-            ss << setw(w[j] + 1) << cell[i][j];
-        }
-        ss << '\n';
-    }
-    return ss.str();
-}
 
 #endif // MATRIX_HPP
