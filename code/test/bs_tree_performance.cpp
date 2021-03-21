@@ -1,6 +1,4 @@
-#ifndef NDEBUG
 #define NDEBUG
-#endif
 
 #include "../bs_map.hpp"
 #include "../bs_set.hpp"

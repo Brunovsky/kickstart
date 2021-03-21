@@ -1,7 +1,3 @@
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include "../integer_lists.hpp"
 
 #include "../random.hpp"

@@ -1,6 +1,4 @@
-#ifdef NDEBUG
 #undef NDEBUG
-#endif
 
 #include "../frac.hpp"
 

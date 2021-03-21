@@ -1,7 +1,3 @@
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include "../matrix.hpp"
 
 #include "../debug_print.hpp"

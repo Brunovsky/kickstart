@@ -1,6 +1,4 @@
-#ifdef NDEBUG
 #undef NDEBUG
-#endif
 
 #include "../fenwick.hpp"
 

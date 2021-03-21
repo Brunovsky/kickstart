@@ -1,7 +1,3 @@
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include "../bigint.hpp"
 
 #include "../bigint_extra.hpp"

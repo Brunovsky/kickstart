@@ -1,7 +1,3 @@
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include "../string_search.hpp"
 
 #include "../gen/strings.hpp"

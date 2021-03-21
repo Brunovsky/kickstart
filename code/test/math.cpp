@@ -1,4 +1,5 @@
 #undef NDEBUG
+
 #include "../math.hpp"
 
 // *****

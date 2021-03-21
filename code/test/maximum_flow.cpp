@@ -1,7 +1,3 @@
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include "../maximum_flow.hpp"
 
 #include "../gen/flow.hpp"

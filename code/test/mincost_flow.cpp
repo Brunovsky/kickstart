@@ -1,7 +1,3 @@
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include "../mincost_flow.hpp"
 
 #include "../debug_print.hpp"

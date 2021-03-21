@@ -1,7 +1,3 @@
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include "../integer_heaps.hpp"
 
 #include "../debug_print.hpp"

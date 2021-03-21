@@ -1,7 +1,3 @@
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include "../bs_map.hpp"
 #include "../bs_set.hpp"
 #include "../bs_tree_debug.hpp"

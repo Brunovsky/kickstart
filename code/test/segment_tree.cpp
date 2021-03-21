@@ -1,7 +1,3 @@
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include "../segment_tree.hpp"
 
 #include "../debug_print.hpp"

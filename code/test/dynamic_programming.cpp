@@ -1,7 +1,3 @@
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include "../dynamic_programming.hpp"
 
 #include "../debug_print.hpp"

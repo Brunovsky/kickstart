@@ -1,7 +1,3 @@
-#ifdef NDEBUG
-#undef NDEBUG
-#endif
-
 #include "../lca.hpp"
 
 #include "test_utils.hpp"
