@@ -37,11 +37,9 @@ struct bigint {
 
 bool magnitude_cmp(const bigint& u, const bigint& v) {
     int L = u.len(), R = v.len();
-    if (L != R)
-        return L < R;
-    else
-        return lexicographical_compare(rbegin(u.nums), rend(u.nums), //
-                                       rbegin(v.nums), rend(v.nums));
+    return L != R ? L < R
+                  : lexicographical_compare(rbegin(u.nums), rend(u.nums), //
+                                            rbegin(v.nums), rend(v.nums));
 }
 
 bool operator<(const bigint& u, const bigint& v) {
@@ -100,40 +98,6 @@ bigint& operator<<=(bigint& u, uint shift) {
 
 bigint operator>>(bigint u, uint shift) { return u >>= shift; }
 bigint operator<<(bigint u, uint shift) { return u <<= shift; }
-
-bigint& operator&=(bigint& u, const bigint& v) {
-    int n = min(u.len(), v.len());
-    u.nums.resize(n);
-    for (int i = 0; i < n; i++)
-        u[i] = u[i] & v[i];
-    u.trim();
-    return u;
-}
-bigint& operator|=(bigint& u, const bigint& v) {
-    int n = max(u.len(), v.len());
-    u.nums.resize(n, 0);
-    for (int i = 0; i < v.len(); i++)
-        u[i] = u[i] | v[i];
-    return u;
-}
-bigint& operator^=(bigint& u, const bigint& v) {
-    int n = max(u.len(), v.len());
-    u.nums.resize(n, 0);
-    for (int i = 0; i < v.len(); i++)
-        u[i] = u[i] ^ v[i];
-    u.trim();
-    return u;
-}
-bigint operator~(bigint u) {
-    for (int i = 0; i < u.len(); i++)
-        u[i] = ~u[i];
-    u.trim();
-    return u;
-}
-
-bigint operator&(bigint u, const bigint& v) { return u &= v; }
-bigint operator|(bigint u, const bigint& v) { return u |= v; }
-bigint operator^(bigint u, const bigint& v) { return u ^= v; }
 
 void add_int(bigint& u, uint v) {
     for (int i = 0; v && i < u.len(); i++)
@@ -493,41 +457,5 @@ bigint::bigint(const string& s, uint b) {
     mul_int(*this, tens);
     add_int(*this, n);
 }
-
-string lsbits(const bigint& u) {
-    if (u.zero())
-        return "0";
-    string s(32 * u.len() + 1, '0');
-    s[0] = u.sign ? '-' : '+';
-    for (int i = 0; i < 32 * u.len(); i++)
-        s[i + 1] = '0' + u.bit(i);
-    while (!s.empty() && s.back() == '0')
-        s.pop_back();
-    return s;
-}
-string msbits(const bigint& u) {
-    if (u.zero())
-        return "0";
-    string s(32 * u.len() + 1, '0');
-    s[0] = u.sign ? '-' : '+';
-    for (int i = 0; i < 32 * u.len(); i++)
-        s[32 * u.len() - i] = '0' + u.bit(i);
-    s.erase(begin(s) + 1, find(begin(s) + 1, end(s), '1'));
-    return s;
-}
-string to_string(bigint u) {
-    if (u.zero())
-        return "0";
-    string s = u.sign ? "-" : "";
-    deque<string> rems;
-    while (!u.zero()) {
-        rems.push_front(to_string(div_int(u, 1'000'000'000u)));
-    }
-    for (int i = 0, n = rems.size(); i < n; i++)
-        s += string(i ? 9 - rems[i].length() : 0, '0') + rems[i];
-    return s;
-}
-
-ostream& operator<<(ostream& out, const bigint& u) { return out << to_string(u); }
 
 #endif // BIGINT_HPP

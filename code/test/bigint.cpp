@@ -1,7 +1,15 @@
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include "../bigint.hpp"
 
+#include "../bigint_extra.hpp"
+#include "../bigint_utils.hpp"
 #include "../debug_print.hpp"
+#include "../gen/strings.hpp"
 #include "../random.hpp"
+#include "test_utils.hpp"
 
 // *****
 
@@ -13,7 +21,32 @@ ulongd distv(0, U), distvp(1, U);
 intd distn_small(0, 10), distn_pos(1, 8), distn_large(50, 300), distn_any(0, 40);
 boold distneg(0.5);
 
+string trim_numeric_string(string s) {
+    int S = s.size(), l = 0, r = S;
+    while (r > 0 && isspace(s[r - 1]))
+        r--;
+    s.erase(r);
+    while (l < S && (isspace(s[l]) || s[l] == '+'))
+        l++;
+    s.erase(0, l);
+    return s;
+}
+
+string random_numeric_string(int digits, int base = 10) {
+    static boold plusd(0.3);
+    string s = generate_any_string(base, digits, '0');
+    if (digits && s[0] == '0')
+        s[0] = '1';
+    if (distneg(mt))
+        return "-" + s;
+    else if (plusd(mt))
+        return "+" + s;
+    else
+        return s;
+}
+
 bigint random_bigint(int n) {
+    // with sp[i] probability select the value sv[i] instead of a random distv value.
     static constexpr double sp[] = {0.15, 0.08, 0.15, 0.07, 0.05};
     static constexpr uint sv[] = {0, 1, U, U - 1, M};
     static constexpr int sk = 5;
@@ -56,16 +89,14 @@ array<bigint, m> random_bigints(array<int, m> ns) {
 }
 
 /**
- * test_add, test_sub, test_mul, test_div, test_mod, test_print
  * Unit tests for individual operations
  */
-void test_add() {
+void unit_test_add() {
     bigint u, v, a, b, c;
 
     for (int i = 0; i < 1'000'000; i++)
         u += 2 * i + 1, v -= 2 * i + 1;
     assert(u == bigint("1000000000000"));
-    print("v: {}\no: {}\n", v, bigint("-1000000000000"));
     assert(v == bigint("-1000000000000"));
 
     u.nums = {M, U, U, U};
@@ -85,9 +116,11 @@ void test_add() {
     assert(u == c);
     u -= b;
     assert(u == a);
+
+    print_ok("unit test add");
 }
 
-void test_sub() {
+void unit_test_sub() {
     bigint u, a, b, c;
 
     vector<int> nums;
@@ -109,9 +142,11 @@ void test_sub() {
     assert(u == a);
     b -= a;
     assert(b == 8);
+
+    print_ok("unit test sub");
 }
 
-void test_mul() {
+void unit_test_mul() {
     const bigint fac40("815915283247897734345611269596115894272000000000");
     bigint u = 1, v = 1, w = 1;
     for (int i = 1; i <= 40; i++)
@@ -129,9 +164,11 @@ void test_mul() {
     for (int i = 1; i <= 100; i++)
         u *= 37;
     assert(u == v);
+
+    print_ok("unit test mul");
 }
 
-void test_div() {
+void unit_test_div() {
     bigint a, b, c, d, x;
     a.nums = {0, 0, 0, 4};
     b.nums = {0, 2};
@@ -145,9 +182,11 @@ void test_div() {
     d = "137519289137519289"s;
     x = div_mod(a, b);
     assert(a == c && x == d);
+
+    print_ok("unit test div");
 }
 
-void test_shift() {
+void unit_test_shift() {
     string s = "101011101100001101010101000001101100001111110101";
     string z = s + string(150, '0');
     bigint v(s, 2);
@@ -163,30 +202,56 @@ void test_shift() {
         bigint w(z.substr(0, m + (127 - i)), 2);
         assert(u == w);
     }
+
+    print_ok("unit test shift");
 }
 
-void test_print() {
-    vector<bigint> ints = {
-        bigint("123456789012345678901234567890"),
-        bigint("12121212121212121212121212"),
-        bigint("  -111222333444555666777888999000"),
-        bigint("+123456789"),
-        bigint("+987654321"),
-        bigint("12345"),
-        bigint("-54321"),
-        bigint("123456789012345"),
-        bigint("-987654321012345"),
-        bigint("   -9999999999999999999999999999999999999"),
-        bigint("1000000000000000000000000000000000000"),
+void unit_test_print() {
+    vector<string> strs = {
+        "123456789012345678901234567890 ",
+        "12121212121212121212121212",
+        "  -111222333444555666777888999000  ",
+        "+123456789",
+        "+987654321   ",
+        "12345",
+        "-54321",
+        "123456789012345  ",
+        "-987654321012345",
+        "   -9999999999999999999999999999999999999  ",
+        "1000000000000000000000000000000000000",
     };
-    for (int i = 0, n = ints.size(); i < n; i++)
-        print("{:2}: {} {}\n", i, ints[i].len(), ints[i]);
+    for (const auto& str : strs) {
+        bigint u(str);
+        assert(to_string(u) == trim_numeric_string(str));
+    }
+    print_ok("unit test print");
 }
 
-void test_compare(int R) {
-    vector<bigint> ints(R);
+void stress_test_to_string(int R = 1000) {
+    intd digitsd(10, 500);
     for (int i = 0; i < R; i++) {
-        ints[i] = random_bigint(distn_any(mt));
+        print_progress(i, R, "stress test base10 to_string");
+        for (int b = 2; b <= 10; b++) {
+            auto s = random_numeric_string(digitsd(mt), b);
+            auto t = trim_numeric_string(s);
+            bigint u(s, b);
+            auto msb = msbits(u), lsb = lsbits(u);
+            assert(to_string(u, b) == t);
+            assert(bigint(msb, 2) == u);
+
+            msb.erase(0, 1), lsb.erase(0, 1);
+            reverse(begin(lsb), end(lsb));
+            assert(msb == lsb);
+        }
+    }
+    print_ok("stress test to_string");
+}
+
+void stress_test_compare_sort(int R = 10000) {
+    vector<bigint> ints(R);
+    intd digitsd(40, 60);
+    for (int i = 0; i < R; i++) {
+        ints[i] = bigint(random_numeric_string(digitsd(mt)));
     }
     sort(begin(ints), end(ints));
     for (int i = 0; i + 1 < R; i++) {
@@ -195,174 +260,126 @@ void test_compare(int R) {
     }
 }
 
-void test_add_commutative(int R) {
-    for (int i = 1; i <= R; i++) {
-        print("\radd commutative {}...", i);
-
+void stress_test_add_commutative(int R = 10000) {
+    for (int i = 0; i < R; i++) {
+        print_progress(i, R, "stress test add commutative");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_small));
         bigint c = a + b;
         bigint d = b + a;
-
-        if (c != d) {
-            print("\na: {}\nb: {}\nc: {}\nd: {}\n", a, b, c, d);
-        }
         assert(c == d);
     }
-    print("\n");
+    print_ok("stress test add commutative");
 }
 
-void test_add_transitive(int R) {
-    for (int i = 1; i <= R; i++) {
-        print("\radd transitive {}...", i);
-
+void stress_test_add_transitive(int R = 10000) {
+    for (int i = 0; i < R; i++) {
+        print_progress(i, R, "stress test add commutative");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
         bigint d = (a + b) + c;
         bigint e = a + (b + c);
-
-        if (d != e) {
-            print("\na: {}\nb: {}\nc: {}\nd: {}\ne: {}\n", a, b, c, d, e);
-        }
         assert(d == e);
     }
-    print("\n");
+    print_ok("stress test add transitive");
 }
 
-void test_add_sub_reverse(int R) {
-    for (int i = 1; i <= R; i++) {
-        print("\radd sub reverse {}...", i);
-
+void stress_test_add_sub_reverse(int R = 10000) {
+    for (int i = 0; i < R; i++) {
+        print_progress(i, R, "stress test add sub reverse");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_small));
         bigint c = a - b;
         bigint d = b + c;
-
-        if (a != d) {
-            print("\na: {}\nb: {}\nc: {}\nd: {}\n", a, b, c, d);
-        }
         assert(a == d);
     }
-    print("\n");
+    print_ok("stress test add sub reverse");
 }
 
-void test_add_sub_group(int R) {
-    for (int i = 1; i <= R; i++) {
-        print("\radd sub group {}...", i);
-
+void stress_test_add_sub_group(int R = 10000) {
+    for (int i = 0; i < R; i++) {
+        print_progress(i, R, "stress test add sub group");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
         bigint d = a - b + c;
         bigint e = a - (b - c);
         bigint f = a - b - c;
         bigint g = a - (b + c);
-
-        if (d != e || f != g) {
-            print("\na: {}\nb: {}\nc: {}\n", a, b, c);
-            print("d: {}\ne: {}\nf: {}\ng: {}\n", d, e, f, g);
-        }
         assert(d == e && f == g);
     }
-    print("\n");
+    print_ok("stress test add sub group");
 }
 
-void test_mul_commutative(int R) {
-    for (int i = 1; i <= R; i++) {
-        print("\rmul commutative {}...", i);
-
+void stress_test_mul_commutative(int R = 10000) {
+    for (int i = 0; i < R; i++) {
+        print_progress(i, R, "stress test mul commutative");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_small));
         bigint c = a * b;
         bigint d = b * a;
-
-        if (c != d) {
-            print("\na: {}\nb: {}\nc: {}\nd: {}\n", a, b, c, d);
-        }
         assert(c == d);
     }
-    print("\n");
+    print_ok("stress test mul commutative");
 }
 
-void test_mul_transitive(int R) {
-    for (int i = 1; i <= R; i++) {
-        print("\rmul transitive {}...", i);
-
+void stress_test_mul_transitive(int R = 10000) {
+    for (int i = 0; i < R; i++) {
+        print_progress(i, R, "stress test mul transitive");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
         bigint d = (a * b) * c;
         bigint e = a * (b * c);
-
-        if (d != e) {
-            print("\na: {}\nb: {}\nc: {}\nd: {}\ne: {}\n", a, b, c, d, e);
-        }
         assert(d == e);
     }
-    print("\n");
+    print_ok("stress test mul transitive");
 }
 
-void test_mul_distributive(int R) {
-    for (int i = 1; i <= R; i++) {
-        print("\rmul distributive {}...", i);
-
+void stress_test_mul_distributive(int R = 10000) {
+    for (int i = 0; i < R; i++) {
+        print_progress(i, R, "stress test mul distributive");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
         bigint d = a * (b + c);
         bigint e = a * b + a * c;
-
-        if (d != e) {
-            print("\na: {}\nb: {}\nc: {}\nd: {}\ne: {}\n", a, b, c, d, e);
-            print("b+c: {}\na*b: {}\na*c: {}\n", b + c, a * b, a * c);
-        }
         assert(d == e);
     }
-    print("\n");
+    print_ok("stress test mul distributive");
 }
 
-void test_div_perfect(int R) {
-    for (int i = 1; i <= R; i++) {
-        print("\rdiv perfect {}...", i);
-
+void stress_test_div_perfect(int R = 10000) {
+    for (int i = 0; i < R; i++) {
+        print_progress(i, R, "stress test div perfect");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_pos));
         bigint c = a * b;
         bigint d = c / a;
-
-        if (d != b) {
-            print("\na: {}\nb: {}\nc: {}\nd: {}\n", a, b, c, d);
-        }
         assert(d == b);
     }
-    print("\n");
+    print_ok("stress test div perfect");
 }
 
-void test_div_imperfect(int R) {
-    for (int i = 1; i <= R; i++) {
-        print("\rdiv imperfect {}...", i);
-
+void stress_test_div_imperfect(int R = 10000) {
+    for (int i = 0; i < R; i++) {
+        print_progress(i, R, "stress test div imperfect");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_pos));
         bigint q = a;
         bigint r = div_mod(q, b);
-
-        if (q * b + r != a || !magnitude_cmp(r, b)) {
-            print("\na: {}\nb: {}\nq: {}\nr: {}\n", a, b, q, r);
-        }
         assert(q * b + r == a && magnitude_cmp(r, b));
     }
-    print("\n");
+    print_ok("stress test div imperfect");
 }
 
 int main() {
-    setbuf(stdout, nullptr);
-    setbuf(stderr, nullptr);
-    test_add();
-    test_sub();
-    test_mul();
-    test_div();
-    test_shift();
-    test_print();
+    unit_test_add();
+    unit_test_sub();
+    unit_test_mul();
+    unit_test_div();
+    unit_test_shift();
+    unit_test_print();
 
-    test_compare(10000);
-    test_add_commutative(10000);
-    test_add_transitive(10000);
-    test_add_sub_reverse(10000);
-    test_add_sub_group(10000);
-    test_mul_commutative(10000);
-    test_mul_transitive(10000);
-    test_mul_distributive(10000);
-    test_div_perfect(30000);
-    test_div_imperfect(30000);
+    stress_test_to_string();
+    stress_test_compare_sort();
+    stress_test_add_commutative();
+    stress_test_add_transitive();
+    stress_test_add_sub_reverse();
+    stress_test_add_sub_group();
+    stress_test_mul_commutative();
+    stress_test_mul_transitive();
+    stress_test_mul_distributive();
+    stress_test_div_perfect();
+    stress_test_div_imperfect();
 
     return 0;
 }
