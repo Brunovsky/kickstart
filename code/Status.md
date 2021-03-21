@@ -26,7 +26,7 @@ This code collection has become quite messy. ✓✓XX
 | Data structures     |`simple_data_structures     `| Stable       | -              | |
 | Flow                |`maximum_flow               `| Stable       | Stable (S,P)   | Class generator imbalanced |
 | Flow                |`mincost_circulation        `| Outdated     |                | Not adapted to new edges_t graph interface |
-| Flow                |`mincost_flow               `| Outdated     |                | Not adapted to new edges_t graph interface |
+| Flow                |`mincost_flow               `| Stable       | Stable (D,P)   | |
 | Flow                |`mincut                     `| Outdated     |                | Not adapted to new edges_t graph interface |
 | Geometry            |`geometry2d                 `| Stable       |                | |
 | Geometry            |`convex_hull                `| Stable       |                | |

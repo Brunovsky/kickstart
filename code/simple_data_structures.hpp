@@ -1,7 +1,7 @@
-#ifndef INTEGER_DATA_STRUCTURES_HPP
-#define INTEGER_DATA_STRUCTURES_HPP
+#ifndef SIMPLE_DATA_STRUCTURES_HPP
+#define SIMPLE_DATA_STRUCTURES_HPP
 
-#include <vector>
+#include <bits/stdc++.h>
 
 using namespace std;
 
@@ -46,4 +46,4 @@ struct circular_queue {
     T pop() { return assert(h != t), ++h == N ? (h = 0, data[N - 1]) : data[h - 1]; }
 };
 
-#endif // INTEGER_DATA_STRUCTURES_HPP
+#endif // SIMPLE_DATA_STRUCTURES_HPP

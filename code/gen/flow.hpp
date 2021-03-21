@@ -159,7 +159,7 @@ auto add_cap_flow_network(flow_network& fn, flow_t maxcap) {
     return add_cap_flow_network(fn, 1, maxcap);
 }
 auto add_cost_flow_network(flow_network& fn, cost_t mincost, cost_t maxcost) {
-    fn.cap = int_gen<cost_t>(fn.E, mincost, maxcost);
+    fn.cost = int_gen<cost_t>(fn.E, mincost, maxcost);
 }
 auto add_cost_flow_network(flow_network& fn, cost_t maxcost) {
     return add_cost_flow_network(fn, 1, maxcost);

@@ -90,6 +90,10 @@ string to_string(const unordered_map<K, V>& v) {
     return '{' + s + '}';
 }
 
+template <typename U, typename V>
+ostream& operator<<(ostream& out, const pair<U, V>& v) {
+    return out << to_string(v);
+}
 template <typename T, size_t N>
 ostream& operator<<(ostream& out, const array<T, N>& v) {
     return out << to_string(v);
