@@ -35,7 +35,7 @@ This code collection has become quite messy. ✓✓XX
 | Graphs              |`isomorphism                `| Outdated     |                | Not adapted to new edges_t graph interface |
 | Graphs              |`regular                    `| Stable       |                | |
 | Graphs algorithms   |`min_spanning_forest        `| Outdated     |                | Not adapted to new edges_t graph interface |
-| Graphs algorithms   |`planarity                  `| Outdated     |                | Not adapted to new edges_t graph interface |
+| Graphs algorithms   |`planarity                  `| Stable       | Stable (D)     | |
 | Graphs algorithms   |`scc                        `| Outdated     |                | Not adapted to new edges_t graph interface |
 | Graphs algorithms   |`shortest_path              `| Stable       |                | Johnson's not correctly implemented |
 | Linear programming  |`simplex                    `| Stable       |                | Missing support for x <= 0 and x in R |
@@ -52,36 +52,17 @@ This code collection has become quite messy. ✓✓XX
 | Utilities           |`primes                     `| Stable       |                | |
 | Utilities           |`random                     `| Stable       |                | |
 
-Other files: `tree_core` `graph` `graph_operations`
-
 Test types:
 
-- Unit tests (problems defined inline; untimed; correct answer known)
+- (U) Unit tests (problems defined inline; untimed; correct answer known)
  `unit_test_X()`
-- Dataset tests (problems read from a file; untimed; correct answer known)
+- (D) Dataset tests (problems read from a file; untimed; correct answer known)
  `dataset_test_X()`, `dataset_test_X_run()`, `read_dataset_test()`
-- Stress tests (problems generated; untimed; verified)
+- (S) Stress tests (problems generated; untimed; verified)
  `stress_test_X()`, `stress_test_X_run()`
-- Speed tests (problems generated; timed; unverified)
+- (P) Speed tests (problems generated; timed; unverified)
  `speed_test_X()`, `speed_test_X_run()`
-- Scaling tests (problems generated; timed; verified; complexity scaling checked)
+- (A) Scaling tests (problems generated; timed; verified; complexity scaling checked)
  `scaling_test_X()`, `scaling_test_X_run()`
-- Visual tests (problems generated or defined inline)
+- (V) Visual tests (problems generated or defined inline)
  `format_test_X()`
-
-## Testing
-
-| Code                     | Status | Notes |
-|--------------------------|:------:|-------|
-|`planarity               `|  XXXX  |       |
-|`maximum_matching        `|  XXXX  |       |
-|`mincost_matching        `|  XXXX  |       |
-|`general_matching        `|  XXXX  |       |
-|`mincost_general_matching`|  -     | Not implemented yet |
-|`shortest_path           `|  XXXX  |       |
-|`maximum_flow            `|  XXXX  |       |
-|`mincost_flow            `|  XXXX  |       |
-|`mincost_circulation     `|  XXXX  |       |
-|`simplex                 `|  XXXX  |       |
-|`transportation          `|  XXXX  |       |
-|`mincut                  `|  XXXX  |       |

@@ -1,11 +1,3 @@
-27
-
-# Empty graph
-0 0 planar
-
-# 1 vertex
-1 0 planar
-
 # 2 vertices
 2 1 planar
 0 1

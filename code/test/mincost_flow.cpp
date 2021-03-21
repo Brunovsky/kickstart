@@ -114,7 +114,7 @@ void speed_test_mincost_flow_run(flow_network_kind i, int S, int T) {
     }
 
     clear_line();
-    print(" {:>8}ms -- edmonds_karp -- {} \n", TIME_MS(edmonds_karp), flow_kind_name[i]);
+    print(" {:>8}ms -- edmonds_karp -- {}\n", TIME_MS(edmonds_karp), flow_kind_name[i]);
 }
 
 void speed_test_mincost_flow() {

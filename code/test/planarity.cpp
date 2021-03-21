@@ -1,48 +1,60 @@
-#include "../graph.hpp"
 #include "../planarity.hpp"
+
+#include "../graph.hpp"
+#include "test_utils.hpp"
 
 // *****
 
-int N;
-vector<string> names;
-vector<left_right> graphs;
-vector<string> planarity;
+const string DATASET_FILE = "datasets/planar.txt";
 
-void read() {
-    ifstream file("datasets/planar.txt");
-    assert(file.is_open());
-    file >> N >> ws;
+/**
+ * Name
+ * V E answer                   | answer := planar|nonplanar
+ * u0 v0
+ * u1 v1
+ * ...
+ */
+struct planarity_dataset_test_t {
+    string name, comment;
+    edges_t g;
+    int V, E;
+    string ans;
 
-    names.resize(N);
-    planarity.resize(N);
+    void read(istream& in) {
+        getline(in, name);
+        in >> V >> E >> ws >> ans >> ws;
+        assert(V > 0 && E > 0 && !in.bad());
+        assert(ans == "planar" || ans == "nonplanar");
 
-    for (int i = 0; i < N; i++) {
-        int V, E;
-        getline(file, names[i]);
-        file >> V >> E >> planarity[i] >> ws;
-
-        left_right g(V);
-        for (int e = 0; e < E; e++) {
-            int u, v;
-            file >> u >> v >> ws;
-            g.add(u, v);
-        }
-        graphs.push_back(g);
+        g.resize(E);
+        for (auto& [u, v] : g)
+            in >> u >> v;
     }
-}
 
-void test() {
-    printf("===== PLANARITY TESTS =====\n verdict  |  actual\n");
-
-    for (int i = 0; i < N; i++) {
-        bool is_planar = graphs[i].is_planar();
+    void run() const {
+        left_right lr(V, g);
+        bool is_planar = lr.is_planar();
         string verdict = is_planar ? "planar" : "nonplanar";
-        printf("%9s | %9s  %s\n", verdict.data(), planarity[i].data(), names[i].data());
+        print("{:>9} | {:>9}  {}\n", verdict, ans, name);
     }
+};
+
+void dataset_test_planarity() {
+    ifstream file(DATASET_FILE);
+    if (!file.is_open())
+        return print("dataset file {} not found, skipping dataset test\n", DATASET_FILE);
+    file >> ws;
+    print("===== planarity tests =====\n verdict  |  actual\n");
+    while (!file.eof()) {
+        planarity_dataset_test_t test;
+        test.read(file);
+        test.run();
+        file >> ws;
+    }
+    print_ok("dataset test planarity");
 }
 
 int main() {
-    read();
-    test();
+    dataset_test_planarity();
     return 0;
 }

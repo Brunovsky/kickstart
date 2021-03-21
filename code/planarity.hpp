@@ -1,9 +1,7 @@
 #ifndef PLANARITY_HPP
 #define PLANARITY_HPP
 
-#include <bits/stdc++.h>
-
-using namespace std;
+#include "graph.hpp"
 
 // *****
 
@@ -19,16 +17,15 @@ struct left_right {
 
     explicit left_right(int V) : V(V), adj(V) {}
 
-    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
-
-    void add(int u, int v) {
-        assert(0 <= u && u < V && 0 <= v && v < V && u != v);
-        adj[u].push_back(E);
-        adj[v].push_back(E);
-        source.push_back(u);
-        target.push_back(v);
-        E++;
+    left_right(int V, const edges_t& g)
+        : V(V), E(g.size()), adj(V), source(E), target(E) {
+        for (int e = 0; e < E; e++) {
+            auto [u, v] = g[e];
+            adj[u].push_back(e), adj[v].push_back(e), source[e] = u, target[e] = v;
+        }
     }
+
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
     struct interval_t {
         int low = -1, high = -1;
@@ -90,9 +87,8 @@ struct left_right {
                 lowpoint2[e] = min(lowpoint2[e], lowpoint2[vw]);
             }
         }
-        sort(begin(dfs_adj[v]), end(dfs_adj[v]), [&](int e1, int e2) {
-            return nesting[e1] < nesting[e2];
-        });
+        sort(begin(dfs_adj[v]), end(dfs_adj[v]),
+             [&](int e1, int e2) { return nesting[e1] < nesting[e2]; });
     }
 
     bool add_constraints(int ei, int e) {
