@@ -3,6 +3,7 @@
 
 #include "graph.hpp"
 #include "graph_operations.hpp"
+#include "scc.hpp"
 
 // *****
 
@@ -153,5 +154,24 @@ string to_simple(const edges_t& g, int V, const string& more, bool directed = fa
 }
 
 string to_string(const edges_t& g, int V) { return to_human_undirected(g, V); }
+
+string to_dot(const strongly_connected_components& g) {
+    stringstream ss;
+    ss << "strict digraph {\n";
+    for (int c = 0; c < g.C; c++) {
+        ss << "\tsubgraph " << c << " {";
+        for (int u : g.cset[c]) {
+            ss << ' ' << u;
+        }
+        ss << " }\n";
+    }
+    for (int u = 0; u < g.V; u++) {
+        for (int v : g.adj[u]) {
+            ss << '\t' << setw(2) << u << " -> " << setw(2) << v << " ;\n";
+        }
+    }
+    ss << "}\n";
+    return ss.str();
+}
 
 #endif // GRAPH_FORMATS_HPP

@@ -1,9 +1,7 @@
 #ifndef SCC_HPP
 #define SCC_HPP
 
-#include <bits/stdc++.h>
-
-using namespace std;
+#include "graph.hpp"
 
 // *****
 
@@ -11,15 +9,13 @@ using namespace std;
  * Operations on the strongly connected components of a graph
  */
 struct strongly_connected_components {
-    int V, C = 0;
-    vector<vector<int>> adj, cset;
-    vector<int> cmap;
+    int V, C = 0;                  // number of strongly connected components
+    vector<vector<int>> adj, cset; // cset[c]: nodes in component c
+    vector<int> cmap;              // cmap[u]: component of node u
 
-    strongly_connected_components(int V) : V(V) { adj.resize(V, {}); }
-
-    void add(int u, int v) {
-        assert(0 <= u && u < V && 0 <= v && v < V);
-        adj[u].push_back(v);
+    strongly_connected_components(int V, const edges_t& g) : V(V), adj(V), cmap(V) {
+        for (auto [u, v] : g)
+            adj[u].push_back(v);
     }
 
     vector<int> index, lowlink;
@@ -57,21 +53,20 @@ struct strongly_connected_components {
         }
     }
 
-    void compute() {
+    int compute() {
         index.assign(V, 0);
         lowlink.assign(V, 0);
         onstack.assign(V, false);
         S = stack<int>();
         depth = 1;
         cset.clear();
-        cmap.assign(V, 0);
 
         for (int u = 0; u < V; u++) {
             if (!index[u]) {
                 tarjan(u);
             }
         }
-        C = cset.size();
+        return C = cset.size();
     }
 
     // If necessary, build the condensated graph on scc
@@ -104,24 +99,5 @@ struct strongly_connected_components {
         }
     }
 };
-
-string to_dot(const strongly_connected_components& g) {
-    stringstream ss;
-    ss << "strict digraph {\n";
-    for (int c = 0; c < g.C; c++) {
-        ss << "\tsubgraph " << c << " {";
-        for (int u : g.cset[c]) {
-            ss << ' ' << u;
-        }
-        ss << " }\n";
-    }
-    for (int u = 0; u < g.V; u++) {
-        for (int v : g.adj[u]) {
-            ss << '\t' << setw(2) << u << " -> " << setw(2) << v << " ;\n";
-        }
-    }
-    ss << "}\n";
-    return ss.str();
-}
 
 #endif // SCC_HPP
