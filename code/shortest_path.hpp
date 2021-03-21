@@ -2,7 +2,7 @@
 #define SHORTEST_PATH_HPP
 
 #include "graph.hpp"
-#include "integer_data_structures.hpp"
+#include "integer_heaps.hpp"
 
 // *****
 

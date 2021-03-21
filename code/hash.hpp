@@ -39,7 +39,7 @@ struct rolling_hasher {
     static constexpr size_t mask = (1 << 26) - 1;
     size_t n, mul;
 
-    rolling_hasher(size_t n) : n(n), mul(powovf(n) & mask) {}
+    explicit rolling_hasher(size_t n) : n(n), mul(powovf(n) & mask) {}
 
     size_t operator()(const char* s, const char* e) const noexcept {
         size_t seed = 0;
@@ -57,7 +57,7 @@ struct rolling_hasher {
         return (seed * base + in + (mask + 1 - out) * mul) & mask;
     }
 
-    constexpr size_t powovf(size_t e) {
+    static constexpr size_t powovf(size_t e) {
         size_t power = 1, b = base;
         while (e) {
             if (e & 1) {

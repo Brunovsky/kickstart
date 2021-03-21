@@ -22,7 +22,7 @@ This code collection has become quite messy. ✓✓XX
 | Data structures     |`lca                        `| Stable       | Stable (U)     | |
 | Data structures     |`matrix                     `| Stable       | Stable (U,S,P) | |
 | Data structures     |`rmq                        `| Stable       | Stable (U)     | |
-| Data structures     |`segment_tree               `| Template     |                | It's a template but could be basic tested; dynamic sparse segment tree |
+| Data structures     |`segment_tree               `| Template     | Stable (U)     | It's a template but could be basic tested; dynamic sparse segment tree |
 | Data structures     |`simple_data_structures     `| Stable       |                | |
 | Flow                |`maximum_flow               `| Stable       |                | |
 | Flow                |`mincost_circulation        `| Outdated     |                | Not adapted to new edges_t graph interface |
@@ -57,17 +57,17 @@ Other files: `tree_core` `graph` `graph_operations`
 Test types:
 
 - Unit tests (problems defined inline; untimed; correct answer known)
-  - `unit_test_X()`
+ `unit_test_X()`
 - Dataset tests (problems read from a file; untimed; correct answer known)
-  - `dataset_test_X()`, `dataset_test_X_run()`, `read_dataset_test()`
+ `dataset_test_X()`, `dataset_test_X_run()`, `read_dataset_test()`
 - Stress tests (problems generated; untimed; verified)
-  - `stress_test_X()`, `stress_test_X_run()`
+ `stress_test_X()`, `stress_test_X_run()`
 - Speed tests (problems generated; timed; unverified)
-  - `speed_test_X()`, `speed_test_X_run()`
+ `speed_test_X()`, `speed_test_X_run()`
 - Scaling tests (problems generated; timed; verified; complexity scaling checked)
-  - `scaling_test_X()`, `scaling_test_X_run()`
+ `scaling_test_X()`, `scaling_test_X_run()`
 - Visual tests (problems generated or defined inline)
-  - `format_test_X()`
+ `format_test_X()`
 
 ## Testing
 
