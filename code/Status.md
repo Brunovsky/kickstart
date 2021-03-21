@@ -28,8 +28,8 @@ This code collection has become quite messy. ✓✓XX
 | Flow                |`mincost_circulation        `| Outdated     |                | Not adapted to new edges_t graph interface |
 | Flow                |`mincost_flow               `| Stable       | Stable (D,P)   | |
 | Flow                |`mincut                     `| Stable       | Missing        | Plenty of room for optimization |
-| Geometry            |`geometry2d                 `| Stable       |                | |
-| Geometry            |`convex_hull                `| Stable       |                | |
+| Geometry            |`geometry2d                 `| Stable       | -              | |
+| Geometry            |`convex_hull                `| Stable       | -              | |
 | Graphs              |`graph_formats              `| Incomplete   |                | Standardized reading and writing, restyle |
 | Graphs              |`graph_generator            `| Incomplete   |                | Missing flow, circulation, shortest paths, matching and planarity generators |
 | Graphs              |`isomorphism                `| Outdated     |                | Not adapted to new edges_t graph interface |
