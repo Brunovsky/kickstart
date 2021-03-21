@@ -15,7 +15,7 @@ This code collection has become quite messy. ✓✓XX
 | Binary trees        |`splay_tree                 `| Stable       | -              | |
 | Data structures     |`bigint                     `| Stable       | Stable (U,S)   | Convoluted, needs cleanup: use debug functions, improve distribution |
 | Data structures     |`disjoint_set               `| Stable       | -              | |
-| Data structures     |`fenwick                    `| Stable       |                | |
+| Data structures     |`fenwick                    `| Stable       | Stable (U)     | |
 | Data structures     |`frac                       `| Stable       |                | |
 | Data structures     |`integer_data_structures    `| Stable       |                | Only heaps are performance tested on dijkstra |
 | Data structures     |`lca                        `| Stable       |                | Needs restyle |

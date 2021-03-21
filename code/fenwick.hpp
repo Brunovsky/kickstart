@@ -7,12 +7,11 @@ using namespace std;
 
 // *****
 
-template <int MAXN>
 struct fenwick {
     int N;
-    int tree[MAXN + 1]{};
+    vector<int> tree;
 
-    explicit fenwick(int N = 0) : N(N) {}
+    explicit fenwick(int N = 0) : N(N), tree(N + 1, 0) {}
 
     int sum(int i) {
         int sum = 0;
@@ -46,12 +45,12 @@ struct fenwick {
 
 // *****
 
-template <int MAXN, int MAXM>
 struct fenwick2d {
     int N, M;
-    int tree[MAXN + 1][MAXM + 1]{};
+    vector<vector<int>> tree;
 
-    explicit fenwick2d(int N = 0, int M = 0) : N(N), M(M) {}
+    explicit fenwick2d(int N = 0, int M = 0)
+        : N(N), M(M), tree(N + 1, vector<int>(M + 1, 0)) {}
 
     int sum(int i, int j) {
         int sum = 0;

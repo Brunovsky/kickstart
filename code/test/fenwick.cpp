@@ -1,9 +1,15 @@
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include "../fenwick.hpp"
+
+#include "test_utils.hpp"
 
 // *****
 
-void test() {
-    fenwick<100> fw(100);
+void unit_test_1d() {
+    fenwick fw(100);
 
     fw.add(10, 10);
     fw.add(20, 20);
@@ -22,10 +28,12 @@ void test() {
     assert(fw.lower_bound(159) == 50);
     assert(fw.lower_bound(540) == 100);
     assert(fw.lower_bound(541) == 101); // end is past N
+
+    print_ok("unit test 1d");
 }
 
-void test2d() {
-    fenwick2d<100, 100> fw(100, 100);
+void unit_test_2d() {
+    fenwick2d fw(100, 100);
 
     fw.add(10, 10, 10);
     fw.add(20, 20, 20);
@@ -42,10 +50,12 @@ void test2d() {
     assert(fw.sum(80, 90) == 210);
     assert(fw.sum(80, 94) == 210);
     assert(fw.sum(80, 95) == 270);
+
+    print_ok("unit test 2d");
 }
 
 int main() {
-    test();
-    test2d();
+    unit_test_1d();
+    unit_test_2d();
     return 0;
 }
