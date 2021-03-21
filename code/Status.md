@@ -13,15 +13,16 @@ This code collection has become quite messy. ✓✓XX
 | Binary trees        |`bs_tree                    `| Stable       | -              | Missing some libcpp methods with hints |
 | Binary trees        |`rb_tree                    `| Stable       | -              | |
 | Binary trees        |`splay_tree                 `| Stable       | -              | |
-| Data structures     |`bigint                     `| Stable       | Stable (U,S)   | Convoluted, needs cleanup: use debug functions, improve distribution |
+| Data structures     |`bigint                     `| Stable       | Stable (U,S)   | |
 | Data structures     |`disjoint_set               `| Stable       | -              | |
 | Data structures     |`fenwick                    `| Stable       | Stable (U)     | |
 | Data structures     |`frac                       `| Stable       | Stable (U)     | |
-| Data structures     |`integer_data_structures    `| Stable       |                | Only heaps are performance tested on dijkstra |
+| Data structures     |`integer_lists              `| Stable       | Stable (U,S)   | |
+| Data structures     |`integer_heaps              `| Stable       | Stable (U,P)   | |
 | Data structures     |`lca                        `| Stable       |                | Needs restyle |
 | Data structures     |`matrix                     `| Stable       |                | |
 | Data structures     |`rmq                        `| Stable       |                | |
-| Data structures     |`segment_tree               `| Template     |                | It's a template but could be basic tested |
+| Data structures     |`segment_tree               `| Template     |                | It's a template but could be basic tested; dynamic sparse segment tree |
 | Data structures     |`simple_data_structures     `| Stable       |                | |
 | Flow                |`maximum_flow               `| Stable       |                | |
 | Flow                |`mincost_circulation        `| Outdated     |                | Not adapted to new edges_t graph interface |

@@ -3,7 +3,7 @@
 
 #include "debug_print.hpp"
 #include "graph.hpp"
-#include "integer_data_structures.hpp"
+#include "integer_lists.hpp"
 
 // *****
 
