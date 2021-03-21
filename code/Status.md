@@ -43,7 +43,7 @@ This code collection has become quite messy. ✓✓XX
 | Linear programming  |`travelling_salesman        `| Outdated     |                | Needs an interface change |
 | Matching            |`general_matching           `| Stable       |                | |
 | Matching            |`maximum_matching           `| Stable       |                | |
-| Matching            |`mincost_matching           `| Outdated     |                | Not adapted to new edges_t graph interface |
+| Matching            |`mincost_matching           `| Stable       | Stable (U,P)   | Not adapted to new edges_t graph interface |
 | Threading           |`thread_pool                `| Stable       |                | |
 | Utilities           |`bits                       `| Stable       |                | |
 | Utilities           |`debug_print                `| Stable       |                | |

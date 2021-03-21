@@ -1,11 +1,9 @@
 #ifndef MINCOST_MATCHING_HPP
 #define MINCOST_MATCHING_HPP
 
-#include "hash.hpp"
+#include "graph.hpp"
 
 // *****
-
-constexpr long inf = LONG_MAX / 3;
 
 /**
  * Min-cost maximum bipartite matching (hungarian, dijkstra-based)
@@ -19,34 +17,43 @@ constexpr long inf = LONG_MAX / 3;
  * to mincost flow instead.
  */
 struct mincost_hungarian {
-    int U, V, E = 0, W;
-    vector<vector<int>> adj;
-    unordered_map<pair<int, int>, long, pair_hasher> cost;
+    int U, V, W, E;
+    vector<int> off, m[2];
+    edges_t edge;
+    vector<long> cost;
 
-    mincost_hungarian(int U, int V) : U(U), V(V), W(max(U, V)), adj(W) { pad(); }
-    explicit mincost_hungarian(int W = 0) : mincost_hungarian(W, W) {}
-
-    void add(int u, int v, long w) {
-        assert(0 <= u && u < U && 0 <= v && v < V && w >= 0);
-        assert(!cost.count({u, v}));
-        adj[u].push_back(v);
-        cost[{u, v}] = w;
-        E++;
+    mincost_hungarian(int U, int V, const edges_t& g, const costs_t& costs)
+        : U(U), V(V), W(max(U, V)), E(g.size()), off(W + 1, W - V) {
+        for (auto [u, v] : g)
+            off[u + 1]++;
+        for (int u = 0; u < U; u++) // edges if padding V side
+            off[u + 1] += W - V;
+        for (int u = U; u < V; u++) // edges if padding U side
+            off[u + 1] = V;
+        inclusive_scan(begin(off), end(off), begin(off));
+        int Q = off.back();
+        edge.resize(Q), cost.resize(Q);
+        auto cur = off;
+        for (int e = 0; e < E; e++) {
+            auto [u, v] = g[e];
+            edge[cur[u]] = {u, v}, cost[cur[u]++] = costs[e];
+        }
+        for (int v = V; v < U; v++) // edges if padding V side
+            for (int u = 0; u < U; u++)
+                edge[cur[u]] = {u, v}, cost[cur[u]++] = inf;
+        for (int u = U; u < V; u++) // edges if padding U side
+            for (int v = 0; v < V; v++)
+                edge[cur[u]] = {u, v}, cost[cur[u]++] = inf;
+        E = Q;
     }
 
-    void pad() {
-        for (int u = U; u < W; u++)
-            for (int v = 0; v < W; v++)
-                adj[u].push_back(v), cost[{u, v}] = inf;
-        for (int v = V; v < W; v++)
-            for (int u = 0; u < W; u++)
-                adj[u].push_back(v), cost[{u, v}] = inf;
-    }
-
-    vector<int> m[2], prev[2];
+    vector<int> prev[2];
     vector<long> pi[2], dist[2];
+    static inline constexpr long inf = LONG_MAX / 3;
 
-    long reduced_cost(int u, int v) { return cost.at({u, v}) + pi[0][u] - pi[1][v]; }
+    long reduced_cost(int e) const {
+        return cost[e] + pi[0][edge[e][0]] - pi[1][edge[e][1]];
+    }
 
     bool dijkstra() {
         dist[0].assign(W + 1, inf);
@@ -54,8 +61,9 @@ struct mincost_hungarian {
         prev[0].assign(W + 1, -1);
         prev[1].assign(W, -1);
 
-        using int2 = pair<long, int>;
         vector<bool> vis(W, false);
+
+        using int2 = pair<long, int>;
         priority_queue<int2, vector<int2>, greater<int2>> Q;
         for (int u = 0; u < W; u++)
             if (m[0][u] == W)
@@ -68,9 +76,9 @@ struct mincost_hungarian {
                 continue;
             }
             vis[u] = true;
-            for (int v : adj[u]) {
-                int y = m[1][v];
-                long w = min(dist[0][u] + reduced_cost(u, v), inf);
+            for (int e = off[u]; e < off[u + 1]; e++) {
+                int v = edge[e][1], y = m[1][v];
+                long w = min(dist[0][u] + reduced_cost(e), inf);
                 if (dist[0][y] > w) {
                     dist[0][y] = w, prev[0][y] = v;
                     Q.push({w, y});
@@ -93,7 +101,7 @@ struct mincost_hungarian {
     }
 
     auto path() {
-        vector<array<int, 2>> path;
+        edges_t path;
         int v = prev[0][W];
         while (v != -1) {
             path.push_back({prev[1][v], v});
@@ -110,18 +118,22 @@ struct mincost_hungarian {
 
         int matchings = 0;
         while (matchings < W && dijkstra()) {
-            for (auto edge : path()) {
-                int u = edge[0], v = edge[1];
+            for (auto [u, v] : path()) {
                 m[0][u] = v, m[1][v] = u;
             }
             matchings++;
         }
-        assert(matchings == W);
+        if (matchings < W)
+            return -1;
 
         long min_cost = 0;
         for (int u = 0; u < U; u++)
-            if (m[0][u] < V)
-                min_cost += cost.at({u, m[0][u]});
+            if (int v = m[0][u]; v < V)
+                for (int e = off[u]; e < off[u + 1]; e++)
+                    if (edge[e][1] == v) {
+                        min_cost += cost[e];
+                        break;
+                    }
         return min_cost;
     }
 };
