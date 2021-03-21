@@ -1,9 +1,9 @@
 #ifndef MAXIMUM_FLOW_HPP
 #define MAXIMUM_FLOW_HPP
 
-#include "debug_print.hpp"
 #include "graph.hpp"
-#include "integer_data_structures.hpp"
+#include "integer_heaps.hpp"
+#include "integer_lists.hpp"
 
 // *****
 

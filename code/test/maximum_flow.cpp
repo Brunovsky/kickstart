@@ -1,21 +1,23 @@
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include "../maximum_flow.hpp"
 
-#include "../graph_generator.hpp"
+#include "../gen/flow.hpp"
 #include "test_utils.hpp"
 
 // *****
 
 constexpr int N = 5;
 constexpr int sizes[] = {500, 1800, 6000, 12000, 20000};
-constexpr int amounts[] = {3000, 800, 100, 40, 10};
+constexpr int amounts[] = {1500, 400, 50, 20, 8};
 
-void test_speed(flow_network_kind i, int S, int T) {
+void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
     START_ACC(dinitz);
     START_ACC(push_relabel);
     START_ACC(tidal);
     START_ACC(mpm);
-
-    int errors = 0, max_errors = 10;
 
     for (int t = 0; t < T; t++) {
         print_progress(t, T, flow_kind_name[i]);
@@ -43,9 +45,8 @@ void test_speed(flow_network_kind i, int S, int T) {
         mf[3] = g3.maxflow(network.s, network.t);
         ADD_TIME(mpm);
 
-        if (errors < max_errors && !all_eq(mf)) {
-            print(" -- {:>9}\n", fmt::join(mf, " "));
-            errors++;
+        if (!all_eq(mf)) {
+            fail("Random test failed: {}", fmt::join(mf, " "));
         }
     }
 
@@ -57,19 +58,21 @@ void test_speed(flow_network_kind i, int S, int T) {
     PRINT_TIME(mpm);
 }
 
-void test_speed() {
+void speed_test_max_flow() {
     for (int n = 0; n < N; n++) {
         print("speed test group S={}, x{}\n", sizes[n], amounts[n]);
         for (int i = 0; i < int(FN_END); i++) {
-            test_speed(flow_network_kind(i), sizes[n], amounts[n]);
+            speed_test_max_flow_run(flow_network_kind(i), sizes[n], amounts[n]);
         }
     }
+    print_ok("speed test max flow");
 }
 
-void test_random_equals(int T = 10000) {
-    print("random test ");
+void stress_test_max_flow(int T = 10000) {
+    intd kindd(0, int(FN_END) - 1);
     for (int t = 0; t < T; t++) {
-        auto network = generate_flow_network(FN_COMPLETE, 100);
+        print_progress(t, T, "stress test max flow");
+        auto network = generate_flow_network(flow_network_kind(kindd(mt)), 100);
         add_cap_flow_network(network, 100'000);
         int V = network.V;
         const auto& g = network.g;
@@ -89,19 +92,17 @@ void test_random_equals(int T = 10000) {
         mf[4] = flow5.maxflow(0, V - 1);
         assert(mf[0] != 0);
 
-        print_progress(t, T, format("{}", fmt::join(mf, " ")));
-
         if (!all_eq(mf)) {
-            fail("Random test failed (see above)");
+            fail("Random test failed: {}", fmt::join(mf, " "));
         }
     }
-    print("\n");
+    print_ok("stress test max flow");
 }
 
 int main() {
     setbuf(stdout, nullptr);
     setbuf(stderr, nullptr);
-    test_random_equals();
-    test_speed();
+    stress_test_max_flow();
+    speed_test_max_flow();
     return 0;
 }

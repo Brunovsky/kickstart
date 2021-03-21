@@ -1208,6 +1208,4 @@ auto random_uniform_level_flow(int V, double p, int ranks, int m = 1, bool loop 
     return g;
 }
 
-#include "graph_classes.hpp"
-
 #endif // GRAPH_GENERATOR_HPP

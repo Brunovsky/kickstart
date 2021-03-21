@@ -23,8 +23,8 @@ This code collection has become quite messy. ✓✓XX
 | Data structures     |`matrix                     `| Stable       | Stable (U,S,P) | |
 | Data structures     |`rmq                        `| Stable       | Stable (U)     | |
 | Data structures     |`segment_tree               `| Template     | Stable (U)     | It's a template but could be basic tested; dynamic sparse segment tree |
-| Data structures     |`simple_data_structures     `| Stable       |                | |
-| Flow                |`maximum_flow               `| Stable       |                | |
+| Data structures     |`simple_data_structures     `| Stable       | -              | |
+| Flow                |`maximum_flow               `| Stable       | Stable (S,P)   | Class generator imbalanced |
 | Flow                |`mincost_circulation        `| Outdated     |                | Not adapted to new edges_t graph interface |
 | Flow                |`mincost_flow               `| Outdated     |                | Not adapted to new edges_t graph interface |
 | Flow                |`mincut                     `| Outdated     |                | Not adapted to new edges_t graph interface |
