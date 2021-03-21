@@ -17,9 +17,11 @@ using adjacency_lists_t = vector<adjacency_t>;
 using dist_t = long;
 using flow_t = long;
 using cost_t = long;
+using cap_t = long;
 using dists_t = vector<long>;
 using flows_t = vector<long>;
 using costs_t = vector<long>;
+using caps_t = vector<long>;
 
 /**
  * Edgelist+offset based graph constructor (template)

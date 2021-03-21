@@ -73,11 +73,11 @@ ifeq ($(COMPILER),clang)
 	WARNS += -Wweak-template-vtables -Wweak-vtables
 	WARNS += -Wzero-as-null-pointer-constant -Wzero-length-array
 
-    # Good warnings but disabled
-    # WARNS += -Wheader-hygiene
+	# Good warnings but disabled
+	# WARNS += -Wheader-hygiene
 
-    # Broken in clang 10
-    # -Wshadow -Wno-shadow-field-in-constructor
+	# Broken in clang 10
+	# -Wshadow -Wno-shadow-field-in-constructor
 endif
 
 # Not errors
@@ -149,3 +149,18 @@ SANIT += $(UB_SANIT)
 SANIT_LIST := $(subst -fsanitize=,,${SANIT})
 
 CXXFLAGS := $(WARNS)
+
+output_debug_flags:
+	@echo $(CXXFLAGS) $(DEBUG)
+
+output_perfm_flags:
+	@echo $(CXXFLAGS) $(OPTIM)
+
+output_sanit_flags:
+	@echo $(CXXFLAGS) $(DEBUG) $(SANIT)
+
+output_prof_flags:
+	@echo $(CXXFLAGS) $(OPTIM) -pg
+
+output_fast_debug_flags:
+	@echo $(CXXFLAGS) $(DEBUG) $(OPTIM) -UNDEBUG

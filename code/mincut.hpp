@@ -1,9 +1,12 @@
 #ifndef MINCUT_HPP
 #define MINCUT_HPP
 
+#include "graph.hpp"
 #include "hash.hpp"
 
 // *****
+
+using costs_t = vector<long>;
 
 /**
  * Stoer-Wagner minimum cut, priority-queue based
@@ -14,16 +17,14 @@ struct stoer_wagner {
     vector<unordered_set<int>> adj;
     unordered_map<pair<int, int>, long, pair_hasher> cost;
 
-    explicit stoer_wagner(int V = 0) : V(V), adj(V) {}
-
-    void add(int u, int v, long w) {
-        assert(0 <= u && u < V && 0 <= v && v < V && u != v && w >= 0);
-        auto e = minmax(u, v);
-        assert(!cost.count(e));
-        adj[u].insert(v);
-        adj[v].insert(u);
-        cost[e] = w;
-        E++;
+    stoer_wagner(int V, const edges_t& g, const costs_t& costs)
+        : V(V), E(g.size()), adj(V) {
+        for (int e = 0; e < E; e++) {
+            auto [u, v] = g[e];
+            cost[minmax(u, v)] = costs[e];
+            adj[u].insert(v);
+            adj[v].insert(u);
+        }
     }
 
     using cut_t = vector<int>;
@@ -45,7 +46,7 @@ struct stoer_wagner {
             priority_queue<int2> Q;
             Q.push({0, a});
 
-            int s, t = a;
+            int s = -1, t = a;
 
             while (!Q.empty()) {
                 int u = Q.top().second;
