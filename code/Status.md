@@ -21,7 +21,7 @@ This code collection has become quite messy. ✓✓XX
 | Data structures     |`integer_heaps              `| Stable       | Stable (U,P)   | |
 | Data structures     |`lca                        `| Stable       | Stable (U)     | |
 | Data structures     |`matrix                     `| Stable       | Stable (U,S,P) | |
-| Data structures     |`rmq                        `| Stable       |                | |
+| Data structures     |`rmq                        `| Stable       | Stable (U)     | |
 | Data structures     |`segment_tree               `| Template     |                | It's a template but could be basic tested; dynamic sparse segment tree |
 | Data structures     |`simple_data_structures     `| Stable       |                | |
 | Flow                |`maximum_flow               `| Stable       |                | |
