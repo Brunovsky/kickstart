@@ -1,4 +1,10 @@
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+
 #include "../lca.hpp"
+
+#include "test_utils.hpp"
 
 // *****
 
@@ -25,27 +31,24 @@ void setup() {
     children[19] = {};
 }
 
-void test() {
+void unit_test_lca() {
     lca_tree<20, 5> lca;
     lca.init(1);
-    printf("lca(11,19): %d\n", lca.lca(11, 19));
-    printf("lca(9, 15): %d\n", lca.lca(9, 15));
     assert(lca.lca(11, 19) == 5);
     assert(lca.lca(9, 15) == 3);
     assert(lca.lca(14, 15) == 1);
     assert(lca.lca(11, 13) == 5);
-    printf("depth[8]: %d\n", lca.depth[8]);
     assert(lca.depth[8] == 2);
     assert(lca.depth[16] == 3);
-    printf("dist(7,17): %d\n", lca.dist(7, 17));
     assert(lca.dist(7, 17) == 5);
     assert(lca.dist(6, 8) == 4);
     assert(lca.dist(3, 3) == 0);
     assert(lca.dist(3, 15) == 2);
+    print_ok("unit test lca");
 }
 
 int main() {
     setup();
-    test();
+    unit_test_lca();
     return 0;
 }

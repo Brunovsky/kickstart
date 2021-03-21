@@ -16,14 +16,6 @@ struct lca_tree {
     int parent[BITS][N];
     int depth[N];
 
-    void init_dfs(int u, int w) {
-        parent[0][u] = w;
-        depth[u] = (w == -1) ? 0 : depth[w] + 1;
-        for (int v : children[u]) {
-            init_dfs(v, u);
-        }
-    }
-
     void init(int root) {
         memset(parent, 0, sizeof(parent));
         memset(depth, 0, sizeof(depth));
@@ -62,6 +54,15 @@ struct lca_tree {
 
     int dist(int u, int v) { // # edges on path
         return depth[u] + depth[v] - 2 * depth[lca(u, v)];
+    }
+
+  private:
+    void init_dfs(int u, int w) {
+        parent[0][u] = w;
+        depth[u] = (w == -1) ? 0 : depth[w] + 1;
+        for (int v : children[u]) {
+            init_dfs(v, u);
+        }
     }
 };
 
