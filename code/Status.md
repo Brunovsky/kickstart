@@ -41,7 +41,7 @@ This code collection has become quite messy. ✓✓XX
 | Linear programming  |`simplex                    `| Stable       |                | Missing support for x <= 0 and x in R |
 | Linear programming  |`transportation             `| Inadequate   |                | Inefficient implementation and bad interface |
 | Linear programming  |`travelling_salesman        `| Outdated     |                | Needs an interface change |
-| Matching            |`general_matching           `| Stable       |                | |
+| Matching            |`general_matching           `| Stable       | Stable (D,S,P) | |
 | Matching            |`maximum_matching           `| Stable       |                | |
 | Matching            |`mincost_matching           `| Stable       | Stable (U,P)   | |
 | Threading           |`thread_pool                `| Stable       |                | |

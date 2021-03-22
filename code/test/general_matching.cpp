@@ -15,77 +15,59 @@ using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;
 
 // *****
 
-const string UNIT_TESTS = "datasets/micali_vazirani.txt";
+const string DATASET_FILE = "datasets/micali_vazirani.txt";
 const string ERROR_FILE = "datasets/latest_error.txt";
 
-struct Test {
+struct general_matching_dataset_test_t {
     string name, comment;
-    micali_vazirani g;
-    int M;
+    edges_t g;
+    vector<int> mate;
+    int V, E, num_mates, ans;
+
+    void read(istream& in) {
+        while (in.peek() == '#') {
+            string line;
+            getline(in, line);
+            comment += line + "\n";
+        }
+        in >> ws, getline(in, name);
+        in >> V >> E >> num_mates >> ans;
+        assert(V > 0 && E > 0 && num_mates > 0 && ans >= 0 && !in.bad());
+        assert(num_mates < 2 * V && ans < 2 * V && num_mates <= ans);
+
+        g.resize(E), mate.assign(V, -1);
+        for (int e = 0; e < E; e++) {
+            char c;
+            in >> g[e][0] >> ws >> c >> ws >> g[e][1];
+        }
+        for (int i = 0, u, v; i < num_mates; i++) {
+            char c;
+            in >> u >> ws >> c >> ws >> v;
+            assert(mate[u] == -1 && mate[v] == -1), mate[u] = v, mate[v] = u;
+        }
+    }
+
+    void run() const {
+        micali_vazirani vg(V, g);
+        vg.mate = mate;
+        int m = vg.max_matching();
+        print("{:4} -- {:4} {}\n", m, ans, name);
+        assert(m == ans);
+    }
 };
 
-Test read_dataset_test(istream& in) {
-    string name, comment;
-    while (in.peek() == '#') {
-        string line;
-        getline(in, line);
-        comment += line + "\n";
+void dataset_test_general_matching() {
+    ifstream file(DATASET_FILE);
+    if (!file.is_open())
+        return print("dataset file {} not found, skipping dataset test\n", DATASET_FILE);
+    file >> ws;
+    while (!file.eof()) {
+        general_matching_dataset_test_t test;
+        test.read(file);
+        test.run();
+        file >> ws;
     }
-    in >> ws;
-    getline(in, name);
-
-    int V, E, I, M;
-    in >> ws >> V >> E >> I >> M >> ws;
-    assert(V >= 0 && E >= 0 && I >= 0 && M >= 0 && I < 2 * V && M < 2 * V && I <= M);
-    assert(!in.bad());
-
-    edges_t g;
-    for (int i = 0; i < E; i++) {
-        int u, v;
-        char c;
-        in >> u >> ws >> c >> ws >> v;
-        g.push_back({u, v});
-    }
-
-    micali_vazirani vg(V, g);
-
-    for (int i = 0; i < I; i++) {
-        int u, v;
-        char c;
-        in >> u >> ws >> c >> ws >> v;
-        assert(vg.mate[u] == -1 && vg.mate[v] == -1);
-        vg.mate[u] = v, vg.mate[v] = u;
-    }
-
-    Test test{name, comment, move(vg), M};
-    return test;
-}
-
-void read_dataset_tests(vector<Test>& tests, istream& in = cin) {
-    in >> ws;
-    while (!in.eof()) {
-        tests.push_back(read_dataset_test(in));
-        in >> ws;
-    }
-}
-
-void dataset_test_run(Test& test) {
-    int matched = test.g.max_matching();
-    print("{:4} -- {:4} {}\n", matched, test.M, test.name);
-    assert(matched == test.M);
-}
-
-void dataset_test() {
-    vector<Test> tests;
-    ifstream file(UNIT_TESTS);
-    assert(file.is_open());
-    read_dataset_tests(tests, file);
-    for_each(begin(tests), end(tests), dataset_test_run);
-}
-
-void print_ratio(int64_t time, int R, int E, int V) {
-    double ratio = 1e6 * time / (1.0 * R * E * sqrt(V));
-    print("ratio: {:.2f}\n", ratio);
+    print_ok("dataset test general matching");
 }
 
 string apply_comment(string lines) {
@@ -106,13 +88,14 @@ string apply_comment(string lines) {
             mates.push_back({u, vg.mate[u]});
 
     int c = mates.size();
-    out << apply_comment(compact_dot(g, vg.V));
-    out << "\nRandom test error\n";
+    out << apply_comment(compact_dot(g, vg.V)) << '\n';
+    out << "Random test error" << '\n';
     out << to_simple(g, vg.V, format("{} {}", c, M));
     for (auto [u, v] : mates)
         out << ' ' << u << ',' << v;
-    out << endl;
+    out << '\n';
     out.close();
+    print("Logged error case to {}\n", ERROR_FILE);
     exit(0);
 }
 
@@ -150,12 +133,12 @@ int boost_matching_size(const bgraph& bg) {
     return cnt / 2;
 }
 
-void random_stress_test(int R) {
+void stress_test_general_matching(int T = 10000) {
     intd distV(18, 30);
     reald distE(1.2, 3.0);
-    unordered_map<int, int> misscnt;
 
-    for (int i = 1; i <= R; i++) {
+    for (int i = 0; i < T; i++) {
+        print_progress(i, T, "random stress test");
         int V = distV(mt), E = int(V * distE(mt));
         auto g = relabel(random_exact_undirected_connected(V, E), V);
         shuffle(begin(g), end(g), mt);
@@ -163,133 +146,114 @@ void random_stress_test(int R) {
         micali_vazirani vg(V, g);
         int M = boost_matching_size(bg);
         int ans = vg_matching_size(g, vg, M);
-        int missed = V / 2 - M;
-        misscnt[missed]++;
-        print("\rRandom test {}... ", i);
         if (ans != M) {
-            print("ERROR\n");
+            print("error -- V={} E={} -- boost:{} -- mv:{}\n", V, E, M, ans);
             logerror(g, vg, M);
         }
     }
 }
 
-void scaling_test(int R, int V, int E) {
-    if (R == 0)
+inline double compute_ratio(int64_t time, int T, int V, int E) {
+    return 1e9 * time / (1.0 * T * E * sqrt(V));
+}
+
+void scaling_test_general_matching_run(int T, int V, int E) {
+    if (T == 0)
         return;
 
-    print("x{:<6}  V={:<6}  E={:<6}\n", R, V, E);
-
-    vector<edges_t> gs(R);
-    for (int i = 0; i < R; i++) {
-        gs[i] = relabel(random_exact_undirected_connected(V, E), V);
-    }
-
-    START(run);
-    for (int i = 0; i < R; i++) {
-        micali_vazirani vg(V, gs[i]);
+    START_ACC(mv);
+    for (int i = 0; i < T; i++) {
+        edges_t g = relabel(random_exact_undirected_connected(V, E), V);
+        START(mv);
+        micali_vazirani vg(V, g);
         vg.bootstrap();
         vg.max_matching();
+        ADD_TIME(mv);
     }
-    TIME(run);
-    PRINT_TIME(run);
-
-    double ratio = 1e6 * time_run / (1.0 * R * E * sqrt(V));
-    print("ratio: {:.2f}\n", ratio);
+    print(" {:>8}ms -- {:7.1f} ratio -- x{:<6}  V={:<6}  E={:<6}\n", TIME_MS(mv),
+          compute_ratio(TIME_MS(mv), T, V, E), T, V, E);
 }
 
-void scaling_test(double M = 1) {
-    START(scaling);
-    scaling_test(int(M * 2000), 200, 300);
-    scaling_test(int(M * 600), 200, 2000);
-    scaling_test(int(M * 800), 500, 800);
-    scaling_test(int(M * 100), 500, 12000);
-    scaling_test(int(M * 80), 5000, 7000);
-    scaling_test(int(M * 40), 5000, 12000);
-    scaling_test(int(M * 10), 5000, 70000);
-    scaling_test(int(M * 3), 5000, 230'000);
-    scaling_test(int(M * 30), 10000, 15000);
-    scaling_test(int(M * 24), 10000, 25000);
-    scaling_test(int(M * 5), 10000, 150'000);
-    scaling_test(int(M * 14), 20000, 30000);
-    scaling_test(int(M * 9), 20000, 45000);
-    scaling_test(int(M * 2), 20000, 400'000);
-    scaling_test(int(M * 6), 30000, 50000);
-    scaling_test(int(M * 5), 30000, 70000);
-    scaling_test(int(M * 1), 30000, 550'000);
-    scaling_test(int(M * 4), 50000, 80000);
-    scaling_test(int(M * 1), 50000, 780'000);
-    scaling_test(int(M * 3), 100000, 150'000);
-    scaling_test(int(M * 2), 100000, 250'000);
-    scaling_test(int(M * 2), 100000, 350'000);
-    scaling_test(int(M * 1), 100000, 1'000'000);
-    scaling_test(int(M * 2), 200000, 300'000);
-    scaling_test(int(M * 2), 250000, 300'000);
-    TIME(scaling);
-    PRINT_TIME(scaling);
+void scaling_test_general_matching(double F = 1.0) {
+    print("scaling test general matching (factor {})\n", F);
+    scaling_test_general_matching_run(int(F * 2000), 200, 300);
+    scaling_test_general_matching_run(int(F * 600), 200, 2000);
+    scaling_test_general_matching_run(int(F * 800), 500, 800);
+    scaling_test_general_matching_run(int(F * 100), 500, 12000);
+    scaling_test_general_matching_run(int(F * 80), 5000, 7000);
+    scaling_test_general_matching_run(int(F * 40), 5000, 12000);
+    scaling_test_general_matching_run(int(F * 10), 5000, 70000);
+    scaling_test_general_matching_run(int(F * 3), 5000, 230'000);
+    scaling_test_general_matching_run(int(F * 30), 10000, 15000);
+    scaling_test_general_matching_run(int(F * 24), 10000, 25000);
+    scaling_test_general_matching_run(int(F * 5), 10000, 150'000);
+    scaling_test_general_matching_run(int(F * 14), 20000, 30000);
+    scaling_test_general_matching_run(int(F * 9), 20000, 45000);
+    scaling_test_general_matching_run(int(F * 2), 20000, 400'000);
+    scaling_test_general_matching_run(int(F * 6), 30000, 50000);
+    scaling_test_general_matching_run(int(F * 5), 30000, 70000);
+    scaling_test_general_matching_run(int(F * 1), 30000, 550'000);
+    scaling_test_general_matching_run(int(F * 4), 50000, 80000);
+    scaling_test_general_matching_run(int(F * 1), 50000, 780'000);
+    scaling_test_general_matching_run(int(F * 3), 100000, 150'000);
+    scaling_test_general_matching_run(int(F * 2), 100000, 250'000);
+    scaling_test_general_matching_run(int(F * 2), 100000, 350'000);
+    scaling_test_general_matching_run(int(F * 1), 100000, 1'000'000);
+    scaling_test_general_matching_run(int(F * 2), 200000, 300'000);
+    scaling_test_general_matching_run(int(F * 2), 250000, 300'000);
 }
 
-void performance_test(int R, int V, int E) {
-    if (R == 0)
-        return;
+void speed_test_general_matching_run(int T, int V, int E) {
+    print("  speed test x{:>6}  V={:<6}  E={:<6}\n", T, V, E);
+    START_ACC(boost);
+    START_ACC(mv);
 
-    print("x{:>6}  V={:<6}  E={:<6}\n", R, V, E);
+    for (int i = 0; i < T; i++) {
+        print_progress(i, T, "speed test general matching");
+        edges_t g = relabel(random_exact_undirected_connected(V, E), V);
+        auto bg = to_boost(g, V);
 
-    vector<int> bans(R), vans(R);
-    vector<edges_t> gs(R);
-    for (int i = 0; i < R; i++) {
-        gs[i] = relabel(random_exact_undirected_connected(V, E), V);
-        print("\rGenerating {}...", i + 1);
-    }
-    print("\n");
+        START(boost);
+        int ans = boost_matching_size(bg);
+        ADD_TIME(boost);
 
-    // boost
-    START(boost);
-    for (int i = 0; i < R; i++) {
-        auto bg = to_boost(gs[i], V);
-        bans[i] = boost_matching_size(bg);
-        print("\rboost {}", i + 1);
-    }
-    TIME(boost);
-    PRINT_TIME(boost);
-
-    // mv
-    int errors = 0;
-    START(mv);
-    for (int i = 0; i < R; i++) {
-        micali_vazirani vg(V, gs[i]);
+        START(mv);
+        micali_vazirani vg(V, g);
         vg.bootstrap();
-        vans[i] = vg.max_matching();
-        errors += vans[i] != bans[i];
+        int M = vg.max_matching();
+        ADD_TIME(mv);
+
+        if (ans != M) {
+            print("error -- V={} E={} -- boost:{} -- mv:{}\n", V, E, M, ans);
+        }
     }
-    TIME(mv);
+
+    PRINT_TIME(boost);
     PRINT_TIME(mv);
-    print("errors: {}\n", errors);
-    print_ratio(time_mv, R, E, V);
 }
 
-void speed_test(double M) {
-    performance_test(int(M * 20000), 50, 70);
-    performance_test(int(M * 10000), 100, 150);
-    performance_test(int(M * 4000), 200, 300);
-    performance_test(int(M * 2000), 500, 800);
-    performance_test(int(M * 200), 5000, 7000);
-    performance_test(int(M * 140), 5000, 12000);
-    performance_test(int(M * 40), 10000, 15000);
-    performance_test(int(M * 30), 10000, 25000);
-    performance_test(int(M * 14), 20000, 30000);
-    performance_test(int(M * 11), 20000, 45000);
-    performance_test(int(M * 6), 30000, 50000);
-    performance_test(int(M * 5), 30000, 70000);
-    performance_test(int(M * 2), 50000, 80000);
-    performance_test(int(M * 1), 100000, 150000);
+void speed_test_general_matching(double F = 1.0) {
+    print("speed test general matching (factor {})\n", F);
+    speed_test_general_matching_run(int(F * 20000), 50, 70);
+    speed_test_general_matching_run(int(F * 10000), 100, 150);
+    speed_test_general_matching_run(int(F * 4000), 200, 300);
+    speed_test_general_matching_run(int(F * 2000), 500, 800);
+    speed_test_general_matching_run(int(F * 200), 5000, 7000);
+    speed_test_general_matching_run(int(F * 140), 5000, 12000);
+    speed_test_general_matching_run(int(F * 40), 10000, 15000);
+    speed_test_general_matching_run(int(F * 30), 10000, 25000);
+    speed_test_general_matching_run(int(F * 14), 20000, 30000);
+    speed_test_general_matching_run(int(F * 11), 20000, 45000);
+    speed_test_general_matching_run(int(F * 6), 30000, 50000);
+    speed_test_general_matching_run(int(F * 5), 30000, 70000);
+    speed_test_general_matching_run(int(F * 2), 50000, 80000);
+    speed_test_general_matching_run(int(F * 1), 100000, 150000);
 }
 
 int main() {
-    setbuf(stdout, nullptr);
-    setbuf(stderr, nullptr);
-    dataset_test();
-    random_stress_test(10000);
-    scaling_test(3);
-    speed_test(1);
+    dataset_test_general_matching();
+    stress_test_general_matching();
+    scaling_test_general_matching(3);
+    speed_test_general_matching();
     return 0;
 }

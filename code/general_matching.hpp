@@ -2,18 +2,20 @@
 #define GENERAL_MATCHING_HPP
 
 #include "debug_print.hpp"
-#include "hash.hpp"
-#include "integer_data_structures.hpp"
+#include "graph.hpp"
+#include "integer_lists.hpp"
 
 // *****
+
+using edges_t = vector<array<int, 2>>;
 
 struct micali_vazirani {
     int V, E = 0;
     vector<int> adj, off, mate;
-    vector<array<int, 2>> edge;
+    edges_t edge;
 
-    micali_vazirani(int V, vector<array<int, 2>> g)
-        : V(V), E(g.size()), adj(2 * E), off(V + 1, 0), mate(V, -1), edge(move(g)) {
+    micali_vazirani(int V, const edges_t& g)
+        : V(V), E(g.size()), adj(2 * E), off(V + 1, 0), mate(V, -1), edge(g) {
         for (auto [u, v] : edge)
             off[u + 1]++, off[v + 1]++;
         inclusive_scan(begin(off), end(off), begin(off));
@@ -87,7 +89,7 @@ struct micali_vazirani {
         for (int m = 0; m < V; m++) {
             FOR_EACH_IN_FORWARD_LIST (e, m, minbuck) {
                 auto [u, v] = edge[e];
-                if (mate[u] == mate[v]) // both -1
+                if (mate[u] == -1 && mate[v] == -1)
                     mate[u] = v, mate[v] = u;
             }
         }
@@ -99,7 +101,7 @@ struct micali_vazirani {
         int more = 1;
         init();
         while (more && count_matched < V / 2) {
-            reset();
+            reset_search();
             more = search();
         }
         return count_matched;
@@ -170,7 +172,7 @@ struct micali_vazirani {
         }
     }
 
-    void reset() {
+    void reset_search() {
         phase = blooms = ddfsid = pending = 0;
         phaselist.clear(), bridges.clear();
         for (int u = 0; u < V; u++) {
