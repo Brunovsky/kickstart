@@ -42,7 +42,7 @@ This code collection has become quite messy. ✓✓XX
 | Linear programming  |`transportation             `| Inadequate   |                | Inefficient implementation and bad interface |
 | Linear programming  |`travelling_salesman        `| Stable       | Stable (D)     | |
 | Matching            |`general_matching           `| Stable       | Stable (D,S,P) | |
-| Matching            |`maximum_matching           `| Stable       |                | |
+| Matching            |`maximum_matching           `| Stable       | Stable (U)     | |
 | Matching            |`mincost_matching           `| Stable       | Stable (U,P)   | |
 | Threading           |`thread_pool                `| Stable       |                | |
 | Utilities           |`bits                       `| Stable       |                | |

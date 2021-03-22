@@ -1,11 +1,11 @@
 #ifndef MAXIMUM_MATCHING_HPP
 #define MAXIMUM_MATCHING_HPP
 
-#include <bits/stdc++.h>
-
-using namespace std;
+#include "graph.hpp"
 
 // *****
+
+using edges_t = vector<array<int, 2>>;
 
 /**
  * Simple maximum bipartite matching
@@ -14,14 +14,17 @@ using namespace std;
 struct maximum_matching {
     int U, V;
     vector<int> off, mu, mv;
-    vector<array<int, 2>> edge;
+    edges_t edge;
 
-    maximum_matching(int U, int V, vector<array<int, 2>> g)
-        : U(U), V(V), off(U + 1, 0), mu(U, -1), mv(V, -1), edge(move(g)) {
-        for (auto [u, v] : edge)
+    maximum_matching(int U, int V, const edges_t& g)
+        : U(U), V(V), off(U + 1, 0), mu(U, -1), mv(V, -1), edge(g.size()) {
+        for (auto [u, v] : g)
             off[u + 1]++;
         inclusive_scan(begin(off), end(off), begin(off));
-        sort(begin(edge), end(edge));
+        auto cur = off;
+        for (auto [u, v] : g) {
+            edge[cur[u]++] = {u, v};
+        }
     }
 
     vector<int> vis;
@@ -48,8 +51,6 @@ struct maximum_matching {
     }
 
     int compute() {
-        mu.assign(U, -1);
-        mv.assign(V, -1);
         vis.assign(U, 0);
         iteration = 0;
         int new_matchings = 0;
@@ -75,14 +76,18 @@ struct maximum_matching {
 struct hopcroft_karp {
     int U, V;
     vector<int> off, mu, mv;
-    vector<array<int, 2>> edge;
+    edges_t edge;
 
-    hopcroft_karp(int U, int V, vector<array<int, 2>> g)
-        : U(U), V(V), off(U + 2, 0), mu(U + 1, 0), mv(V + 1, 0), edge(move(g)) {
-        for (auto [u, v] : edge)
+    hopcroft_karp(int U, int V, const edges_t& g)
+        : U(U), V(V), off(U + 2, 0), mu(U + 1, 0), mv(V + 1, 0), edge(g.size()) {
+        cout << U << ' ' << V << endl;
+        for (auto [u, v] : g)
             off[u + 2]++;
         inclusive_scan(begin(off), end(off), begin(off));
-        sort(begin(edge), end(edge));
+        auto cur = off;
+        for (auto [u, v] : g) {
+            edge[cur[u + 1]++] = {u + 1, v + 1};
+        }
     }
 
     vector<int> vis, dist;
@@ -105,9 +110,8 @@ struct hopcroft_karp {
             Q.pop();
             if (dist[u] < dist[0]) {
                 for (int e = off[u]; e < off[u + 1]; e++) {
-                    int v = edge[e][1] + 1;
                     // note: the check v != mu[u] is implicit in dist[mv[v]] == inf
-                    if (dist[mv[v]] == inf) {
+                    if (int v = edge[e][1]; dist[mv[v]] == inf) {
                         dist[mv[v]] = dist[u] + 1;
                         Q.push(mv[v]);
                     }
@@ -126,8 +130,7 @@ struct hopcroft_karp {
         }
         vis[u] = iteration;
         for (int e = off[u]; e < off[u + 1]; e++) {
-            int v = edge[e][1] + 1;
-            if (dist[mv[v]] == dist[u] + 1 && dfs(mv[v])) {
+            if (int v = edge[e][1]; dist[mv[v]] == dist[u] + 1 && dfs(mv[v])) {
                 mv[v] = u;
                 mu[u] = v;
                 return true;
@@ -137,8 +140,6 @@ struct hopcroft_karp {
     }
 
     int compute() {
-        mu.assign(U + 1, 0);
-        mv.assign(V + 1, 0);
         vis.assign(U + 1, 0);
         dist.assign(U + 1, 0);
         int matching = 0;
