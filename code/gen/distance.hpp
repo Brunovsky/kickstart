@@ -44,7 +44,7 @@ auto generate_distance_graph(distance_graph_kind i, int S, bool bidirectional = 
     reald densed(0.6, 0.9);
 
     auto dV = [&](double e) {
-        int n = max(1, int(ceil(pow(S, e)))), s = int(sqrt(n));
+        int n = max(3, int(ceil(pow(S, e)))), s = int(sqrt(n));
         return intd(n, n + s)(mt);
     };
 
@@ -58,18 +58,19 @@ auto generate_distance_graph(distance_graph_kind i, int S, bool bidirectional = 
     auto dense = [&]() { return densed(mt); };
     auto add_reverse = [&]() { bidirectional ? add_reverse_edges(g) : (void)0; };
     auto sqrtk = [&]() { return int(sqrt(V) + 1); };
+    auto regk = [&]() { return max(2, (int(sqrt(V) + 1) | 1) - 1); };
 
     switch (i) {
     case DG_UNIFORM_SPARSE:
-        V = dV(1.00), p = sparse();
+        V = dV(0.90), p = sparse();
         g = random_uniform_directed_connected(V, p);
         break;
     case DG_UNIFORM_MODERATE:
-        V = dV(0.75), p = moderate();
+        V = dV(0.80), p = moderate();
         g = random_uniform_directed_connected(V, p);
         break;
     case DG_UNIFORM_DENSE:
-        V = dV(0.68), p = dense();
+        V = dV(0.72), p = dense();
         g = random_uniform_directed_connected(V, p);
         break;
     case DG_COMPLETE:
@@ -85,29 +86,29 @@ auto generate_distance_graph(distance_graph_kind i, int S, bool bidirectional = 
         g = disjoint_complete_directed(n, k), add_reverse();
         break;
     case DG_REGULAR_RING:
-        V = dV(0.85), k = sqrtk();
+        V = dV(0.85), k = regk();
         g = regular_ring(V, k), add_reverse();
         break;
     case DG_NORMAL_GRID2:
-        X = dV(0.57), Y = dV(0.57), V = X * Y;
+        X = dV(0.45), Y = dV(0.45), V = X * Y;
         g = grid_directed(X, Y), add_reverse();
         break;
     case DG_CIRCULAR_GRID2:
-        X = dV(0.57), Y = dV(0.57), V = X * Y;
+        X = dV(0.45), Y = dV(0.45), V = X * Y;
         g = circular_grid_directed(X, Y), add_reverse();
         break;
     case DG_NORMAL_GRID3:
-        X = dV(0.37), Y = dV(0.37), Z = dV(0.37), V = X * Y * Z;
+        X = dV(0.27), Y = dV(0.27), Z = dV(0.27), V = X * Y * Z;
         g = grid3_directed(X, Y, Z), add_reverse();
         break;
     case DG_CIRCULAR_GRID3:
-        X = dV(0.37), Y = dV(0.37), Z = dV(0.37), V = X * Y * Z;
+        X = dV(0.27), Y = dV(0.27), Z = dV(0.27), V = X * Y * Z;
         g = circular_grid3_directed(X, Y, Z), add_reverse();
         break;
     default:
         throw runtime_error("Invalid distance graph kind");
     }
-    assert(verify_edges_directed(g, V) && is_connected_directed(g, V));
+    assert(verify_edges_directed(g, V));
 
     int E = g.size();
     distance_graph dg;

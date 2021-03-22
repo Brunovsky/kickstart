@@ -37,13 +37,13 @@ This code collection has become quite messy. ✓✓XX
 | Graphs algorithms   |`min_spanning_forest        `| Outdated     |                | Not adapted to new edges_t graph interface |
 | Graphs algorithms   |`planarity                  `| Stable       | Stable (D)     | |
 | Graphs algorithms   |`scc                        `| Stable       | Stable (U)     | |
-| Graphs algorithms   |`shortest_path              `| Stable       |                | Johnson's not correctly implemented |
+| Graphs algorithms   |`shortest_path              `| Stable       | Stable (P)     | Johnson's not correctly implemented, Goldberg needs verification |
 | Linear programming  |`simplex                    `| Stable       |                | Missing support for x <= 0 and x in R |
 | Linear programming  |`transportation             `| Inadequate   |                | Inefficient implementation and bad interface |
 | Linear programming  |`travelling_salesman        `| Outdated     |                | Needs an interface change |
 | Matching            |`general_matching           `| Stable       |                | |
 | Matching            |`maximum_matching           `| Stable       |                | |
-| Matching            |`mincost_matching           `| Stable       | Stable (U,P)   | Not adapted to new edges_t graph interface |
+| Matching            |`mincost_matching           `| Stable       | Stable (U,P)   | |
 | Threading           |`thread_pool                `| Stable       |                | |
 | Utilities           |`bits                       `| Stable       |                | |
 | Utilities           |`debug_print                `| Stable       |                | |

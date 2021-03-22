@@ -6,6 +6,8 @@
 
 // *****
 
+using weights_t = vector<long>;
+
 /**
  * Implementation for directed graphs
  * For undirected graphs insert edges both ways
@@ -15,7 +17,7 @@ struct dijkstra {
     int V, E = 0;
     vector<vector<pair<int, long>>> adj;
 
-    dijkstra(int V, const edges_t& g, const vector<long>& weight)
+    dijkstra(int V, const edges_t& g, const weights_t& weight)
         : V(V), E(size(g)), adj(V) {
         for (int e = 0; e < E; e++) {
             assert(weight[e] >= 0);
@@ -80,8 +82,7 @@ struct astar {
     vector<vector<pair<int, long>>> adj;
     using heuristic_t = const function<long(int)>&;
 
-    astar(int V, const edges_t& g, const vector<long>& weight)
-        : V(V), E(size(g)), adj(V) {
+    astar(int V, const edges_t& g, const weights_t& weight) : V(V), E(size(g)), adj(V) {
         for (int e = 0; e < E; e++) {
             assert(weight[e] >= 0);
             auto [u, v] = g[e];
@@ -147,7 +148,7 @@ struct floyd_warshall {
     int V, E = 0;
     vector<tuple<int, int, long>> edge;
 
-    floyd_warshall(int V, const edges_t& g, const vector<long>& weight)
+    floyd_warshall(int V, const edges_t& g, const weights_t& weight)
         : V(V), E(g.size()), edge(g.size()) {
         for (int e = 0; e < E; e++) {
             auto [u, v] = g[e];
@@ -220,7 +221,7 @@ struct bellman_ford {
     int V, E = 0;
     vector<tuple<int, int, long>> edge;
 
-    bellman_ford(int V, const edges_t& g, const vector<long>& weight)
+    bellman_ford(int V, const edges_t& g, const weights_t& weight)
         : V(V), E(g.size()), edge(g.size()) {
         assert(weight.size() == E);
         for (int e = 0; e < E; e++) {
@@ -282,7 +283,7 @@ struct johnsons {
     vector<tuple<int, int, long>> edge;
     vector<int> off;
 
-    johnsons(int V, const edges_t& g, const vector<long>& weight)
+    johnsons(int V, const edges_t& g, const weights_t& weight)
         : V(V), E(g.size()), edge(g.size()), off(V + 1, 0) {
         for (auto [u, _] : g) {
             off[u + 1]++;
@@ -383,7 +384,7 @@ struct goldberg_radzik {
     vector<pair<int, long>> edge;
     vector<int> off;
 
-    goldberg_radzik(int V, const edges_t& g, const vector<long>& weight)
+    goldberg_radzik(int V, const edges_t& g, const weights_t& weight)
         : V(V), E(g.size()), edge(g.size()), off(V + 1, 0) {
         for (auto [u, _] : g) {
             off[u + 1]++;
@@ -403,7 +404,7 @@ struct goldberg_radzik {
     static inline constexpr int8_t not_in = 0, in_b = 1, in_a = 2;
 
     void dfs(int u) {
-        assert(label[u] == in_b || label[u] == in_a);
+        // assert(label[u] == in_b || label[u] == in_a);
         if (label[u] == in_b) {
             label[u] = not_in;
             for (int e = off[u]; e < off[u + 1]; e++) {
