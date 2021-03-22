@@ -34,13 +34,13 @@ This code collection has become quite messy. ✓✓XX
 | Graphs              |`graph_generator            `| Incomplete   |                | Missing flow, circulation, shortest paths, matching and planarity generators |
 | Graphs              |`isomorphism                `| Outdated     |                | Not adapted to new edges_t graph interface |
 | Graphs              |`regular                    `| Stable       |                | |
-| Graphs algorithms   |`min_spanning_forest        `| Outdated     |                | Not adapted to new edges_t graph interface |
+| Graphs algorithms   |`min_spanning_forest        `| Stable       | Stable (U)     | |
 | Graphs algorithms   |`planarity                  `| Stable       | Stable (D)     | |
 | Graphs algorithms   |`scc                        `| Stable       | Stable (U)     | |
 | Graphs algorithms   |`shortest_path              `| Stable       | Stable (P)     | Johnson's not correctly implemented, Goldberg needs verification |
 | Linear programming  |`simplex                    `| Stable       |                | Missing support for x <= 0 and x in R |
 | Linear programming  |`transportation             `| Inadequate   |                | Inefficient implementation and bad interface |
-| Linear programming  |`travelling_salesman        `| Outdated     |                | Needs an interface change |
+| Linear programming  |`travelling_salesman        `| Stable       | Stable (D)     | |
 | Matching            |`general_matching           `| Stable       | Stable (D,S,P) | |
 | Matching            |`maximum_matching           `| Stable       |                | |
 | Matching            |`mincost_matching           `| Stable       | Stable (U,P)   | |

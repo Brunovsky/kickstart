@@ -65,15 +65,15 @@ struct flow_dataset_test_t {
             mek.flow.assign(2 * E, 0);
             if (c0 != ans[i]) {
                 print(" {} -- V={} E={} -- threshold {} (F={})\n", name, V, E, i, F);
-                print("   expected: {:12} flow | {:12} cost\n", F, ans[i]);
-                print("     actual: {:12} flow | {:12} cost\n", f0, c0);
+                print("   expected: {:>12} flow | {:>12} cost\n", F, ans[i]);
+                print("     actual: {:>12} flow | {:>12} cost\n", f0, c0);
             }
         }
         auto [f0, c0] = mek.mincost_flow(s, t);
         if (f0 != max_flow || c0 != min_cost) {
             print(" {} -- V={} E={} -- uncapped\n", name, V, E);
-            print("   expected: {:12} flow | {:12} cost\n", max_flow, min_cost);
-            print("     actual: {:12} flow | {:12} cost\n", f0, c0);
+            print("   expected: {:>12} flow | {:>12} cost\n", max_flow, min_cost);
+            print("     actual: {:>12} flow | {:>12} cost\n", f0, c0);
         }
     }
 };
