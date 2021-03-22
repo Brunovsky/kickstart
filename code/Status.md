@@ -4,8 +4,8 @@ This code collection has become quite messy. ✓✓XX
 
 | Module              | File                        | Code Status  | Testing Status | Notes |
 |:-------------------:|-----------------------------|--------------|:--------------:|-------|
-| Algorithms          |`dynamic_programming        `| Stable       | Stable (U,S)   | Multibin knapsack, minimum bin packing (separate knapsack) |
-| Algorithms          |`string_search              `| Stable       | Stable (S)     | Suffix array, suffix tree, manacher's algorithm |
+| Algorithms          |`dynamic_programming        `| Stable       | Stable (U,S)   | Add: Multibin knapsack, minimum bin packing (separate knapsack) |
+| Algorithms          |`string_search              `| Stable       | Stable (S)     | Add: Suffix array, suffix tree, manacher's algorithm |
 | Algorithms          |`sort                       `| Stable       | Stable (P)     | |
 | Binary trees        |`avl_tree                   `| Stable       | -              | |
 | Binary trees        |`bs_map                     `| Stable       | Stable (U,S,P) | |
@@ -22,7 +22,7 @@ This code collection has become quite messy. ✓✓XX
 | Data structures     |`lca                        `| Stable       | Stable (U)     | |
 | Data structures     |`matrix                     `| Stable       | Stable (U,S,P) | |
 | Data structures     |`rmq                        `| Stable       | Stable (U)     | |
-| Data structures     |`segment_tree               `| Template     | Stable (U)     | It's a template but could be basic tested; dynamic sparse segment tree |
+| Data structures     |`segment_tree               `| Stable       | Stable (U)     | Add: Dynamic sparse segment tree |
 | Data structures     |`simple_data_structures     `| Stable       | -              | |
 | Flow                |`maximum_flow               `| Stable       | Stable (S,P)   | Class generator imbalanced |
 | Flow                |`mincost_circulation        `| Outdated     |                | Not adapted to new edges_t graph interface |
@@ -31,8 +31,8 @@ This code collection has become quite messy. ✓✓XX
 | Geometry            |`geometry2d                 `| Stable       | -              | |
 | Geometry            |`convex_hull                `| Stable       | -              | |
 | Graphs              |`graph_formats              `| Incomplete   |                | Standardized reading and writing, restyle |
-| Graphs              |`graph_generator            `| Incomplete   |                | Missing flow, circulation, shortest paths, matching and planarity generators |
-| Graphs              |`isomorphism                `| Outdated     |                | Not adapted to new edges_t graph interface |
+| Graphs              |`graph_generator            `| Incomplete   |                | Add: general matching and planarity generators |
+| Graphs              |`isomorphism                `| Stable       | Stable (S)     | |
 | Graphs              |`regular                    `| Stable       |                | |
 | Graphs algorithms   |`min_spanning_forest        `| Stable       | Stable (U)     | |
 | Graphs algorithms   |`planarity                  `| Stable       | Stable (D)     | |
@@ -60,9 +60,9 @@ Test types:
  `dataset_test_X()`, `dataset_test_X_run()`, `read_dataset_test()`
 - (S) Stress tests (problems generated; untimed; verified)
  `stress_test_X()`, `stress_test_X_run()`
-- (P) Speed tests (problems generated; timed; unverified)
+- (P) Speed tests (problems generated; timed; maybe verified)
  `speed_test_X()`, `speed_test_X_run()`
-- (A) Scaling tests (problems generated; timed; verified; complexity scaling checked)
+- (A) Scaling tests (problems generated; timed; unverified; complexity scaling checked)
  `scaling_test_X()`, `scaling_test_X_run()`
 - (V) Visual tests (problems generated or defined inline)
  `format_test_X()`

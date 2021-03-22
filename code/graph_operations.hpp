@@ -49,7 +49,7 @@ auto make_adjacency_set_reverse(const edges_t& g) {
 }
 
 /**
- * Generate a permutation pi of [0...N) and replace u with pi(u) for all u.
+ * Generate a permutation pi of [0...V) and replace u with pi(u) for all u.
  */
 auto relabel(const edges_t& g, int V) {
     vector<int> label(V);

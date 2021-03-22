@@ -24,12 +24,15 @@ struct vec_hasher {
 struct pair_hasher {
     template <typename U, typename V>
     size_t operator()(const pair<U, V>& p) const noexcept {
-        size_t a = p.first, b = p.second;
+        using std::hash;
+        size_t a = hash<U>{}(p.first), b = hash<V>{}(p.second);
         return (a + b) * (a + b + 1) / 2 + b;
     }
     template <typename U>
     size_t operator()(const array<U, 2>& p) const noexcept {
-        size_t a = p[0], b = p[1];
+        using std::hash;
+        hash<U> hasher;
+        size_t a = hasher(p[0]), b = hasher(p[1]);
         return (a + b) * (a + b + 1) / 2 + b;
     }
 };
@@ -69,5 +72,22 @@ struct rolling_hasher {
         return power;
     }
 };
+
+namespace std {
+
+template <typename U, typename V>
+struct hash<pair<U, V>> {
+    size_t operator()(const pair<U, V>& uv) const { return pair_hasher{}(uv); }
+};
+template <typename T>
+struct hash<array<T, 2>> {
+    size_t operator()(const array<T, 2>& arr) const { return pair_hasher{}(arr); }
+};
+template <typename T, size_t N>
+struct hash<array<T, N>> {
+    size_t operator()(const array<T, N>& arr) const { return vec_hasher{}(arr); }
+};
+
+} // namespace std
 
 #endif // HASH_HPP
