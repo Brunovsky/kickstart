@@ -39,6 +39,10 @@ template <typename U, typename V>
 string to_string(const pair<U, V>& uv) {
     return '(' + to_string(uv.first) + ',' + to_string(uv.second) + ')';
 }
+template <typename T>
+string to_string(const array<T, 2>& uv) {
+    return '(' + to_string(uv[0]) + ',' + to_string(uv[1]) + ')';
+}
 
 template <typename T, size_t N>
 string to_string(const array<T, N>& v) {

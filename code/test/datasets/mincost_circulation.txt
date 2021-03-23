@@ -1,6 +1,6 @@
 # https://developers.google.com/optimization/flow/mincostflow
 Google OR example
-5 9
+5 9 150
 0 1 15 4
 0 2  8 4
 1 2 20 2

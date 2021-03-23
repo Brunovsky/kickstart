@@ -5,6 +5,8 @@
 
 // *****
 
+using edges_t = vector<array<int, 2>>;
+
 /**
  * Cost scaling push relabel for general mincost single-commodity flow
  * Complexity: O(V^2 E log(VC))
@@ -15,30 +17,34 @@
  * The initial maxflow computation is not required.
  */
 struct mincost_push_relabel {
-    int V, E = 0;
+    int V, E;
+    edges_t g;
     vector<vector<int>> adj, rev, res;
     vector<int> source, target;
     vector<long> supply, flow, cap, cost;
 
     explicit mincost_push_relabel(int V = 0) : V(V), adj(V), rev(V), res(V), supply(V) {}
 
-    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
-
-    void add(int u, int v, long c, long w) {
-        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0 && w >= 0);
-        assert(w < inf / (V + 1));
-        int uv = 2 * E;
-        int vu = 2 * E + 1;
-        adj[u].push_back(uv);
-        rev[v].push_back(uv);
-        res[u].push_back(uv);
-        res[v].push_back(vu);
-        source.push_back(u), source.push_back(v);
-        target.push_back(v), target.push_back(u);
-        cap.push_back(c), cap.push_back(0);
-        cost.push_back(w), cost.push_back(-w);
-        E++;
+    mincost_push_relabel(int V, const edges_t& g, const vector<long>& caps,
+                         const vector<long>& costs, const vector<long>& supplies)
+        : V(V), E(g.size()), g(g), adj(V), rev(V), res(V), source(2 * E), target(2 * E),
+          supply(supplies), flow(2 * E, 0), cap(2 * E), cost(2 * E) {
+        for (int e = 0; e < E; e++) {
+            auto [u, v] = g[e];
+            auto c = caps[e];
+            auto w = costs[e];
+            int uv = 2 * e, vu = 2 * e + 1;
+            assert(w < inf / (V + 1));
+            adj[u].push_back(uv), adj[v].push_back(vu);
+            res[u].push_back(uv), res[v].push_back(vu);
+            source[uv] = u, source[vu] = v;
+            target[uv] = v, target[vu] = u;
+            cap[uv] = c, cap[vu] = 0;
+            cost[uv] = w, cost[vu] = -w;
+        }
     }
+
+    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
 
     bool balanced() const { return accumulate(begin(supply), end(supply), 0L) == 0; }
 
@@ -58,16 +64,19 @@ struct mincost_push_relabel {
         if (total_supply != total_demand)
             return false;
 
-        push_relabel mf(V + 2);
-        int s = V, t = V + 1;
+        edges_t g;
+        vector<long> caps;
         for (int e = 0; e < 2 * E; e += 2)
-            mf.add(source[e], target[e], cap[e]);
+            g.push_back({source[e], target[e]}), caps.push_back(cap[e]);
+
+        int s = V, t = V + 1;
         for (int u = 0; u < V; u++)
             if (supply[u] > 0)
-                mf.add(s, u, supply[u]);
+                g.push_back({s, u}), caps.push_back(supply[u]);
             else if (supply[u] < 0)
-                mf.add(u, t, -supply[u]);
+                g.push_back({u, t}), caps.push_back(-supply[u]);
 
+        dinitz_flow mf(V + 2, g, caps);
         long maxflow = mf.maxflow(s, t);
         return maxflow == total_supply;
     }
