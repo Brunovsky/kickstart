@@ -29,11 +29,11 @@ string msbits(const bigint& u) {
 }
 
 string to_string(bigint u, uint b = 10) {
-    static auto uint_to_string = [](uint n, uint b) {
+    static auto uint_to_string = [](uint n, uint base) {
         string s;
         while (n > 0) {
-            uint m = n / b;
-            s += '0' + (n - b * m), n = m;
+            uint m = n / base;
+            s += '0' + (n - base * m), n = m;
         }
         reverse(begin(s), end(s));
         return s;

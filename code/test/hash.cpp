@@ -1,8 +1,10 @@
 #include "../hash.hpp"
 
+#include "test_utils.hpp"
+
 // *****
 
-void test() {
+void unit_test_rolling_hasher() {
     rolling_hasher hasher(10);
     string s1 = "aababbcacc";
     string s2 = "ababbcaccd";
@@ -19,9 +21,10 @@ void test() {
     printf("roll(s3): %zu\n", h3b);
     assert(h2 == h2b);
     assert(h3 == h3b);
+    print_ok("unit test rolling hasher");
 }
 
 int main() {
-    test();
+    unit_test_rolling_hasher();
     return 0;
 }

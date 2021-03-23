@@ -2,13 +2,11 @@
 #define MIN_SPANNING_FOREST_HPP
 
 #include "disjoint_set.hpp"
+#include "graph.hpp"
 
 // *****
 
-using edges_t = vector<array<int, 2>>;
-using weights_t = vector<long>;
-
-long min_spanning_forest_kruskal(int V, const edges_t& g, const weights_t& weight) {
+long min_spanning_forest_kruskal(int V, const edges_t& g, const vector<long>& weight) {
     int E = g.size();
     disjoint_set set(V);
     vector<int> edges(E);
@@ -27,8 +25,8 @@ long min_spanning_forest_kruskal(int V, const edges_t& g, const weights_t& weigh
     return msf;
 }
 
-long min_spanning_forest_prim(int V, const edges_t& g, const weights_t& weight) {
-    int E = g.size(), e = 0;
+long min_spanning_forest_prim(int V, const edges_t& g, const vector<long>& weight) {
+    int E = g.size(), j = 0;
     vector<int> adj(2 * E);
     vector<int> off(V + 1, 0);
     for (auto [u, v] : g)
@@ -36,16 +34,16 @@ long min_spanning_forest_prim(int V, const edges_t& g, const weights_t& weight) 
     inclusive_scan(begin(off), end(off), begin(off));
     auto cur = off;
     for (auto [u, v] : g)
-        adj[cur[u]++] = adj[cur[v]++] = e++;
+        adj[cur[u]++] = adj[cur[v]++] = j++;
 
     vector<bool> vis(V, false);
     long msf = 0;
-    for (int u = 0; u < V; u++) {
-        if (vis[u])
+    for (int n = 0; n < V; n++) {
+        if (vis[n])
             continue;
 
         priority_queue<pair<long, int>> Q;
-        Q.push({0, u});
+        Q.push({0, n});
 
         while (!Q.empty()) {
             auto [nw, u] = Q.top();

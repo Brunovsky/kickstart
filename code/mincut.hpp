@@ -6,8 +6,6 @@
 
 // *****
 
-using costs_t = vector<long>;
-
 /**
  * Stoer-Wagner minimum cut, priority-queue based
  * Complexity: O(VE log(V))
@@ -17,7 +15,7 @@ struct stoer_wagner {
     vector<unordered_set<int>> adj;
     unordered_map<pair<int, int>, long, pair_hasher> cost;
 
-    stoer_wagner(int V, const edges_t& g, const costs_t& costs)
+    stoer_wagner(int V, const edges_t& g, const vector<long>& costs)
         : V(V), E(g.size()), adj(V) {
         for (int e = 0; e < E; e++) {
             auto [u, v] = g[e];

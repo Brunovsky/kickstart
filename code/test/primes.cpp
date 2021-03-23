@@ -17,7 +17,7 @@ void unit_test_sieve() {
     assert(sieve.count_odd_primes(15485863, 32452843) == 1'000'001);
     // wolfram: 1.00e7th prime is 179424673, 1.05e7th prime is 188943803
     assert(sieve.count_odd_primes(179424674, 188943803) == 500'000);
-    print("unit test sieve OK\n");
+    print_ok("unit test sieve");
 }
 
 void unit_test_factor() {
@@ -43,7 +43,7 @@ void unit_test_factor() {
     assert(miller_rabin(32452843));
     assert(miller_rabin(179424673));
     assert(miller_rabin(188943803));
-    print("unit test factor OK\n");
+    print_ok("unit test factor");
 }
 
 void stress_test_factor(int T = 500) {
@@ -72,7 +72,7 @@ void stress_test_factor(int T = 500) {
         assert(simple == factors);
         assert(fast == factors);
     }
-    print("\n");
+    print_ok("stress test factor");
 }
 
 void stress_test_jacobi() {
@@ -86,7 +86,7 @@ void stress_test_jacobi() {
             }
         }
     }
-    print("stress test jacobi OK\n");
+    print_ok("stress test jacobi");
 }
 
 int main() {

@@ -5,9 +5,6 @@
 
 // *****
 
-using caps_t = vector<long>;
-using costs_t = vector<long>;
-
 /**
  * Edmonds-Karp augmenting paths for simple mincost flow.
  * Complexity: O(V E^2 log V)
@@ -19,8 +16,8 @@ struct mincost_edmonds_karp {
     edges_t edge;
     vector<long> flow, cap, cost;
 
-    mincost_edmonds_karp(int V, const edges_t& g, const caps_t& caps,
-                         const costs_t& costs)
+    mincost_edmonds_karp(int V, const edges_t& g, const vector<long>& caps,
+                         const vector<long>& costs)
         : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E),
           cost(2 * E) {
         int e = 0, c = 0;

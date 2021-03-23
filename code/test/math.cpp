@@ -2,6 +2,8 @@
 
 #include "../math.hpp"
 
+#include "test_utils.hpp"
+
 // *****
 
 void unit_test_gcd() {
@@ -68,7 +70,7 @@ void unit_test_modlog() {
             }
         }
     }
-    printf("modlog: hit: %d | miss: %d\n", hit, miss);
+    print("modlog: hit: {} | miss: {}\n", hit, miss);
 }
 
 void unit_test_modsqrt() {
@@ -85,7 +87,8 @@ void unit_test_modsqrt() {
             }
         }
     }
-    printf("modsqrt: hit: %d | miss: %d  (should be equal)\n", hit, miss);
+    assert(hit == miss);
+    print("modsqrt: hit: {} | miss: {}  (should be equal)\n", hit, miss);
 }
 
 void unit_test_modnum() {

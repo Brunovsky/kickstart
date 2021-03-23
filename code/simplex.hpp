@@ -3,6 +3,7 @@
 
 #include "frac.hpp"
 #include "matrix.hpp"
+#include "matrix_ops.hpp"
 
 // *****
 
@@ -18,14 +19,13 @@ struct lp_constraint {
 };
 
 struct simplex {
-    using mat = mat<frac>;
     static inline constexpr frac inf = frac(1, 0);
 
     int n = 0, m = 0; // num variables / num constraints
-    mat::vec z;
+    mat<frac>::vec z;
     vector<lp_constraint> C;
 
-    void set_objective(mat::vec f) {
+    void set_objective(mat<frac>::vec f) {
         assert(!n || n == f.size());
         z = move(f), n = z.size();
     }
@@ -43,7 +43,7 @@ struct simplex {
     void clear() { n = m = 0, z.clear(), C.clear(); }
 
     int s = 0, a = 0; // slack and artificial variable count
-    mat tab;
+    mat<frac> tab;
     vector<int> var_to_row, row_to_var;
 
     int slackvar(int i) const { return --i, LP_TSW(C[i].type, 1, 0, -1); }
@@ -56,10 +56,10 @@ struct simplex {
 
     void pivot(int r, int c) {
         make_basic(r, c);
-        tab.mul_row(r, 1 / tab[r][c]);
+        mul_row(tab, r, 1 / tab[r][c]);
         for (int i = 0; i <= m; i++) {
             if (i != r) {
-                tab.mul_add(i, r, -tab[i][c]);
+                mul_add_row(tab, i, r, -tab[i][c]);
             }
         }
     }
@@ -92,7 +92,7 @@ struct simplex {
             s += slackvar(i) != 0, a += artifvar(i) != 0;
         }
 
-        tab = mat(m + 1, n + s + a + 1, 0);
+        tab = mat<frac>(m + 1, n + s + a + 1, 0);
         var_to_row.assign(n + s + a + 1, 0);
         row_to_var.assign(m + 1, 0);
         for (int i = 1, sj = 1 + n, aj = 1 + n + s; i <= m; i++) {
@@ -107,11 +107,11 @@ struct simplex {
             }
             if (artifvar(i)) {
                 make_basic(i, aj);
-                tab.mul_add(0, i, -artifvar(i));
+                mul_add_row(tab, 0, i, frac(-artifvar(i)));
                 tab[i][aj++] = artifvar(i);
             }
             if (int j = row_to_var[i]; j != 0) {
-                tab.mul_row(i, 1 / tab[i][j]);
+                mul_row(tab, i, 1 / tab[i][j]);
             }
         }
 
@@ -137,7 +137,7 @@ struct simplex {
                     }
                 }
             }
-            tab.set_row(0, 0);
+            set_row(tab, 0, frac(0));
         }
 
         for (int j = 1; j <= n; j++) {
@@ -145,7 +145,7 @@ struct simplex {
         }
         for (int j = 1; j <= n; j++) {
             if (int i = var_to_row[j]; i != 0) {
-                tab.mul_add(0, i, -tab[0][j] * tab[i][j]);
+                mul_add_row(tab, 0, i, -tab[0][j] * tab[i][j]);
             }
         }
 

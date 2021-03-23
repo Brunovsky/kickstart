@@ -98,14 +98,13 @@ void unit_test_subset_sum() {
     print_ok("unit test subset sum");
 }
 
-vector<array<int, 3>> subset_sum_stress_tests = {
-    {5, -250, 250},
-    {10, -100, 100},
-    {25, -60, 60},
-    {40, -30, 30},
-};
-
 void stress_test_subset_sum(int T = 50) {
+    static const vector<array<int, 3>> subset_sum_stress_tests = {
+        {5, -250, 250},
+        {10, -100, 100},
+        {25, -60, 60},
+        {40, -30, 30},
+    };
     for (auto [n, min, max] : subset_sum_stress_tests) {
         auto label = format("stress test {} {} {}", n, min, max);
         for (int t = 0; t < T; t++) {

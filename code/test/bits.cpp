@@ -6,7 +6,7 @@ using namespace std;
 
 // clang-format off
 
-void test() {
+void unit_test_bits() {
     assert(is_power_of_two(2));
     assert(is_power_of_two(32));
     assert(!is_power_of_two(3));
@@ -29,7 +29,7 @@ void test() {
     assert(v == 0b11111010010001000010000010000001);
 }
 
-void test_foreach_mask() {
+void unit_test_foreach_mask() {
     vector<uint> masks = {
         0b001111,
         0b010111,
@@ -54,7 +54,7 @@ void test_foreach_mask() {
     assert(loop == masks);
 }
 
-void test_foreach_subset() {
+void unit_test_foreach_subset() {
     const uint mask = 0b0110110;
     vector<uint> masks = {
         0b0000010,
@@ -82,8 +82,8 @@ void test_foreach_subset() {
 }
 
 int main() {
-    test();
-    test_foreach_mask();
-    test_foreach_subset();
+    unit_test_bits();
+    unit_test_foreach_mask();
+    unit_test_foreach_subset();
     return 0;
 }

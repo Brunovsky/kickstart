@@ -5,8 +5,6 @@
 
 // *****
 
-using edges_t = vector<array<int, 2>>;
-
 /**
  * Cost scaling push relabel for general mincost single-commodity flow
  * Complexity: O(V^2 E log(VC))

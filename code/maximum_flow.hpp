@@ -7,8 +7,6 @@
 
 // *****
 
-using caps_t = vector<long>;
-
 /**
  * Edmonds-Karp augmenting paths
  * Complexity: O(VE^2), not good
@@ -19,7 +17,7 @@ struct edmonds_karp {
     edges_t edge;
     vector<long> flow, cap;
 
-    edmonds_karp(int V, const edges_t& g, const caps_t& caps)
+    edmonds_karp(int V, const edges_t& g, const vector<long>& caps)
         : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E) {
         int e = 0, c = 0;
         for (auto [u, v] : g) {
@@ -84,7 +82,7 @@ struct dinitz_flow {
     edges_t edge;
     vector<long> flow, cap;
 
-    dinitz_flow(int V, const edges_t& g, const caps_t& caps)
+    dinitz_flow(int V, const edges_t& g, const vector<long>& caps)
         : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E) {
         int e = 0, c = 0;
         for (auto [u, v] : g) {
@@ -159,7 +157,7 @@ struct mpm_flow {
     edges_t edge;
     vector<long> flow, cap;
 
-    mpm_flow(int V, const edges_t& g, const caps_t& caps)
+    mpm_flow(int V, const edges_t& g, const vector<long>& caps)
         : V(V), E(g.size()), res(2 * E), off(V + 1, 0), edge(2 * E), flow(2 * E, 0),
           cap(2 * E) {
         for (auto [u, v] : g)
@@ -313,7 +311,7 @@ struct push_relabel {
     edges_t edge;
     vector<long> flow, cap;
 
-    push_relabel(int V, const edges_t& g, const caps_t& caps)
+    push_relabel(int V, const edges_t& g, const vector<long>& caps)
         : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E) {
         int e = 0, c = 0;
         for (auto [u, v] : g) {
@@ -510,7 +508,7 @@ struct tidal_flow {
     edges_t edge;
     vector<long> flow, cap;
 
-    tidal_flow(int V, const edges_t& g, const caps_t& caps)
+    tidal_flow(int V, const edges_t& g, const vector<long>& caps)
         : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E) {
         int e = 0, c = 0;
         for (auto [u, v] : g) {

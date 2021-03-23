@@ -22,7 +22,7 @@ struct mincost_hungarian {
     edges_t edge;
     vector<long> cost;
 
-    mincost_hungarian(int U, int V, const edges_t& g, const costs_t& costs)
+    mincost_hungarian(int U, int V, const edges_t& g, const vector<long>& costs)
         : U(U), V(V), W(max(U, V)), E(g.size()), off(W + 1, W - V) {
         for (auto [u, v] : g)
             off[u + 1]++;

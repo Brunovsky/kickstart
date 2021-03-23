@@ -15,7 +15,6 @@ using reald = uniform_real_distribution<double>;
 using binomd = binomial_distribution<long>;
 using boold = bernoulli_distribution;
 
-using edge_t = array<int, 2>;
 using int_sample_t = vector<int>;
 using pair_sample_t = vector<edge_t>;
 using partition_t = vector<int>;

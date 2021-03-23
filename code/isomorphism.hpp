@@ -9,7 +9,7 @@
 // *****
 
 /**
- * Complexity: O(V^2 log(V)) time
+ * Complexity: O(V^3 log(V)) time
  *             O(V^2) memory
  */
 auto hash_graph_vertices(int V, const edges_t& g) {

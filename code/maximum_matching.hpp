@@ -5,8 +5,6 @@
 
 // *****
 
-using edges_t = vector<array<int, 2>>;
-
 /**
  * Simple maximum bipartite matching
  * Complexity: O(VE)

@@ -7,8 +7,6 @@
 
 // *****
 
-using edges_t = vector<array<int, 2>>;
-
 struct micali_vazirani {
     int V, E = 0;
     vector<int> adj, off, mate;

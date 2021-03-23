@@ -5,10 +5,6 @@
 
 // *****
 
-constexpr int N = 5;
-constexpr int sizes[] = {500, 1800, 6000, 12000, 20000};
-constexpr int amounts[] = {1500, 400, 50, 20, 8};
-
 void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
     START_ACC(dinitz);
     START_ACC(push_relabel);
@@ -55,6 +51,9 @@ void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
 }
 
 void speed_test_max_flow() {
+    static constexpr int N = 5;
+    static constexpr int sizes[] = {500, 1800, 6000, 12000, 20000};
+    static constexpr int amounts[] = {1500, 400, 50, 20, 8};
     for (int n = 0; n < N; n++) {
         print("speed test group S={}, x{}\n", sizes[n], amounts[n]);
         for (int i = 0; i < int(FN_END); i++) {
@@ -96,8 +95,6 @@ void stress_test_max_flow(int T = 10000) {
 }
 
 int main() {
-    setbuf(stdout, nullptr);
-    setbuf(stderr, nullptr);
     stress_test_max_flow();
     speed_test_max_flow();
     return 0;

@@ -1,8 +1,10 @@
 #include "../transportation.hpp"
 
+#include "test_utils.hpp"
+
 // *****
 
-void test() {
+void unit_test_transportation() {
     transportation tp;
     vector<vector<int>> solution;
     tp.supply = {100, 50};
@@ -98,9 +100,10 @@ void test() {
                 {13, 60, 4, 0, 0, 0},
                 {67, 0, 0, 0, 0, 9}};
     assert(tp.tp == solution);
+    print_ok("unit test transportation");
 }
 
 int main() {
-    test();
+    unit_test_transportation();
     return 0;
 }

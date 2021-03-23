@@ -1,7 +1,12 @@
 #include "../debug_print.hpp"
+#include "../gen/circulation.hpp"
+#include "../gen/distance.hpp"
+#include "../gen/flow.hpp"
 #include "../graph_formats.hpp"
 #include "../graph_generator.hpp"
-#include "chrono.hpp"
+#include "test_utils.hpp"
+
+#pragma clang diagnostic ignored "-Wfloat-conversion"
 
 // *****
 
@@ -41,64 +46,65 @@ void showb(string msg, const edges_t& g) {
     showb(msg, g, U, V);
 }
 
-void random_regular_performance(int R, int n, int k) {
-    if (R == 0)
+void scaling_test_random_regular_run(int T, int n, int k) {
+    if (T == 0)
         return;
 
     START(regular);
-    for (int i = 1; i <= R; i++) {
-        print("\rrandom regular {}...", i);
+    for (int i = 0; i < T; i++) {
+        print_progress(i, T, "random regular");
         auto g = random_regular(n, k);
     }
     TIME(regular);
 
-    long E = 1L * R * (n * k / 2), T = time_regular;
-    double per = 1e6 * T / E;
+    long E = 1L * T * (n * k / 2);
+    double per_instance = 1e6 * T / E;
 
-    print("\r{}", string(50, ' '));
-    print("\r{:>6} {:>6} {:>4} {:>9} | {:5}ms  {:<6.1f}ms per 1M\n", R, n, k, E, T, per);
+    clear_line();
+    print("  -- x{:<6} n={:<6} k={:<4} E={:<9} -- {:>5}ms total -- {:>7.1f}ms per 1M\n",
+          T, n, k, E, TIME_MS(regular), per_instance);
 }
 
-#pragma clang diagnostic ignored "-Wfloat-conversion"
-
-void test_random_regular_performance(double M = 1) {
-    random_regular_performance(M * 10, 300, 100);
-    random_regular_performance(M * 10, 300, 150);
-    random_regular_performance(M * 10, 300, 200);
-    random_regular_performance(M * 5000, 25, 4);
-    random_regular_performance(M * 5000, 25, 6);
-    random_regular_performance(M * 5000, 25, 8);
-    random_regular_performance(M * 5000, 25, 10);
-    random_regular_performance(M * 3000, 36, 5);
-    random_regular_performance(M * 3000, 36, 6);
-    random_regular_performance(M * 3000, 36, 7);
-    random_regular_performance(M * 3000, 36, 8);
-    random_regular_performance(M * 3000, 36, 9);
-    random_regular_performance(M * 3000, 36, 10);
-    random_regular_performance(M * 1000, 80, 5);
-    random_regular_performance(M * 1000, 80, 7);
-    random_regular_performance(M * 1000, 80, 9);
-    random_regular_performance(M * 1000, 80, 11);
-    random_regular_performance(M * 1000, 80, 13);
-    random_regular_performance(M * 1000, 80, 15);
-    random_regular_performance(M * 100, 400, 10);
-    random_regular_performance(M * 100, 400, 12);
-    random_regular_performance(M * 100, 400, 14);
-    random_regular_performance(M * 100, 400, 16);
-    random_regular_performance(M * 100, 400, 18);
-    random_regular_performance(M * 100, 400, 20);
-    random_regular_performance(M * 6, 10000, 30);
-    random_regular_performance(M * 6, 10000, 35);
-    random_regular_performance(M * 6, 10000, 40);
-    random_regular_performance(M * 6, 10000, 45);
-    random_regular_performance(M * 6, 10000, 50);
-    random_regular_performance(M * 1, 50000, 30);
-    random_regular_performance(M * 1, 50000, 60);
-    random_regular_performance(M * 1, 50000, 90);
-    random_regular_performance(M * 1, 50000, 120);
+void scaling_test_random_regular(double M = 1) {
+    print("scaling test random regular\n");
+    scaling_test_random_regular_run(M * 10, 300, 100);
+    scaling_test_random_regular_run(M * 10, 300, 150);
+    scaling_test_random_regular_run(M * 10, 300, 200);
+    scaling_test_random_regular_run(M * 5000, 25, 4);
+    scaling_test_random_regular_run(M * 5000, 25, 6);
+    scaling_test_random_regular_run(M * 5000, 25, 8);
+    scaling_test_random_regular_run(M * 5000, 25, 10);
+    scaling_test_random_regular_run(M * 3000, 36, 5);
+    scaling_test_random_regular_run(M * 3000, 36, 6);
+    scaling_test_random_regular_run(M * 3000, 36, 7);
+    scaling_test_random_regular_run(M * 3000, 36, 8);
+    scaling_test_random_regular_run(M * 3000, 36, 9);
+    scaling_test_random_regular_run(M * 3000, 36, 10);
+    scaling_test_random_regular_run(M * 1000, 80, 5);
+    scaling_test_random_regular_run(M * 1000, 80, 7);
+    scaling_test_random_regular_run(M * 1000, 80, 9);
+    scaling_test_random_regular_run(M * 1000, 80, 11);
+    scaling_test_random_regular_run(M * 1000, 80, 13);
+    scaling_test_random_regular_run(M * 1000, 80, 15);
+    scaling_test_random_regular_run(M * 100, 400, 10);
+    scaling_test_random_regular_run(M * 100, 400, 12);
+    scaling_test_random_regular_run(M * 100, 400, 14);
+    scaling_test_random_regular_run(M * 100, 400, 16);
+    scaling_test_random_regular_run(M * 100, 400, 18);
+    scaling_test_random_regular_run(M * 100, 400, 20);
+    scaling_test_random_regular_run(M * 6, 10000, 30);
+    scaling_test_random_regular_run(M * 6, 10000, 35);
+    scaling_test_random_regular_run(M * 6, 10000, 40);
+    scaling_test_random_regular_run(M * 6, 10000, 45);
+    scaling_test_random_regular_run(M * 6, 10000, 50);
+    scaling_test_random_regular_run(M * 1, 50000, 30);
+    scaling_test_random_regular_run(M * 1, 50000, 60);
+    scaling_test_random_regular_run(M * 1, 50000, 90);
+    scaling_test_random_regular_run(M * 1, 50000, 120);
+    print_ok("scaling test random regular\n");
 }
 
-void test_generator() {
+void visual_test_generators() {
     showu("Path undirected 10", path_undirected(10));
     showd("Path directed 10", path_directed(10));
     showu("Complete undirected 6", complete_undirected(6));
@@ -182,7 +188,9 @@ void test_generator() {
     showd("Grid3 directed 3x4x3", grid3_directed(3, 4, 3));
     showu("Grid3 circular undirected 3x4x3", circular_grid3_undirected(3, 4, 3));
     showd("Grid3 circular directed 3x4x3", circular_grid3_directed(3, 4, 3));
+}
 
+void balance_test_generators() {
     for (int S : {10, 20, 50, 100, 500, 2000, 5000, 15000, 30000}) {
         print("Flow Networks  S={}\n", S);
         for (int i = 0; i < int(FN_END); i++) {
@@ -213,9 +221,8 @@ void test_generator() {
 }
 
 int main() {
-    setbuf(stdout, nullptr);
-    setbuf(stderr, nullptr);
-    test_generator();
-    // test_random_regular_performance(1);
+    scaling_test_random_regular(1);
+    balance_test_generators();
+    visual_test_generators();
     return 0;
 }

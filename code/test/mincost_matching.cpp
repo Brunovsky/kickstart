@@ -3,9 +3,6 @@
 #include "../gen/bipartite.hpp"
 #include "test_utils.hpp"
 
-using namespace std::chrono;
-using ms = chrono::milliseconds;
-
 // *****
 
 void unit_test_mincost_matching() {
@@ -34,10 +31,6 @@ void unit_test_mincost_matching() {
     print_ok("unit test mincost matching");
 }
 
-constexpr int N = 5;
-constexpr int sizes[] = {100, 250, 800, 1500, 3000};
-constexpr int amounts[] = {1000, 300, 50, 20, 8};
-
 void speed_test_mincost_matching_run(bipartite_graph_kind i, int S, int T) {
     START_ACC(hungarian);
     int imperfect = 0;
@@ -61,6 +54,9 @@ void speed_test_mincost_matching_run(bipartite_graph_kind i, int S, int T) {
 }
 
 void speed_test_mincost_matching() {
+    static constexpr int N = 5;
+    static constexpr int sizes[] = {100, 250, 800, 1500, 3000};
+    static constexpr int amounts[] = {1000, 300, 50, 20, 8};
     for (int n = 0; n < N; n++) {
         print("speed test group S={}, x={}\n", sizes[n], amounts[n]);
         for (int i = 0; i < int(BG_END); i++) {

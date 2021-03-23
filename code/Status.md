@@ -1,6 +1,4 @@
-# Status check
-
-This code collection has become quite messy. ✓✓XX
+# Status table
 
 | Module              | File                        | Code Status  | Testing Status | Notes |
 |:-------------------:|-----------------------------|--------------|:--------------:|-------|
@@ -24,33 +22,34 @@ This code collection has become quite messy. ✓✓XX
 | Data structures     |`rmq                        `| Stable       | Stable (U)     | |
 | Data structures     |`segment_tree               `| Stable       | Stable (U)     | Add: Dynamic sparse segment tree |
 | Data structures     |`simple_data_structures     `| Stable       | -              | |
-| Flow                |`maximum_flow               `| Stable       | Stable (S,P)   | Class generator imbalanced |
-| Flow                |`mincost_circulation        `| Outdated     |                | Not adapted to new edges_t graph interface |
+| Flow                |`maximum_flow               `| Stable       | Stable (S,P)   | |
+| Flow                |`mincost_circulation        `| Stable       | Stable (D)     | |
 | Flow                |`mincost_flow               `| Stable       | Stable (D,P)   | |
 | Flow                |`mincut                     `| Stable       | Missing        | Plenty of room for optimization |
 | Geometry            |`geometry2d                 `| Stable       | -              | |
-| Geometry            |`convex_hull                `| Stable       | -              | |
-| Graphs              |`graph_formats              `| Incomplete   |                | Standardized reading and writing, restyle |
-| Graphs              |`graph_generator            `| Incomplete   |                | Add: general matching and planarity generators |
+| Geometry            |`convex_hull                `| Stable       | Stable (U)     | |
+| Graphs              |`graph_formats              `| Inadequate   |                | Standardized reading and writing, restyle |
+| Graphs              |`graph_generator            `| Stable       | Stable (V,B,A) | Add: general matching and planarity generators; some are unbalanced |
 | Graphs              |`isomorphism                `| Stable       | Stable (S)     | |
-| Graphs              |`regular                    `| Stable       |                | |
+| Graphs              |`regular                    `| Stable       | Stable (V,P)   | |
 | Graphs algorithms   |`min_spanning_forest        `| Stable       | Stable (U)     | |
 | Graphs algorithms   |`planarity                  `| Stable       | Stable (D)     | |
 | Graphs algorithms   |`scc                        `| Stable       | Stable (U)     | |
 | Graphs algorithms   |`shortest_path              `| Stable       | Stable (P)     | Johnson's not correctly implemented, Goldberg needs verification |
-| Linear programming  |`simplex                    `| Stable       |                | Missing support for x <= 0 and x in R |
-| Linear programming  |`transportation             `| Inadequate   |                | Inefficient implementation and bad interface |
+| Linear programming  |`simplex                    `| Stable       | Stable (U,S,P) | Missing support for x <= 0 and x in R |
+| Linear programming  |`transportation             `| Inadequate   | Stable (U)     | Inefficient implementation and bad interface |
 | Linear programming  |`travelling_salesman        `| Stable       | Stable (D)     | |
 | Matching            |`general_matching           `| Stable       | Stable (D,S,P) | |
 | Matching            |`maximum_matching           `| Stable       | Stable (U)     | |
 | Matching            |`mincost_matching           `| Stable       | Stable (U,P)   | |
-| Threading           |`thread_pool                `| Stable       |                | |
-| Utilities           |`bits                       `| Stable       |                | |
-| Utilities           |`debug_print                `| Stable       |                | |
-| Utilities           |`hash                       `| Stable       |                | |
-| Utilities           |`math                       `| Stable       |                | |
-| Utilities           |`primes                     `| Stable       |                | |
-| Utilities           |`random                     `| Stable       |                | |
+| Matching            |`mincost_general_matching   `| Unimplemented|                | |
+| Threading           |`thread_pool                `| Stable       | Stable (S,P)   | |
+| Utilities           |`bits                       `| Stable       | Stable (U)     | |
+| Utilities           |`debug_print                `| Stable       | -              | |
+| Utilities           |`hash                       `| Stable       | Stable (U)     | |
+| Utilities           |`math                       `| Stable       | Stable (U)     | |
+| Utilities           |`primes                     `| Stable       | Stable (U,S)   | |
+| Utilities           |`random                     `| Stable       | Stable (S)     | |
 
 Test types:
 

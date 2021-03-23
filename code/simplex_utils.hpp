@@ -104,10 +104,10 @@ string format_tableau(const simplex& smp) {
     size_t label_width = 0;
     string sep_row;
 
-    auto repeat = [](int n, string s) {
+    auto repeat = [](int cnt, string cell) {
         string str;
-        while (n--)
-            str += s;
+        while (cnt--)
+            str += cell;
         return str;
     };
 

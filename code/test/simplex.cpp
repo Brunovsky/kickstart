@@ -1,6 +1,7 @@
 #include "../simplex.hpp"
 
 #include "../debug_print.hpp"
+#include "../matrix_utils.hpp"
 #include "../random.hpp"
 #include "../simplex_utils.hpp"
 #include "test_utils.hpp"
@@ -199,7 +200,7 @@ void unit_test_simplex() {
     assert(res == LP_OPTIMAL && optimum == -105);
 }
 
-auto standardize_run(int T, int n, int m) {
+auto stress_test_standardize_run(int T, int n, int m) {
     int correct = 0;
 
     for (int i = 0; i < T; i++) {
@@ -256,7 +257,7 @@ void stress_test_standardize(int T = 2000) {
 
     for (int n = min_n; n <= max_n; n++) {
         for (int m = min_m; m <= max_m && n + m <= max_sum; m++) {
-            auto correct = standardize_run(T, n, m);
+            auto correct = stress_test_standardize_run(T, n, m);
             corrects[n - min_n][m - min_m] = correct;
         }
     }
@@ -264,7 +265,7 @@ void stress_test_standardize(int T = 2000) {
     print("Corrects:\n{}\n", to_string(corrects));
 }
 
-auto simplex_speed_run(int T, int n, int m, LPState state) {
+auto speed_test_simplex_run(int T, int n, int m, LPState state) {
     START_ACC(simplex);
 
     for (int i = 0; i < T; i++) {
@@ -293,7 +294,7 @@ void speed_test_simplex(int T = 2000) {
 
     for (int n = min_n; n <= max_n; n++) {
         for (int m = min_m; m <= max_m && n + m <= max_sum; m++) {
-            auto time = simplex_speed_run(T, n, m, LP_OPTIMAL);
+            auto time = speed_test_simplex_run(T, n, m, LP_OPTIMAL);
             times[n - min_n][m - min_m] = time;
         }
     }
@@ -302,7 +303,6 @@ void speed_test_simplex(int T = 2000) {
 }
 
 int main() {
-    mt.seed(73);
     unit_test_simplex();
     stress_test_standardize();
     speed_test_simplex();
