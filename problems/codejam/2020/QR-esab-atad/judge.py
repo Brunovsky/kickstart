@@ -202,6 +202,8 @@ def main():
       print(result, file=sys.stderr)
       io.PrintOutput(_WRONG_ANSWER_MSG)
       sys.exit(1)
+    else:
+      print("OK", file=sys.stderr);
   except Exception as exception:
     # Hopefully this will never happen, but try to finish gracefully
     # and report a judge error in case of unexpected exception.
