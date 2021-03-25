@@ -78,7 +78,6 @@ struct hopcroft_karp {
 
     hopcroft_karp(int U, int V, const edges_t& g)
         : U(U), V(V), off(U + 2, 0), mu(U + 1, 0), mv(V + 1, 0), edge(g.size()) {
-        cout << U << ' ' << V << endl;
         for (auto [u, v] : g)
             off[u + 2]++;
         inclusive_scan(begin(off), end(off), begin(off));

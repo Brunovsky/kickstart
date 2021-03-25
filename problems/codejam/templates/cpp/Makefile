@@ -2,6 +2,8 @@
 COMPILER := gcc
 CPP_STANDARD := c++17
 
+default-target: debug
+
 # Compiler command
 CC := g++
 
