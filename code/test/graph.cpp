@@ -1,4 +1,5 @@
 #include "../debug_print.hpp"
+#include "../gen/bipartite.hpp"
 #include "../gen/circulation.hpp"
 #include "../gen/distance.hpp"
 #include "../gen/flow.hpp"
@@ -52,7 +53,6 @@ void scaling_test_random_regular_run(int T, int n, int k) {
 
     START(regular);
     for (int i = 0; i < T; i++) {
-        print_progress(i, T, "random regular");
         auto g = random_regular(n, k);
     }
     TIME(regular);
@@ -191,30 +191,39 @@ void visual_test_generators() {
 }
 
 void balance_test_generators() {
-    for (int S : {10, 20, 50, 100, 500, 2000, 5000, 15000, 30000}) {
+    for (int S : {10, 20, 50, 100, 500, 1000, 2000, 5000, 15000, 30000}) {
         print("Flow Networks  S={}\n", S);
         for (int i = 0; i < int(FN_END); i++) {
             auto fn = generate_flow_network(flow_network_kind(i), S);
             auto& name = flow_kind_name[i];
-            print(" {:2} {:30} -- V:{:<8} E:{:<13}\n", i, name, fn.V, fn.E);
+            print(" {:2} {:40} -- V:{:<8} E:{:<13}\n", i, name, fn.V, fn.E);
         }
         print("\n");
     }
-    for (int S : {10, 20, 50, 100, 500, 2000, 5000, 15000, 30000}) {
+    for (int S : {10, 20, 50, 100, 500, 1000, 2000, 5000, 15000, 30000}) {
         print("Circulation Networks  S={}\n", S);
         for (int i = 0; i < int(CN_END); i++) {
             auto fn = generate_circulation_network(circulation_network_kind(i), S);
             auto& name = circulation_kind_name[i];
-            print(" {:2} {:30} -- V:{:<8} E:{:<13}\n", i, name, fn.V, fn.E);
+            print(" {:2} {:40} -- V:{:<8} E:{:<13}\n", i, name, fn.V, fn.E);
         }
         print("\n");
     }
-    for (int S : {10, 20, 50, 100, 500, 2000, 5000, 15000, 30000}) {
+    for (int S : {10, 20, 50, 100, 500, 1000, 2000, 5000, 15000, 30000}) {
         print("Distance Graphs  S={}\n", S);
         for (int i = 0; i < int(DG_END); i++) {
             auto fn = generate_distance_graph(distance_graph_kind(i), S);
             auto& name = distance_kind_name[i];
-            print(" {:2} {:30} -- V:{:<8} E:{:<13}\n", i, name, fn.V, fn.E);
+            print(" {:2} {:40} -- V:{:<8} E:{:<13}\n", i, name, fn.V, fn.E);
+        }
+        print("\n");
+    }
+    for (int S : {10, 20, 50, 100, 500, 1000, 2000, 5000, 15000, 30000}) {
+        print("Bipartite Graphs  S={}\n", S);
+        for (int i = 0; i < int(BG_END); i++) {
+            auto fn = generate_bipartite_graph(bipartite_graph_kind(i), S);
+            auto& name = bipartite_kind_name[i];
+            print(" {:2} {:40} -- U:{:<8} V:{:<8} E:{:<13}\n", i, name, fn.U, fn.V, fn.E);
         }
         print("\n");
     }

@@ -18,10 +18,12 @@
 | Data structures     |`integer_lists              `| Stable       | Stable (U,S)   | |
 | Data structures     |`integer_heaps              `| Stable       | Stable (U,P)   | |
 | Data structures     |`lca                        `| Stable       | Stable (U)     | |
-| Data structures     |`matrix                     `| Stable       | Stable (U,S,P) | |
+| Data structures     |`matrix                     `| Stable       | Stable (U,S,P) | Add: determinant |
 | Data structures     |`rmq                        `| Stable       | Stable (U)     | |
 | Data structures     |`segment_tree               `| Stable       | Stable (U)     | Add: Dynamic sparse segment tree |
 | Data structures     |`simple_data_structures     `| Stable       | -              | |
+| Data structures     |`link_cut_tree              `| TODO :(      |                | |
+| Data structures     |`kd_tree                    `| TODO :(      |                | |
 | Flow                |`maximum_flow               `| Stable       | Stable (S,P)   | |
 | Flow                |`mincost_circulation        `| Stable       | Stable (D)     | |
 | Flow                |`mincost_flow               `| Stable       | Stable (D,P)   | |
@@ -33,16 +35,17 @@
 | Graphs              |`isomorphism                `| Stable       | Stable (S)     | |
 | Graphs              |`regular                    `| Stable       | Stable (V,P)   | |
 | Graphs algorithms   |`min_spanning_forest        `| Stable       | Stable (U)     | |
+| Graphs algorithms   |`min_arborescence           `| TODO :(      |                | |
 | Graphs algorithms   |`planarity                  `| Stable       | Stable (D)     | |
 | Graphs algorithms   |`scc                        `| Stable       | Stable (U)     | |
-| Graphs algorithms   |`shortest_path              `| Stable       | Stable (P)     | Johnson's not correctly implemented, Goldberg needs verification |
-| Linear programming  |`simplex                    `| Stable       | Stable (U,S,P) | Missing support for x <= 0 and x in R |
-| Linear programming  |`transportation             `| Inadequate   | Stable (U)     | Inefficient implementation and bad interface |
-| Linear programming  |`travelling_salesman        `| Stable       | Stable (D)     | |
+| Graphs algorithms   |`shortest_path              `| Stable       | Stable (P)     | Fix: Johnson's not correctly implemented, Goldberg needs verification |
+| Linear programming  |`simplex                    `| Stable       | Stable (U,S,P) | Add: support for x <= 0 and x in R |
+| Linear programming  |`transportation             `| Inadequate   | Stable (U)     | Fix: inefficient implementation and bad interface |
+| Linear programming  |`travelling_salesman        `| Stable       | Stable (D)     | Add: Christofides |
 | Matching            |`general_matching           `| Stable       | Stable (D,S,P) | |
 | Matching            |`maximum_matching           `| Stable       | Stable (U)     | |
 | Matching            |`mincost_matching           `| Stable       | Stable (U,P)   | |
-| Matching            |`mincost_general_matching   `| Unimplemented|                | |
+| Matching            |`mincost_general_matching   `| TODO :(      |                | |
 | Threading           |`thread_pool                `| Stable       | Stable (S,P)   | |
 | Utilities           |`bits                       `| Stable       | Stable (U)     | |
 | Utilities           |`debug_print                `| Stable       | -              | |
