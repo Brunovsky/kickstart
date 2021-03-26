@@ -1,6 +1,9 @@
 # Compiler, gcc or clang
 COMPILER := gcc
 CPP_STANDARD := c++17
+LIBS := -lfmt
+
+default-target: debug
 
 # Compiler command
 CC := g++
@@ -15,13 +18,10 @@ CXX_FILES := $(wildcard *.cpp)
 CXX_FILES := $(filter-out $(FILE), $(CXX_FILES))
 EXE_FILES := $(CXX_FILES:%.cpp=${BIN_DIR}/%)
 DEP_FILES := $(CXX_FILES:%.cpp=${DEP_DIR}/%.d)
-LIBS := -lfmt
 
 include ../../templates/cpp-flags.make
 CXXFLAGS += $(LIBS) -Wno-sign-compare
 SANIT := $(THREAD_SANIT)
-
-default: debug
 
 -include $(DEP_FILES)
 

@@ -44,8 +44,7 @@ struct strongly_connected_components {
             cset.push_back({});
             int v;
             do {
-                v = S.top();
-                S.pop();
+                v = S.top(), S.pop();
                 onstack[v] = false;
                 cset[c].push_back(v);
                 cmap[v] = c;

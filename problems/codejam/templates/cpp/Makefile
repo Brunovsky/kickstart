@@ -1,6 +1,7 @@
 # Compiler, gcc or clang
 COMPILER := gcc
 CPP_STANDARD := c++17
+LIBS := -lfmt
 
 default-target: debug
 
@@ -16,6 +17,8 @@ NAIVEEXE := ./hack_naive
 GENEXE := ./hack_generate
 
 include ../../../../templates/cpp-flags.make
+
+CXXFLAGS += $(LIBS)
 
 # * Modes
 
