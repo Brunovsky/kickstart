@@ -206,6 +206,21 @@ long choose(long n, long k) {
 }
 
 /**
+ * Compute n!/(k1!k2!k3!)
+ */
+long choose(long n, const vector<long>& k) {
+    assert(accumulate(begin(k), end(k), 0L) <= n);
+    long multi = 1, m = 1, r = 1;
+    for (int i = 0, K = k.size(); i < K; i++) {
+        for (int j = 1; j <= k[i]; j++)
+            multi = multi * m++ / j;
+    }
+    while (m < n)
+        multi = multi * m++ / r++;
+    return multi;
+}
+
+/**
  * Compute (n choose k) (mod m)
  * k! and (n-k)! should be coprime with m (preferably m prime)
  */
