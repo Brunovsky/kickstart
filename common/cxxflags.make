@@ -1,109 +1,133 @@
 # * Dialect
 
 CXX := $(CC) -std=$(CPP_STANDARD) -pipe -pthread -pedantic -march=native
+VALGRIND := valgrind --show-leak-kinds=all
 
 # * Standard library
 
-CLANG_LIBCPP := -stdlib=libc++
-GLIBS_DEBUG := -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
-
-ifeq ($(COMPILER),clang)
-#	CXX += $(CLANG_LIBCPP)
-endif
+USE_CLANG_LIBCPP := -stdlib=libc++
+USE_GLIBS_DEBUG := -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
 
 # * Warnings
 
 WARNS := -Wall -Wextra -Wpedantic
 
-WARNS += -Wunused -Wno-unused-function
-WARNS += -Wredundant-decls -Wmissing-declarations
-WARNS += -Wuninitialized
-WARNS += -Wextra-semi
+# Unused code
+WARNS += -Wunused -Wredundant-decls -Wextra-semi
+WARNS += -Wno-unused-function
 
+# Type casting
 WARNS += -Wcast-align -Wcast-qual -Wold-style-cast
 WARNS += -Wsign-compare -Wfloat-equal -Wdouble-promotion
 
 WARNS += -Wformat
 WARNS += -Woverloaded-virtual -Wnon-virtual-dtor
 WARNS += -Wpessimizing-move -Wredundant-move
+WARNS += -Wdate-time
 
 # GCC
 ifeq ($(COMPILER),gcc)
 	WARNS += -fmax-errors=5
+
 	WARNS += -Wrestrict
-	WARNS += -Wduplicated-cond -Wduplicated-branches
+	WARNS += -Wduplicated-cond
+	WARNS += -Wduplicated-branches
 	WARNS += -Wuseless-cast
 	WARNS += -Wlogical-op
 	WARNS += -Wshadow=local
-	WARNS += -Wformat-signedness -Wformat-truncation
+	WARNS += -Wformat-signedness
+	WARNS += -Wformat-truncation
 	WARNS += -Wtrampolines
-	WARNS += -Wsuggest-attribute=noreturn -Wsuggest-final-types
-	WARNS += -Wsuggest-final-methods -Wsuggest-override
+	WARNS += -Wsuggest-attribute=noreturn
+	WARNS += -Wsuggest-final-types
+	WARNS += -Wsuggest-final-methods
+	WARNS += -Wsuggest-override
 endif
 
 # Clang
 ifeq ($(COMPILER),clang)
 	WARNS += -Qunused-arguments
 
-	WARNS += -Wdeprecated -Wc++17-compat -Wgnu -Wgcc-compat
-	WARNS += -Wunreachable-code -Wunreachable-code-aggressive
-	WARNS += -Wloop-analysis -Wimplicit-fallthrough -Winfinite-recursion
-	WARNS += -Wconditional-uninitialized -Wsometimes-uninitialized -Wstatic-self-init
-	WARNS += -Watomic-implicit-seq-cst -Wthread-safety
-	WARNS += -Wdate-time
+	WARNS += -Watomic-implicit-seq-cst
 	WARNS += -Wbad-function-cast
-	WARNS += -Wfloat-conversion -Wstring-conversion
-	WARNS += -Wchar-subscripts -Wshift-sign-overflow
+	WARNS += -Wc++17-compat
+	WARNS += -Wconditional-uninitialized
+	WARNS += -Wdeprecated
+	WARNS += -Wduplicate-enum
+	WARNS += -Wduplicate-method-arg
+	WARNS += -Wduplicate-method-match
 	WARNS += -Wdynamic-exception-spec
-	WARNS += -Wduplicate-enum -Wduplicate-method-arg -Wduplicate-method-match
-	WARNS += -Wshadow-uncaptured-local
-	WARNS += -Wformat-non-iso -Wformat-pedantic
-	WARNS += -Wextra-semi-stmt -Wnewline-eof
-	WARNS += -Widiomatic-parentheses -Wmissing-braces -Wredundant-parens
-	WARNS += -Wreorder -Wsigned-enum-bitfield -Wmissing-field-initializers
-	WARNS += -Wmethod-signatures -Wstrict-prototypes
-	WARNS += -Wover-aligned -Wpacked
-	WARNS += -Wreturn-std-move
-	WARNS += -Wself-assign -Wself-move
+	WARNS += -Wextra-semi-stmt
+	WARNS += -Wformat-non-iso
+	WARNS += -Wformat-pedantic
+	WARNS += -Wgcc-compat
+	WARNS += -Wgnu
+	#WARNS += -Wheader-hygiene
+	WARNS += -Widiomatic-parentheses
+	WARNS += -Wimplicit-fallthrough
+	WARNS += -Winfinite-recursion
+	WARNS += -Wloop-analysis
+	WARNS += -Wmethod-signatures
+	WARNS += -Wmissing-braces
+	WARNS += -Wmissing-field-initializers
 	WARNS += -Wmissing-noreturn
-	WARNS += -Wtautological-compare -Wtautological-constant-in-range-compare
-	WARNS += -Wundef -Wundefined-func-template -Wundefined-internal-type
-	WARNS += -Wunused-const-variable -Wunused-exception-parameter
+	WARNS += -Wnewline-eof
+	WARNS += -Wover-aligned
+	WARNS += -Wpacked
+	WARNS += -Wredundant-parens
+	WARNS += -Wreorder
+	WARNS += -Wreturn-std-move
+	WARNS += -Wself-assign
+	WARNS += -Wself-move
+	WARNS += -Wshadow-uncaptured-local
+	WARNS += -Wshift-sign-overflow
+	WARNS += -Wsigned-enum-bitfield
+	WARNS += -Wsometimes-uninitialized
+	WARNS += -Wstatic-self-init
+	WARNS += -Wstrict-prototypes
+	WARNS += -Wstring-conversion
+	WARNS += -Wtautological-compare
+	WARNS += -Wtautological-constant-in-range-compare
+	WARNS += -Wthread-safety
+	#WARNS += -Wundef
+	WARNS += -Wundefined-func-template
+	WARNS += -Wundefined-internal-type
+	WARNS += -Wunreachable-code
+	WARNS += -Wunreachable-code-aggressive
+	WARNS += -Wunused-const-variable
+	WARNS += -Wunused-exception-parameter
 	WARNS += -Wvla
-	WARNS += -Wweak-template-vtables -Wweak-vtables
-	WARNS += -Wzero-as-null-pointer-constant -Wzero-length-array
-
-	# Good warnings but disabled
-	# WARNS += -Wheader-hygiene
-
-	# Broken in clang 10
-	# -Wshadow -Wno-shadow-field-in-constructor
+	WARNS += -Wweak-template-vtables
+	WARNS += -Wweak-vtables
+	WARNS += -Wzero-as-null-pointer-constant
+	WARNS += -Wzero-length-array
+	WARNS += -Wshadow
+    WARNS += -Wno-shadow-field-in-constructor
 endif
 
 # Not errors
-WARNS += -Wno-unused-function
 WARNS += -Wno-missing-declarations
 WARNS += -Wno-unknown-pragmas
+WARNS += -Wno-null-dereference # Too many spurious warnings
 
-# Too many spurious warnings
-WARNS += -Wno-null-dereference
+# * Optimization
 
-# * Performance
-
-OPTIM := -O3 -DNDEBUG -flto
-OPTIM += -funroll-loops -finline-functions -ftree-vectorize
+OPTIM := -O3 -flto
+OPTIM += -funroll-loops -ftree-vectorize
 
 ifeq ($(COMPILER),gcc)
 	OPTIM += -floop-nest-optimize
 endif
 
+PROF := $(OPTIM) -pg
+
 # * Debug
 
-DEBUG := -g -ggdb -gdwarf-4
+DEBUG := -g -Og -ggdb -gdwarf-4
 
 ifeq ($(COMPILER),gcc)
 	DEBUG += -fvar-tracking-assignments
-	DEBUG += -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
+	DEBUG += $(USE_GLIBS_DEBUG)
 endif
 
 # Sanitizers
@@ -153,14 +177,11 @@ CXXFLAGS := $(WARNS)
 output_debug_flags:
 	@echo $(CXXFLAGS) $(DEBUG)
 
-output_perfm_flags:
+output_optim_flags:
 	@echo $(CXXFLAGS) $(OPTIM)
 
 output_sanit_flags:
 	@echo $(CXXFLAGS) $(DEBUG) $(SANIT)
 
 output_prof_flags:
-	@echo $(CXXFLAGS) $(OPTIM) -pg
-
-output_fast_debug_flags:
-	@echo $(CXXFLAGS) $(DEBUG) $(OPTIM) -UNDEBUG
+	@echo $(CXXFLAGS) $(PROF)

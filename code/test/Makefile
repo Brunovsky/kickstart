@@ -1,12 +1,13 @@
 # Compiler, gcc or clang
 COMPILER := gcc
+CC := g++
 CPP_STANDARD := c++17
-LIBS := -lfmt
+EXTRA_CXXFLAGS := -lfmt -Wno-sign-compare
 
+.PHONY: default-target
 default-target: debug
 
-# Compiler command
-CC := g++
+# * Files
 
 FILE := code.cpp
 EXE := ./hack
@@ -19,23 +20,21 @@ CXX_FILES := $(filter-out $(FILE), $(CXX_FILES))
 EXE_FILES := $(CXX_FILES:%.cpp=${BIN_DIR}/%)
 DEP_FILES := $(CXX_FILES:%.cpp=${DEP_DIR}/%.d)
 
-include ../../templates/cpp-flags.make
-CXXFLAGS += $(LIBS) -Wno-sign-compare
-SANIT := $(THREAD_SANIT)
+include ../../common/cxxflags.make
+CXXFLAGS += $(EXTRA_CXXFLAGS)
 
 -include $(DEP_FILES)
 
 # * Modes
 
-.PHONY: perfm debug all
-.PHONY: run code valgrind fast clean
+.PHONY: debug perfm sanit prof clean
 
 debug: MODE := debug
 debug: CXXFLAGS += $(DEBUG)
 debug: $(EXE)
 
 perfm: MODE := performance
-perfm: CXXFLAGS += $(OPTIM)
+perfm: CXXFLAGS += $(DEBUG) $(OPTIM)
 perfm: $(EXE)
 
 sanit: MODE := sanitizer
@@ -46,9 +45,12 @@ prof: MODE := profiling
 prof: CXXFLAGS += $(OPTIM) -pg
 prof: $(EXE)
 
-fastdebug: MODE := fastdebug
-fastdebug: CXXFLAGS += $(DEBUG) $(OPTIM) -UNDEBUG
-fastdebug: $(EXE)
+clean:
+	@rm -f $(EXE) core vgcore.* *.log
+
+$(EXE): $(FILE) $(HEADERS)
+	@echo "CC (${COMPILER} $(MODE)) $@"
+	@$(CXX) $(FILE) $(CXXFLAGS) -o $@
 
 # global build
 
@@ -68,26 +70,22 @@ $(EXE_FILES): $(BIN_DIR)/%: %.cpp $(DEP_DIR)/%.d
 	@$(CXX) $< $(CXXFLAGS) $(DEPCOMPILEARGS) -o $@
 	@$(CMD_MV_DEPENDENCY)
 
+.PHONY: all cleanall
+
 all: $(EXE_FILES)
 
 cleanall: clean
 	@rm -rf $(DEP_DIR) $(BIN_DIR)
 
-# code.cpp
+# ---
 
-$(EXE): $(FILE) $(HEADERS)
-	@echo "CC (${COMPILER} $(MODE)) $@"
-	@$(CXX) $(FILE) $(CXXFLAGS) -o $@
+.PHONY: run fast valgrind
 
-run code: debug
+run: debug
 	@$(EXE)
-
-valgrind: debug
-	@clear
-	@valgrind --leak-check=full $(EXE)
 
 fast: perfm
 	@$(EXE)
 
-clean:
-	@rm -f $(EXE) core vgcore.* *.log
+valgrind: debug
+	@$(VALGRIND) $(EXE)

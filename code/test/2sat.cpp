@@ -75,6 +75,7 @@ void speed_test_twosat_positive(int T = 3000) {
         assert(verify(g, sat.assignment));
     }
 
+    clear_line();
     print("speed test 2-SAT positive x{}\n", T);
     PRINT_TIME(sat);
 }

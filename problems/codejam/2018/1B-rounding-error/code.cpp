@@ -5,7 +5,7 @@ using namespace std;
 // *****
 
 #define P(c)           (100.0 * (c) / N)
-#define R(c)           round(P(c))
+#define R(c)           int(round(P(c)))
 #define D(c)           (R(c) - P(c))
 #define ROUNDS_DOWN(c) (D(c) <= 0)
 #define ROUNDS_UP(c)   (D(c) > 0)

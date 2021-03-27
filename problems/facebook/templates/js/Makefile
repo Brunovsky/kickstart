@@ -1,15 +1,36 @@
+.PHONY: default-target
+default-target: run
+
+# * Files
+
 EXE := node code.js
-NAIVEEXE := node naive.js
+NAIVE_EXE := node naive.js
+GENERATE_EXE := node generate.js
 
-run code fast:
-	@$(EXE) < input.txt
+# ---
 
-answer:
-	@$(EXE) < input.txt > answer.txt
+clean:
+	@rm -f program.txt
 
-test:
-	@$(EXE) < input.txt > program.txt
-	@cmp program.txt naive.txt && echo OK
+# ---
+
+run fast:
+	@$(EXE) < input.txt | tee program.txt
 
 naive:
-	@$(NAIVEEXE) < input.txt > naive.txt
+	@$(NAIVE_EXE) < input.txt | tee correct.txt
+
+generate:
+	@$(GENERATE_EXE) > input.txt
+
+# ---
+
+.PHONY: diff linediff
+
+# Compare program.txt with correct.txt byte-by-byte
+diff:
+	@python ../../../../common/casediff.py program.txt correct.txt
+
+# Compare program.txt with correct.txt line-by-line and output differing lines
+linediff:
+	@diff -y --tabsize=4 --minimal program.txt correct.txt

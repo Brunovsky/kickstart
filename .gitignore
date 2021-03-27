@@ -41,6 +41,8 @@ hack_naive
 # Dumps
 core
 vgcore*
+program.txt
+debug.txt
 
 # Instrumentation
 gmon.out

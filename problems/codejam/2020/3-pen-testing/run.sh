@@ -1,6 +1,10 @@
 #!/bin/bash
 
-SET="${1:-2}"
+if test "${1}" = --from-make; then
+    shift
+else
+    make
+fi
 
-make
+SET="${1:-2}"
 python3 interactive_runner.py python3 testing_tool.py "$SET" -- ./hack

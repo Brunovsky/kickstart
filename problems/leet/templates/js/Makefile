@@ -1,19 +1,16 @@
-EXE := ./code.js
-
 .PHONY: default-target
+default-target: run
 
-default-target: $(EXE)
+# * Files
 
-.PHONY: run test clean
+EXE := node code.js
 
-# Compilation rule
-$(EXE):
-	true
-
-run: test
-
-test:
-	@$(EXE)
+# ---
 
 clean:
 	@rm -f core log stdout
+
+# ---
+
+run fast:
+	@$(EXE)

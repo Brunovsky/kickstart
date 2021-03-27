@@ -1,26 +1,26 @@
 # Compiler, gcc or clang
 COMPILER := gcc
-CPP_STANDARD := c++17
-
-# Compiler command
 CC := g++
+CPP_STANDARD := c++17
+EXTRA_CXXFLAGS := -lfmt
+
+.PHONY: default-target
+default-target: debug
+
+# * Files
 
 CODE := ./code.cpp
 RUN := ./run.sh
 
 EXE := ./hack
-LIBS := -lfmt
-
-include ../../../templates/cpp-flags.make
-CXXFLAGS += $(LIBS)
 
 # * Modes
 
-.PHONY: perfm debug
-.PHONY: run code valgrind fast clean
+include ../../../common/cxxflags.make
+CXXFLAGS += $(EXTRA_CXXFLAGS)
 
-all: debug
-	@true
+.PHONY: perfm debug build_generate
+.PHONY: run code valgrind fast clean
 
 perfm: MODE := performance
 perfm: CXXFLAGS += $(OPTIM)
@@ -30,21 +30,32 @@ debug: MODE := debug
 debug: CXXFLAGS += $(DEBUG)
 debug: $(EXE)
 
+build_generate: MODE := performance
+build_generate: CXXFLAGS += $(OPTIM)
+build_generate: $(GENERATE_EXE)
+
+clean:
+	@rm -f $(EXE) $(GENERATE_EXE) core vgcore.* *.log
+
 $(EXE): $(CODE)
 	@echo "CC (${COMPILER} $(MODE))  $@"
 	@$(CXX) $(CODE) $(CXXFLAGS) -o $@
 
-# Compile and run, build in debug mode by default
-run code: debug
+# ---
+
+.PHONY: run fast valgrind generate
+
+run: debug
 	@$(RUN)
 
 fast: perfm
 	@$(RUN)
 
-# Build in debug mode and run under valgrind
 valgrind: debug
-	@clear
 	@$(RUN) -g
 
-clean:
-	@rm -f $(EXE) core vgcore.* *.log
+generate: build_generate
+	@$(GENERATE_EXE) > input.txt
+
+stats:
+	@$(RUN) --stats

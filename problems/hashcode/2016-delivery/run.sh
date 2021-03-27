@@ -6,8 +6,8 @@ make
 clear
 
 RUN=""
-if [ "$1" = "--valgrind" ]; then
-    RUN="valgrind --max-stackframe=40000000"
+if [ "$1" = "-g" ]; then
+    RUN="valgrind"
     shift
 fi
 
