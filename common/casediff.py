@@ -28,7 +28,7 @@ class Options:
     color_header = False
 
     def parse(argv):
-        Options.compare_header_only = 0 < argv.count("--compare-headers")
+        Options.compare_header_only = 0 < argv.count("--compare-header")
         Options.color_header = 0 < argv.count("--color-header")
 
 
@@ -44,8 +44,7 @@ class Diffline:
 
 def read_cases(filename):
     case_pattern = re.compile("^Case #(\d+):")
-    case_body, case_lineno = [], [], []
-    caseno = 0
+    caseno, case_body, case_lineno = 0, [], []
 
     try:
         with open(filename, "r") as file:
@@ -67,10 +66,10 @@ def read_cases(filename):
     return case_body, case_lineno
 
 
-def color_diffs(caseno, a, b, alineno, blineno):
+def make_difflines(caseno, a, b, alineno, blineno):
     RED, GREEN, YELLOW, END = '\033[1;31m', '\033[1;32m', '\033[1;34m', '\033[0m'
-
     diffs = []
+
     for i, (aline, bline) in enumerate(zip(a, b)):
         if aline == bline:
             continue
@@ -80,6 +79,7 @@ def color_diffs(caseno, a, b, alineno, blineno):
             continue
 
         ok, text_a, text_b = True, "", ""
+
         for ca, cb in zip(aline, bline):
             if ca == cb and not ok:
                 text_a += END
@@ -98,8 +98,7 @@ def color_diffs(caseno, a, b, alineno, blineno):
         if len(aline) < len(bline):
             text_b += GREEN + bline[len(aline):] + END
 
-        diff = Diffline(caseno, i, alineno, blineno,
-                        text_a, text_b, aline, bline)
+        diff = Diffline(caseno, i, alineno, blineno, text_a, text_b, aline, bline)
         diffs.append(diff)
 
     for i in range(len(b), len(a)):
@@ -122,7 +121,7 @@ def print_diffs(diffs):
         return
 
     lineno_align = [max(len(str(diff.lineno[s])) for diff in diffs) for s in (0, 1)]
-    text_align = [max(diff.width[0] for diff in diffs) for s in (0, 1)]
+    text_align = [max(diff.width[0] for diff in diffs), 0]
     pad = " " * (lineno_align[0] + 2 + text_align[0])
 
     def build(diff, s):
@@ -163,8 +162,8 @@ def main():
         if cases_match(i):
             good += 1
             continue
-        diffs += color_diffs(i + 1, program_body[i], correct_body[i],
-                             program_lineno[i], correct_lineno[i])
+        diffs += make_difflines(i + 1, program_body[i], correct_body[i],
+                                program_lineno[i], correct_lineno[i])
 
     print_diffs(diffs)
     print("Correct: {}/{} ({:.1f}%)".format(good, casenos, 100 * good / casenos))

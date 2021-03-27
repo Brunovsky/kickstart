@@ -15,7 +15,7 @@ void solve() {
 int main() {
     cout.setf(ios::unitbuf);
     unsigned T;
-    cin >> T >> ws;
+    cin >> T;
     for (unsigned t = 1; t <= T; ++t) {
         solve();
     }

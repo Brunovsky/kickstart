@@ -2,8 +2,8 @@
 
 ## [Ample Syrup (9pts, 16pts)](https://codingcompetitions.withgoogle.com/codejam/round/0000000000201842/0000000000201874)
 
-Unattempted
+Solved
 
-* Time: 0 hours
-* Complexity: -
+* Time: 20 minutes
+* Complexity: O(N log N)
 * Memory: -
