@@ -34,7 +34,7 @@ debug: CXXFLAGS += $(DEBUG)
 debug: $(EXE)
 
 perfm: MODE := performance
-perfm: CXXFLAGS += $(DEBUG) $(OPTIM)
+perfm: CXXFLAGS += $(OPTIM)
 perfm: $(EXE)
 
 sanit: MODE := sanitizer

@@ -47,6 +47,7 @@ endif
 # Clang
 ifeq ($(COMPILER),clang)
 	WARNS += -Qunused-arguments
+    WARNS += -Wno-float-conversion
 
 	WARNS += -Watomic-implicit-seq-cst
 	WARNS += -Wbad-function-cast

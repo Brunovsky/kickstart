@@ -61,7 +61,7 @@ auto relabel_inplace(int V, edges_t& g) {
 
 auto relabel(int V, const edges_t& g) {
     auto h = g;
-    return relabel_inplace(V, h);
+    return relabel_inplace(V, h), h;
 }
 
 auto relabel_inplace(int U, int V, edges_t& g) {
@@ -76,7 +76,20 @@ auto relabel_inplace(int U, int V, edges_t& g) {
 
 auto relabel(int U, int V, const edges_t& g) {
     auto h = g;
-    return relabel_inplace(U, V, h);
+    return relabel_inplace(U, V, h), h;
+}
+
+/**
+ * Randomly flip some edges with probability p
+ */
+auto random_flip_inplace(edges_t& g, double p = 0.5) {
+    for (int e : int_sample_p(p, 0, g.size() - 1))
+        swap(g[e][0], g[e][1]);
+}
+
+auto random_flip(const edges_t& g, double p = 0.5) {
+    auto h = g;
+    return random_flip_inplace(h, p), h;
 }
 
 /**

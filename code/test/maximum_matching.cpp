@@ -1,6 +1,7 @@
 #include "../maximum_matching.hpp"
 
 #include "../gen/bipartite.hpp"
+#include "../gen/graph_problems.hpp"
 #include "test_utils.hpp"
 
 // *****
@@ -61,7 +62,8 @@ void stress_test_maximum_matching(int T = 2000) {
         int U = distV(mt), V = distV(mt);
         int M = ceil(distMp(mt) * min(U, V));
         double p = distEp(mt) / (max(U, V));
-        auto g = random_bipartite_maximum_matching(U, V, M, p);
+        auto g = random_bipartite_matching(U, V, M, p);
+        bipartite_matching_hide_topology(U, V, g);
 
         maximum_matching mm(U, V, g);
         int m0 = mm.compute();
@@ -94,7 +96,7 @@ void unit_test_maximum_matching() {
 
 int main() {
     unit_test_maximum_matching();
-    // stress_test_maximum_matching();
+    stress_test_maximum_matching();
     speed_test_maximum_matching();
     return 0;
 }

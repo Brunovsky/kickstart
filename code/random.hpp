@@ -19,6 +19,8 @@ using int_sample_t = vector<int>;
 using pair_sample_t = vector<edge_t>;
 using partition_t = vector<int>;
 
+// *****
+
 int different(int u, int v1, int v2) {
     assert(v1 <= v2 && (v1 != u || v2 != u));
     if (v1 == v2)
@@ -58,6 +60,9 @@ void fisher_yates(vector<T>& univ, int k = -1) {
  * Complexity: O(k) with E[mt] <= 3k.
  */
 int_sample_t int_sample(int k, int a, int b, bool complement = false) {
+    if (k == 0 && !complement)
+        return {};
+
     int ab = b - a + 1;
     assert(a <= b && 0 <= k && k <= ab);
     if (3 * k >= 2 * ab) {
@@ -104,6 +109,9 @@ auto int_sample_p(double p, int a, int b, bool complement = false) {
  * Complexity: O(k) with E[mt] <= 6k.
  */
 pair_sample_t choose_sample(int k, int a, int b, bool complement = false) {
+    if (k == 0 && !complement)
+        return {};
+
     long ab = 1L * (b - a + 1) * (b - a) / 2;
     assert(a <= b && 0 <= k && k <= ab);
     if (3 * k >= 2 * ab) {
@@ -153,6 +161,9 @@ auto choose_sample_p(double p, int a, int b, bool complement = false) {
  * Complexity: O(k) with E[mt] <= 6k.
  */
 pair_sample_t pair_sample(int k, int a, int b, int c, int d, bool complement = false) {
+    if (k == 0 && !complement)
+        return {};
+
     long ab = b - a + 1, cd = d - c + 1;
     assert(a <= b && c <= d && 0 <= k && k <= ab * cd);
     if (3 * k >= 2 * ab * cd) {
@@ -230,7 +241,7 @@ parent_t parent_sample(int n) {
  */
 template <typename I = int>
 auto partition_sample(I n, int k, I m = 1) {
-    assert(1L * m * k <= n && k >= 0 && m >= 0);
+    assert(1L * m * k <= n && k > 0 && m >= 0);
     vector<I> parts(k, m);
     intd dist(0, k - 1);
     n -= m * k;
@@ -239,6 +250,37 @@ auto partition_sample(I n, int k, I m = 1) {
         parts[dist(mt)] += add;
         n -= add;
     }
+    return parts;
+}
+
+/**
+ * Generate a partition of n into k parts where each has size between m_i and M_i.
+ * It must hold that k > 0 and 0 <= m_i <= M_i and SUM(m_i) <= n <= SUM(M_i)
+ * Complexity: faster than linear
+ */
+template <typename I = int>
+auto partition_sample(I n, int k, const vector<I>& m, const vector<I>& M) {
+    assert(k > 0 && k <= m.size() && k <= M.size());
+    assert(n <= accumulate(begin(M), end(M), I(0)));
+    vector<I> parts = m;
+    vector<int> id(k);
+    parts.resize(k);
+    iota(begin(id), end(id), 0);
+    n -= accumulate(begin(m), end(m), I(0));
+    while (n > 0) {
+        I add = (n + k - 1) / k;
+        int i = intd(0, k - 1)(mt), j = id[i];
+        if (parts[j] + add >= M[j]) {
+            assert(parts[j] <= M[j]);
+            n -= M[j] - parts[j];
+            parts[j] = M[j];
+            swap(id[i], id[--k]);
+        } else {
+            n -= add;
+            parts[j] += add;
+        }
+    }
+    assert(n == 0);
     return parts;
 }
 
