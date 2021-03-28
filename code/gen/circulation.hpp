@@ -127,7 +127,7 @@ auto generate_circulation_network(circulation_network_kind i, int S) {
         g = circular_grid3_directed(X, Y, Z);
         break;
     case CN_CIRCULANT:
-        V = dV(0.75), k = sqrtk(), ints = int_sample(k, 2, V - 1);
+        V = dV(0.75), k = sqrtk(), ints = int_sample(k, 2, V);
         ints.push_back(1);
         g = circulant(V, ints);
         break;

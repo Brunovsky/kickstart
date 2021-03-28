@@ -55,21 +55,21 @@ void fisher_yates(vector<T>& univ, int k = -1) {
 }
 
 /**
- * Generate a sorted sample of k distinct integers from the range [a..b]
- * It must hold that a <= b and k <= n = b - a + 1.
- * Complexity: O(k) with E[mt] <= 3k.
+ * Generate a sorted sample of k distinct integers from the range [a..b)
+ * It must hold that a <= b and k <= n = b - a.
+ * Complexity: O(k log k) with E[mt] <= 3k.
  */
-int_sample_t int_sample(int k, int a, int b, bool complement = false) {
-    if (k == 0 && !complement)
+int_sample_t int_sample(long k, int a, int b, bool complement = false) {
+    if ((k == 0 && !complement) || a >= b)
         return {};
 
-    int ab = b - a + 1;
-    assert(a <= b && 0 <= k && k <= ab);
+    long ab = b - a;
+    assert(ab >= 0 && 0 <= k && k <= ab);
     if (3 * k >= 2 * ab) {
         return int_sample(ab - k, a, b, !complement);
     }
 
-    intd dist(a, b);
+    intd dist(a, b - 1);
     unordered_set<int> seen;
     seen.reserve(k);
     while (k--) {
@@ -83,11 +83,11 @@ int_sample_t int_sample(int k, int a, int b, bool complement = false) {
     int_sample_t sample;
     sample.reserve(seen.size());
     if (complement) {
-        for (int n = a; n <= b; n++)
+        for (int n = a; n < b; n++)
             if (!seen.count(n))
                 sample.push_back(n);
     } else if (3 * k >= ab) {
-        for (int n = a; n <= b; n++)
+        for (int n = a; n < b; n++)
             if (seen.count(n))
                 sample.push_back(n);
     } else {
@@ -97,112 +97,135 @@ int_sample_t int_sample(int k, int a, int b, bool complement = false) {
     return sample;
 }
 
-auto int_sample_p(double p, int a, int b, bool complement = false) {
-    int ab = b - a + 1;
-    return int_sample(binomd(ab, p)(mt), a, b, complement);
+auto int_sample_p(double p, int a, int b) {
+    long ab = b - a;
+    return int_sample(binomd(ab, min(p, 1.0))(mt), a, b);
 }
 
 /**
  * Generate a sorted sample of k integer pairs (x,y) where x, y are taken from the range
- * [a..b] and x < y.
- * It must hold that a <= b and k <= (n choose 2) where n = b - a + 1.
- * Complexity: O(k) with E[mt] <= 6k.
+ * [a..b) and x < y.
+ * It must hold that a <= b and k <= (n choose 2) where n = b - a.
+ * Complexity: O(k log k) with E[mt] <= 6k.
  */
-pair_sample_t choose_sample(int k, int a, int b, bool complement = false) {
-    if (k == 0 && !complement)
+pair_sample_t choose_sample(long k, int a, int b, bool complement = false) {
+    if ((k == 0 && !complement) || a >= b - 1)
         return {};
 
-    long ab = 1L * (b - a + 1) * (b - a) / 2;
-    assert(a <= b && 0 <= k && k <= ab);
+    static_assert(sizeof(int) == 4);
+    long ab = 1L * (b - a) * (b - a - 1) / 2;
+    assert(ab >= 0 && 0 <= k && k <= ab);
     if (3 * k >= 2 * ab) {
         return choose_sample(ab - k, a, b, !complement);
     }
 
-    intd dist(a, b);
-    unordered_set<pair<int, int>, pair_hasher> seen;
-    seen.reserve(k);
-    while (k--) {
-        pair<int, int> p;
-        do {
-            p = minmax(dist(mt), dist(mt));
-        } while (p.first == p.second || seen.count(p));
-        seen.insert(p);
-    }
-
-    pair_sample_t sample;
-    sample.reserve(seen.size());
-    if (complement) {
-        for (int x = a; x <= b; x++)
-            for (int y = x + 1; y <= b; y++)
-                if (!seen.count({x, y}))
-                    sample.push_back({x, y});
-    } else if (3 * k >= ab) {
-        for (int x = a; x <= b; x++)
-            for (int y = x + 1; y <= b; y++)
-                if (seen.count({x, y}))
-                    sample.push_back({x, y});
-    } else {
-        for (auto& p : seen)
-            sample.push_back({p.first, p.second});
-        sort(begin(sample), end(sample));
-    }
-    return sample;
-}
-
-auto choose_sample_p(double p, int a, int b, bool complement = false) {
-    long ab = 1L * (b - a + 1) * (b - a) / 2;
-    return choose_sample(binomd(ab, p)(mt), a, b, complement);
-}
-
-/**
- * Generate an unsorted sample of k integer pairs (x,y) where x is taken from the range
- * [a..b] and y is taken from the range [c..d].
- * It must hold that a <= b, c <= d, and k <= n x m = (b - a + 1)(d - c + 1).
- * Complexity: O(k) with E[mt] <= 6k.
- */
-pair_sample_t pair_sample(int k, int a, int b, int c, int d, bool complement = false) {
-    if (k == 0 && !complement)
-        return {};
-
-    long ab = b - a + 1, cd = d - c + 1;
-    assert(a <= b && c <= d && 0 <= k && k <= ab * cd);
-    if (3 * k >= 2 * ab * cd) {
-        return pair_sample(ab * cd - k, a, b, c, d, !complement);
-    }
-
-    intd dist0(a, b), dist1(c, d);
-    unordered_set<array<int, 2>, pair_hasher> seen;
+    intd distx(a, b - 1), disty(a, b - 2);
+    unordered_set<long> seen;
     seen.reserve(k);
     while (k--) {
         int x, y;
         do {
-            x = dist0(mt), y = dist1(mt);
-        } while (seen.count({x, y}));
-        seen.insert({x, y});
+            x = distx(mt), y = disty(mt), tie(x, y) = minmax(x, y + (y >= x));
+        } while (seen.count(long(x) << 32 | y));
+        seen.insert(long(x) << 32 | y);
     }
 
     pair_sample_t sample;
     sample.reserve(seen.size());
     if (complement) {
-        for (int x = a; x <= b; x++)
-            for (int y = c; y <= d; y++)
-                if (!seen.count({x, y}))
+        for (int x = a; x < b; x++)
+            for (int y = x + 1; y < b; y++)
+                if (!seen.count(long(x) << 32 | y))
                     sample.push_back({x, y});
-    } else if (3 * k >= ab * cd) {
-        for (int x = a; x <= b; x++)
-            for (int y = c; y <= d; y++)
-                if (seen.count({x, y}))
+    } else if (3 * k >= ab) {
+        for (int x = a; x < b; x++)
+            for (int y = x + 1; y < b; y++)
+                if (seen.count(long(x) << 32 | y))
                     sample.push_back({x, y});
     } else {
-        copy(begin(seen), end(seen), back_inserter(sample));
+        int x, y;
+        for (long n : seen)
+            x = n >> 32, y = n & 0xffffffffL, sample.push_back({x, y});
         sort(begin(sample), end(sample));
     }
     return sample;
 }
 
-auto pair_sample_p(double p, int a, int b, int c, int d, bool complement = false) {
-    long ab = b - a + 1, cd = d - c + 1;
-    return pair_sample(binomd(ab * cd, p)(mt), a, b, c, d, complement);
+auto choose_sample_p(double p, int a, int b) {
+    long ab = 1L * (b - a) * (b - a - 1) / 2;
+    return choose_sample(binomd(ab, min(p, 1.0))(mt), a, b);
+}
+
+/**
+ * Generate a sorted sample of k integer pairs (x,y) where x is taken from the range
+ * [a..b) and y is taken from the range [c..d).
+ * It must hold that a <= b, c <= d, and k <= nm = (b - a)(d - c).
+ * Complexity: O(k log k) with E[mt] <= 6k.
+ */
+pair_sample_t pair_sample(long k, int a, int b, int c, int d, bool complement = false) {
+    if ((k == 0 && !complement) || a >= b || c >= d)
+        return {};
+
+    static_assert(sizeof(int) == 4);
+    long ab = b - a, cd = d - c;
+    assert(ab >= 0 && cd >= 0 && 0 <= k && k <= ab * cd);
+    if (3 * k >= 2 * ab * cd) {
+        return pair_sample(ab * cd - k, a, b, c, d, !complement);
+    }
+
+    intd distx(a, b - 1), disty(c, d - 1);
+    unordered_set<long> seen;
+    seen.reserve(k);
+    while (k--) {
+        int x, y;
+        do {
+            x = distx(mt), y = disty(mt);
+        } while (seen.count(long(x) << 32 | y));
+        seen.insert(long(x) << 32 | y);
+    }
+
+    pair_sample_t sample;
+    sample.reserve(seen.size());
+    if (complement) {
+        for (int x = a; x < b; x++)
+            for (int y = c; y < d; y++)
+                if (!seen.count(long(x) << 32 | y))
+                    sample.push_back({x, y});
+    } else if (3 * k >= ab * cd) {
+        for (int x = a; x < b; x++)
+            for (int y = c; y < d; y++)
+                if (seen.count(long(x) << 32 | y))
+                    sample.push_back({x, y});
+    } else {
+        int x, y;
+        for (long n : seen)
+            x = n >> 32, y = n & 0xffffffffL, sample.push_back({x, y});
+        sort(begin(sample), end(sample));
+    }
+    return sample;
+}
+
+auto pair_sample_p(double p, int a, int b, int c, int d) {
+    long ab = b - a, cd = d - c;
+    return pair_sample(binomd(ab * cd, min(p, 1.0))(mt), a, b, c, d);
+}
+
+/**
+ * Generate an unsorted sample of k integers pairs (x,y) where x and y are taken from the
+ * range [a..b) and x != y.
+ * It must hold that a <= b, and k <= n(n - 1) where n = b - a.
+ * Complexity: O(k log k) with E[mt] <= 6k.
+ */
+pair_sample_t distinct_pair_sample(long k, int a, int b, bool complement = false) {
+    auto g = pair_sample(k, a, b, a, b - 1, complement);
+    for (auto& [u, v] : g)
+        v += v >= u;
+    return g;
+}
+
+auto distinct_pair_sample_p(double p, int a, int b) {
+    long ab = 1L * (b - a) * (b - a - 1);
+    return distinct_pair_sample(binomd(ab, min(p, 1.0))(mt), a, b);
 }
 
 /**
@@ -210,11 +233,22 @@ auto pair_sample_p(double p, int a, int b, int c, int d, bool complement = false
  * Complexity: O(k) and E[mt] = 3k.
  */
 template <typename T>
-vector<T> vec_sample(const vector<T>& univ, int k) {
+auto vec_sample(const vector<T>& univ, int k) {
+    int n = univ.size();
+    assert(0 <= k && k <= n);
+    vector<int> idx = int_sample(k, 0, n);
+    vector<T> sample(k);
+    for (int i = 0; i < k; i++)
+        sample[i] = univ[idx[i]];
+    return sample;
+}
+
+template <size_t k, typename T>
+auto array_sample(const vector<T>& univ) {
     int n = univ.size();
     assert(0 < k && k <= n);
-    vector<int> idx = int_sample(k, 0, n - 1);
-    vector<int> sample(k);
+    vector<int> idx = int_sample(k, 0, n);
+    array<T, k> sample;
     for (int i = 0; i < k; i++)
         sample[i] = univ[idx[i]];
     return sample;
@@ -225,7 +259,7 @@ vector<T> vec_sample(const vector<T>& univ, int k) {
  * uniformly at random from [0..i-1] and parent[0] = 0.
  * Complexity: O(n)
  */
-parent_t parent_sample(int n) {
+auto parent_sample(int n) {
     parent_t parent(n);
     for (int i = 1; i < n; i++) {
         intd dist(0, i - 1);

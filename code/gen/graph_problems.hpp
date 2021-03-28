@@ -69,13 +69,13 @@ auto random_bipartite_matching(int U, int V, int M, int E) {
 
     for (int n = 0; n < M; n++)
         g.push_back({n, n});
-    for (auto [u, v] : pair_sample(a, 0, m - 1, 0, m - 2))
-        v += v >= u, g.push_back({u, v});
-    for (auto [u, v] : pair_sample(b, m, M - 1, m, M - 2))
-        v += v >= u, g.push_back({u, v});
-    for (auto [u, v] : pair_sample(c, 0, m - 1, M, V - 1))
+    for (auto [u, v] : distinct_pair_sample(a, 0, m))
         g.push_back({u, v});
-    for (auto [u, v] : pair_sample(d, M, U - 1, m, M - 1))
+    for (auto [u, v] : distinct_pair_sample(b, m, M))
+        g.push_back({u, v});
+    for (auto [u, v] : pair_sample(c, 0, m, M, V))
+        g.push_back({u, v});
+    for (auto [u, v] : pair_sample(d, M, U, m, M))
         g.push_back({u, v});
 
     assert(verify_edges_bipartite(g, U, V, E));
@@ -138,11 +138,11 @@ auto random_general_matching(int V, int M, int E) {
     edges_t g;
     g.reserve(E);
 
-    for (int e = 0; e < M; e++)
-        g.push_back({2 * e, 2 * e + 1});
-    for (auto [u, v] : pair_sample(a, 0, M - 1, 0, M - 2))
-        v += v >= u, g.push_back({2 * u, 2 * v + 1});
-    for (auto [u, v] : pair_sample(b, 0, M - 1, 2 * M, V - 1))
+    for (int n = 0; n < M; n++)
+        g.push_back({2 * n, 2 * n + 1});
+    for (auto [u, v] : distinct_pair_sample(a, 0, M))
+        g.push_back({2 * u, 2 * v + 1});
+    for (auto [u, v] : pair_sample(b, 0, M, 2 * M, V))
         g.push_back({2 * u, v});
 
     assert(verify_edges_undirected(g, V, E));

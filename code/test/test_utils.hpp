@@ -80,7 +80,13 @@ bool all_eq(const vector<T>& v) {
 // get time in milliseconds
 #define TIME_MS(var) time_##var / 1'000
 
+// get time in microseconds
+#define TIME_US(var) time_##var
+
 // output time (single or multiple)
 #define PRINT_TIME(var) clear_line(), print(" {:>8}ms -- {}\n", TIME_MS(var), #var)
+
+// output time (single or multiple)
+#define PRINT_TIME_US(var) clear_line(), print(" {:>8}ms -- {}\n", TIME_US(var), #var)
 
 #endif // TEST_UTILS_HPP

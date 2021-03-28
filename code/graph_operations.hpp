@@ -83,8 +83,15 @@ auto relabel(int U, int V, const edges_t& g) {
  * Randomly flip some edges with probability p
  */
 auto random_flip_inplace(edges_t& g, double p = 0.5) {
-    for (int e : int_sample_p(p, 0, g.size() - 1))
-        swap(g[e][0], g[e][1]);
+    if (p <= 0.25) {
+        for (int e : int_sample_p(p, 0, g.size()))
+            swap(g[e][0], g[e][1]);
+    } else {
+        boold flipd(p);
+        for (auto& [u, v] : g)
+            if (flipd(mt))
+                swap(u, v);
+    }
 }
 
 auto random_flip(const edges_t& g, double p = 0.5) {

@@ -52,7 +52,7 @@
 | Utilities           |`hash                       `| Stable       | Stable (U)     | |
 | Utilities           |`math                       `| Stable       | Stable (U)     | |
 | Utilities           |`primes                     `| Stable       | Stable (U,S)   | |
-| Utilities           |`random                     `| Stable       | Stable (S)     | |
+| Utilities           |`random                     `| Stable       | Stable (S,A)   | |
 
 Test types:
 

@@ -134,7 +134,7 @@ void scaling_test_general_matching_run(int T, int V, int E) {
         ADD_TIME(mv);
     }
 
-    print(" {:>8}ms -- {:>7.2f}ms each -- {:7.1f} ratio -- x{:<6}  V={:<6}  E={:<6}\n",
+    print(" {:>8}ms -- {:>7.1f}ms each -- {:7.1f} ratio -- x{:<6}  V={:<6}  E={:<6}\n",
           TIME_MS(mv), 1.0 * TIME_MS(mv) / T, compute_ratio(TIME_MS(mv), T, V, E), T, V,
           E);
 }

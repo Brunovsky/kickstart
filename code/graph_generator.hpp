@@ -131,8 +131,7 @@ void add_reverse_edges(edges_t& g) {
 void add_uniform_self_loops(edges_t& g, int u1, int u2, double p) {
     int V = u2 - u1;
     if (V >= 10 && p <= 0.25) {
-        binomd distk(V, p);
-        for (int u : int_sample(distk(mt), u1, u2 - 1))
+        for (int u : int_sample_p(p, u1, u2))
             g.push_back({u, u});
     } else {
         boold distp(p);
@@ -146,13 +145,12 @@ void add_uniform_self_loops(edges_t& g, int u1, int u2, double p) {
 void add_uniform_edges_undirected(edges_t& g, int u1, int u2, double p) {
     int V = u2 - u1;
     if (V >= 10 && p <= 0.15) {
-        binomd distk(1L * V * (V - 1) / 2, p);
-        for (auto [u, v] : choose_sample(distk(mt), u1, u2 - 1))
+        for (auto [u, v] : choose_sample_p(p, u1, u2))
             g.push_back({u, v});
     } else {
         boold distp(p);
-        for (int u = u1 + 1; u < u2; u++)
-            for (int v = u1; v < u; v++)
+        for (int v = u1 + 1; v < u2; v++)
+            for (int u = u1; u < v; u++)
                 if (distp(mt))
                     g.push_back({u, v});
     }
@@ -162,10 +160,8 @@ void add_uniform_edges_undirected(edges_t& g, int u1, int u2, double p) {
 void add_uniform_edges_directed(edges_t& g, int u1, int u2, double p) {
     int V = u2 - u1;
     if (V >= 10 && p <= 0.25) {
-        binomd distk(1L * V * (V - 1), p);
-        for (auto [u, v] : pair_sample(distk(mt), u1, u2 - 1, u1, u2 - 1))
-            if (u != v)
-                g.push_back({u, v});
+        for (auto [u, v] : distinct_pair_sample_p(p, u1, u2))
+            g.push_back({u, v});
     } else {
         boold distp(p);
         for (int u = u1; u < u2; u++)
@@ -179,8 +175,7 @@ void add_uniform_edges_directed(edges_t& g, int u1, int u2, double p) {
 void add_uniform_edges_bipartite(edges_t& g, int u1, int u2, int v1, int v2, double p) {
     int U = u2 - u1, V = v2 - v1;
     if (1L * U * V >= 100 && p <= 0.25) {
-        binomd distk(1L * U * V, p);
-        for (auto [u, v] : pair_sample_p(p, u1, u2 - 1, v1, v2 - 1))
+        for (auto [u, v] : pair_sample_p(p, u1, u2, v1, v2))
             g.push_back({u, v});
     } else {
         boold distp(p);
@@ -354,8 +349,7 @@ void add_tarjan_back_edges(edges_t& g, int V, int s = 0) {
 // add missing edges to undirected g, each with uniform probability p
 void add_uniform_missing_undirected(edges_t& g, int V, double p) {
     auto adj = make_adjacency_set_undirected(g);
-    binomd dist(1L * V * (V - 1) / 2, p);
-    for (auto [u, v] : choose_sample(dist(mt), 0, V - 1))
+    for (auto [u, v] : choose_sample_p(p, 0, V))
         if (!adj.count({u, v}) && !adj.count({v, u}))
             g.push_back({u, v});
 }
@@ -363,9 +357,8 @@ void add_uniform_missing_undirected(edges_t& g, int V, double p) {
 // add missing edges to directed g, each with uniform probability p
 void add_uniform_missing_directed(edges_t& g, int V, double p) {
     auto adj = make_adjacency_set_directed(g);
-    binomd dist(1L * V * (V - 1), p);
-    for (auto [u, v] : pair_sample(dist(mt), 0, V - 1, 0, V - 1))
-        if (u != v && !adj.count({u, v}))
+    for (auto [u, v] : distinct_pair_sample_p(p, 0, V))
+        if (!adj.count({u, v}))
             g.push_back({u, v});
 }
 
@@ -400,7 +393,8 @@ void add_grid_edges(edges_t& g, int X, int Y, int dx, int dy) {
     assert((dx || dy) && 0 <= dx && dx <= X && 0 <= dy && dy <= Y);
     for (int x = 0; x + dx < X; x++)
         for (int y = 0; y + dy < Y; y++)
-            g.push_back({calc_grid2(X, x, y), calc_grid2(X, x + dx, y + dy)});
+            g.push_back({calc_grid2(X, x, y), //
+                         calc_grid2(X, x + dx, y + dy)});
 }
 
 // add the edges of an XxY grid with deltas dx,dy, wrapping around
@@ -408,7 +402,8 @@ void add_circular_grid_edges(edges_t& g, int X, int Y, int dx, int dy) {
     assert((dx || dy) && 0 <= dx && 0 <= dy);
     for (int x = 0; x < X; x++)
         for (int y = 0; y < Y; y++)
-            g.push_back({calc_grid2(X, x, y), calc_grid2(X, (x + dx) % X, (y + dy) % Y)});
+            g.push_back({calc_grid2(X, x, y), //
+                         calc_grid2(X, (x + dx) % X, (y + dy) % Y)});
 }
 
 // add the edges of an XxYxZ grid with deltas dx,dy,dz
@@ -418,7 +413,7 @@ void add_grid3_edges(edges_t& g, int X, int Y, int Z, int dx, int dy, int dz) {
     for (int x = 0; x + dx < X; x++)
         for (int y = 0; y + dy < Y; y++)
             for (int z = 0; z + dz < Z; z++)
-                g.push_back({calc_grid3(X, Y, x, y, z),
+                g.push_back({calc_grid3(X, Y, x, y, z), //
                              calc_grid3(X, Y, x + dx, y + dy, z + dz)});
 }
 
@@ -428,24 +423,24 @@ void add_circular_grid3_edges(edges_t& g, int X, int Y, int Z, int dx, int dy, i
     for (int x = 0; x < X; x++)
         for (int y = 0; y < Y; y++)
             for (int z = 0; z < Z; z++)
-                g.push_back({calc_grid3(X, Y, x, y, z),
+                g.push_back({calc_grid3(X, Y, x, y, z), //
                              calc_grid3(X, Y, (x + dx) % X, (y + dy) % Y, (z + dz) % Z)});
 }
 
 // add the edges of an XxY grid with deltas dx,dy with probability p
 void add_uniform_grid_edges(edges_t& g, int X, int Y, double p, int dx, int dy) {
     assert((dx || dy) && 0 <= dx && dx < X && 0 <= dy && dy < Y);
-    binomd distk((X - dx) * (Y - dy), p);
-    for (auto [x, y] : pair_sample(distk(mt), 0, X - dx - 1, 0, Y - dy - 1))
-        g.push_back({calc_grid2(X, x, y), calc_grid2(X, x + dx, y + dy)});
+    for (auto [x, y] : pair_sample_p(p, 0, X - dx, 0, Y - dy))
+        g.push_back({calc_grid2(X, x, y), //
+                     calc_grid2(X, x + dx, y + dy)});
 }
 
 // add the edges of an XxY grid with deltas dx,dy with probability p, wrapping around
 void add_uniform_circular_grid_edges(edges_t& g, int X, int Y, double p, int dx, int dy) {
     assert((dx || dy) && 0 <= dx && dx < X && 0 <= dy && dy < Y);
-    binomd distk(1L * X * Y, p);
-    for (auto [x, y] : pair_sample(distk(mt), 0, X - 1, 0, Y - 1))
-        g.push_back({calc_grid2(X, x, y), calc_grid2(X, (x + dx) % X, (y + dy) % Y)});
+    for (auto [x, y] : pair_sample_p(p, 0, X, 0, Y))
+        g.push_back({calc_grid2(X, x, y), //
+                     calc_grid2(X, (x + dx) % X, (y + dy) % Y)});
 }
 
 // add the edges of an XxYxZ grid with deltas dx,dy,dz with probability p
@@ -454,8 +449,8 @@ void add_uniform_grid3_edges(edges_t& g, int X, int Y, int Z, double p, int dx, 
     assert(dx || dy || dz);
     assert(0 <= dx && dx < X && 0 <= dy && dy < Y && 0 <= dz && dz < Z);
     auto add = [&](int x, int y, int z) {
-        g.push_back(
-            {calc_grid3(X, Y, x, y, z), calc_grid3(X, Y, x + dx, y + dy, z + dz)});
+        g.push_back({calc_grid3(X, Y, x, y, z), //
+                     calc_grid3(X, Y, x + dx, y + dy, z + dz)});
     };
     if (1L * (X - dx) * (Y - dy) * (Z - dz) < 1000 || p > 0.25) {
         boold distp(p);
@@ -465,19 +460,16 @@ void add_uniform_grid3_edges(edges_t& g, int X, int Y, int Z, double p, int dx, 
                     if (distp(mt))
                         add(x, y, z);
     } else if (X - dx == min(X - dx, min(Y - dy, Z - dz))) {
-        binomd dist(1L * (Y - dy) * (Z - dz), p);
         for (int x = 0; x + dx < X; x++)
-            for (auto [y, z] : pair_sample(dist(mt), 0, Y - dy - 1, 0, Z - dz - 1))
+            for (auto [y, z] : pair_sample_p(p, 0, Y - dy, 0, Z - dz))
                 add(x, y, z);
     } else if (Y - dy == min(X - dx, min(Y - dy, Z - dz))) {
-        binomd dist(1L * (X - dx) * (Z - dz), p);
         for (int y = 0; y + dy < Y; y++)
-            for (auto [x, z] : pair_sample(dist(mt), 0, X - dx - 1, 0, Z - dz - 1))
+            for (auto [x, z] : pair_sample_p(p, 0, X - dx, 0, Z - dz))
                 add(x, y, z);
     } else {
-        binomd dist(1L * (X - dx) * (Y - dy), p);
         for (int z = 0; z + dz < Z; z++)
-            for (auto [x, y] : pair_sample(dist(mt), 0, X - dx - 1, 0, Y - dy - 1))
+            for (auto [x, y] : pair_sample_p(p, 0, X - dx, 0, Y - dy))
                 add(x, y, z);
     }
 }
@@ -488,7 +480,7 @@ void add_uniform_circular_grid3_edges(edges_t& g, int X, int Y, int Z, double p,
     assert(dx || dy || dz);
     assert(0 <= dx && dx < X && 0 <= dy && dy < Y && 0 <= dz && dz < Z);
     auto add = [&](int x, int y, int z) {
-        g.push_back({calc_grid3(X, Y, x, y, z),
+        g.push_back({calc_grid3(X, Y, x, y, z), //
                      calc_grid3(X, Y, (x + dx) % X, (y + dy) % Y, (z + dz) % Z)});
     };
     if (1L * X * Y * Z < 1000 || p > 0.25) {
@@ -499,19 +491,16 @@ void add_uniform_circular_grid3_edges(edges_t& g, int X, int Y, int Z, double p,
                     if (distp(mt))
                         add(x, y, z);
     } else if (X == min(X, min(Y, Z))) {
-        binomd dist(1L * Y * Z, p);
         for (int x = 0; x < X; x++)
-            for (auto [y, z] : pair_sample(dist(mt), 0, Y - 1, 0, Z - 1))
+            for (auto [y, z] : pair_sample_p(p, 0, Y, 0, Z))
                 add(x, y, z);
     } else if (Y == min(X, min(Y, Z))) {
-        binomd dist(1L * X * Z, p);
         for (int y = 0; y < Y; y++)
-            for (auto [x, z] : pair_sample(dist(mt), 0, X - 1, 0, Z - 1))
+            for (auto [x, z] : pair_sample_p(p, 0, X, 0, Z))
                 add(x, y, z);
     } else {
-        binomd dist(1L * X * Y, p);
         for (int z = 0; z < Z; z++)
-            for (auto [x, y] : pair_sample(dist(mt), 0, X - 1, 0, Y - 1))
+            for (auto [x, y] : pair_sample_p(p, 0, X, 0, Y))
                 add(x, y, z);
     }
 }
@@ -534,9 +523,7 @@ void add_level_step_uniform(edges_t& g, int u1, int u2, int v1, int v2, double p
 
     int U = u2 - u1, V = v2 - v1;
     vector<bool> out(U, false), in(V, false);
-    binomd distk(1L * U * V, p);
-    auto sample = pair_sample(distk(mt), u1, u2 - 1, v1, v2 - 1);
-    for (auto [u, v] : sample)
+    for (auto [u, v] : pair_sample_p(p, u1, u2, v1, v2))
         g.push_back({u, v}), out[u - u1] = in[v - v1] = true;
 
     if (mustout) {
@@ -587,10 +574,8 @@ void add_level_back_edges(edges_t& g, int u1, int u2, double q, const ranks_t& R
     int start = u1, ranks = R.size();
     for (int r = 0; r < ranks; r++) {
         int mid = start + R[r];
-        int universe = u2 - mid;
-        binomd distk(universe, q);
         for (int u = start; u < mid; u++)
-            for (int v : int_sample(distk(mt), mid, u2 - 1))
+            for (int v : int_sample_p(q, mid, u2))
                 g.push_back({v, u});
         start = mid;
     }
@@ -999,20 +984,17 @@ auto random_uniform_bipartite(int U, int V, double p) {
 
 auto random_exact_undirected(int V, int E) {
     assert(E <= 1L * V * (V - 1) / 2);
-    return choose_sample(E, 0, V - 1);
+    return choose_sample(E, 0, V);
 }
 
 auto random_exact_directed(int V, int E) {
     assert(E <= 1L * V * (V - 1));
-    edges_t g, f = pair_sample(E + V, 0, V - 1, 0, V - 1);
-    shuffle(begin(f), end(f), mt);
-    add_nontrivial_edges_directed(g, f, E);
-    return g;
+    return distinct_pair_sample(E, 0, V);
 }
 
 auto random_exact_bipartite(int U, int V, int E) {
-    assert(E <= 1L * V * (V - 1));
-    return pair_sample(E, 0, U - 1, 0, V - 1);
+    assert(E <= 1L * U * V);
+    return pair_sample(E, 0, U, 0, V);
 }
 
 /** Completely random but connected graphs (Erdős–Rényi with bootstrap tree)
@@ -1022,10 +1004,8 @@ auto random_uniform_undirected_connected(int V, double p) {
     edges_t g;
     auto parent = parent_sample(V);
     add_parent_edges(g, parent, 1, V);
-    p = min(p, 1.0);
     for (int v = 1; v < V; v++) {
-        binomd distk(v, p);
-        for (int u : int_sample(distk(mt), 0, v - 1))
+        for (int u : int_sample_p(p, 0, v))
             if (u != parent[v])
                 g.push_back({u, v});
     }
@@ -1036,10 +1016,8 @@ auto random_uniform_rooted_dag_connected(int V, double p) {
     edges_t g;
     auto parent = parent_sample(V);
     add_parent_edges(g, parent, 1, V, false, true);
-    p = min(p, 1.0);
     for (int v = 1; v < V; v++) {
-        binomd distk(v, p);
-        for (int u : int_sample(distk(mt), 0, v - 1))
+        for (int u : int_sample_p(p, 0, v))
             if (u != parent[v])
                 g.push_back({u, v});
     }
@@ -1065,7 +1043,7 @@ auto random_exact_undirected_connected(int V, int E) {
         return g;
 
     int k = min(1L * V * (V - 1) / 2, 0L + E + V);
-    auto f = choose_sample(k, 0, V - 1);
+    auto f = choose_sample(k, 0, V);
     shuffle(begin(f), end(f), mt);
     add_edges_except_undirected(g, f, parent, E - (V - 1));
     return g;
@@ -1080,7 +1058,7 @@ auto random_exact_rooted_dag_connected(int V, int E) {
         return g;
 
     int k = min(1L * V * (V - 1) / 2, 0L + E + V);
-    auto f = choose_sample(k, 0, V - 1);
+    auto f = choose_sample(k, 0, V);
     shuffle(begin(f), end(f), mt);
     add_edges_except_directed(g, f, parent, E - (V - 1));
     return g;
@@ -1097,8 +1075,8 @@ auto random_exact_directed_connected(int V, int E) {
     if (E == g.size())
         return g;
 
-    int n = g.size(), k = min(1L * V * V, 0L + E + V);
-    auto f = pair_sample(k, 0, V - 1, 0, V - 1);
+    int n = g.size();
+    auto f = distinct_pair_sample(E, 0, V);
     shuffle(begin(f), end(f), mt);
     add_edges_missing_directed(g, f, E - n);
     return g;
