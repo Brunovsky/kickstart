@@ -31,7 +31,7 @@ void stress_test_isomorphic_positives(int T = 3000) {
         print_progress(i, T, "true test");
         int V = distV(mt);
         auto g1 = random_uniform_undirected_connected(V, distp(mt));
-        auto g2 = relabel(g1, V);
+        auto g2 = relabel(V, g1);
         assert(isomorphic(V, g1, g2));
     }
     print_ok("stress test graph isomorphism positives");

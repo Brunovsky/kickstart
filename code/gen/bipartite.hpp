@@ -61,7 +61,7 @@ auto generate_bipartite_graph(bipartite_graph_kind i, int S) {
 
     switch (i) {
     case BG_UNIFORM_SPARSE:
-        U = dV(0.90), V = dV(0.90), p = sparse();
+        U = dV(0.82), V = dV(0.82), p = sparse();
         g = random_uniform_bipartite(U, V, p);
         break;
     case BG_UNIFORM_MODERATE:
@@ -108,6 +108,39 @@ auto add_cost_bipartite_graph(bipartite_graph& bg, cost_t mincost, cost_t maxcos
 }
 auto add_cost_bipartite_graph(bipartite_graph& bg, cost_t maxcost) {
     return add_cost_bipartite_graph(bg, 1, maxcost);
+}
+
+/**
+ * To generate a bipartite graph (U,V) with maximum matching M, start with an empty
+ * bipartite graph and add edges (n,n) for n=0...M-1. Then add more edges as follows:
+ * - do not add any edge (u,v) where u>=M and v>=M
+ * - for each n=0...M-1 pick a side:
+ *     - if U side, add edges(n,v) where v>=M (there are V-M such possible edges),
+ *     - if V side, add edges(u,n) where u>=M (there are U-M such possible edges).
+ */
+edges_t random_bipartite_maximum_matching(int U, int V, int M, double p,
+                                          double uside = 0.5) {
+    assert(M <= U && M <= V && 0.0 <= p && p <= 1.0 && 0.0 <= uside && uside <= 1.0);
+    edges_t g;
+    boold fixud(uside);
+    binomd Ubinom(U - M, p), Vbinom(V - M, p);
+
+    for (int n = 0; n < M; n++) {
+        g.push_back({n, n});
+        if (fixud(mt)) {
+            if (M < V)
+                for (int v : int_sample(Vbinom(mt), M, V - 1))
+                    g.push_back({n, v});
+        } else {
+            if (M < U)
+                for (int u : int_sample(Ubinom(mt), M, U - 1))
+                    g.push_back({u, n});
+        }
+    }
+
+    shuffle(begin(g), end(g), mt);
+    relabel_inplace(U, V, g);
+    return g;
 }
 
 #endif // GEN_BIPARTITE_HPP

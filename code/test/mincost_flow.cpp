@@ -103,10 +103,8 @@ void speed_test_mincost_flow_run(flow_network_kind i, int S, int T) {
 
         START(edmonds_karp);
         mincost_edmonds_karp g0(network.V, network.g, network.cap, network.cost);
-        auto [f0, c0] = g0.mincost_flow(network.s, network.t);
+        g0.mincost_flow(network.s, network.t);
         ADD_TIME(edmonds_karp);
-
-        (void)f0, (void)c0;
     }
 
     clear_line();

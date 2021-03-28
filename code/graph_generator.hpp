@@ -145,7 +145,7 @@ void add_uniform_self_loops(edges_t& g, int u1, int u2, double p) {
 // add edges for the empty undirected subgraph [u1,u2) uniformly with probability p
 void add_uniform_edges_undirected(edges_t& g, int u1, int u2, double p) {
     int V = u2 - u1;
-    if (V >= 10 && p <= 0.25) {
+    if (V >= 10 && p <= 0.15) {
         binomd distk(1L * V * (V - 1) / 2, p);
         for (auto [u, v] : choose_sample(distk(mt), u1, u2 - 1))
             g.push_back({u, v});
@@ -180,7 +180,7 @@ void add_uniform_edges_bipartite(edges_t& g, int u1, int u2, int v1, int v2, dou
     int U = u2 - u1, V = v2 - v1;
     if (1L * U * V >= 100 && p <= 0.25) {
         binomd distk(1L * U * V, p);
-        for (auto [u, v] : pair_sample(distk(mt), u1, u2 - 1, v1, v2 - 1))
+        for (auto [u, v] : pair_sample_p(p, u1, u2 - 1, v1, v2 - 1))
             g.push_back({u, v});
     } else {
         boold distp(p);

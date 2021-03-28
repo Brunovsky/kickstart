@@ -51,16 +51,32 @@ auto make_adjacency_set_reverse(const edges_t& g) {
 /**
  * Generate a permutation pi of [0...V) and replace u with pi(u) for all u.
  */
-auto relabel(const edges_t& g, int V) {
+auto relabel_inplace(int V, edges_t& g) {
     vector<int> label(V);
     iota(begin(label), end(label), 0);
     shuffle(begin(label), end(label), mt);
+    for (auto& [u, v] : g)
+        u = label[u], v = label[v];
+}
 
-    edges_t h;
-    h.reserve(g.size());
-    for (auto [u, v] : g)
-        h.push_back({label[u], label[v]});
-    return h;
+auto relabel(int V, const edges_t& g) {
+    auto h = g;
+    return relabel_inplace(V, h);
+}
+
+auto relabel_inplace(int U, int V, edges_t& g) {
+    vector<int> ulabel(U), vlabel(V);
+    iota(begin(ulabel), end(ulabel), 0);
+    iota(begin(vlabel), end(vlabel), 0);
+    shuffle(begin(ulabel), end(ulabel), mt);
+    shuffle(begin(vlabel), end(vlabel), mt);
+    for (auto& [u, v] : g)
+        u = ulabel[u], v = vlabel[v];
+}
+
+auto relabel(int U, int V, const edges_t& g) {
+    auto h = g;
+    return relabel_inplace(U, V, h);
 }
 
 /**

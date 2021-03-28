@@ -43,7 +43,7 @@
 | Linear programming  |`transportation             `| Inadequate   | Stable (U)     | Fix: inefficient implementation and bad interface |
 | Linear programming  |`travelling_salesman        `| Stable       | Stable (D)     | Add: Christofides |
 | Matching            |`general_matching           `| Stable       | Stable (D,S,P) | |
-| Matching            |`maximum_matching           `| Stable       | Stable (U)     | |
+| Matching            |`maximum_matching           `| Stable       | Stable (U,S,P) | |
 | Matching            |`mincost_matching           `| Stable       | Stable (U,P)   | |
 | Matching            |`mincost_general_matching   `| TODO :(      |                | |
 | Threading           |`thread_pool                `| Stable       | Stable (S,P)   | |

@@ -24,8 +24,15 @@ int different(int u, int v1, int v2) {
     if (v1 == v2)
         return v1;
     intd dist(v1, v2 - 1);
-    int n = dist(mt);
-    return n + (n >= u);
+    int v = dist(mt);
+    return v + (v >= u);
+}
+
+auto different(int v1, int v2) {
+    assert(v1 < v2);
+    int u = intd(v1, v2)(mt);
+    int v = intd(v1, v2 - 1)(mt);
+    return array<int, 2>{u, v + (v >= u)};
 }
 
 /**
@@ -69,11 +76,12 @@ int_sample_t int_sample(int k, int a, int b, bool complement = false) {
     }
 
     int_sample_t sample;
+    sample.reserve(seen.size());
     if (complement) {
         for (int n = a; n <= b; n++)
             if (!seen.count(n))
                 sample.push_back(n);
-    } else if (3 * k >= b - a + 1) {
+    } else if (3 * k >= ab) {
         for (int n = a; n <= b; n++)
             if (seen.count(n))
                 sample.push_back(n);
@@ -84,6 +92,11 @@ int_sample_t int_sample(int k, int a, int b, bool complement = false) {
     return sample;
 }
 
+auto int_sample_p(double p, int a, int b, bool complement = false) {
+    int ab = b - a + 1;
+    return int_sample(binomd(ab, p)(mt), a, b, complement);
+}
+
 /**
  * Generate a sorted sample of k integer pairs (x,y) where x, y are taken from the range
  * [a..b] and x < y.
@@ -91,7 +104,7 @@ int_sample_t int_sample(int k, int a, int b, bool complement = false) {
  * Complexity: O(k) with E[mt] <= 6k.
  */
 pair_sample_t choose_sample(int k, int a, int b, bool complement = false) {
-    long ab = 1L * (b - a + 1) * (b - a + 2) / 2 - (b - a + 1);
+    long ab = 1L * (b - a + 1) * (b - a) / 2;
     assert(a <= b && 0 <= k && k <= ab);
     if (3 * k >= 2 * ab) {
         return choose_sample(ab - k, a, b, !complement);
@@ -109,12 +122,13 @@ pair_sample_t choose_sample(int k, int a, int b, bool complement = false) {
     }
 
     pair_sample_t sample;
+    sample.reserve(seen.size());
     if (complement) {
         for (int x = a; x <= b; x++)
             for (int y = x + 1; y <= b; y++)
                 if (!seen.count({x, y}))
                     sample.push_back({x, y});
-    } else if (3 * k >= b - a + 1) {
+    } else if (3 * k >= ab) {
         for (int x = a; x <= b; x++)
             for (int y = x + 1; y <= b; y++)
                 if (seen.count({x, y}))
@@ -127,11 +141,16 @@ pair_sample_t choose_sample(int k, int a, int b, bool complement = false) {
     return sample;
 }
 
+auto choose_sample_p(double p, int a, int b, bool complement = false) {
+    long ab = 1L * (b - a + 1) * (b - a) / 2;
+    return choose_sample(binomd(ab, p)(mt), a, b, complement);
+}
+
 /**
  * Generate an unsorted sample of k integer pairs (x,y) where x is taken from the range
  * [a..b] and y is taken from the range [c..d].
  * It must hold that a <= b, c <= d, and k <= n x m = (b - a + 1)(d - c + 1).
- * Complexity: O(k) with E[mt] = 6k.
+ * Complexity: O(k) with E[mt] <= 6k.
  */
 pair_sample_t pair_sample(int k, int a, int b, int c, int d, bool complement = false) {
     long ab = b - a + 1, cd = d - c + 1;
@@ -141,7 +160,7 @@ pair_sample_t pair_sample(int k, int a, int b, int c, int d, bool complement = f
     }
 
     intd dist0(a, b), dist1(c, d);
-    unordered_set<array<int, 2>, vec_hasher> seen;
+    unordered_set<array<int, 2>, pair_hasher> seen;
     seen.reserve(k);
     while (k--) {
         int x, y;
@@ -152,12 +171,13 @@ pair_sample_t pair_sample(int k, int a, int b, int c, int d, bool complement = f
     }
 
     pair_sample_t sample;
+    sample.reserve(seen.size());
     if (complement) {
         for (int x = a; x <= b; x++)
             for (int y = c; y <= d; y++)
                 if (!seen.count({x, y}))
                     sample.push_back({x, y});
-    } else if (3 * k >= b - a + 1) {
+    } else if (3 * k >= ab * cd) {
         for (int x = a; x <= b; x++)
             for (int y = c; y <= d; y++)
                 if (seen.count({x, y}))
@@ -169,6 +189,11 @@ pair_sample_t pair_sample(int k, int a, int b, int c, int d, bool complement = f
     return sample;
 }
 
+auto pair_sample_p(double p, int a, int b, int c, int d, bool complement = false) {
+    long ab = b - a + 1, cd = d - c + 1;
+    return pair_sample(binomd(ab * cd, p)(mt), a, b, c, d, complement);
+}
+
 /**
  * Run integer selection sampling over a vector, sampling k elements.
  * Complexity: O(k) and E[mt] = 3k.
@@ -178,9 +203,9 @@ vector<T> vec_sample(const vector<T>& univ, int k) {
     int n = univ.size();
     assert(0 < k && k <= n);
     vector<int> idx = int_sample(k, 0, n - 1);
-    vector<int> sample;
+    vector<int> sample(k);
     for (int i = 0; i < k; i++)
-        sample.push_back(univ[idx[i]]);
+        sample[i] = univ[idx[i]];
     return sample;
 }
 
@@ -200,15 +225,15 @@ parent_t parent_sample(int n) {
 
 /**
  * Generate a partition of n into k parts each of size at least m.
- * It must hold that k > 0.
+ * It must hold that k > 0 and mk <= n.
  * Complexity: faster than linear
  */
 template <typename I = int>
 auto partition_sample(I n, int k, I m = 1) {
+    assert(1L * m * k <= n && k >= 0 && m >= 0);
     vector<I> parts(k, m);
     intd dist(0, k - 1);
     n -= m * k;
-    assert(n >= 0);
     while (n > 0) {
         I add = (n + k - 1) / k;
         parts[dist(mt)] += add;
