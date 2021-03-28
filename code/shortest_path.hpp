@@ -287,7 +287,7 @@ struct johnsons {
         for (auto [u, _] : g) {
             off[u + 1]++;
         }
-        inclusive_scan(begin(off), end(off), begin(off));
+        partial_sum(begin(off), end(off), begin(off));
         auto cur = off;
         for (int e = 0; e < E; e++) {
             auto [u, v] = g[e];
@@ -388,7 +388,7 @@ struct goldberg_radzik {
         for (auto [u, _] : g) {
             off[u + 1]++;
         }
-        inclusive_scan(begin(off), end(off), begin(off));
+        partial_sum(begin(off), end(off), begin(off));
         auto cur = off;
         for (int e = 0; e < E; e++) {
             auto [u, v] = g[e];

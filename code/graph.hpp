@@ -34,7 +34,7 @@ struct edgelist_offset_template {
         : V(V), E(g.size()), adj(2 * E), off(V + 1) {
         for (auto [u, v] : g)
             off[u + 1]++, off[v + 1]++;
-        inclusive_scan(begin(off), end(off), begin(off));
+        partial_sum(begin(off), end(off), begin(off));
         vector<int> cur = off;
         for (auto [u, v] : g)
             adj[cur[u]++] = v, adj[cur[v]++] = u;

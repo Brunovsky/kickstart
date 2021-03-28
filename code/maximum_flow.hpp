@@ -162,7 +162,7 @@ struct mpm_flow {
           cap(2 * E) {
         for (auto [u, v] : g)
             off[u + 1]++, off[v + 1]++;
-        inclusive_scan(begin(off), end(off), begin(off));
+        partial_sum(begin(off), end(off), begin(off));
         vector<int> cur = off;
         int e = 0, c = 0;
         for (auto [u, v] : g) {

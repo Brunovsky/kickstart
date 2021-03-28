@@ -659,7 +659,7 @@ struct graph_orchestrator {
         : N(N), E(g.size()), adj(E), off(N + 1, 0), deps(N, 0) {
         for (auto [u, v] : g)
             off[u + 1]++, deps[v]++;
-        inclusive_scan(begin(off), end(off), begin(off));
+        partial_sum(begin(off), end(off), begin(off));
         auto cur = off;
         for (auto [u, v] : g)
             adj[cur[u]++] = v;

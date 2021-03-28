@@ -16,7 +16,7 @@ struct micali_vazirani {
         : V(V), E(g.size()), adj(2 * E), off(V + 1, 0), mate(V, -1), edge(g) {
         for (auto [u, v] : edge)
             off[u + 1]++, off[v + 1]++;
-        inclusive_scan(begin(off), end(off), begin(off));
+        partial_sum(begin(off), end(off), begin(off));
         vector<int> cur = off;
         int e = 0;
         for (auto [u, v] : edge)

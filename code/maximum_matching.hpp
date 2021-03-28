@@ -18,7 +18,7 @@ struct maximum_matching {
         : U(U), V(V), off(U + 1, 0), mu(U, -1), mv(V, -1), edge(g.size()) {
         for (auto [u, v] : g)
             off[u + 1]++;
-        inclusive_scan(begin(off), end(off), begin(off));
+        partial_sum(begin(off), end(off), begin(off));
         auto cur = off;
         for (auto [u, v] : g) {
             edge[cur[u]++] = {u, v};
@@ -80,7 +80,7 @@ struct hopcroft_karp {
         : U(U), V(V), off(U + 2, 0), mu(U + 1, 0), mv(V + 1, 0), edge(g.size()) {
         for (auto [u, v] : g)
             off[u + 2]++;
-        inclusive_scan(begin(off), end(off), begin(off));
+        partial_sum(begin(off), end(off), begin(off));
         auto cur = off;
         for (auto [u, v] : g) {
             edge[cur[u + 1]++] = {u + 1, v + 1};

@@ -30,7 +30,7 @@ struct mincost_hungarian {
             off[u + 1] += W - V;
         for (int u = U; u < V; u++) // edges if padding U side
             off[u + 1] = V;
-        inclusive_scan(begin(off), end(off), begin(off));
+        partial_sum(begin(off), end(off), begin(off));
         int Q = off.back();
         edge.resize(Q), cost.resize(Q);
         auto cur = off;
