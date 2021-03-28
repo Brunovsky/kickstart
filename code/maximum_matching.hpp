@@ -14,8 +14,8 @@ struct maximum_matching {
     vector<int> off, mu, mv;
     edges_t edge;
 
-    maximum_matching(int U, int V, const edges_t& g)
-        : U(U), V(V), off(U + 1, 0), mu(U, -1), mv(V, -1), edge(g.size()) {
+    maximum_matching(int U, int V, const edges_t& g = {})
+        : U(U), V(V), off(U + 1, 0), edge(g) {
         for (auto [u, v] : g)
             off[u + 1]++;
         partial_sum(begin(off), end(off), begin(off));
@@ -32,15 +32,13 @@ struct maximum_matching {
     bool dfs(int u) {
         vis[u] = iteration;
         for (int e = off[u]; e < off[u + 1]; e++) {
-            int v = edge[e][1];
-            if (mv[v] == -1) {
+            if (int v = edge[e][1]; mv[v] == -1) {
                 mu[u] = v, mv[v] = u;
                 return true;
             }
         }
         for (int e = off[u]; e < off[u + 1]; e++) {
-            int v = edge[e][1];
-            if (vis[mv[v]] != iteration && dfs(mv[v])) {
+            if (int v = edge[e][1]; vis[mv[v]] != iteration && dfs(mv[v])) {
                 mu[u] = v, mv[v] = u;
                 return true;
             }
@@ -50,6 +48,8 @@ struct maximum_matching {
 
     int compute() {
         vis.assign(U, 0);
+        mu.assign(U, -1);
+        mv.assign(V, -1);
         iteration = 0;
         int new_matchings = 0;
         int matchings = 0;
@@ -77,13 +77,13 @@ struct hopcroft_karp {
     edges_t edge;
 
     hopcroft_karp(int U, int V, const edges_t& g)
-        : U(U), V(V), off(U + 2, 0), mu(U + 1, 0), mv(V + 1, 0), edge(g.size()) {
+        : U(U), V(V), off(U + 2, 0), edge(g.size()) {
         for (auto [u, v] : g)
-            off[u + 2]++;
+            off[u + 1]++;
         partial_sum(begin(off), end(off), begin(off));
         auto cur = off;
         for (auto [u, v] : g) {
-            edge[cur[u + 1]++] = {u + 1, v + 1};
+            edge[cur[u]++] = {u, v};
         }
     }
 
@@ -93,19 +93,19 @@ struct hopcroft_karp {
 
     bool bfs() {
         queue<int> Q;
-        for (int u = 1; u <= U; u++) {
-            if (mu[u] == 0) {
+        for (int u = 0; u < U; u++) {
+            if (mu[u] == -1) {
                 dist[u] = 0;
                 Q.push(u);
             } else {
                 dist[u] = inf;
             }
         }
-        dist[0] = inf;
+        dist[U] = inf;
         while (!Q.empty()) {
             int u = Q.front();
             Q.pop();
-            if (dist[u] < dist[0]) {
+            if (dist[u] < dist[U]) {
                 for (int e = off[u]; e < off[u + 1]; e++) {
                     // note: the check v != mu[u] is implicit in dist[mv[v]] == inf
                     if (int v = edge[e][1]; dist[mv[v]] == inf) {
@@ -115,11 +115,11 @@ struct hopcroft_karp {
                 }
             }
         }
-        return dist[0] != inf;
+        return dist[U] != inf;
     }
 
     bool dfs(int u) {
-        if (u == 0) {
+        if (u == U) {
             return true;
         }
         if (vis[u] == iteration) {
@@ -139,16 +139,19 @@ struct hopcroft_karp {
     int compute() {
         vis.assign(U + 1, 0);
         dist.assign(U + 1, 0);
+        mu.assign(U + 1, -1);
+        mv.assign(V, U);
         int matching = 0;
         iteration = 0;
         while (bfs()) {
             iteration++;
-            for (int u = 1; u <= U; u++) {
-                if (mu[u] == 0 && dfs(u)) {
+            for (int u = 0; u < U; u++) {
+                if (mu[u] == -1 && dfs(u)) {
                     matching++;
                 }
             }
         }
+        mu.pop_back();
         return matching;
     }
 };
