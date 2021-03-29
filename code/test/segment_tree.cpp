@@ -3,84 +3,45 @@
 #include "../debug_print.hpp"
 #include "test_utils.hpp"
 
-// Example usage segment tree
-
-struct Data {
-    int L, R;
-    int data;
-    bool query;
-};
-
-void driver() {
-    vector<int> endp;
-    segment_tree segtree;
-    // .....
-
-    sort(begin(endp), end(endp));
-    endp.erase(unique(begin(endp), end(endp)), end(endp));
-
-    segtree.setup(endp);
-    // ready
-}
-
-void driver_usage() {
-    vector<int> endp;
-    vector<Data> range_data;
-    segment_tree segtree;
-
-    // Case 1.
-    // Multiple Inserts, 0 Queries
-    // We care only about the values in the leaves
-    for (auto entry : range_data) {
-        segtree.update_range(1, {entry.L, entry.R}, entry.data);
-    }
-    segtree.pushdown_all();
-    segtree.align_leaves_to_array();
-    // now query tree[O]..tree[2O] which is ordered
-
-    // Case 2.
-    // Multiple Inserts, Queries afterwards, prefix sum form exists
-    for (auto entry : range_data) {
-        segtree.update_range(1, {entry.L, entry.R}, entry.data);
-    }
-    segtree.pushdown_all();
-    segtree.align_leaves_to_array();
-    // now transform tree[O]..tree[2O] data into prefix sum form
-    int O = segtree.O;
-    segtree.tree[O - 1].data = 0;
-    for (int i = O; i < 2 * O; i++) {
-        segtree.tree[i].data += segtree.tree[i - 1].data;
-        // now query [L,R] is tree[R] - tree[L-1].
-    }
-
-    // Case 3.
-    // Multiple Inserts, Multiple Queries, interleaved or afterwards
-    for (auto entry : range_data) {
-        if (entry.query) {
-            segtree.query_range(1, {entry.L, entry.R});
-        } else {
-            segtree.update_range(1, {entry.L, entry.R}, entry.data);
-        }
-    }
-    // done
-}
-
 // *****
 
-void unit_test_segment_tree() {
-    segment_tree tree;
-    tree.setup({0, 4, 7, 12, 17, 25, 30, 40});
-    tree.update_range(1, {7, 16}, 8);
-    tree.update_range(1, {4, 29}, 3);
-    tree.update_range(1, {12, 24}, 4);
-    tree.update_range(1, {0, 6}, 2);
-    assert(tree.query_range(1, {7, 11}) == 40 + 15);
-    assert(tree.query_range(1, {17, 29}) == 39 + 32);
-    assert(tree.query_range(1, {4, 16}) == 80 + 39 + 20 + 6);
-    print_ok("unit test segment tree");
+void unit_test_range_segtree() {
+    range_segtree tree({0, 4, 7, 12, 17, 25, 30, 40});
+    tree.update(1, {7, 17}, 8);
+    tree.update(1, {4, 30}, 3);
+    tree.update(1, {12, 25}, 4);
+    tree.update(1, {0, 7}, 2);
+    assert(tree.query(1, {7, 12}) == 40 + 15);
+    assert(tree.query(1, {17, 30}) == 39 + 32);
+    assert(tree.query(1, {4, 17}) == 80 + 39 + 20 + 6);
+    assert(tree.query(1, {0, 40}) == 224);
+    assert(tree.to_array(tree.lower_bound(77)) == 2);
+    assert(tree.to_array(tree.upper_bound(77)) == 2);
+    assert(tree.to_array(tree.lower_bound(78)) == 2);
+    assert(tree.to_array(tree.upper_bound(78)) == 3);
+    assert(tree.to_array(tree.lower_bound(80)) == 3);
+    assert(tree.to_array(tree.upper_bound(80)) == 3);
+    print_ok("unit test range segtree");
+}
+
+void unit_test_dyn_segtree() {
+    dyn_segtree tree(10, 30);
+    tree.add(14, 1);
+    tree.add(13, 2);
+    tree.add(27, 3);
+    tree.add(21, 4);
+    tree.add(24, 5);
+    tree.add(18, 6);
+    tree.add(21, 7);
+    assert(tree.query(21, 22) == 11);
+    assert(tree.query(14, 18) == 1);
+    assert(tree.query(13, 19) == 9);
+    assert(tree.query(10, 30) == 28);
+    print_ok("unit test dyn segtree");
 }
 
 int main() {
-    unit_test_segment_tree();
+    unit_test_range_segtree();
+    unit_test_dyn_segtree();
     return 0;
 }

@@ -1,6 +1,7 @@
 #ifndef GRAPH_FORMATS_HPP
 #define GRAPH_FORMATS_HPP
 
+#include "debug_print.hpp"
 #include "graph.hpp"
 #include "graph_operations.hpp"
 #include "scc.hpp"
@@ -8,170 +9,104 @@
 // *****
 
 string adj_matrix_undirected(const edges_t& g, int V) {
-    stringstream ss;
-    int E = g.size();
-    auto adj = make_adjacency_lists_undirected(g, V);
-    ss << "V=" << V << ", E=" << E << '\n';
-    ss << string(2 + V, '.') << '\n';
-    for (int u = 0; u < V; u++) {
-        string s(V, ' ');
-        for (int v : adj[u])
-            s[v] = '1';
-        ss << '.' << s << ".\n";
-    }
-    ss << string(2 + V, '.') << '\n';
-    return ss.str();
+    string head = format("V={}, E={} (undirected)", V, g.size());
+    string line(V + 2, '.');
+    vector<string> s(V, string(V, ' '));
+    for (auto [u, v] : g)
+        s[u][v] = s[v][u] = '1';
+    return format("{}\n{}\n.{}.\n{}\n", head, line, fmt::join(s, ".\n."), line);
 }
 
 string adj_matrix_directed(const edges_t& g, int V) {
-    stringstream ss;
-    int E = g.size();
-    auto adj = make_adjacency_lists_directed(g, V);
-    ss << "V=" << V << ", E=" << E << '\n';
-    ss << string(2 + V, '.') << '\n';
-    for (int u = 0; u < V; u++) {
-        string s(V, ' ');
-        for (int v : adj[u])
-            s[v] = '1';
-        ss << '.' << s << ".\n";
-    }
-    ss << string(2 + V, '.') << '\n';
-    return ss.str();
+    string head = format("V={}, E={} (directed)", V, g.size());
+    string line(V + 2, '.');
+    vector<string> s(V, string(V, ' '));
+    for (auto [u, v] : g)
+        s[u][v] = '1';
+    return format("{}\n{}\n.{}.\n{}\n", head, line, fmt::join(s, ".\n."), line);
 }
 
 string adj_matrix_bipartite(const edges_t& g, int U, int V) {
-    stringstream ss;
-    int E = g.size();
-    auto adj = make_adjacency_lists_directed(g, U);
-    ss << "U=" << U << ", V=" << V << ", E=" << E << '\n';
-    ss << string(2 + V, '.') << '\n';
-    for (int u = 0; u < U; u++) {
-        string s(V, ' ');
-        for (int v : adj[u])
-            s[v] = '1';
-        ss << '.' << s << ".\n";
-    }
-    ss << string(2 + V, '.') << '\n';
-    return ss.str();
+    string head = format("V={}, E={} (bipartite)", V, g.size());
+    string line(V + 2, '.');
+    vector<string> s(U, string(V, ' '));
+    for (auto [u, v] : g)
+        s[u][v] = '1';
+    return format("{}\n{}\n.{}.\n{}\n", head, line, fmt::join(s, ".\n."), line);
 }
 
 string adj_list_undirected(const edges_t& g, int V) {
-    stringstream ss;
-    auto adj = make_adjacency_lists_undirected(g, V);
-    const int w = int(log10(V)) + 2;
-    for (int u = 0; u < V; u++) {
-        ss << setw(2) << u << " ->";
-        for (int v : adj[u]) {
-            ss << setw(w) << v;
-        }
-        ss << '\n';
-    }
-    return ss.str();
+    int w = int(log10(V)) + 2;
+    vector<string> rows(V);
+    for (int u = 0; u < V; u++)
+        rows[u] = format("{:>{}} ->", u, w);
+    for (auto [u, v] : g)
+        rows[u] += format("{:>{}}", v, w), rows[v] += format("{:>{}}", u, w);
+    return format("{}\n", fmt::join(rows, "\n"));
 }
 
 string adj_list_directed(const edges_t& g, int V) {
-    stringstream ss;
-    auto adj = make_adjacency_lists_directed(g, V);
-    const int w = int(log10(V)) + 2;
-    for (int u = 0; u < V; u++) {
-        ss << setw(2) << u << " ->";
-        for (int v : adj[u])
-            ss << setw(w) << v;
-        ss << '\n';
-    }
-    return ss.str();
+    int w = int(log10(V)) + 2;
+    vector<string> rows(V);
+    for (int u = 0; u < V; u++)
+        rows[u] = format("{:>{}} ->", u, w);
+    for (auto [u, v] : g)
+        rows[u] += format("{:>{}}", v, w);
+    return format("{}\n", fmt::join(rows, "\n"));
 }
 
 string adj_list_bipartite(const edges_t& g, int U, int V) {
-    stringstream ss;
-    auto adj = make_adjacency_lists_directed(g, U);
-    const int w = int(log10(V)) + 2;
-    for (int u = 0; u < U; u++) {
-        ss << setw(2) << u << " ->";
-        for (int v : adj[u])
-            ss << setw(w) << v;
-        ss << '\n';
-    }
-    return ss.str();
+    int w = int(log10(V)) + 2;
+    vector<string> rows(U);
+    for (int u = 0; u < U; u++)
+        rows[u] = format("{:>{}} ->", u, w);
+    for (auto [u, v] : g)
+        rows[u] += format("{:>{}}", v, w);
+    return format("{}\n", fmt::join(rows, "\n"));
 }
 
-string compact_simple(const edges_t& g, int V = 100) {
-    stringstream ss;
-    const int w = int(log10(V)) + 2;
-    int cnt = 0;
+string compact_simple(const edges_t& g, int V, char sep = ',') {
+    int i = 0, w = int(log10(V)) + 1, n = 100 / (2 * w + 1);
+    string s;
     for (auto [u, v] : g) {
-        ss << (cnt ? "  " : "") << setw(w) << u << ',' << setw(w) << v;
-        if (++cnt == 12)
-            ss << "\n", cnt = 0;
+        s += format("{:>{}}{}{:<{}}", u, w, sep, v, w);
+        if (++i == n)
+            s.erase(s.find_last_not_of(' ')), s += '\n', i = 0;
     }
-    ss << (cnt ? "\n" : "");
-    return ss.str();
+    return s + (i ? "\n" : "");
 }
 
-string compact_dot(const edges_t& g, int V = 100, bool directed = false) {
+string compact_dot(const edges_t& g, int V, bool directed = false) {
     static const char* header[] = {"strict graph", "strict digraph"};
     static const char* arrow[] = {" -- ", " -> "};
-    stringstream ss;
-    ss << header[directed] << " {\n";
-    const int w = int(log10(V)) + 2;
-    int cnt = 0;
+    int i = 0, w = int(log10(V)) + 1, n = 96 / (2 * w + 5);
+    string s = header[directed] + " {\n"s;
     for (auto [u, v] : g) {
         if (directed || u <= v) {
-            ss << (cnt ? "  " : "    ") << setw(w) << u << arrow[directed];
-            ss << setw(w) << v << " ;";
-            if (++cnt == 8)
-                ss << "\n", cnt = 0;
+            s += format("{:>{}} {} {:>{}} ;", u, w + 2, arrow[directed], v, w);
+            if (++i == n)
+                s += '\n', i = 0;
         }
     }
-    ss << (cnt ? "\n}\n" : "}\n");
-    return ss.str();
+    return s + (i ? "\n" : "") + "}\n";
 }
 
 string to_human_undirected(const edges_t& g, int V) {
-    stringstream ss;
-    ss << adj_matrix_undirected(g, V) << adj_list_undirected(g, V);
-    return ss.str();
+    return adj_matrix_undirected(g, V) + adj_list_undirected(g, V);
 }
 
 string to_human_directed(const edges_t& g, int V) {
-    stringstream ss;
-    ss << adj_matrix_directed(g, V) << adj_list_directed(g, V);
-    return ss.str();
+    return adj_matrix_directed(g, V) + adj_list_directed(g, V);
 }
 
 string to_human_bipartite(const edges_t& g, int U, int V) {
-    stringstream ss;
-    ss << adj_matrix_bipartite(g, U, V) << adj_list_bipartite(g, U, V);
-    return ss.str();
+    return adj_matrix_bipartite(g, U, V) + adj_list_bipartite(g, U, V);
 }
 
 string to_simple(const edges_t& g, int V, const string& more, bool directed = false) {
-    int E = g.size();
-    stringstream ss;
-    ss << V << ' ' << E << ' ' << more << '\n';
-    ss << compact_simple(g, directed);
-    return ss.str();
+    return format("{} {} {}\n{}", V, g.size(), more, compact_simple(g, directed));
 }
 
 string to_string(const edges_t& g, int V) { return to_human_undirected(g, V); }
-
-string to_dot(const strongly_connected_components& g) {
-    stringstream ss;
-    ss << "strict digraph {\n";
-    for (int c = 0; c < g.C; c++) {
-        ss << "\tsubgraph " << c << " {";
-        for (int u : g.cset[c]) {
-            ss << ' ' << u;
-        }
-        ss << " }\n";
-    }
-    for (int u = 0; u < g.V; u++) {
-        for (int v : g.adj[u]) {
-            ss << '\t' << setw(2) << u << " -> " << setw(2) << v << " ;\n";
-        }
-    }
-    ss << "}\n";
-    return ss.str();
-}
 
 #endif // GRAPH_FORMATS_HPP

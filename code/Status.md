@@ -20,7 +20,7 @@
 | Data structures     |`lca                        `| Stable       | Stable (U)     | |
 | Data structures     |`matrix                     `| Stable       | Stable (U,S,P) | Add: determinant |
 | Data structures     |`rmq                        `| Stable       | Stable (U)     | |
-| Data structures     |`segment_tree               `| Stable       | Stable (U)     | Add: Dynamic sparse segment tree |
+| Data structures     |`segment_tree               `| Stable       | Stable (U)     | |
 | Data structures     |`simple_data_structures     `| Stable       | -              | |
 | Data structures     |`link_cut_tree              `| TODO :(      |                | |
 | Data structures     |`kd_tree                    `| TODO :(      |                | |

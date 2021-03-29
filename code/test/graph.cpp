@@ -202,7 +202,7 @@ void balance_test_generate_flow() {
         }
         print("{1:<{0}} --- {2:5.1f}\n", 96, "", sum_W / int(FN_END));
     }
-    print("---\n\n");
+    print_ok("balance test flow");
 }
 
 void balance_test_generate_circulation() {
@@ -234,7 +234,7 @@ void balance_test_generate_circulation() {
         }
         print("{1:<{0}} --- {2:5.1f}\n", 96, "", sum_W / int(CN_END));
     }
-    print("---\n\n");
+    print_ok("balance test circulation");
 }
 
 void balance_test_generate_distance() {
@@ -265,7 +265,7 @@ void balance_test_generate_distance() {
         }
         print("{1:<{0}} --- {2:5.1f}\n", 96, "", sum_W / int(DG_END));
     }
-    print("---\n\n");
+    print_ok("balance test distance");
 }
 
 void balance_test_generate_bipartite() {
@@ -297,15 +297,15 @@ void balance_test_generate_bipartite() {
         }
         print("{1:<{0}} --- {2:5.1f}\n", 105, "", sum_W / int(BG_END));
     }
-    print("---\n\n");
+    print_ok("balance test bipartite");
 }
 
 int main() {
+    visual_test_generators();
     balance_test_generate_flow();
     balance_test_generate_circulation();
     balance_test_generate_distance();
     balance_test_generate_bipartite();
-    // scaling_test_random_regular(1);
-    // visual_test_generators();
+    scaling_test_random_regular(1);
     return 0;
 }

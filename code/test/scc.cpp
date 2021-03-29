@@ -12,7 +12,7 @@ void unit_test_scc() {
 
     scc.compute();
     scc.condensate();
-    printf("components #1: %d\n", scc.C);
+    print("components #1: {}\n", scc.C);
 
     assert(scc.C == 5); // num components
     for (int c = 0; c < scc.C; c++) {
