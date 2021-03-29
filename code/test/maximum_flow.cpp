@@ -6,6 +6,7 @@
 // *****
 
 void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
+    START_ACC(generation);
     START_ACC(dinitz);
     START_ACC(push_relabel);
     START_ACC(tidal);
@@ -13,8 +14,12 @@ void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
 
     for (int t = 0; t < T; t++) {
         print_progress(t, T, flow_kind_name[i]);
+
+        START(generation);
         auto network = generate_flow_network(i, S);
         add_cap_flow_network(network, 100'000'000'000);
+        ADD_TIME(generation);
+
         vector<flow_t> mf(4);
 
         START(dinitz);
@@ -44,6 +49,7 @@ void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
 
     clear_line();
     print(" speed test {} (S={}, x{}):\n", flow_kind_name[i], S, T);
+    PRINT_TIME(generation);
     PRINT_TIME(dinitz);
     PRINT_TIME(push_relabel);
     PRINT_TIME(tidal);

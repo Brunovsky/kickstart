@@ -315,6 +315,7 @@ struct push_relabel {
         : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E) {
         int e = 0, c = 0;
         for (auto [u, v] : g) {
+            assert(u < V && v < V);
             res[u].push_back(e), edge[e] = {u, v}, cap[e++] = caps[c++];
             res[v].push_back(e), edge[e] = {v, u}, cap[e++] = 0;
         }
@@ -441,7 +442,7 @@ struct push_relabel {
     long maxflow(int s, int t, bool value_only = true) {
         excess.assign(V, 0);
         arc.assign(V, 0);
-        active.assign(2 * V, V);
+        active.assign(2 * V + 1, V);
         labeled.assign(V, V);
 
         init_bfs(s, t);

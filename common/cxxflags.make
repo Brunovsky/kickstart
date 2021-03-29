@@ -102,7 +102,6 @@ ifeq ($(COMPILER),clang)
 	WARNS += -Wweak-vtables
 	WARNS += -Wzero-as-null-pointer-constant
 	WARNS += -Wzero-length-array
-	WARNS += -Wshadow
     WARNS += -Wno-shadow-field-in-constructor
 endif
 

@@ -7,8 +7,6 @@
 #include "../graph_generator.hpp"
 #include "test_utils.hpp"
 
-#pragma clang diagnostic ignored "-Wfloat-conversion"
-
 // *****
 
 static int si = 1;
@@ -67,40 +65,24 @@ void scaling_test_random_regular_run(int T, int n, int k) {
 
 void scaling_test_random_regular(double M = 1) {
     print("scaling test random regular\n");
-    scaling_test_random_regular_run(M * 10, 300, 100);
-    scaling_test_random_regular_run(M * 10, 300, 150);
-    scaling_test_random_regular_run(M * 10, 300, 200);
-    scaling_test_random_regular_run(M * 5000, 25, 4);
-    scaling_test_random_regular_run(M * 5000, 25, 6);
-    scaling_test_random_regular_run(M * 5000, 25, 8);
-    scaling_test_random_regular_run(M * 5000, 25, 10);
-    scaling_test_random_regular_run(M * 3000, 36, 5);
-    scaling_test_random_regular_run(M * 3000, 36, 6);
-    scaling_test_random_regular_run(M * 3000, 36, 7);
-    scaling_test_random_regular_run(M * 3000, 36, 8);
-    scaling_test_random_regular_run(M * 3000, 36, 9);
-    scaling_test_random_regular_run(M * 3000, 36, 10);
-    scaling_test_random_regular_run(M * 1000, 80, 5);
-    scaling_test_random_regular_run(M * 1000, 80, 7);
-    scaling_test_random_regular_run(M * 1000, 80, 9);
-    scaling_test_random_regular_run(M * 1000, 80, 11);
-    scaling_test_random_regular_run(M * 1000, 80, 13);
-    scaling_test_random_regular_run(M * 1000, 80, 15);
-    scaling_test_random_regular_run(M * 100, 400, 10);
-    scaling_test_random_regular_run(M * 100, 400, 12);
-    scaling_test_random_regular_run(M * 100, 400, 14);
-    scaling_test_random_regular_run(M * 100, 400, 16);
-    scaling_test_random_regular_run(M * 100, 400, 18);
-    scaling_test_random_regular_run(M * 100, 400, 20);
-    scaling_test_random_regular_run(M * 6, 10000, 30);
-    scaling_test_random_regular_run(M * 6, 10000, 35);
-    scaling_test_random_regular_run(M * 6, 10000, 40);
-    scaling_test_random_regular_run(M * 6, 10000, 45);
-    scaling_test_random_regular_run(M * 6, 10000, 50);
-    scaling_test_random_regular_run(M * 1, 50000, 30);
-    scaling_test_random_regular_run(M * 1, 50000, 60);
-    scaling_test_random_regular_run(M * 1, 50000, 90);
-    scaling_test_random_regular_run(M * 1, 50000, 120);
+    scaling_test_random_regular_run(int(M * 10), 300, 100);
+    scaling_test_random_regular_run(int(M * 10), 300, 200);
+    scaling_test_random_regular_run(int(M * 5000), 25, 6);
+    scaling_test_random_regular_run(int(M * 5000), 25, 10);
+    scaling_test_random_regular_run(int(M * 3000), 36, 6);
+    scaling_test_random_regular_run(int(M * 3000), 36, 8);
+    scaling_test_random_regular_run(int(M * 3000), 36, 10);
+    scaling_test_random_regular_run(int(M * 1000), 80, 5);
+    scaling_test_random_regular_run(int(M * 1000), 80, 9);
+    scaling_test_random_regular_run(int(M * 1000), 80, 13);
+    scaling_test_random_regular_run(int(M * 100), 400, 12);
+    scaling_test_random_regular_run(int(M * 100), 400, 16);
+    scaling_test_random_regular_run(int(M * 100), 400, 20);
+    scaling_test_random_regular_run(int(M * 6), 10000, 30);
+    scaling_test_random_regular_run(int(M * 6), 10000, 40);
+    scaling_test_random_regular_run(int(M * 6), 10000, 50);
+    scaling_test_random_regular_run(int(M * 1), 50000, 60);
+    scaling_test_random_regular_run(int(M * 1), 50000, 120);
     print_ok("scaling test random regular\n");
 }
 
@@ -190,48 +172,140 @@ void visual_test_generators() {
     showd("Grid3 circular directed 3x4x3", circular_grid3_directed(3, 4, 3));
 }
 
-void balance_test_generators() {
-    for (int S : {10, 20, 50, 100, 500, 1000, 2000, 5000, 15000, 30000}) {
-        print("Flow Networks  S={}\n", S);
+void balance_test_generate_flow() {
+    // ¹²³⁴⁵⁶⁷⁸⁹⁰ √
+    for (int S : {100, 200, 500, 1000, 2000, 5000, 15000, 30000}) {
+        auto header = format("Flow Networks");
+        //                      dinitz   mpm   relabel edmonds
+        print("{1:<{0}} {2:5} --  V²E     V³     V²√E  VE²lnV  --\n", 58, header, S);
+
+        double sum_W = 0;
+
         for (int i = 0; i < int(FN_END); i++) {
-            auto fn = generate_flow_network(flow_network_kind(i), S);
+            long V_sum = 0, E_sum = 0, runs = 0;
+
+            START(fn);
+            do {
+                auto fn = generate_flow_network(flow_network_kind(i), S);
+                V_sum += fn.V, E_sum += fn.E;
+            } while (++runs <= 50 && CUR_TIME(fn) < 500ms);
+            V_sum /= runs, E_sum /= runs;
+
+            double V = log2(V_sum), E = log2(E_sum), logV = log2(V);
+            double W = 9 * V + 4 * E + 2 * logV;
+            sum_W += W;
+
             auto& name = flow_kind_name[i];
-            print(" {:2} {:40} -- V:{:<8} E:{:<13}\n", i, name, fn.V, fn.E);
+            print("{:4} {:36} -- V:{:<6} E:{:<8} --", i, name, V_sum, E_sum);
+            print(" {:4.1f}    {:4.1f}    {:4.1f}    {:4.1f}  -- {:5.1f}\n", //
+                  2 * V + E, 3 * V, 2 * V + .5 * E, V + 2 * E + logV, W);
         }
-        print("\n");
+        print("{1:<{0}} --- {2:5.1f}\n", 96, "", sum_W / int(FN_END));
     }
-    for (int S : {10, 20, 50, 100, 500, 1000, 2000, 5000, 15000, 30000}) {
-        print("Circulation Networks  S={}\n", S);
+    print("---\n\n");
+}
+
+void balance_test_generate_circulation() {
+    for (int S : {100, 200, 500, 1000, 2000, 5000, 15000, 30000}) {
+        auto header = format("Circulation Networks");
+        //                      dinitz   mpm   relabel mincost relabel
+        print("{1:<{0}} {2:5} --  V²E     V³     V²√E  V²ElnV  --\n", 58, header, S);
+
+        double sum_W = 0;
+
         for (int i = 0; i < int(CN_END); i++) {
-            auto fn = generate_circulation_network(circulation_network_kind(i), S);
+            long V_sum = 0, E_sum = 0, runs = 0;
+
+            START(fn);
+            do {
+                auto fn = generate_circulation_network(circulation_network_kind(i), S);
+                V_sum += fn.V, E_sum += fn.E;
+            } while (++runs <= 50 && CUR_TIME(fn) < 500ms);
+            V_sum /= runs, E_sum /= runs;
+
+            double V = log2(V_sum), E = log2(E_sum), logV = log2(V);
+            double W = 9.5 * V + 3 * E + 2 * logV;
+            sum_W += W;
+
             auto& name = circulation_kind_name[i];
-            print(" {:2} {:40} -- V:{:<8} E:{:<13}\n", i, name, fn.V, fn.E);
+            print("{:4} {:36} -- V:{:<6} E:{:<8} --", i, name, V_sum, E_sum);
+            print(" {:4.1f}    {:4.1f}    {:4.1f}    {:4.1f}  -- {:5.1f}\n", //
+                  2 * V + E, 3 * V, 2 * V + .5 * E, 2 * V + E + logV, W);
         }
-        print("\n");
+        print("{1:<{0}} --- {2:5.1f}\n", 96, "", sum_W / int(CN_END));
     }
-    for (int S : {10, 20, 50, 100, 500, 1000, 2000, 5000, 15000, 30000}) {
-        print("Distance Graphs  S={}\n", S);
+    print("---\n\n");
+}
+
+void balance_test_generate_distance() {
+    for (int S : {100, 200, 500, 1000, 2000, 5000, 15000, 30000}) {
+        auto header = format("Distance Graphs");
+        print("{1:<{0}} {2:5} --  V²E     V³     V²√E  V²ElnV  --\n", 58, header, S);
+
+        double sum_W = 0;
+
         for (int i = 0; i < int(DG_END); i++) {
-            auto fn = generate_distance_graph(distance_graph_kind(i), S);
-            auto& name = distance_kind_name[i];
-            print(" {:2} {:40} -- V:{:<8} E:{:<13}\n", i, name, fn.V, fn.E);
+            long V_sum = 0, E_sum = 0, runs = 0;
+
+            START(fn);
+            do {
+                auto fn = generate_distance_graph(distance_graph_kind(i), S);
+                V_sum += fn.V, E_sum += fn.E;
+            } while (++runs <= 50 && CUR_TIME(fn) < 500ms);
+            V_sum /= runs, E_sum /= runs;
+
+            double V = log2(V_sum), E = log2(E_sum), logV = log2(V);
+            double W = 9.5 * V + 3 * E + 2 * logV;
+            sum_W += W;
+
+            auto& name = circulation_kind_name[i];
+            print("{:4} {:36} -- V:{:<6} E:{:<8} --", i, name, V_sum, E_sum);
+            print(" {:4.1f}    {:4.1f}    {:4.1f}    {:4.1f}  -- {:5.1f}\n", //
+                  2 * V + E, 3 * V, 2 * V + .5 * E, 2 * V + E + logV, W);
         }
-        print("\n");
+        print("{1:<{0}} --- {2:5.1f}\n", 96, "", sum_W / int(DG_END));
     }
-    for (int S : {10, 20, 50, 100, 500, 1000, 2000, 5000, 15000, 30000}) {
-        print("Bipartite Graphs  S={}\n", S);
+    print("---\n\n");
+}
+
+void balance_test_generate_bipartite() {
+    for (int S : {100, 200, 500, 1000, 2000, 5000, 15000, 30000}) {
+        auto header = format("Bipartite Graphs");
+        print("{1:<{0}} {2:5} --  V²E    V³     V²√E  V²ElnV  --\n", 68, header, S);
+
+        double sum_W = 0;
+
         for (int i = 0; i < int(BG_END); i++) {
-            auto fn = generate_bipartite_graph(bipartite_graph_kind(i), S);
+            long U_sum = 0, V_sum = 0, E_sum = 0, runs = 0;
+
+            START(fn);
+            do {
+                auto fn = generate_bipartite_graph(bipartite_graph_kind(i), S);
+                U_sum += fn.U, V_sum += fn.V, E_sum += fn.E;
+            } while (++runs <= 50 && CUR_TIME(fn) < 500ms);
+            V_sum /= runs, E_sum /= runs;
+
+            double U = log2(U_sum), V = log2(V_sum), E = log2(E_sum), logV = log2(V);
+            double W = 9.5 * (U + V) + 3 * E + 2 * logV;
+            sum_W += W;
+
             auto& name = bipartite_kind_name[i];
-            print(" {:2} {:40} -- U:{:<8} V:{:<8} E:{:<13}\n", i, name, fn.U, fn.V, fn.E);
+            print("{:4} {:36} -- U:{:<6} V:{:<6} E:{:<8} --", i, name, U_sum, V_sum,
+                  E_sum);
+            print(" {:4.1f}    {:4.1f}    {:4.1f}    {:4.1f}  -- {:5.1f}\n", //
+                  2 * U + E, 3 * V, 2 * V + .5 * E, 2 * V + E + logV, W);
         }
-        print("\n");
+        print("{1:<{0}} --- {2:5.1f}\n", 105, "", sum_W / int(BG_END));
     }
+    print("---\n\n");
 }
 
 int main() {
-    scaling_test_random_regular(1);
-    balance_test_generators();
-    visual_test_generators();
+    balance_test_generate_flow();
+    balance_test_generate_circulation();
+    balance_test_generate_distance();
+    balance_test_generate_bipartite();
+    // scaling_test_random_regular(1);
+    // visual_test_generators();
     return 0;
 }

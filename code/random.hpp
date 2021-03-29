@@ -63,7 +63,7 @@ int_sample_t int_sample(long k, int a, int b, bool complement = false) {
     if ((k == 0 && !complement) || a >= b)
         return {};
 
-    long ab = b - a;
+    long ab = b - a, remaining = k;
     assert(ab >= 0 && 0 <= k && k <= ab);
     if (3 * k >= 2 * ab) {
         return int_sample(ab - k, a, b, !complement);
@@ -72,7 +72,7 @@ int_sample_t int_sample(long k, int a, int b, bool complement = false) {
     intd dist(a, b - 1);
     unordered_set<int> seen;
     seen.reserve(k);
-    while (k--) {
+    while (remaining--) {
         int n;
         do {
             n = dist(mt);
@@ -113,7 +113,7 @@ pair_sample_t choose_sample(long k, int a, int b, bool complement = false) {
         return {};
 
     static_assert(sizeof(int) == 4);
-    long ab = 1L * (b - a) * (b - a - 1) / 2;
+    long ab = 1L * (b - a) * (b - a - 1) / 2, remaining = k;
     assert(ab >= 0 && 0 <= k && k <= ab);
     if (3 * k >= 2 * ab) {
         return choose_sample(ab - k, a, b, !complement);
@@ -122,7 +122,7 @@ pair_sample_t choose_sample(long k, int a, int b, bool complement = false) {
     intd distx(a, b - 1), disty(a, b - 2);
     unordered_set<long> seen;
     seen.reserve(k);
-    while (k--) {
+    while (remaining--) {
         int x, y;
         do {
             x = distx(mt), y = disty(mt), tie(x, y) = minmax(x, y + (y >= x));
@@ -137,7 +137,7 @@ pair_sample_t choose_sample(long k, int a, int b, bool complement = false) {
             for (int y = x + 1; y < b; y++)
                 if (!seen.count(long(x) << 32 | y))
                     sample.push_back({x, y});
-    } else if (3 * k >= ab) {
+    } else if (12 * k >= ab) {
         for (int x = a; x < b; x++)
             for (int y = x + 1; y < b; y++)
                 if (seen.count(long(x) << 32 | y))
@@ -167,7 +167,7 @@ pair_sample_t pair_sample(long k, int a, int b, int c, int d, bool complement = 
         return {};
 
     static_assert(sizeof(int) == 4);
-    long ab = b - a, cd = d - c;
+    long ab = b - a, cd = d - c, remaining = k;
     assert(ab >= 0 && cd >= 0 && 0 <= k && k <= ab * cd);
     if (3 * k >= 2 * ab * cd) {
         return pair_sample(ab * cd - k, a, b, c, d, !complement);
@@ -176,7 +176,7 @@ pair_sample_t pair_sample(long k, int a, int b, int c, int d, bool complement = 
     intd distx(a, b - 1), disty(c, d - 1);
     unordered_set<long> seen;
     seen.reserve(k);
-    while (k--) {
+    while (remaining--) {
         int x, y;
         do {
             x = distx(mt), y = disty(mt);
@@ -191,7 +191,7 @@ pair_sample_t pair_sample(long k, int a, int b, int c, int d, bool complement = 
             for (int y = c; y < d; y++)
                 if (!seen.count(long(x) << 32 | y))
                     sample.push_back({x, y});
-    } else if (3 * k >= ab * cd) {
+    } else if (12 * k >= ab * cd) {
         for (int x = a; x < b; x++)
             for (int y = c; y < d; y++)
                 if (seen.count(long(x) << 32 | y))

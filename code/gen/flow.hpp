@@ -24,14 +24,6 @@ enum flow_network_kind : int {
     FN_END = 15,
 };
 
-struct flow_network {
-    edges_t g;
-    flow_network_kind kind;
-    int V, E, S, s, t;
-    vector<long> cap;  // edge capacities
-    vector<long> cost; // edge costs
-};
-
 string flow_kind_name[] = {
     "random uniform sparse",
     "random uniform moderate",
@@ -51,93 +43,105 @@ string flow_kind_name[] = {
     "---",
 };
 
+struct flow_network {
+    edges_t g;
+    flow_network_kind kind;
+    int V, E, S, s, t;
+    int X, Y, Z, n, k, levels, min_width;
+    double p;
+    vector<long> cap;  // edge capacities
+    vector<long> cost; // edge costs
+};
+
 // S arbitrates network size/complexity.
 auto generate_flow_network(flow_network_kind i, int S) {
-    assert(10 <= S && S <= 50000);
+    assert(50 <= S && S <= 100'000);
 
-    reald sparsed(5.0, 12.0);
-    reald moderated(4.0, 9.0);
-    reald densed(0.6, 0.9);
-
-    auto dV = [&](double e) {
-        int n = max(1, int(ceil(pow(S, e)))), s = int(sqrt(n));
+    static auto rs = [](int x, double e) -> int { return ceil(pow(x, e)); };
+    static auto dV = [](int x, double e) -> int {
+        int n = max(3, rs(x, e)), s = sqrt(n);
         return intd(n, n + s)(mt);
+    };
+    static auto roughly = [](int x, double lo, double hi, int min, int max) -> int {
+        return clamp(intd(rs(x, lo), rs(x, hi))(mt), min, max);
     };
 
     edges_t g;
-    int V = -1, levels, m, X, Y, Z, k;
-    double p;
-
-    auto sparse = [&]() { return min(1.0, sparsed(mt) / V); };
-    auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(V)); };
-    auto dense = [&]() { return densed(mt); };
-    auto longlevel = [&]() {
-        levels = min(V, intd(20, max(20, V / 5))(mt)), m = min(8, V / levels);
-    };
-    auto widelevel = [&]() {
-        levels = min(V, intd(5, clamp(V, 5, 12))(mt)), m = min(20, V / levels);
-    };
+    int V, X = 0, Y = 0, Z = 0, n = 0, k = 0, levels = 0, min_width = 0;
+    double p = 0.0;
 
     switch (i) {
     case FN_UNIFORM_SPARSE:
-        V = dV(1.00), p = sparse();
+        V = dV(S, 0.88), p = reald(2.5, 3.5)(mt) / V;
         g = random_uniform_directed_connected(V, p);
         break;
     case FN_UNIFORM_MODERATE:
-        V = dV(0.75), p = moderate();
+        V = dV(S, 0.75), p = reald(5.0, 6.0)(mt) / sqrt(V);
         g = random_uniform_directed_connected(V, p);
         break;
     case FN_UNIFORM_DENSE:
-        V = dV(0.68), p = dense();
+        V = dV(S, 0.71), p = reald(0.50, 0.95)(mt);
         g = random_uniform_directed_connected(V, p);
         break;
     case FN_UNIFORM_LEVEL_LONG_SPARSE:
-        V = dV(0.80), p = sparse(), longlevel();
-        g = random_uniform_level_flow(V, p, levels, m);
+        V = dV(S, 0.82), p = reald(8.0, 10.0)(mt) / V;
+        levels = roughly(V, 0.55, 0.70, 3, V);
+        min_width = roughly(V, 0.15, 0.30, 1, (V - 2) / (levels - 2));
+        g = random_uniform_level_flow(V, p, levels, min_width);
         break;
     case FN_UNIFORM_LEVEL_WIDE_SPARSE:
-        V = dV(0.75), p = sparse(), widelevel();
-        g = random_uniform_level_flow(V, p, levels, m);
+        V = dV(S, 0.74), p = reald(8.0, 10.0)(mt) / V;
+        levels = roughly(V, 0.20, 0.35, 3, V);
+        min_width = roughly(V, 0.45, 0.60, 1, (V - 2) / (levels - 2));
+        g = random_uniform_level_flow(V, p, levels, min_width);
         break;
     case FN_UNIFORM_LEVEL_LONG_MODERATE:
-        V = dV(0.80), p = moderate(), longlevel();
-        g = random_uniform_level_flow(V, p, levels, m);
+        V = dV(S, 0.82), p = reald(5.0, 6.0)(mt) / sqrt(V);
+        levels = roughly(V, 0.55, 0.70, 3, V);
+        min_width = roughly(V, 0.15, 0.30, 1, (V - 2) / (levels - 2));
+        g = random_uniform_level_flow(V, p, levels, min_width);
         break;
     case FN_UNIFORM_LEVEL_WIDE_MODERATE:
-        V = dV(0.75), p = moderate(), widelevel();
-        g = random_uniform_level_flow(V, p, levels, m);
+        V = dV(S, 0.74), p = reald(5.0, 6.0)(mt) / sqrt(V);
+        levels = roughly(V, 0.20, 0.35, 3, V);
+        min_width = roughly(V, 0.45, 0.60, 1, (V - 2) / (levels - 2));
+        g = random_uniform_level_flow(V, p, levels, min_width);
         break;
     case FN_UNIFORM_LEVEL_LONG_DENSE:
-        V = dV(0.90), p = dense(), longlevel();
-        g = random_uniform_level_flow(V, p, levels, m);
+        V = dV(S, 0.82), p = reald(0.7, 0.85)(mt);
+        levels = roughly(V, 0.55, 0.70, 3, V);
+        min_width = roughly(V, 0.15, 0.30, 1, (V - 2) / (levels - 2));
+        g = random_uniform_level_flow(V, p, levels, min_width);
         break;
     case FN_UNIFORM_LEVEL_WIDE_DENSE:
-        V = dV(0.75), p = dense(), widelevel();
-        g = random_uniform_level_flow(V, p, levels, m);
+        V = dV(S, 0.74), p = reald(0.7, 0.85)(mt);
+        levels = roughly(V, 0.20, 0.35, 3, V);
+        min_width = roughly(V, 0.45, 0.60, 1, (V - 2) / (levels - 2));
+        g = random_uniform_level_flow(V, p, levels, min_width);
         break;
     case FN_COMPLETE:
-        V = dV(0.68);
+        V = dV(S, 0.72);
         g = complete_directed(V);
         break;
     case FN_NORMAL_GRID2:
-        X = dV(0.57), Y = dV(0.57), V = X * Y;
+        X = dV(S, 0.455), Y = dV(S, 0.455), V = X * Y;
         g = grid_directed(X, Y);
         break;
     case FN_CIRCULAR_GRID2:
-        X = dV(0.57), Y = dV(0.57), V = X * Y;
+        X = dV(S, 0.450), Y = dV(S, 0.450), V = X * Y;
         g = circular_grid_directed(X, Y);
         break;
     case FN_NORMAL_GRID3:
-        X = dV(0.37), Y = dV(0.37), Z = dV(0.37), V = X * Y * Z;
+        X = dV(S, 0.290), Y = dV(S, 0.290), Z = dV(S, 0.290), V = X * Y * Z;
         g = grid3_directed(X, Y, Z);
         break;
     case FN_CIRCULAR_GRID3:
-        X = dV(0.37), Y = dV(0.37), Z = dV(0.37), V = X * Y * Z;
+        X = dV(S, 0.288), Y = dV(S, 0.288), Z = dV(S, 0.288), V = X * Y * Z;
         g = circular_grid3_directed(X, Y, Z);
         break;
     case FN_KCONNECTED_COMPLETE:
-        m = dV(0.62), k = dV(0.30), V = m * k;
-        g = k_connected_complete_directed(m, k);
+        n = dV(S, 0.57), k = dV(S, 0.28), V = n * k;
+        g = k_connected_complete_directed(n, k);
         break;
     default:
         throw runtime_error("Invalid flow network kind");
@@ -149,6 +153,8 @@ auto generate_flow_network(flow_network_kind i, int S) {
     fn.g = move(g);
     fn.kind = i;
     fn.V = V, fn.E = E, fn.S = S, fn.s = 0, fn.t = V - 1;
+    fn.X = X, fn.Y = Y, fn.Z = Z, fn.levels = levels, fn.min_width = min_width;
+    fn.n = n, fn.k = k, fn.p = p;
     return fn;
 }
 
