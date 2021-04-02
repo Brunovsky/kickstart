@@ -2,8 +2,8 @@
 
 ## [Sums of Sums (8pts, 28pts)](https://codingcompetitions.withgoogle.com/kickstart/round/0000000000434819/00000000004348e6)
 
-Unattempted
+Solved
 
-* Time: 0 hours
+* Time: 6 hours
 * Complexity: -
 * Memory: -
