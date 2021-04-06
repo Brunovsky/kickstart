@@ -83,7 +83,7 @@ generate: build_generate
 
 .PHONY: diff linediff
 
-# Compare program.txt with correct.txt byte-by-byte
+# Compare program.txt with correct.txt using casediff
 diff:
 	@python ../../../../common/casediff.py program.txt correct.txt
 
