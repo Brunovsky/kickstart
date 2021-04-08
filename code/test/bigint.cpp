@@ -3,7 +3,6 @@
 #include "../bigint_extra.hpp"
 #include "../bigint_utils.hpp"
 #include "../debug_print.hpp"
-#include "../gen/strings.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 
@@ -30,7 +29,7 @@ string trim_numeric_string(string s) {
 
 string random_numeric_string(int digits, int base = 10) {
     static boold plusd(0.3);
-    string s = generate_any_string(base, digits, '0');
+    string s = generate_any_string(digits, '0', '0' + base - 1);
     if (digits && s[0] == '0')
         s[0] = '1';
     if (distneg(mt))

@@ -367,4 +367,27 @@ auto real_gen(int n, T a, T b) {
     return vec;
 }
 
+/**
+ * any string, with length m with characters [a,b]
+ */
+auto generate_any_string(int m, char a = 'a', char b = 'z') {
+    chard distchar(a, b);
+    string str(m, 0);
+    for (int j = 0; j < m; j++)
+        str[j] = distchar(mt);
+    return str;
+}
+
+/**
+ * n random strings, with length [minlen,maxlen] with characters [a,b]
+ */
+auto generate_any_strings(int n, int minlen, int maxlen, char a = 'a', char b = 'z') {
+    intd distm(minlen, maxlen);
+    vector<string> strs(n);
+    for (int i = 0; i < n; i++) {
+        strs[i] = generate_any_string(distm(mt), a, b);
+    }
+    return strs;
+}
+
 #endif // RANDOM_HPP
