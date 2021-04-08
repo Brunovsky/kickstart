@@ -25,7 +25,7 @@ WARNS += -Woverloaded-virtual -Wnon-virtual-dtor
 WARNS += -Wpessimizing-move -Wredundant-move
 WARNS += -Wdate-time
 
-# GCC
+# GCC https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 ifeq ($(COMPILER),gcc)
 	WARNS += -fmax-errors=5
 
@@ -44,7 +44,7 @@ ifeq ($(COMPILER),gcc)
 	WARNS += -Wsuggest-override
 endif
 
-# Clang
+# Clang https://clang.llvm.org/docs/DiagnosticsReference.html
 ifeq ($(COMPILER),clang)
 	WARNS += -Qunused-arguments
     WARNS += -Wno-float-conversion
