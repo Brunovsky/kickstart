@@ -6,6 +6,7 @@ import argparse
 
 CASE_PATTERN = re.compile(r'^Case #(\d+):\s*')
 DEFAULT_EPSILON = 0
+WRAP_LENGTH = 120
 RED, GREEN, YELLOW, COLOR_RESET = '\033[1;31m', '\033[1;32m', '\033[1;34m', '\033[0m'
 
 
@@ -14,8 +15,8 @@ class Errors:
         print("{}: first line does not match case pattern".format(file))
         sys.exit(0)
 
-    def file_not_found(txt):
-        print("no such file: {}".format(txt))
+    def io_error(file, err):
+        print("{}: {}".format(file, err))
         sys.exit(0)
 
     def bad_caseno(file, lineno, caseno, expected_caseno):
@@ -132,11 +133,11 @@ def read_cases(filename):
                     headers.append(line[prefix_len:])
                     linenos.append(lineno + 1)
                 elif caseno == 0:
-                    Errors.bad_first_line(filename, line)
+                    Errors.bad_first_line(filename)
                 else:
                     bodies[-1].append(line)
-    except:
-        Errors.file_not_found(filename)
+    except IOError as err:
+        Errors.io_error(filename, err)
 
     return [(headers[i], bodies[i], linenos[i]) for i in range(caseno)]
 
@@ -304,17 +305,19 @@ def print_difflines(diffs):
     lineno_align = [max(len(str(diff.lineno[s])) for diff in diffs) for s in range(2)]
     text_align = [max(diff.width[0] for diff in diffs), 0]
     pad = " " * (lineno_align[0] + 2 + text_align[0])
+    total_len = sum(lineno_align) + sum(text_align) + 4
+    spacing = " " * 6 if total_len <= WRAP_LENGTH - 6 else "\n\t"
 
     def build(diff, s):
         spaces = text_align[s] - diff.width[s]
-        return "{1:>{0}}: {3}{2}".format(lineno_align[s], diff.lineno[s],
-                                         " " * spaces, diff.diff[s])
+        return "{:>{}}: {}{}".format(diff.lineno[s], lineno_align[s],
+                                     diff.diff[s], " " * spaces)
 
     for diff in diffs:
         if diff.width[0] and diff.width[1]:
-            print("{}      {}".format(build(diff, 0), build(diff, 1)))
+            print("{}{}{}".format(build(diff, 0), spacing, build(diff, 1)))
         elif diff.width[1]:
-            print("{}      {}".format(pad, build(diff, 1)))
+            print("{}{}{}".format(pad, spacing, build(diff, 1)))
         else:
             print("{}".format(build(diff, 0)))
 
