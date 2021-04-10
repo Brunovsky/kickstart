@@ -1,6 +1,5 @@
-#include "../mincost_flow.hpp"
-
 #include "../debug_print.hpp"
+#include "../flow/mincost_edmonds_karp.hpp"
 #include "../gen/flow.hpp"
 #include "../graph.hpp"
 #include "test_utils.hpp"

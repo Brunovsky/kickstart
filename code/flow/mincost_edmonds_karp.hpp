@@ -1,9 +1,13 @@
-#ifndef MINCOST_FLOW_HPP
-#define MINCOST_FLOW_HPP
+#ifndef FLOW_MINCOST_EDMONDS_KARP_HPP
+#define FLOW_MINCOST_EDMONDS_KARP_HPP
 
-#include "graph.hpp"
+#include <bits/stdc++.h>
+
+using namespace std;
 
 // *****
+
+using edges_t = vector<array<int, 2>>;
 
 /**
  * Edmonds-Karp augmenting paths for simple mincost flow.
@@ -104,4 +108,4 @@ struct mincost_edmonds_karp {
     bool left_of_mincut(int u) const { return dist[u] < inf; }
 };
 
-#endif // MINCOST_FLOW_HPP
+#endif // FLOW_MINCOST_EDMONDS_KARP_HPP

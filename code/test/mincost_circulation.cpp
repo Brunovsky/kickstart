@@ -1,6 +1,5 @@
-#include "../mincost_circulation.hpp"
-
 #include "../debug_print.hpp"
+#include "../flow/mincost_push_relabel.hpp"
 #include "../gen/circulation.hpp"
 #include "test_utils.hpp"
 

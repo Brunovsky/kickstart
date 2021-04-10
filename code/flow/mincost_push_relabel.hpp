@@ -1,9 +1,11 @@
-#ifndef MINCOST_CIRCULATION_HPP
-#define MINCOST_CIRCULATION_HPP
+#ifndef FLOW_MINCOST_PUSH_RELABEL_HPP
+#define FLOW_MINCOST_PUSH_RELABEL_HPP
 
-#include "maximum_flow.hpp"
+#include "../flow/dinitz_flow.hpp"
 
 // *****
+
+using edges_t = vector<array<int, 2>>;
 
 /**
  * Cost scaling push relabel for general mincost single-commodity flow
@@ -198,4 +200,4 @@ struct mincost_push_relabel {
     }
 };
 
-#endif // MINCOST_CIRCULATION_HPP
+#endif // FLOW_MINCOST_PUSH_RELABEL_HPP
