@@ -1,8 +1,8 @@
 #define NDEBUG
 
-#include "../bs_map.hpp"
-#include "../bs_set.hpp"
 #include "../random.hpp"
+#include "../tree/bs_map.hpp"
+#include "../tree/bs_set.hpp"
 #include "test_utils.hpp"
 
 using namespace std;

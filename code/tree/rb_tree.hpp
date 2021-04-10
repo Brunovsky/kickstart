@@ -3,7 +3,6 @@
 
 #include <cassert>
 #include <functional>
-#include <iostream>
 #include <limits>
 
 // *****

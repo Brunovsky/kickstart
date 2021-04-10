@@ -1,8 +1,8 @@
 #undef NDEBUG
 
-#include "../bs_set.hpp"
-#include "../bs_tree_debug.hpp"
 #include "../random.hpp"
+#include "../tree/bs_set.hpp"
+#include "../tree/bs_tree_debug.hpp"
 #include "test_utils.hpp"
 
 using namespace std;

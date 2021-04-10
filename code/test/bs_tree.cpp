@@ -1,8 +1,8 @@
-#include "../bs_map.hpp"
-#include "../bs_set.hpp"
-#include "../bs_tree_debug.hpp"
 #include "../debug_print.hpp"
 #include "../random.hpp"
+#include "../tree/bs_map.hpp"
+#include "../tree/bs_set.hpp"
+#include "../tree/bs_tree_debug.hpp"
 #include "test_utils.hpp"
 
 using namespace std;
