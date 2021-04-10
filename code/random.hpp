@@ -2,7 +2,6 @@
 #define RANDOM_HPP
 
 #include "graph.hpp"
-#include "hash.hpp"
 
 // *****
 

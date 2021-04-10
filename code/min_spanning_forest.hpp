@@ -1,7 +1,7 @@
 #ifndef MIN_SPANNING_FOREST_HPP
 #define MIN_SPANNING_FOREST_HPP
 
-#include "disjoint_set.hpp"
+#include "disjoint_set.hpp" // disjoint_set
 #include "graph.hpp"
 
 // *****

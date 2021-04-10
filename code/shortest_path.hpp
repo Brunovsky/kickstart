@@ -2,7 +2,7 @@
 #define SHORTEST_PATH_HPP
 
 #include "graph.hpp"
-#include "integer_heaps.hpp"
+#include "integer_heaps.hpp" // pairing_int_heap for dijkstra/astar
 
 // *****
 

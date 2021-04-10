@@ -1,7 +1,7 @@
 #ifndef TSP_HPP
 #define TSP_HPP
 
-#include "bits.hpp"
+#include "bits.hpp" // FOR_EACH_MASK, FOR_EACH_BIT
 
 // *****
 

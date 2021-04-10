@@ -1,7 +1,7 @@
 #ifndef STRING_SEARCH_HPP
 #define STRING_SEARCH_HPP
 
-#include "hash.hpp"
+#include "hash.hpp" // rolling_hasher
 
 // *****
 

@@ -1,8 +1,7 @@
 #ifndef THREAD_POOL_HPP
 #define THREAD_POOL_HPP
 
-#include "graph.hpp"
-#include "integer_lists.hpp"
+#include "integer_lists.hpp" // linked_lists for fn_orchestrator
 
 // *****
 
@@ -655,7 +654,7 @@ struct graph_orchestrator {
     }
 
   public:
-    explicit graph_orchestrator(int N, const edges_t& g)
+    explicit graph_orchestrator(int N, const vector<array<int, 2>>& g)
         : N(N), E(g.size()), adj(E), off(N + 1, 0), deps(N, 0) {
         for (auto [u, v] : g)
             off[u + 1]++, deps[v]++;

@@ -2,7 +2,7 @@
 #define MINCUT_HPP
 
 #include "graph.hpp"
-#include "hash.hpp"
+#include "hash.hpp" // pair_hasher
 
 // *****
 
