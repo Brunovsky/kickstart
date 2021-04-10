@@ -34,8 +34,6 @@ struct bigint {
     }
 };
 
-bigint abs(bigint u) { return u.sign ? -u : u; }
-
 inline namespace bigint_comparison {
 
 bool magnitude_cmp(const bigint& u, const bigint& v) {
@@ -348,6 +346,7 @@ bigint mul_vec(const bigint& u, const bigint& v) {
 
 bigint div_vec(bigint& u, bigint v) {
     constexpr ulong b = 1L + UINT_MAX;
+    assert(!v.zero());
 
     // return the remainder and set u to the quotient, but throughout the algorithm
     // u is the remainder and d is the quotient.
@@ -407,19 +406,11 @@ bigint div_mod(bigint& u, const bigint& v) {
         u.clear();
     } else if (v.len() == 1) {
         r = bigint(div_int(u, v[0]), u.sign);
-        u.sign ^= v.sign;
+        u.sign ^= v.sign, r.sign &= !r.zero();
     } else {
         r = div_vec(u, v);
     }
     return r;
-}
-
-bigint gcd(bigint a, bigint b) {
-    while (a != 0) {
-        b = b % a;
-        swap(a, b);
-    }
-    return abs(b);
 }
 
 } // namespace bigint_routines
@@ -514,7 +505,16 @@ bigint operator%(bigint u, uint n) { return u %= n; }
 bigint operator%(bigint u, int n) { return u %= n; }
 
 bigint operator-(bigint u) { return u.flip(), u; }
-bool operator!(bigint u) { return u.zero(); }
+bool operator!(const bigint& u) { return u.zero(); }
+
+bigint abs(bigint u) { return u.sign ? -u : u; }
+bigint gcd(bigint a, bigint b) {
+    while (a != 0) {
+        b = b % a;
+        swap(a, b);
+    }
+    return abs(b);
+}
 
 } // namespace bigint_arithmetic
 

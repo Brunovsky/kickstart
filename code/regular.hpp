@@ -5,7 +5,7 @@
 
 // *****
 
-edges_t degree_sample(int n, const degrees_t& k) {
+edges_t degree_sample(int n, const vector<int>& k) {
     assert(k.size() == uint(n));
     int d = accumulate(begin(k), end(k), 0);
     assert(d % 2 == 0);
@@ -49,7 +49,8 @@ edges_t degree_sample(int n, const degrees_t& k) {
     throw runtime_error("Failed to generate regular sample after 500 restarts");
 }
 
-edges_t degree_bipartite_sample(int n, int m, const degrees_t& k, const degrees_t& p) {
+edges_t degree_bipartite_sample(int n, int m, const vector<int>& k,
+                                const vector<int>& p) {
     assert(k.size() == uint(n) && p.size() == uint(m));
     int d = accumulate(begin(k), end(k), 0);
     assert(d == accumulate(begin(p), end(p), 0));
@@ -97,7 +98,7 @@ edges_t degree_bipartite_sample(int n, int m, const degrees_t& k, const degrees_
     throw runtime_error("Failed to generate regular sample after 500 restarts");
 }
 
-edges_t degree_directed_sample(int n, const degrees_t& out, const degrees_t& in) {
+edges_t degree_directed_sample(int n, const vector<int>& out, const vector<int>& in) {
     assert(out.size() == uint(n) && in.size() == uint(n));
     int d = accumulate(begin(out), end(out), 0);
     assert(d == accumulate(begin(in), end(in), 0));
@@ -147,19 +148,19 @@ edges_t degree_directed_sample(int n, const degrees_t& out, const degrees_t& in)
 
 edges_t regular_sample(int n, int k) {
     assert(2 <= k && k < n && n * k % 2 == 0);
-    degrees_t R(n, k);
+    vector<int> R(n, k);
     return degree_sample(n, R);
 }
 
 edges_t regular_bipartite_sample(int n, int m, int k) {
     assert(0 <= k && k <= m && n * k % m == 0);
-    degrees_t L(n, k), R(m, n * k / m);
+    vector<int> L(n, k), R(m, n * k / m);
     return degree_bipartite_sample(n, m, L, R);
 }
 
 edges_t regular_directed_sample(int n, int k) {
     assert(1 <= k && k < n);
-    degrees_t R(n, k);
+    vector<int> R(n, k);
     return degree_directed_sample(n, R, R);
 }
 

@@ -7,9 +7,7 @@ using namespace std;
 namespace {
 
 static_assert(0xffffffff == UINT_MAX);
-static_assert(sizeof(uint) == 4 && sizeof(long) == 8, "Unexpected integer sizes");
-
-#define isnum(c) ('0' <= c && c <= '9')
+static_assert(sizeof(uint) == 4 && sizeof(ulong) == 8, "Unexpected integer sizes");
 
 struct bigint {
     vector<uint> nums;
@@ -35,6 +33,8 @@ struct bigint {
     }
 };
 
+inline namespace bigint_comparison {
+
 bool magnitude_cmp(const bigint& u, const bigint& v) {
     int L = u.len(), R = v.len();
     return L != R ? L < R
@@ -43,12 +43,7 @@ bool magnitude_cmp(const bigint& u, const bigint& v) {
 }
 
 bool operator<(const bigint& u, const bigint& v) {
-    if (u.sign != v.sign)
-        return u.sign;
-    else if (u.sign)
-        return magnitude_cmp(v, u);
-    else
-        return magnitude_cmp(u, v);
+    return u.sign != v.sign ? u.sign : u.sign ? magnitude_cmp(v, u) : magnitude_cmp(u, v);
 }
 bool operator>(const bigint& u, const bigint& v) { return v < u; }
 bool operator<=(const bigint& u, const bigint& v) { return !(u > v); }
@@ -64,6 +59,17 @@ bool operator<=(const bigint& u, int v) { return u <= bigint(v); }
 bool operator>=(const bigint& u, int v) { return u >= bigint(v); }
 bool operator==(const bigint& u, int v) { return u == bigint(v); }
 bool operator!=(const bigint& u, int v) { return u != bigint(v); }
+
+bool operator<(int u, const bigint& v) { return bigint(u) < v; }
+bool operator>(int u, const bigint& v) { return bigint(u) > v; }
+bool operator<=(int u, const bigint& v) { return bigint(u) <= v; }
+bool operator>=(int u, const bigint& v) { return bigint(u) >= v; }
+bool operator==(int u, const bigint& v) { return bigint(u) == v; }
+bool operator!=(int u, const bigint& v) { return bigint(u) != v; }
+
+} // namespace bigint_comparison
+
+inline namespace bigint_bitwise {
 
 bigint& operator>>=(bigint& u, uint shift) {
     int s = shift / 32, n = u.len();
@@ -105,6 +111,67 @@ bigint& operator<<=(bigint& u, uint shift) {
 
 bigint operator>>(bigint u, uint shift) { return u >>= shift; }
 bigint operator<<(bigint u, uint shift) { return u <<= shift; }
+
+bigint& operator&=(bigint& u, const bigint& v) {
+    int n = min(u.len(), v.len());
+    u.nums.resize(n);
+    for (int i = 0; i < n; i++)
+        u[i] = u[i] & v[i];
+    u.trim();
+    return u;
+}
+bigint& operator|=(bigint& u, const bigint& v) {
+    int n = max(u.len(), v.len());
+    u.nums.resize(n, 0);
+    for (int i = 0; i < v.len(); i++)
+        u[i] = u[i] | v[i];
+    return u;
+}
+bigint& operator^=(bigint& u, const bigint& v) {
+    int n = max(u.len(), v.len());
+    u.nums.resize(n, 0);
+    for (int i = 0; i < v.len(); i++)
+        u[i] = u[i] ^ v[i];
+    u.trim();
+    return u;
+}
+bigint operator~(bigint u) {
+    for (int i = 0; i < u.len(); i++)
+        u[i] = ~u[i];
+    u.trim();
+    return u;
+}
+
+bigint operator&(bigint u, const bigint& v) { return u &= v; }
+bigint operator|(bigint u, const bigint& v) { return u |= v; }
+bigint operator^(bigint u, const bigint& v) { return u ^= v; }
+
+string lsbits(const bigint& u) {
+    if (u.zero())
+        return "0";
+    string s(32 * u.len() + 1, '0');
+    s[0] = u.sign ? '-' : '+';
+    for (int i = 0; i < 32 * u.len(); i++)
+        s[i + 1] = '0' + u.bit(i);
+    while (!s.empty() && s.back() == '0')
+        s.pop_back();
+    return s;
+}
+
+string msbits(const bigint& u) {
+    if (u.zero())
+        return "0";
+    string s(32 * u.len() + 1, '0');
+    s[0] = u.sign ? '-' : '+';
+    for (int i = 0; i < 32 * u.len(); i++)
+        s[32 * u.len() - i] = '0' + u.bit(i);
+    s.erase(begin(s) + 1, find(begin(s) + 1, end(s), '1'));
+    return s;
+}
+
+} // namespace bigint_bitwise
+
+inline namespace bigint_routines {
 
 void add_int(bigint& u, uint v) {
     for (int i = 0; v && i < u.len(); i++)
@@ -278,6 +345,7 @@ bigint mul_vec(const bigint& u, const bigint& v) {
 
 bigint div_vec(bigint& u, bigint v) {
     constexpr ulong b = 1L + UINT_MAX;
+    assert(!v.zero());
 
     // return the remainder and set u to the quotient, but throughout the algorithm
     // u is the remainder and d is the quotient.
@@ -337,12 +405,16 @@ bigint div_mod(bigint& u, const bigint& v) {
         u.clear();
     } else if (v.len() == 1) {
         r = bigint(div_int(u, v[0]), u.sign);
-        u.sign ^= v.sign;
+        u.sign ^= v.sign, r.sign &= !r.zero();
     } else {
         r = div_vec(u, v);
     }
     return r;
 }
+
+} // namespace bigint_routines
+
+inline namespace bigint_arithmetic {
 
 bigint& operator+=(bigint& u, const bigint& v) {
     u.sign == v.sign ? add_vec(u, v) : dyn_sub_vec(u, v);
@@ -432,15 +504,47 @@ bigint operator%(bigint u, uint n) { return u %= n; }
 bigint operator%(bigint u, int n) { return u %= n; }
 
 bigint operator-(bigint u) { return u.flip(), u; }
+bool operator!(const bigint& u) { return u.zero(); }
 
 bigint abs(bigint u) { return u.sign ? -u : u; }
-
 bigint gcd(bigint a, bigint b) {
-    while (!a.zero()) {
+    while (a != 0) {
         b = b % a;
         swap(a, b);
     }
     return abs(b);
+}
+
+} // namespace bigint_arithmetic
+
+bigint::bigint(const string& s, uint b) {
+    assert(2 <= b && b <= 10);
+    int i = 0, S = s.size();
+    while (i < S && isspace(s[i])) {
+        i++;
+    }
+    if (i == S) {
+        return;
+    }
+    if (s[i] == '-') {
+        sign = 1;
+    }
+    if (!('0' <= s[i] && s[i] <= '9')) {
+        i++;
+    }
+    uint n = 0, tens = 1, threshold = UINT_MAX / (b + 1);
+    while (i < S && ('0' <= s[i] && s[i] <= '9')) {
+        n = b * n + uint(s[i++] - '0');
+        tens *= b;
+        if (tens >= threshold) {
+            mul_int(*this, tens);
+            add_int(*this, n);
+            n = 0;
+            tens = 1;
+        }
+    }
+    mul_int(*this, tens);
+    add_int(*this, n);
 }
 
 string to_string(bigint u, uint b = 10) {
@@ -471,79 +575,94 @@ string to_string(bigint u, uint b = 10) {
     }
     return s;
 }
+
 ostream& operator<<(ostream& out, const bigint& u) { return out << to_string(u); }
 
-// positive infinity is frac(1, 0) and negative infinity is frac(-1, 0)
-struct frac {
+// positive infinity is bfrac(1, 0) and negative infinity is bfrac(-1, 0)
+struct bfrac {
     bigint n, d;
 
-    frac() : n(0), d(1) {}
-    frac(int num) : n(num), d(1) {}
-    frac(bigint num) : n(num), d(1) {}
-    frac(bigint num, bigint den) : n(num), d(den) {
+    bfrac() : n(0), d(1) {}
+    bfrac(bigint num) : n(num), d(1) {}
+    bfrac(bigint num, bigint den) : n(num), d(den) {
         if (d < 0) {
             n = -n, d = -d;
         }
-        bigint g = gcd(n, d);
-        g = g < 0 ? -g : g;
+        auto g = abs(gcd(n, d));
         n /= g, d /= g;
     }
 
-    explicit operator bigint() const noexcept { return n / d; }
+    explicit operator bigint() const noexcept { return assert(d != 0), n / d; }
 };
 
-frac abs(frac f) { return frac(abs(f.n), f.d); }
-frac operator-(frac f) { return frac(-f.n, f.d); }
-bool operator!(frac f) { return f.n == 0 ? 1L : 0L; }
+bfrac abs(const bfrac& f) { return bfrac(abs(f.n), f.d); }
+bigint floor(const bfrac& f) { return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d; }
+bigint ceil(const bfrac& f) { return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d; }
 
-bool operator==(frac a, frac b) { return a.n == b.n && a.d == b.d; }
-bool operator!=(frac a, frac b) { return a.n != b.n || a.d != b.d; }
-bool operator<(frac a, frac b) { return a.n * b.d < b.n * a.d; }
-bool operator>(frac a, frac b) { return a.n * b.d > b.n * a.d; }
-bool operator<=(frac a, frac b) { return a.n * b.d <= b.n * a.d; }
-bool operator>=(frac a, frac b) { return a.n * b.d >= b.n * a.d; }
-bool operator==(frac a, bigint b) { return a.n == b && a.d == 1; }
-bool operator!=(frac a, bigint b) { return a.n != b || a.d != 1; }
-bool operator<(frac a, bigint b) { return a.n < b * a.d; }
-bool operator>(frac a, bigint b) { return a.n > b * a.d; }
-bool operator<=(frac a, bigint b) { return a.n <= b * a.d; }
-bool operator>=(frac a, bigint b) { return a.n >= b * a.d; }
-bool operator==(bigint b, frac a) { return a.n == b && a.d == 1; }
-bool operator!=(bigint b, frac a) { return a.n != b || a.d != 1; }
-bool operator<(bigint b, frac a) { return b * a.d < a.n; }
-bool operator>(bigint b, frac a) { return b * a.d > a.n; }
-bool operator<=(bigint b, frac a) { return b * a.d <= a.n; }
-bool operator>=(bigint b, frac a) { return b * a.d >= a.n; }
+inline namespace bfrac_comparison {
 
-frac operator+(frac a, bigint b) { return frac(a.n + b * a.d, a.d); }
-frac operator-(frac a, bigint b) { return frac(a.n - b * a.d, a.d); }
-frac operator*(frac a, bigint b) { return frac(a.n * b, a.d); }
-frac operator/(frac a, bigint b) { return frac(a.n, a.d * b); }
-frac operator%(frac a, bigint b) { return a - b * bigint(a / b); }
-frac operator+(bigint b, frac a) { return frac(b * a.d + a.n, a.d); }
-frac operator-(bigint b, frac a) { return frac(b * a.d - a.n, a.d); }
-frac operator*(bigint b, frac a) { return frac(b * a.n, a.d); }
-frac operator/(bigint b, frac a) { return frac(b * a.d, a.n); }
-frac operator%(bigint b, frac a) { return b - bigint(b / a) * a; }
-frac& operator+=(frac& a, bigint b) { return a = a + b; }
-frac& operator-=(frac& a, bigint b) { return a = a - b; }
-frac& operator*=(frac& a, bigint b) { return a = a * b; }
-frac& operator/=(frac& a, bigint b) { return a = a / b; }
-frac& operator%=(frac& a, bigint b) { return a = a % b; }
+bool operator==(const bfrac& a, const bfrac& b) { return a.n == b.n && a.d == b.d; }
+bool operator!=(const bfrac& a, const bfrac& b) { return a.n != b.n || a.d != b.d; }
+bool operator<(const bfrac& a, const bfrac& b) { return a.n * b.d < b.n * a.d; }
+bool operator>(const bfrac& a, const bfrac& b) { return a.n * b.d > b.n * a.d; }
+bool operator<=(const bfrac& a, const bfrac& b) { return a.n * b.d <= b.n * a.d; }
+bool operator>=(const bfrac& a, const bfrac& b) { return a.n * b.d >= b.n * a.d; }
+bool operator==(const bfrac& a, const bigint& b) { return a.n == b && a.d == 1; }
+bool operator!=(const bfrac& a, const bigint& b) { return a.n != b || a.d != 1; }
+bool operator<(const bfrac& a, const bigint& b) { return a.n < b * a.d; }
+bool operator>(const bfrac& a, const bigint& b) { return a.n > b * a.d; }
+bool operator<=(const bfrac& a, const bigint& b) { return a.n <= b * a.d; }
+bool operator>=(const bfrac& a, const bigint& b) { return a.n >= b * a.d; }
+bool operator==(const bigint& b, const bfrac& a) { return a.n == b && a.d == 1; }
+bool operator!=(const bigint& b, const bfrac& a) { return a.n != b || a.d != 1; }
+bool operator<(const bigint& b, const bfrac& a) { return b * a.d < a.n; }
+bool operator>(const bigint& b, const bfrac& a) { return b * a.d > a.n; }
+bool operator<=(const bigint& b, const bfrac& a) { return b * a.d <= a.n; }
+bool operator>=(const bigint& b, const bfrac& a) { return b * a.d >= a.n; }
 
-frac operator+(frac a, frac b) { return frac(a.n * b.d + b.n * a.d, a.d * b.d); }
-frac operator-(frac a, frac b) { return frac(a.n * b.d - b.n * a.d, a.d * b.d); }
-frac operator*(frac a, frac b) { return frac(a.n * b.n, a.d * b.d); }
-frac operator/(frac a, frac b) { return frac(a.n * b.d, a.d * b.n); }
-frac operator%(frac a, frac b) { return a - bigint(a / b) * b; }
-frac& operator+=(frac& a, frac b) { return a = a + b; }
-frac& operator-=(frac& a, frac b) { return a = a - b; }
-frac& operator*=(frac& a, frac b) { return a = a * b; }
-frac& operator/=(frac& a, frac b) { return a = a / b; }
-frac& operator%=(frac& a, frac b) { return a = a % b; }
+} // namespace bfrac_comparison
 
-string to_string(frac f) { return to_string(f.n) + '/' + to_string(f.d); }
-ostream& operator<<(ostream& out, const frac& f) { return out << to_string(f); }
+inline namespace bfrac_arithmetic {
+
+bfrac operator+(const bfrac& a, const bigint& b) { return bfrac(a.n + b * a.d, a.d); }
+bfrac operator-(const bfrac& a, const bigint& b) { return bfrac(a.n - b * a.d, a.d); }
+bfrac operator*(const bfrac& a, const bigint& b) { return bfrac(a.n * b, a.d); }
+bfrac operator/(const bfrac& a, const bigint& b) { return bfrac(a.n, a.d * b); }
+bfrac operator%(const bfrac& a, const bigint& b) { return a - b * bigint(a / b); }
+bfrac operator+(const bigint& b, const bfrac& a) { return bfrac(b * a.d + a.n, a.d); }
+bfrac operator-(const bigint& b, const bfrac& a) { return bfrac(b * a.d - a.n, a.d); }
+bfrac operator*(const bigint& b, const bfrac& a) { return bfrac(b * a.n, a.d); }
+bfrac operator/(const bigint& b, const bfrac& a) { return bfrac(b * a.d, a.n); }
+bfrac operator%(const bigint& b, const bfrac& a) { return b - bigint(b / a) * a; }
+bfrac& operator+=(bfrac& a, const bigint& b) { return a = a + b; }
+bfrac& operator-=(bfrac& a, const bigint& b) { return a = a - b; }
+bfrac& operator*=(bfrac& a, const bigint& b) { return a = a * b; }
+bfrac& operator/=(bfrac& a, const bigint& b) { return a = a / b; }
+bfrac& operator%=(bfrac& a, const bigint& b) { return a = a % b; }
+
+bfrac operator+(const bfrac& a, const bfrac& b) {
+    return bfrac(a.n * b.d + b.n * a.d, a.d * b.d);
+}
+bfrac operator-(const bfrac& a, const bfrac& b) {
+    return bfrac(a.n * b.d - b.n * a.d, a.d * b.d);
+}
+bfrac operator*(const bfrac& a, const bfrac& b) { return bfrac(a.n * b.n, a.d * b.d); }
+bfrac operator/(const bfrac& a, const bfrac& b) { return bfrac(a.n * b.d, a.d * b.n); }
+bfrac operator%(const bfrac& a, const bfrac& b) { return a - bigint(a / b) * b; }
+bfrac& operator+=(bfrac& a, const bfrac& b) { return a = a + b; }
+bfrac& operator-=(bfrac& a, const bfrac& b) { return a = a - b; }
+bfrac& operator*=(bfrac& a, const bfrac& b) { return a = a * b; }
+bfrac& operator/=(bfrac& a, const bfrac& b) { return a = a / b; }
+bfrac& operator%=(bfrac& a, const bfrac& b) { return a = a % b; }
+
+bfrac operator-(const bfrac& f) { return bfrac(-f.n, f.d); }
+bool operator!(const bfrac& f) { return f.n == 0; }
+
+} // namespace bfrac_arithmetic
+
+string to_string(const bfrac& f) { return to_string(f.n) + '/' + to_string(f.d); }
+
+ostream& operator<<(ostream& out, const bfrac& f) { return out << to_string(f); }
 
 bigint nCk(int n, int k) {
     if (k < 0 || k > n)
@@ -568,7 +687,7 @@ auto solve1() {
     for (int i = 0; i < Q; i++) {
         ans[i] = (2 * S[0] >= Q) ^ !A[0][i] ? 'T' : 'F';
     }
-    frac score = 2 * S[0] >= Q ? S[0] : Q - S[0];
+    bfrac score = bigint(2 * S[0] >= Q ? S[0] : Q - S[0]);
     return ans + " " + to_string(score);
 }
 
@@ -595,19 +714,19 @@ auto solve2() {
     }
 
     array<int, 2> best = {};
-    array<frac, 2> best_score = {};
+    array<bfrac, 2> best_score = {};
 
     for (int k = 0; k < 2; k++) {
         if (2 * trues[k] >= cnt[k] * sols) {
             best[k] = 1;
-            best_score[k] = frac(trues[k], sols);
+            best_score[k] = bfrac(trues[k], sols);
         } else {
             best[k] = 0;
-            best_score[k] = frac(cnt[k]) - frac(trues[k], sols);
+            best_score[k] = bfrac(cnt[k]) - bfrac(trues[k], sols);
         }
     }
 
-    frac score = best_score[0] + best_score[1];
+    bfrac score = best_score[0] + best_score[1];
 
     string ans(Q, 'x');
     for (int i = 0; i < Q; i++) {
@@ -647,19 +766,19 @@ auto solve3() {
     }
 
     array<int, 4> best = {};
-    array<frac, 4> best_score = {};
+    array<bfrac, 4> best_score = {};
 
     for (int k = 0; k < 4; k++) {
         if (2 * trues[k] >= cnt[k] * sols) {
             best[k] = 1;
-            best_score[k] = frac(trues[k], sols);
+            best_score[k] = bfrac(trues[k], sols);
         } else {
             best[k] = 0;
-            best_score[k] = frac(cnt[k]) - frac(trues[k], sols);
+            best_score[k] = bfrac(cnt[k]) - bfrac(trues[k], sols);
         }
     }
 
-    frac score = best_score[0] + best_score[1] + best_score[2] + best_score[3];
+    bfrac score = best_score[0] + best_score[1] + best_score[2] + best_score[3];
 
     string ans(Q, 'x');
     for (int i = 0; i < Q; i++) {

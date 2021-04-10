@@ -49,15 +49,6 @@ bigint modfac(uint n, const bigint& m) {
     return f;
 }
 
-// Compute gcd(a,b)
-bigint gcd(bigint a, bigint b) {
-    while (a != 0) {
-        b = b % a;
-        swap(a, b);
-    }
-    return abs(b);
-}
-
 // Compute lcm(a,b)
 bigint lcm(const bigint& a, const bigint& b) { return a * (b / gcd(a, b)); }
 

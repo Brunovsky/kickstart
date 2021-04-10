@@ -1,7 +1,9 @@
 #ifndef RANDOM_HPP
 #define RANDOM_HPP
 
-#include "graph.hpp"
+#include <bits/stdc++.h>
+
+using namespace std;
 
 // *****
 
@@ -14,9 +16,8 @@ using reald = uniform_real_distribution<double>;
 using binomd = binomial_distribution<long>;
 using boold = bernoulli_distribution;
 
-using int_sample_t = vector<int>;
-using pair_sample_t = vector<edge_t>;
-using partition_t = vector<int>;
+using edge_t = array<int, 2>;
+using edges_t = vector<array<int, 2>>;
 
 // *****
 
@@ -58,7 +59,7 @@ void fisher_yates(vector<T>& univ, int k = -1) {
  * It must hold that a <= b and k <= n = b - a.
  * Complexity: O(k log k) with E[mt] <= 3k.
  */
-int_sample_t int_sample(long k, int a, int b, bool complement = false) {
+vector<int> int_sample(long k, int a, int b, bool complement = false) {
     if ((k == 0 && !complement) || a >= b)
         return {};
 
@@ -79,7 +80,7 @@ int_sample_t int_sample(long k, int a, int b, bool complement = false) {
         seen.insert(n);
     }
 
-    int_sample_t sample;
+    vector<int> sample;
     sample.reserve(seen.size());
     if (complement) {
         for (int n = a; n < b; n++)
@@ -107,7 +108,7 @@ auto int_sample_p(double p, int a, int b) {
  * It must hold that a <= b and k <= (n choose 2) where n = b - a.
  * Complexity: O(k log k) with E[mt] <= 6k.
  */
-pair_sample_t choose_sample(long k, int a, int b, bool complement = false) {
+edges_t choose_sample(long k, int a, int b, bool complement = false) {
     if ((k == 0 && !complement) || a >= b - 1)
         return {};
 
@@ -129,7 +130,7 @@ pair_sample_t choose_sample(long k, int a, int b, bool complement = false) {
         seen.insert(long(x) << 32 | y);
     }
 
-    pair_sample_t sample;
+    edges_t sample;
     sample.reserve(seen.size());
     if (complement) {
         for (int x = a; x < b; x++)
@@ -161,7 +162,7 @@ auto choose_sample_p(double p, int a, int b) {
  * It must hold that a <= b, c <= d, and k <= nm = (b - a)(d - c).
  * Complexity: O(k log k) with E[mt] <= 6k.
  */
-pair_sample_t pair_sample(long k, int a, int b, int c, int d, bool complement = false) {
+edges_t pair_sample(long k, int a, int b, int c, int d, bool complement = false) {
     if ((k == 0 && !complement) || a >= b || c >= d)
         return {};
 
@@ -183,7 +184,7 @@ pair_sample_t pair_sample(long k, int a, int b, int c, int d, bool complement = 
         seen.insert(long(x) << 32 | y);
     }
 
-    pair_sample_t sample;
+    edges_t sample;
     sample.reserve(seen.size());
     if (complement) {
         for (int x = a; x < b; x++)
@@ -215,7 +216,7 @@ auto pair_sample_p(double p, int a, int b, int c, int d) {
  * It must hold that a <= b, and k <= n(n - 1) where n = b - a.
  * Complexity: O(k log k) with E[mt] <= 6k.
  */
-pair_sample_t distinct_pair_sample(long k, int a, int b, bool complement = false) {
+edges_t distinct_pair_sample(long k, int a, int b, bool complement = false) {
     auto g = pair_sample(k, a, b, a, b - 1, complement);
     for (auto& [u, v] : g)
         v += v >= u;
@@ -259,7 +260,7 @@ auto array_sample(const vector<T>& univ) {
  * Complexity: O(n)
  */
 auto parent_sample(int n) {
-    parent_t parent(n);
+    vector<int> parent(n);
     for (int i = 1; i < n; i++) {
         intd dist(0, i - 1);
         parent[i] = dist(mt);

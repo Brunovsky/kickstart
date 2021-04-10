@@ -10,26 +10,21 @@ struct bfrac {
     bigint n, d;
 
     bfrac() : n(0), d(1) {}
-    bfrac(int num) : bfrac(bigint(num)) {}
-    bfrac(int num, int den) : bfrac(bigint(num), bigint(den)) {}
     bfrac(bigint num) : n(num), d(1) {}
     bfrac(bigint num, bigint den) : n(num), d(den) {
         if (d < 0) {
             n = -n, d = -d;
         }
-        auto g = gcd(n, d);
-        g = g < 0 ? -g : g;
+        auto g = abs(gcd(n, d));
         n /= g, d /= g;
     }
 
-    explicit operator long() const noexcept {
-        return d != 0 ? n / d : (n > 0 ? LONG_MAX : LONG_MIN);
-    }
+    explicit operator bigint() const noexcept { return assert(d != 0), n / d; }
 };
 
-bfrac abs(bfrac f) { return bfrac(abs(f.n), f.d); }
-long floor(bfrac f) { return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d; }
-long ceil(bfrac f) { return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d; }
+bfrac abs(const bfrac& f) { return bfrac(abs(f.n), f.d); }
+bigint floor(const bfrac& f) { return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d; }
+bigint ceil(const bfrac& f) { return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d; }
 
 inline namespace bfrac_comparison {
 
@@ -80,7 +75,7 @@ bfrac operator-(const bfrac& a, const bfrac& b) {
 }
 bfrac operator*(const bfrac& a, const bfrac& b) { return bfrac(a.n * b.n, a.d * b.d); }
 bfrac operator/(const bfrac& a, const bfrac& b) { return bfrac(a.n * b.d, a.d * b.n); }
-bfrac operator%(const bfrac& a, const bfrac& b) { return a - long(a / b) * b; }
+bfrac operator%(const bfrac& a, const bfrac& b) { return a - bigint(a / b) * b; }
 bfrac& operator+=(bfrac& a, const bfrac& b) { return a = a + b; }
 bfrac& operator-=(bfrac& a, const bfrac& b) { return a = a - b; }
 bfrac& operator*=(bfrac& a, const bfrac& b) { return a = a * b; }

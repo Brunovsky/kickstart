@@ -5,6 +5,8 @@
 
 // *****
 
+frac inv(frac f) { return frac(f.d, f.n); }
+
 // fraction closest to f with denominator at most maxd
 frac closest(frac f, long maxd) {
     long p0 = 0, q0 = 1;
