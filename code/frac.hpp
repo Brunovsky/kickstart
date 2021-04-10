@@ -17,7 +17,7 @@ struct frac {
         if (d < 0) {
             n = -n, d = -d;
         }
-        long g = gcd(n, d);
+        auto g = gcd(n, d);
         g = g < 0 ? -g : g;
         n /= g, d /= g;
     }
@@ -27,10 +27,11 @@ struct frac {
     }
 };
 
-frac inv(frac f) { return f.n >= 0 ? frac(f.d, f.n) : frac(-f.d, -f.n); }
 frac abs(frac f) { return frac(abs(f.n), f.d); }
-frac operator-(frac f) { return frac(-f.n, f.d); }
-bool operator!(frac f) { return f.n == 0 ? 1L : 0L; }
+long floor(frac f) { return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d; }
+long ceil(frac f) { return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d; }
+
+inline namespace frac_comparison {
 
 bool operator==(frac a, frac b) { return a.n == b.n && a.d == b.d; }
 bool operator!=(frac a, frac b) { return a.n != b.n || a.d != b.d; }
@@ -50,6 +51,10 @@ bool operator<(long b, frac a) { return b * a.d < a.n; }
 bool operator>(long b, frac a) { return b * a.d > a.n; }
 bool operator<=(long b, frac a) { return b * a.d <= a.n; }
 bool operator>=(long b, frac a) { return b * a.d >= a.n; }
+
+} // namespace frac_comparison
+
+inline namespace frac_arithmetic {
 
 frac operator+(frac a, long b) { return frac(a.n + b * a.d, a.d); }
 frac operator-(frac a, long b) { return frac(a.n - b * a.d, a.d); }
@@ -78,21 +83,11 @@ frac& operator*=(frac& a, frac b) { return a = a * b; }
 frac& operator/=(frac& a, frac b) { return a = a / b; }
 frac& operator%=(frac& a, frac b) { return a = a % b; }
 
-frac operator""_f(unsigned long long n) { return frac(n); }
-frac operator""_n(unsigned long long n) { return frac(n, 1); }
-frac operator""_d(unsigned long long n) { return frac(1, n); }
-long floor(frac f) {
-    if (f.d == 0) {
-        return long(f);
-    }
-    return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d;
-}
-long ceil(frac f) {
-    if (f.d == 0) {
-        return long(f);
-    }
-    return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d;
-}
+frac operator-(frac f) { return frac(-f.n, f.d); }
+bool operator!(frac f) { return f.n == 0; }
+
+} // namespace frac_arithmetic
+
 string to_string(frac f) {
     if (f.d == 0) {
         return f.n ? f.n > 0 ? "inf" : "-inf" : "undef";
@@ -102,6 +97,7 @@ string to_string(frac f) {
         return to_string(f.n) + '/' + to_string(f.d);
     }
 }
-ostream& operator<<(ostream& out, const frac& f) { return out << to_string(f); }
+
+ostream& operator<<(ostream& out, frac f) { return out << to_string(f); }
 
 #endif // FRAC_HPP

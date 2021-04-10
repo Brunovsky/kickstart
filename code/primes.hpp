@@ -129,8 +129,6 @@ vector<ulong> factor_simple(ulong n) {
     return primes;
 }
 
-#include <fmt/format.h>
-
 /**
  * Compute a prime factor of composite n.
  * Uses polynomial x^2 + c and retries with a different c if it doesn't find an

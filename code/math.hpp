@@ -34,7 +34,7 @@ long modpow(long b, long e, long m) {
 }
 
 // Compute n!
-ulong intfac(ulong n) {
+ulong intfac(uint n) {
     ulong f = 1;
     while (n > 1) {
         f = f * n--;
@@ -43,7 +43,7 @@ ulong intfac(ulong n) {
 }
 
 // Compute n! (mod m)
-ulong modfac(ulong n, ulong m) {
+ulong modfac(uint n, ulong m) {
     ulong f = 1;
     while (n > 1) {
         f = (f * n--) % m;
@@ -51,33 +51,8 @@ ulong modfac(ulong n, ulong m) {
     return f;
 }
 
-// Compute x, y such that ax + by = gcd(a,b)
-long gcd(long a, long b, long& x, long& y) {
-    long xn = 1, yn = 0;
-    x = 0, y = 1;
-    while (a != 0) {
-        long q = b / a;
-        b = b % a;
-        x = x - q * xn;
-        y = y - q * yn;
-        swap(a, b);
-        swap(x, xn);
-        swap(y, yn);
-    }
-    if (b < 0) {
-        b = -b, x = -x, y = -y;
-    }
-    return b;
-}
-
-// Compute x such that ax = 1 (mod m) (modular multiplicative inverse)
-long invmod(long a, long m) {
-    long x, y;
-    auto g = gcd(a, m, x, y);
-    (void)g, assert(g == 1);
-    x = x % m;
-    return x >= 0 ? x : x + m;
-}
+// Compute lcm(a,b)
+ulong lcm(ulong a, ulong b) { return a * (b / gcd(a, b)); }
 
 // Compute gcd(a,b)
 long gcd(long a, long b) {
@@ -88,8 +63,29 @@ long gcd(long a, long b) {
     return abs(b);
 }
 
-// Compute lcm(a,b)
-ulong lcm(ulong a, ulong b) { return a * (b / gcd(a, b)); }
+// Compute x, y such that ax + by = gcd(a,b)
+long gcd(long a, long b, long& x, long& y) {
+    long xn = 1, yn = 0;
+    x = 0, y = 1;
+    while (a != 0) {
+        long q = b / a;
+        b = b % a;
+        x = x - q * xn, y = y - q * yn;
+        swap(a, b), swap(x, xn), swap(y, yn);
+    }
+    if (b < 0) {
+        b = -b, x = -x, y = -y;
+    }
+    return b;
+}
+
+// Compute x such that ax = 1 (mod m) (modular multiplicative inverse)
+long invmod(long a, long m) {
+    long x, y, g = gcd(a, m, x, y);
+    (void)g, assert(g == 1);
+    x = x % m;
+    return x >= 0 ? x : x + m;
+}
 
 /**
  * Compute the smallest exponent x such that a^x = b (mod m)
@@ -103,7 +99,7 @@ long modlog(long a, long b, long m) {
         A[x * b % m] = j++;
     if (x == b % m)
         return j;
-    if (__gcd(m, x) == __gcd(m, b))
+    if (gcd(m, x) == gcd(m, b))
         for (int i = 2; i < n + 2; i++)
             if (A.count(x = x * f % m))
                 return n * i - A[x];
@@ -150,12 +146,11 @@ long modsqrt(long a, long p) {
  * Solve the system a = b[i] (mod p[i]), i = 0,...,n-1
  * Complexity: O(n log p)
  */
-long chinese(int n, long remainders[], long primes[]) {
+long chinese(int n, long* remainders, long* primes) {
     long p = 1, a = 0;
     for (int i = 0; i < n; i++) {
         long q = primes[i], b = remainders[i];
-        long x, y;
-        long g = gcd(p, q, x, y);
+        long x, y, g = gcd(p, q, x, y);
         (void)g, assert(g == 1);
         a = a * q * y + b * p * x;
         p = p * q;
@@ -192,13 +187,13 @@ ulong totient(ulong n) {
 /**
  * Compute (n choose k)
  */
-long choose(long n, long k) {
+long choose(int n, int k) {
     if (k < 0 || k > n)
         return 0;
     k = min(k, n - k);
     n = n - k + 1;
     long binom = 1;
-    long i = 1;
+    int i = 1;
     while (i <= k) {
         binom = (binom * n++) / i++;
     }
@@ -206,11 +201,12 @@ long choose(long n, long k) {
 }
 
 /**
- * Compute n!/(k1!k2!k3!)
+ * Compute n!/(k1!k2!k3!...)
  */
-long choose(long n, const vector<long>& k) {
+long choose(int n, const vector<int>& k) {
     assert(accumulate(begin(k), end(k), 0L) <= n);
-    long multi = 1, m = 1, r = 1;
+    long multi = 1;
+    int m = 1, r = 1;
     for (int i = 0, K = k.size(); i < K; i++) {
         for (int j = 1; j <= k[i]; j++)
             multi = multi * m++ / j;

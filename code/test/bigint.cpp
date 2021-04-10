@@ -1,7 +1,6 @@
 #include "../bigint.hpp"
 
-#include "../bigint_extra.hpp"
-#include "../bigint_utils.hpp"
+#include "../bigint_math.hpp"
 #include "../debug_print.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
@@ -84,8 +83,26 @@ array<bigint, m> random_bigints(array<int, m> ns) {
 }
 
 /**
- * Unit tests for individual operations
+ * It should be easy and correct to mix up ints and bigints
+ * Mixing up long and bigint not so, as bigint replaces long usages.
  */
+void minimum_usability_test() {
+    bigint u = 0, v = 73, w = -73;
+    assert(u == v + w);
+    assert(v + w == 0);
+
+    u = 46;
+    v = -32;
+    w = -14;
+    assert(u + v + w == 0 && u + v + w >= 0 && u + v + w <= 0);
+
+    w = -18;
+    assert(u + v + w < 0 && u + v + w > -10);
+    assert(abs(u + v + w) == 4);
+
+    print_ok("minimum usability");
+}
+
 void unit_test_add() {
     bigint u, v, a, b, c;
 
@@ -357,6 +374,7 @@ void stress_test_div_imperfect(int R = 10000) {
 }
 
 int main() {
+    minimum_usability_test();
     unit_test_add();
     unit_test_sub();
     unit_test_mul();

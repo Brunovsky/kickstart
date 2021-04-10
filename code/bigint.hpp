@@ -8,9 +8,7 @@ using namespace std;
 // *****
 
 static_assert(0xffffffff == UINT_MAX);
-static_assert(sizeof(uint) == 4 && sizeof(long) == 8, "Unexpected integer sizes");
-
-#define isnum(c) ('0' <= c && c <= '9')
+static_assert(sizeof(uint) == 4 && sizeof(ulong) == 8, "Unexpected integer sizes");
 
 struct bigint {
     vector<uint> nums;
@@ -21,6 +19,7 @@ struct bigint {
     bigint(uint n, bool s = 0) : nums(n > 0, n), sign(s) {}
     bigint(const string& s, uint b = 10);
 
+    explicit operator bool() const { return zero(); }
     auto& operator[](uint x) { return nums[x]; }
     const auto& operator[](uint x) const { return nums[x]; }
     bool bit(uint x) const { return nums[x / 32] & (1 << (x % 32)); }
@@ -35,6 +34,10 @@ struct bigint {
     }
 };
 
+bigint abs(bigint u) { return u.sign ? -u : u; }
+
+inline namespace bigint_comparison {
+
 bool magnitude_cmp(const bigint& u, const bigint& v) {
     int L = u.len(), R = v.len();
     return L != R ? L < R
@@ -43,12 +46,7 @@ bool magnitude_cmp(const bigint& u, const bigint& v) {
 }
 
 bool operator<(const bigint& u, const bigint& v) {
-    if (u.sign != v.sign)
-        return u.sign;
-    else if (u.sign)
-        return magnitude_cmp(v, u);
-    else
-        return magnitude_cmp(u, v);
+    return u.sign != v.sign ? u.sign : u.sign ? magnitude_cmp(v, u) : magnitude_cmp(u, v);
 }
 bool operator>(const bigint& u, const bigint& v) { return v < u; }
 bool operator<=(const bigint& u, const bigint& v) { return !(u > v); }
@@ -57,6 +55,24 @@ bool operator==(const bigint& u, const bigint& v) {
     return u.sign == v.sign && u.nums == v.nums;
 }
 bool operator!=(const bigint& u, const bigint& v) { return !(u == v); }
+
+bool operator<(const bigint& u, int v) { return u < bigint(v); }
+bool operator>(const bigint& u, int v) { return u > bigint(v); }
+bool operator<=(const bigint& u, int v) { return u <= bigint(v); }
+bool operator>=(const bigint& u, int v) { return u >= bigint(v); }
+bool operator==(const bigint& u, int v) { return u == bigint(v); }
+bool operator!=(const bigint& u, int v) { return u != bigint(v); }
+
+bool operator<(int u, const bigint& v) { return bigint(u) < v; }
+bool operator>(int u, const bigint& v) { return bigint(u) > v; }
+bool operator<=(int u, const bigint& v) { return bigint(u) <= v; }
+bool operator>=(int u, const bigint& v) { return bigint(u) >= v; }
+bool operator==(int u, const bigint& v) { return bigint(u) == v; }
+bool operator!=(int u, const bigint& v) { return bigint(u) != v; }
+
+} // namespace bigint_comparison
+
+inline namespace bigint_bitwise {
 
 bigint& operator>>=(bigint& u, uint shift) {
     int s = shift / 32, n = u.len();
@@ -98,6 +114,67 @@ bigint& operator<<=(bigint& u, uint shift) {
 
 bigint operator>>(bigint u, uint shift) { return u >>= shift; }
 bigint operator<<(bigint u, uint shift) { return u <<= shift; }
+
+bigint& operator&=(bigint& u, const bigint& v) {
+    int n = min(u.len(), v.len());
+    u.nums.resize(n);
+    for (int i = 0; i < n; i++)
+        u[i] = u[i] & v[i];
+    u.trim();
+    return u;
+}
+bigint& operator|=(bigint& u, const bigint& v) {
+    int n = max(u.len(), v.len());
+    u.nums.resize(n, 0);
+    for (int i = 0; i < v.len(); i++)
+        u[i] = u[i] | v[i];
+    return u;
+}
+bigint& operator^=(bigint& u, const bigint& v) {
+    int n = max(u.len(), v.len());
+    u.nums.resize(n, 0);
+    for (int i = 0; i < v.len(); i++)
+        u[i] = u[i] ^ v[i];
+    u.trim();
+    return u;
+}
+bigint operator~(bigint u) {
+    for (int i = 0; i < u.len(); i++)
+        u[i] = ~u[i];
+    u.trim();
+    return u;
+}
+
+bigint operator&(bigint u, const bigint& v) { return u &= v; }
+bigint operator|(bigint u, const bigint& v) { return u |= v; }
+bigint operator^(bigint u, const bigint& v) { return u ^= v; }
+
+string lsbits(const bigint& u) {
+    if (u.zero())
+        return "0";
+    string s(32 * u.len() + 1, '0');
+    s[0] = u.sign ? '-' : '+';
+    for (int i = 0; i < 32 * u.len(); i++)
+        s[i + 1] = '0' + u.bit(i);
+    while (!s.empty() && s.back() == '0')
+        s.pop_back();
+    return s;
+}
+
+string msbits(const bigint& u) {
+    if (u.zero())
+        return "0";
+    string s(32 * u.len() + 1, '0');
+    s[0] = u.sign ? '-' : '+';
+    for (int i = 0; i < 32 * u.len(); i++)
+        s[32 * u.len() - i] = '0' + u.bit(i);
+    s.erase(begin(s) + 1, find(begin(s) + 1, end(s), '1'));
+    return s;
+}
+
+} // namespace bigint_bitwise
+
+inline namespace bigint_routines {
 
 void add_int(bigint& u, uint v) {
     for (int i = 0; v && i < u.len(); i++)
@@ -337,6 +414,18 @@ bigint div_mod(bigint& u, const bigint& v) {
     return r;
 }
 
+bigint gcd(bigint a, bigint b) {
+    while (a != 0) {
+        b = b % a;
+        swap(a, b);
+    }
+    return abs(b);
+}
+
+} // namespace bigint_routines
+
+inline namespace bigint_arithmetic {
+
 bigint& operator+=(bigint& u, const bigint& v) {
     u.sign == v.sign ? add_vec(u, v) : dyn_sub_vec(u, v);
     return u;
@@ -425,13 +514,14 @@ bigint operator%(bigint u, uint n) { return u %= n; }
 bigint operator%(bigint u, int n) { return u %= n; }
 
 bigint operator-(bigint u) { return u.flip(), u; }
+bool operator!(bigint u) { return u.zero(); }
 
-bigint operator""_b(const char* s) { return bigint(s); }
+} // namespace bigint_arithmetic
 
 bigint::bigint(const string& s, uint b) {
     assert(2 <= b && b <= 10);
     int i = 0, S = s.size();
-    while (i < S && s[i] != '+' && s[i] != '-' && !isnum(s[i])) {
+    while (i < S && isspace(s[i])) {
         i++;
     }
     if (i == S) {
@@ -440,11 +530,11 @@ bigint::bigint(const string& s, uint b) {
     if (s[i] == '-') {
         sign = 1;
     }
-    if (!isnum(s[i])) {
+    if (!('0' <= s[i] && s[i] <= '9')) {
         i++;
     }
     uint n = 0, tens = 1, threshold = UINT_MAX / (b + 1);
-    while (i < S && isnum(s[i])) {
+    while (i < S && ('0' <= s[i] && s[i] <= '9')) {
         n = b * n + uint(s[i++] - '0');
         tens *= b;
         if (tens >= threshold) {
@@ -457,5 +547,36 @@ bigint::bigint(const string& s, uint b) {
     mul_int(*this, tens);
     add_int(*this, n);
 }
+
+string to_string(bigint u, uint b = 10) {
+    static auto uint_to_string = [](uint n, uint base) {
+        string s;
+        while (n > 0) {
+            uint m = n / base;
+            s += '0' + (n - base * m), n = m;
+        }
+        reverse(begin(s), end(s));
+        return s;
+    };
+
+    if (u.zero())
+        return "0";
+    string s = u.sign ? "-" : "";
+    vector<string> rems;
+    uint divisor = b, digits = 1;
+    while (divisor < UINT_MAX / b) {
+        divisor *= b, digits++;
+    }
+    while (!u.zero()) {
+        rems.push_back(uint_to_string(div_int(u, divisor), b));
+    }
+    for (int i = 0, n = rems.size(); i < n; i++) {
+        string pad(i ? digits - rems[n - i - 1].length() : 0, '0');
+        s += pad + rems[n - i - 1];
+    }
+    return s;
+}
+
+ostream& operator<<(ostream& out, const bigint& u) { return out << to_string(u); }
 
 #endif // BIGINT_HPP
