@@ -240,7 +240,7 @@ void balance_test_generate_circulation() {
 void balance_test_generate_distance() {
     for (int S : {100, 200, 500, 1000, 2000, 5000, 15000, 30000}) {
         auto header = format("Distance Graphs");
-        print("{1:<{0}} {2:5} --  V²E     V³     V²√E  V²ElnV  --\n", 58, header, S);
+        print("{1:<{0}} {2:5} --   EV     V³     ElnV  V²lnV  --\n", 58, header, S);
 
         double sum_W = 0;
 
@@ -255,13 +255,13 @@ void balance_test_generate_distance() {
             V_sum /= runs, E_sum /= runs;
 
             double V = log2(V_sum), E = log2(E_sum), logV = log2(V);
-            double W = 9.5 * V + 3 * E + 2 * logV;
+            double W = 10 * V + 3 * E + 2 * logV;
             sum_W += W;
 
-            auto& name = circulation_kind_name[i];
+            auto& name = distance_kind_name[i];
             print("{:4} {:36} -- V:{:<6} E:{:<8} --", i, name, V_sum, E_sum);
             print(" {:4.1f}    {:4.1f}    {:4.1f}    {:4.1f}  -- {:5.1f}\n", //
-                  2 * V + E, 3 * V, 2 * V + .5 * E, 2 * V + E + logV, W);
+                  V + E, 3 * V, E + logV, 2 * V + logV, W);
         }
         print("{1:<{0}} --- {2:5.1f}\n", 96, "", sum_W / int(DG_END));
     }
@@ -302,9 +302,9 @@ void balance_test_generate_bipartite() {
 
 int main() {
     visual_test_generators();
+    balance_test_generate_distance();
     balance_test_generate_flow();
     balance_test_generate_circulation();
-    balance_test_generate_distance();
     balance_test_generate_bipartite();
     scaling_test_random_regular(1);
     return 0;

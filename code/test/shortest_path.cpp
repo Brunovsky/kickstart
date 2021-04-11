@@ -1,28 +1,27 @@
-#include "../shortest_path.hpp"
-
 #include "../gen/distance.hpp"
+#include "../path/astar.hpp"
+#include "../path/bellman_ford.hpp"
+#include "../path/dijkstra.hpp"
+#include "../path/floyd_warshall.hpp"
+#include "../path/johnsons.hpp"
 #include "test_utils.hpp"
 
 // *****
 
 template <typename SP>
 bool compute_all_pairs(const distance_graph& dg, vector<vector<long>>& dist) {
-    try {
-        SP g(dg.V, dg.g, dg.weight);
-        g.compute();
-        dist = move(g.dist);
-        return false;
-    } catch (const runtime_error&) { return true; }
+    SP g(dg.V, dg.g, dg.weight);
+    bool cycle = !g.compute();
+    dist = move(g.dist);
+    return cycle;
 }
 
 template <typename SP>
 bool compute_negative(const distance_graph& dg, int s, vector<long>& dist) {
-    try {
-        SP g(dg.V, dg.g, dg.weight);
-        g.compute(s);
-        dist = move(g.dist);
-        return false;
-    } catch (const runtime_error&) { return true; }
+    SP g(dg.V, dg.g, dg.weight);
+    bool cycle = !g.compute(s);
+    dist = move(g.dist);
+    return cycle;
 }
 
 template <typename SP>
@@ -103,7 +102,6 @@ void speed_test_all_pairs_shortest_paths() {
 
 void speed_test_negative_shortest_path_run(distance_graph_kind i, int S, int T) {
     START_ACC(bellman_ford);
-    START_ACC(goldberg_radzik);
 
     int cycles = 0;
 
@@ -112,45 +110,18 @@ void speed_test_negative_shortest_path_run(distance_graph_kind i, int S, int T) 
         auto dg = generate_distance_graph(i, S);
         add_weight_distance_graph(dg, -10'000, 10'000'000);
 
-        vector<vector<long>> dist(2);
-        vector<bool> cycle(2, false);
+        vector<vector<long>> dist(1);
+        vector<bool> cycle(1, false);
 
         START(bellman_ford);
         cycle[0] = compute_negative<bellman_ford>(dg, 0, dist[0]);
         ADD_TIME(bellman_ford);
-
-        START(goldberg_radzik);
-        cycle[1] = compute_negative<goldberg_radzik>(dg, 0, dist[1]);
-        ADD_TIME(goldberg_radzik);
-
-        if (cycle[0] != cycle[1]) {
-            fail("negative cycle disagreement\n"
-                 "    bellman_ford: {}\n"
-                 " goldberg_radzik: {}\n",
-                 cycle[0], cycle[1]);
-        }
-        if (cycle[0] || cycle[1]) {
-            cycles++;
-            continue;
-        }
-        if (!all_eq(dist)) {
-            int errors = 0, max_errors = 10;
-            for (int u = 0; u < dg.V && errors < max_errors; u++) {
-                auto d0 = dist[0][u], d1 = dist[1][u];
-                if (d0 != d1) {
-                    print(" -- ->{:<3} | {} {}\n", u, d0, d1);
-                    errors++;
-                }
-            }
-            fail("distances not equal\n");
-        }
     }
 
     clear_line();
     print(" speed test {} ({:.1f}% neg cycles)\n", distance_kind_name[i],
           100.0 * cycles / T);
     PRINT_TIME(bellman_ford);
-    PRINT_TIME(goldberg_radzik);
 }
 
 void speed_test_negative_shortest_paths() {

@@ -158,16 +158,16 @@ auto generate_flow_network(flow_network_kind i, int S) {
     return fn;
 }
 
-auto add_cap_flow_network(flow_network& fn, flow_t mincap, flow_t maxcap) {
-    fn.cap = int_gen<flow_t>(fn.E, mincap, maxcap);
+auto add_cap_flow_network(flow_network& fn, long mincap, long maxcap) {
+    fn.cap = int_gen<long>(fn.E, mincap, maxcap);
 }
-auto add_cap_flow_network(flow_network& fn, flow_t maxcap) {
+auto add_cap_flow_network(flow_network& fn, long maxcap) {
     return add_cap_flow_network(fn, 1, maxcap);
 }
-auto add_cost_flow_network(flow_network& fn, cost_t mincost, cost_t maxcost) {
-    fn.cost = int_gen<cost_t>(fn.E, mincost, maxcost);
+auto add_cost_flow_network(flow_network& fn, long mincost, long maxcost) {
+    fn.cost = int_gen<long>(fn.E, mincost, maxcost);
 }
-auto add_cost_flow_network(flow_network& fn, cost_t maxcost) {
+auto add_cost_flow_network(flow_network& fn, long maxcost) {
     return add_cost_flow_network(fn, 1, maxcost);
 }
 

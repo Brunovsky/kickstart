@@ -87,6 +87,6 @@ bool all_eq(const vector<T>& v) {
 #define PRINT_TIME(var) clear_line(), print(" {:>8}ms -- {}\n", TIME_MS(var), #var)
 
 // output time (single or multiple)
-#define PRINT_TIME_US(var) clear_line(), print(" {:>8}ms -- {}\n", TIME_US(var), #var)
+#define PRINT_TIME_US(var) clear_line(), print(" {:>9}us -- {}\n", TIME_US(var), #var)
 
 #endif // TEST_UTILS_HPP
