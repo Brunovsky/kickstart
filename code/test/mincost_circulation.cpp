@@ -1,6 +1,6 @@
-#include "../debug_print.hpp"
 #include "../flow/mincost_push_relabel.hpp"
-#include "../gen/circulation.hpp"
+#include "../formatting.hpp"
+#include "../generators/circulation.hpp"
 #include "test_utils.hpp"
 
 // *****
@@ -11,8 +11,8 @@ struct mincost_circulation_dataset_test_t {
     string name, comment;
     int V, E;
     edges_t g;
-    caps_t cap, supply;
-    costs_t cost;
+    vector<long> cap, supply;
+    vector<long> cost;
     long ans;
 
     void read(istream& in) {

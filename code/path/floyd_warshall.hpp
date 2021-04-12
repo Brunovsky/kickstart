@@ -1,5 +1,5 @@
-#ifndef PATH_FLOYD_WARSHALL_HPP
-#define PATH_FLOYD_WARSHALL_HPP
+#ifndef FLOYD_WARSHALL_HPP
+#define FLOYD_WARSHALL_HPP
 
 #include <bits/stdc++.h>
 
@@ -86,4 +86,4 @@ struct floyd_warshall {
     }
 };
 
-#endif // PATH_FLOYD_WARSHALL_HPP
+#endif // FLOYD_WARSHALL_HPP

@@ -1,7 +1,7 @@
-#ifndef PATH_JOHNSONS_HPP
-#define PATH_JOHNSONS_HPP
+#ifndef JOHNSONS_HPP
+#define JOHNSONS_HPP
 
-#include "../integer_heaps.hpp" // pairing_int_heap
+#include "../struct/integer_heaps.hpp" // pairing_int_heap
 
 // *****
 
@@ -110,4 +110,4 @@ struct johnsons {
     }
 };
 
-#endif // PATH_JOHNSONS_HPP
+#endif // JOHNSONS_HPP

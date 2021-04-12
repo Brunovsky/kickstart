@@ -1,5 +1,5 @@
-#ifndef FLOW_EDMONDS_KARP_HPP
-#define FLOW_EDMONDS_KARP_HPP
+#ifndef EDMONDS_KARP_HPP
+#define EDMONDS_KARP_HPP
 
 #include <bits/stdc++.h>
 
@@ -74,4 +74,4 @@ struct edmonds_karp {
     bool left_of_mincut(int u) const { return pred[u] >= 0; }
 };
 
-#endif // FLOW_EDMONDS_KARP_HPP
+#endif // EDMONDS_KARP_HPP

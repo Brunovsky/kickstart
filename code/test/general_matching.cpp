@@ -1,11 +1,11 @@
-#include "../general_matching.hpp"
+#include "../generators/general_matching.hpp"
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
-#include "../debug_print.hpp"
-#include "../gen/graph_problems.hpp"
-#include "../graph_formats.hpp"
+#include "../formatting.hpp"
+#include "../generators/graph_formats.hpp"
+#include "../matching/micali_vazirani.hpp"
 #include "test_utils.hpp"
 
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;

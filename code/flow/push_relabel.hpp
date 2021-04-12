@@ -1,7 +1,7 @@
-#ifndef FLOW_PUSH_RELABEL_HPP
-#define FLOW_PUSH_RELABEL_HPP
+#ifndef PUSH_RELABEL_HPP
+#define PUSH_RELABEL_HPP
 
-#include "../integer_lists.hpp" // linked_lists
+#include "../struct/integer_lists.hpp" // linked_lists
 
 // *****
 
@@ -204,4 +204,4 @@ struct push_relabel {
     bool left_of_mincut(int u) const { return height[u] >= V; }
 };
 
-#endif // FLOW_PUSH_RELABEL_HPP
+#endif // PUSH_RELABEL_HPP

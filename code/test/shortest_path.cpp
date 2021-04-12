@@ -1,4 +1,4 @@
-#include "../gen/distance.hpp"
+#include "../generators/distance.hpp"
 #include "../path/astar.hpp"
 #include "../path/bellman_ford.hpp"
 #include "../path/dijkstra.hpp"

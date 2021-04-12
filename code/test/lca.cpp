@@ -1,4 +1,4 @@
-#include "../lca.hpp"
+#include "../struct/lca.hpp"
 
 #include "test_utils.hpp"
 

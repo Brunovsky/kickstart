@@ -1,5 +1,7 @@
-#include "../string_search.hpp"
-
+#include "../algo/boyer_moore.hpp"
+#include "../algo/kmp.hpp"
+#include "../algo/rabin_karp.hpp"
+#include "../algo/z_search.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 

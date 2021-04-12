@@ -1,7 +1,7 @@
-#ifndef PATH_DIJKSTRA_HPP
-#define PATH_DIJKSTRA_HPP
+#ifndef DIJKSTRA_HPP
+#define DIJKSTRA_HPP
 
-#include "../integer_heaps.hpp" // pairing_int_heap
+#include "../struct/integer_heaps.hpp" // pairing_int_heap
 
 // *****
 
@@ -76,4 +76,4 @@ struct dijkstra {
     }
 };
 
-#endif // PATH_DIJKSTRA_HPP
+#endif // DIJKSTRA_HPP

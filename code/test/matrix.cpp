@@ -1,11 +1,8 @@
-#include "../matrix.hpp"
+#include "../linear/matrix.hpp"
 
-#include "../debug_print.hpp"
-#include "../frac.hpp"
-#include "../gen/frac.hpp"
-#include "../matrix_ops.hpp"
-#include "../matrix_system.hpp"
-#include "../matrix_utils.hpp"
+#include "../formatting.hpp"
+#include "../generators/frac.hpp"
+#include "../linear/linear_system.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 
@@ -130,7 +127,7 @@ void unit_test_inverse_frac() {
     print_ok("unit test inverse frac");
 }
 
-void stress_test_gauss_frac(int T = 10000) {
+void stress_test_gauss_frac(int T = 2000) {
     intd distn(3, 7);
     int degenerate = 0, infeasible = 0, different = 0;
 
@@ -153,7 +150,7 @@ void stress_test_gauss_frac(int T = 10000) {
     print("  {:5.1f}% ({}) different\n", 100.0 * different / T, different);
 }
 
-void stress_test_gauss_double(int T = 3000) {
+void stress_test_gauss_double(int T = 1000) {
     intd distn(5, 100);
     int degenerate = 0, infeasible = 0, different = 0;
 
@@ -176,7 +173,7 @@ void stress_test_gauss_double(int T = 3000) {
     print("  {:5.1f}% ({}) different\n", 100.0 * different / T, different);
 }
 
-void stress_test_inverse_double(int T = 3000) {
+void stress_test_inverse_double(int T = 1000) {
     intd distn(5, 100);
     int degenerate = 0, different_mul = 0, different_inv = 0;
 
@@ -202,7 +199,7 @@ void stress_test_inverse_double(int T = 3000) {
     print("  {:5.1f}% ({}) different inv\n", 100.0 * different_inv / T, different_inv);
 }
 
-void scaling_test_gauss_double(int T = 300, int nmin = 5, int nmax = 300, int ninc = 5) {
+void scaling_test_gauss_double(int T = 100, int nmin = 5, int nmax = 300, int ninc = 5) {
     int total_degenerate = 0, total_infeasible = 0, total_different = 0;
 
     for (int n = nmin; n <= nmax; n += ninc) {

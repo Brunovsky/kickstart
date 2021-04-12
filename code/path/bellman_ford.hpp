@@ -1,5 +1,5 @@
-#ifndef PATH_BELLMAN_FORD_HPP
-#define PATH_BELLMAN_FORD_HPP
+#ifndef BELLMAN_FORD_HPP
+#define BELLMAN_FORD_HPP
 
 #include <bits/stdc++.h>
 
@@ -72,4 +72,4 @@ struct bellman_ford {
     }
 };
 
-#endif // PATH_BELLMAN_FORD_HPP
+#endif // BELLMAN_FORD_HPP

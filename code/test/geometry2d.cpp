@@ -1,4 +1,4 @@
-#include "../geometry2d.hpp"
+#include "../geometry/geometry2d.hpp"
 
 #include "../random.hpp"
 #include "test_utils.hpp"
@@ -11,7 +11,7 @@ double random_p() { return reald(0, 1)(mt); }
 double random_real() { return reald(-10000, 10000)(mt); }
 
 P random_point() {
-    reald d(-1e15, 1e15);
+    reald d(-1e5, 1e5);
     return P(d(mt), d(mt));
 }
 vector<double> random_reals(int N) {
@@ -29,7 +29,7 @@ void unit_test_collinear() {
     for (P a : random_points(100)) {
         for (P b : random_points(100)) {
             double k = random_p();
-            P c = a * (1 - k) + b * k;
+            P c = a - (a - b) * k;
             assert(collinear(a, b, c));
             assert(collinear(b, a, c));
             assert(onsegment(a, c, b));

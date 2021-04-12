@@ -1,4 +1,4 @@
-#include "../convex_hull.hpp"
+#include "../geometry/convex_hull.hpp"
 
 #include "../random.hpp"
 #include "test_utils.hpp"
@@ -31,6 +31,8 @@ void unit_test_convex_hull() {
     vector<point2d> b = {{1, 1}, {2, 2}, {1, 2}, {3, 3}, {4, 4}};
     hull = graham_scan(b);
     assert(hull == vector<point2d>({{1, 1}, {2, 2}, {3, 3}, {4, 4}, {1, 2}}));
+
+    print_ok("unit test convex hull");
 }
 
 int main() {

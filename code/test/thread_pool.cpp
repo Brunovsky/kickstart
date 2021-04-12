@@ -1,9 +1,13 @@
-#include "../thread_pool.hpp"
+#include "../parallel/thread_pool.hpp"
 
-#include "../bits.hpp"
-#include "../debug_print.hpp"
-#include "../graph_generator.hpp"
-#include "../matrix.hpp"
+#include "../formatting.hpp"
+#include "../generators/graph_generator.hpp"
+#include "../linear/matrix.hpp"
+#include "../numeric/bits.hpp"
+#include "../parallel/fn_orchestrator.hpp"
+#include "../parallel/graph_orchestrator.hpp"
+#include "../parallel/priority_thread_pool.hpp"
+#include "../parallel/spinlock.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 

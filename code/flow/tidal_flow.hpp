@@ -1,5 +1,5 @@
-#ifndef FLOW_TIDAL_FLOW_HPP
-#define FLOW_TIDAL_FLOW_HPP
+#ifndef TIDAL_FLOW_HPP
+#define TIDAL_FLOW_HPP
 
 #include <bits/stdc++.h>
 
@@ -110,4 +110,4 @@ struct tidal_flow {
     bool left_of_mincut(int u) const { return level[u] >= 0; }
 };
 
-#endif // FLOW_TIDAL_FLOW_HPP
+#endif // TIDAL_FLOW_HPP

@@ -1,7 +1,7 @@
-#ifndef FLOW_MPM_FLOW_HPP
-#define FLOW_MPM_FLOW_HPP
+#ifndef MPM_FLOW_HPP
+#define MPM_FLOW_HPP
 
-#include "../integer_heaps.hpp" // pairing_int_heap
+#include "../struct/integer_heaps.hpp" // pairing_int_heap
 
 // *****
 
@@ -160,4 +160,4 @@ struct mpm_flow {
     bool left_of_mincut(int u) const { return level[u] >= 0; }
 };
 
-#endif // FLOW_MPM_FLOW_HPP
+#endif // MPM_FLOW_HPP

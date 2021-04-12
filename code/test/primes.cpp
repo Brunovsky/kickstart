@@ -1,4 +1,4 @@
-#include "../primes.hpp"
+#include "../numeric/primes.hpp"
 
 #include "../random.hpp"
 #include "test_utils.hpp"

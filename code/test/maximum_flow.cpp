@@ -3,7 +3,7 @@
 #include "../flow/mpm_flow.hpp"
 #include "../flow/push_relabel.hpp"
 #include "../flow/tidal_flow.hpp"
-#include "../gen/flow.hpp"
+#include "../generators/flow.hpp"
 #include "test_utils.hpp"
 
 // *****
@@ -23,7 +23,7 @@ void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
         add_cap_flow_network(network, 100'000'000'000);
         ADD_TIME(generation);
 
-        vector<flow_t> mf(4);
+        vector<long> mf(4);
 
         START(dinitz);
         dinitz_flow g0(network.V, network.g, network.cap);
@@ -62,7 +62,7 @@ void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
 void speed_test_max_flow() {
     static constexpr int N = 5;
     static constexpr int sizes[] = {500, 1800, 6000, 12000, 20000};
-    static constexpr int amounts[] = {1500, 400, 50, 20, 8};
+    static constexpr int amounts[] = {400, 100, 12, 5, 2};
     for (int n = 0; n < N; n++) {
         print("speed test group S={}, x{}\n", sizes[n], amounts[n]);
         for (int i = 0; i < int(FN_END); i++) {
@@ -88,7 +88,7 @@ void stress_test_max_flow(int T = 10000) {
         tidal_flow flow4(V, g, cap);
         mpm_flow flow5(V, g, cap);
 
-        vector<flow_t> mf(5);
+        vector<long> mf(5);
         mf[0] = flow1.maxflow(0, V - 1);
         mf[1] = flow2.maxflow(0, V - 1);
         mf[2] = flow3.maxflow(0, V - 1);

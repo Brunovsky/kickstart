@@ -1,7 +1,6 @@
-#include "../debug_print.hpp"
 #include "../flow/mincost_edmonds_karp.hpp"
-#include "../gen/flow.hpp"
-#include "../graph.hpp"
+#include "../formatting.hpp"
+#include "../generators/flow.hpp"
 #include "test_utils.hpp"
 
 // *****
@@ -113,7 +112,7 @@ void speed_test_mincost_flow_run(flow_network_kind i, int S, int T) {
 void speed_test_mincost_flow() {
     static constexpr int N = 5;
     static constexpr int sizes[] = {100, 250, 800, 1500, 3000};
-    static constexpr int amounts[] = {1000, 300, 50, 20, 8};
+    static constexpr int amounts[] = {200, 60, 10, 4, 1};
     for (int n = 0; n < N; n++) {
         print("speed test group S={}, x{}\n", sizes[n], amounts[n]);
         for (int i = 0; i < int(FN_END); i++) {

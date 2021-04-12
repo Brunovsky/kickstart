@@ -1,13 +1,12 @@
-#include "../mincost_matching.hpp"
-
-#include "../gen/bipartite.hpp"
+#include "../generators/bipartite.hpp"
+#include "../matching/mincost_hungarian.hpp"
 #include "test_utils.hpp"
 
 // *****
 
 void unit_test_mincost_matching() {
     edges_t g;
-    costs_t cost;
+    vector<long> cost;
     long c;
 
     g = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
@@ -56,7 +55,7 @@ void speed_test_mincost_matching_run(bipartite_graph_kind i, int S, int T) {
 void speed_test_mincost_matching() {
     static constexpr int N = 5;
     static constexpr int sizes[] = {100, 250, 800, 1500, 3000};
-    static constexpr int amounts[] = {1000, 300, 50, 20, 8};
+    static constexpr int amounts[] = {300, 100, 20, 10, 4};
     for (int n = 0; n < N; n++) {
         print("speed test group S={}, x={}\n", sizes[n], amounts[n]);
         for (int i = 0; i < int(BG_END); i++) {

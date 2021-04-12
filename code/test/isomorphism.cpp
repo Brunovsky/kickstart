@@ -1,9 +1,9 @@
-#include "../isomorphism.hpp"
+#include "../graphs/isomorphism.hpp"
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/isomorphism.hpp>
 
-#include "../graph_generator.hpp"
+#include "../generators/graph_generator.hpp"
 #include "test_utils.hpp"
 
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
@@ -76,12 +76,12 @@ auto generator_regular(int V, int kmin, int kmax) {
 
 void stress_test_isomorphic_false_positives() {
     print("graph isomorphism false positives test\n");
-    fp_test_run("regular 11V k=2,4", 2000, generator_regular(11, 2, 4));
-    fp_test_run("regular 11V k=6,8", 2000, generator_regular(11, 6, 8));
-    fp_test_run("regular 12V k=3-5", 5000, generator_regular(12, 3, 5));
-    fp_test_run("regular 12V k=6-8", 5000, generator_regular(12, 6, 8));
-    for (int k = 8; k <= 11; k++) {
-        fp_test_run("regular 14V k=" + to_string(k), 7000 - 400 * k,
+    fp_test_run("regular 11V k=2,4", 500, generator_regular(11, 2, 4));
+    fp_test_run("regular 11V k=6,8", 500, generator_regular(11, 6, 8));
+    fp_test_run("regular 12V k=3-5", 1000, generator_regular(12, 3, 5));
+    fp_test_run("regular 12V k=6-8", 1000, generator_regular(12, 6, 8));
+    for (int k = 10; k <= 11; k++) {
+        fp_test_run("regular 14V k=" + to_string(k), 3000 - 400 * k,
                     generator_regular(14, k, k));
     }
     print_ok("stress test graph isomorphism false positives");

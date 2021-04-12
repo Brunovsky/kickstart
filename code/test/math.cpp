@@ -1,7 +1,8 @@
 #undef NDEBUG
 
-#include "../math.hpp"
+#include "../numeric/math.hpp"
 
+#include "../numeric/modnum.hpp"
 #include "test_utils.hpp"
 
 // *****

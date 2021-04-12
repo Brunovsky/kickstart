@@ -1,6 +1,6 @@
-#include "../segment_tree.hpp"
+#include "../struct/segment_tree.hpp"
 
-#include "../debug_print.hpp"
+#include "../formatting.hpp"
 #include "test_utils.hpp"
 
 // *****

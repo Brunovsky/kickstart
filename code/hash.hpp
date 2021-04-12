@@ -75,18 +75,14 @@ struct rolling_hasher {
 
 namespace std {
 
-template <typename U, typename V>
-struct hash<pair<U, V>> {
-    size_t operator()(const pair<U, V>& uv) const { return pair_hasher{}(uv); }
-};
-template <typename T>
-struct hash<array<T, 2>> {
-    size_t operator()(const array<T, 2>& arr) const { return pair_hasher{}(arr); }
-};
 template <typename T, size_t N>
-struct hash<array<T, N>> {
-    size_t operator()(const array<T, N>& arr) const { return vec_hasher{}(arr); }
-};
+struct hash<array<T, N>> : vec_hasher {};
+template <typename T>
+struct hash<vector<T>> : vec_hasher {};
+template <typename U, typename V>
+struct hash<pair<U, V>> : pair_hasher {};
+template <typename T>
+struct hash<array<T, 2>> : pair_hasher {};
 
 } // namespace std
 

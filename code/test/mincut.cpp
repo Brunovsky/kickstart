@@ -1,14 +1,13 @@
-#include "../mincut.hpp"
+#include "../graphs/mincut.hpp"
 
-#include "../debug_print.hpp"
-#include "../graph.hpp"
+#include "../formatting.hpp"
 #include "test_utils.hpp"
 
 // *****
 
 void unit_test_stoer_wagner() {
     edges_t g;
-    costs_t cost;
+    vector<long> cost;
 
     g = {{0, 1}, {0, 4}, {1, 2}, {1, 4}, {1, 5}, {2, 3},
          {2, 6}, {3, 6}, {3, 7}, {4, 5}, {5, 6}, {6, 7}};

@@ -1,5 +1,5 @@
-#ifndef FLOW_MINCOST_EDMONDS_KARP_HPP
-#define FLOW_MINCOST_EDMONDS_KARP_HPP
+#ifndef MINCOST_EDMONDS_KARP_HPP
+#define MINCOST_EDMONDS_KARP_HPP
 
 #include <bits/stdc++.h>
 
@@ -108,4 +108,4 @@ struct mincost_edmonds_karp {
     bool left_of_mincut(int u) const { return dist[u] < inf; }
 };
 
-#endif // FLOW_MINCOST_EDMONDS_KARP_HPP
+#endif // MINCOST_EDMONDS_KARP_HPP

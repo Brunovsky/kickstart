@@ -1,7 +1,6 @@
-#include "../2sat.hpp"
+#include "../algo/2sat.hpp"
 
-#include "../debug_print.hpp"
-#include "../graph.hpp"
+#include "../formatting.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 

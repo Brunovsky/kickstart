@@ -1,4 +1,4 @@
-#include "../travelling_salesman.hpp"
+#include "../graphs/travelling_salesman.hpp"
 
 #include "test_utils.hpp"
 

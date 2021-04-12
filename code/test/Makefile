@@ -62,8 +62,6 @@ DEPCOMPILEARGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.Td
 $(DEP_DIR)/%.d: ;
 .PRECIOUS: $(DEP_DIR)/%.d
 
-$(EXE_FILES): MODE := debug
-$(EXE_FILES): CXXFLAGS += $(DEBUG)
 $(EXE_FILES): $(BIN_DIR)/%: %.cpp $(DEP_DIR)/%.d
 	@echo "CC (${COMPILER} ${MODE})  $<"
 	@$(CMD_MKDIRS)
@@ -72,7 +70,13 @@ $(EXE_FILES): $(BIN_DIR)/%: %.cpp $(DEP_DIR)/%.d
 
 .PHONY: all cleanall
 
+all: MODE := debug
+all: CXXFLAGS += $(DEBUG)
 all: $(EXE_FILES)
+
+allperfm: MODE := perfm
+allperfm: CXXFLAGS += $(OPTIM)
+allperfm: $(EXE_FILES)
 
 cleanall: clean
 	@rm -rf $(DEP_DIR) $(BIN_DIR)

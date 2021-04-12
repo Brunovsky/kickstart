@@ -1,7 +1,7 @@
-#include "../bigint.hpp"
+#include "../numeric/bigint.hpp"
 
-#include "../bigint_math.hpp"
-#include "../debug_print.hpp"
+#include "../formatting.hpp"
+#include "../numeric/bigint_math.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 
@@ -259,7 +259,7 @@ void stress_test_to_string(int R = 1000) {
     print_ok("stress test to_string");
 }
 
-void stress_test_compare_sort(int R = 10000) {
+void stress_test_compare_sort(int R = 2000) {
     vector<bigint> ints(R);
     intd digitsd(40, 60);
     for (int i = 0; i < R; i++) {
@@ -272,7 +272,7 @@ void stress_test_compare_sort(int R = 10000) {
     }
 }
 
-void stress_test_add_commutative(int R = 10000) {
+void stress_test_add_commutative(int R = 2000) {
     for (int i = 0; i < R; i++) {
         print_progress(i, R, "stress test add commutative");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_small));
@@ -283,7 +283,7 @@ void stress_test_add_commutative(int R = 10000) {
     print_ok("stress test add commutative");
 }
 
-void stress_test_add_transitive(int R = 10000) {
+void stress_test_add_transitive(int R = 2000) {
     for (int i = 0; i < R; i++) {
         print_progress(i, R, "stress test add commutative");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
@@ -294,7 +294,7 @@ void stress_test_add_transitive(int R = 10000) {
     print_ok("stress test add transitive");
 }
 
-void stress_test_add_sub_reverse(int R = 10000) {
+void stress_test_add_sub_reverse(int R = 2000) {
     for (int i = 0; i < R; i++) {
         print_progress(i, R, "stress test add sub reverse");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_small));
@@ -305,7 +305,7 @@ void stress_test_add_sub_reverse(int R = 10000) {
     print_ok("stress test add sub reverse");
 }
 
-void stress_test_add_sub_group(int R = 10000) {
+void stress_test_add_sub_group(int R = 2000) {
     for (int i = 0; i < R; i++) {
         print_progress(i, R, "stress test add sub group");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
@@ -318,7 +318,7 @@ void stress_test_add_sub_group(int R = 10000) {
     print_ok("stress test add sub group");
 }
 
-void stress_test_mul_commutative(int R = 10000) {
+void stress_test_mul_commutative(int R = 2000) {
     for (int i = 0; i < R; i++) {
         print_progress(i, R, "stress test mul commutative");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_small));
@@ -329,7 +329,7 @@ void stress_test_mul_commutative(int R = 10000) {
     print_ok("stress test mul commutative");
 }
 
-void stress_test_mul_transitive(int R = 10000) {
+void stress_test_mul_transitive(int R = 2000) {
     for (int i = 0; i < R; i++) {
         print_progress(i, R, "stress test mul transitive");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
@@ -340,7 +340,7 @@ void stress_test_mul_transitive(int R = 10000) {
     print_ok("stress test mul transitive");
 }
 
-void stress_test_mul_distributive(int R = 10000) {
+void stress_test_mul_distributive(int R = 2000) {
     for (int i = 0; i < R; i++) {
         print_progress(i, R, "stress test mul distributive");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
@@ -351,7 +351,7 @@ void stress_test_mul_distributive(int R = 10000) {
     print_ok("stress test mul distributive");
 }
 
-void stress_test_div_perfect(int R = 10000) {
+void stress_test_div_perfect(int R = 2000) {
     for (int i = 0; i < R; i++) {
         print_progress(i, R, "stress test div perfect");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_pos));
@@ -362,7 +362,7 @@ void stress_test_div_perfect(int R = 10000) {
     print_ok("stress test div perfect");
 }
 
-void stress_test_div_imperfect(int R = 10000) {
+void stress_test_div_imperfect(int R = 2000) {
     for (int i = 0; i < R; i++) {
         print_progress(i, R, "stress test div imperfect");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_pos));

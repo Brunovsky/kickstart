@@ -1,6 +1,8 @@
-#include "../dynamic_programming.hpp"
+#include "../algo/dynamic_programming.hpp"
 
-#include "../debug_print.hpp"
+#include "../algo/knapsack.hpp"
+#include "../algo/string_distance.hpp"
+#include "../formatting.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 

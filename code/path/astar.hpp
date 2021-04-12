@@ -1,7 +1,7 @@
-#ifndef PATH_ASTAR_HPP
-#define PATH_ASTAR_HPP
+#ifndef ASTAR_HPP
+#define ASTAR_HPP
 
-#include "../integer_heaps.hpp" // pairing_int_heap
+#include "../struct/integer_heaps.hpp" // pairing_int_heap
 
 // *****
 
@@ -79,4 +79,4 @@ struct astar {
     }
 };
 
-#endif // PATH_ASTAR_HPP
+#endif // ASTAR_HPP

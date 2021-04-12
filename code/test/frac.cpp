@@ -1,8 +1,8 @@
 #undef NDEBUG
 
-#include "../frac.hpp"
+#include "../numeric/frac.hpp"
 
-#include "../frac_extra.hpp"
+#include "../numeric/frac_extra.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 

@@ -1,6 +1,4 @@
-#include "../planarity.hpp"
-
-#include "../graph.hpp"
+#include "../graphs/left_right_planarity.hpp"
 #include "test_utils.hpp"
 
 // *****

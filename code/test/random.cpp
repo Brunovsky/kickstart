@@ -1,6 +1,6 @@
 #include "../random.hpp"
 
-#include "../math.hpp"
+#include "../numeric/math.hpp"
 #include "test_utils.hpp"
 
 // *****

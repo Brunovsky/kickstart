@@ -1,5 +1,5 @@
-#ifndef FLOW_DINITZ_FLOW_HPP
-#define FLOW_DINITZ_FLOW_HPP
+#ifndef DINITZ_FLOW_HPP
+#define DINITZ_FLOW_HPP
 
 #include <bits/stdc++.h>
 
@@ -84,4 +84,4 @@ struct dinitz_flow {
     bool left_of_mincut(int u) const { return level[u] >= 0; }
 };
 
-#endif // FLOW_DINITZ_FLOW_HPP
+#endif // DINITZ_FLOW_HPP

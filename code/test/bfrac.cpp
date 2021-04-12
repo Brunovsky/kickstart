@@ -1,6 +1,6 @@
 #undef NDEBUG
 
-#include "../bfrac.hpp"
+#include "../numeric/bfrac.hpp"
 
 #include "../random.hpp"
 #include "test_utils.hpp"

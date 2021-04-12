@@ -1,9 +1,9 @@
-#include "../simplex.hpp"
+#include "../linear/simplex.hpp"
 
-#include "../debug_print.hpp"
-#include "../matrix_utils.hpp"
+#include "../formatting.hpp"
+#include "../linear/linear_system.hpp"
+#include "../linear/simplex_utils.hpp"
 #include "../random.hpp"
-#include "../simplex_utils.hpp"
 #include "test_utils.hpp"
 
 // *****

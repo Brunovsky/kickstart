@@ -1,4 +1,5 @@
-#include "../rmq.hpp"
+#include "../struct/rmq.hpp"
+#include "test_utils.hpp"
 
 // *****
 
@@ -8,6 +9,7 @@ void unit_test_rmq() {
     assert(rmq.query(2, 8) == 2);
     assert(rmq.query(2, 10) == 1);
     assert(rmq.query(5, 7) == 4);
+    print_ok("unit test rmq");
 }
 
 int main() {

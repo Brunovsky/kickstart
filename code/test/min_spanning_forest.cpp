@@ -1,4 +1,4 @@
-#include "../min_spanning_forest.hpp"
+#include "../graphs/min_spanning_forest.hpp"
 
 #include "test_utils.hpp"
 

@@ -1,4 +1,4 @@
-#include "../sort.hpp"
+#include "../algo/sort.hpp"
 
 #include "../random.hpp"
 #include "test_utils.hpp"

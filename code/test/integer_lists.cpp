@@ -1,4 +1,4 @@
-#include "../integer_lists.hpp"
+#include "../struct/integer_lists.hpp"
 
 #include "../random.hpp"
 #include "test_utils.hpp"

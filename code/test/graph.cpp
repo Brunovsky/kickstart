@@ -1,10 +1,10 @@
-#include "../debug_print.hpp"
-#include "../gen/bipartite.hpp"
-#include "../gen/circulation.hpp"
-#include "../gen/distance.hpp"
-#include "../gen/flow.hpp"
-#include "../graph_formats.hpp"
-#include "../graph_generator.hpp"
+#include "../formatting.hpp"
+#include "../generators/bipartite.hpp"
+#include "../generators/circulation.hpp"
+#include "../generators/distance.hpp"
+#include "../generators/flow.hpp"
+#include "../generators/graph_formats.hpp"
+#include "../generators/graph_generator.hpp"
 #include "test_utils.hpp"
 
 // *****

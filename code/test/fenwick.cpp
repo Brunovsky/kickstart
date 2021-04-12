@@ -1,6 +1,6 @@
 #undef NDEBUG
 
-#include "../fenwick.hpp"
+#include "../struct/fenwick.hpp"
 
 #include "test_utils.hpp"
 

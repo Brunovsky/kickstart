@@ -1,4 +1,4 @@
-#include "../scc.hpp"
+#include "../graphs/scc.hpp"
 
 #include "test_utils.hpp"
 

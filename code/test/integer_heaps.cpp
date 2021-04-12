@@ -1,7 +1,7 @@
-#include "../integer_heaps.hpp"
+#include "../struct/integer_heaps.hpp"
 
-#include "../debug_print.hpp"
-#include "../graph_generator.hpp"
+#include "../formatting.hpp"
+#include "../generators/graph_generator.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 
@@ -62,7 +62,7 @@ void unit_test_pairing_heaps() {
 
 struct cost_graph {
     int V, E;
-    adjacency_lists_t adj;
+    vector<vector<int>> adj;
     edges_t edge;
     vector<long> cost;
 };

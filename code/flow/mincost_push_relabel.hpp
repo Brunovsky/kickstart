@@ -1,7 +1,7 @@
-#ifndef FLOW_MINCOST_PUSH_RELABEL_HPP
-#define FLOW_MINCOST_PUSH_RELABEL_HPP
+#ifndef MINCOST_PUSH_RELABEL_HPP
+#define MINCOST_PUSH_RELABEL_HPP
 
-#include "../flow/dinitz_flow.hpp"
+#include "dinitz_flow.hpp"
 
 // *****
 
@@ -200,4 +200,4 @@ struct mincost_push_relabel {
     }
 };
 
-#endif // FLOW_MINCOST_PUSH_RELABEL_HPP
+#endif // MINCOST_PUSH_RELABEL_HPP
