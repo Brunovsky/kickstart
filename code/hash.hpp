@@ -11,10 +11,9 @@ struct vec_hasher {
     template <typename Container>
     size_t operator()(const Container& vec) const noexcept {
         using std::hash;
-        using T = typename Container::value_type;
-        hash<T> hasher;
+        hash<typename Container::value_type> hasher;
         size_t seed = distance(begin(vec), end(vec));
-        for (auto n : vec) {
+        for (const auto& n : vec) {
             seed ^= hasher(n) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
         return seed;
@@ -45,7 +44,7 @@ struct rolling_hasher {
     explicit rolling_hasher(size_t n) : n(n), mul(powovf(n) & mask) {}
 
     size_t operator()(const char* s, const char* e) const noexcept {
-        size_t seed = 0;
+        size_t seed = e - s;
         while (s != e) {
             seed = (seed * base + *s++) & mask;
         }
