@@ -2,11 +2,12 @@
 
 ## General matching
 
-In `general_matching.hpp` we solve matching on non-bipartite graphs with MV.
+In `matching/micali_vazirani.hpp` we solve matching on non-bipartite graphs with MV.
 
 Heavily optimized:
 
 - `findpath` does not do depth first search
+  - but it still constructs `list<int>` which could be improved
 - no hashtables used
 - no data structure required to hold a bloom's support
 - efficient storage of phaselists and bridges
@@ -271,23 +272,28 @@ successor is to be erased as well.
 
 ## Simplex
 
-In `simplex.hpp` we solve linear programming problems over the rationals.
+In `linear/simplex.hpp` we solve linear programming problems over the rationals.
 All problems are maximization problems, for minimization negate the objective function.
 
-The `simplex` class owns the problem (like flow).
+The `simplex<F>` class owns the problem (like flow).
 
-We rely on `frac.hpp` for fractions and `mat.hpp` for the tableau and pivot operations.
+We rely on `numeric/frac.hpp` or `numeric/bfrac.hpp` for fractions and `linear/matrix.hpp`
+for the tableau and pivot operations.
+
+Using `frac` may lead to overflow issues for big linear programs as the denominators grow.
+Using `bfrac` has no such issues but with considerable performance penalty.
+This is a standard tradeoff; pick whichever is appropriate.
 
 All linear problems are properly handled, including unbounded and impossible problems,
-basis degeneracy, all constraint types
+basis degeneracy, and all constraint types.
 
 ```
     Maximize cx
     Subject to
-        Ax OP b
+        Ax {<= == >=} b
         x >= 0
 
-    n variables, m constraints
+    N variables, M constraints
     all numbers are rational
     all coefficients (a, b, c) can be any rational (negative, zero, positive)
 ```
@@ -300,19 +306,19 @@ Support for `x <= 0` and `x ∈ R` is pending still.
 Tableau layout:
 
 ```
-          (n) standard variables    (s) slack vars   (a) artif vars
+          (N) standard variables    (S) slack vars   (A) artif vars
     +----+-------------------------+----------------+-------------+
-    |  0 | -z0  -z1  -z2  -z3  -z4 |  0  0  0  0  0 |  0  0  0  0 |
-    | b0 | a00  a01  a02  a03  a04 |  1  0  0  0  0 |  1  0  0  0 |
-    | b1 | a10  a11  a12  a13  a14 |  0  1  0  0  0 |  0 -1  0  0 |
-    | b2 | a20  a21  a22  a23  a24 |  0  0 -1  0  0 |  0  0  0  0 |
-    | b3 | a30  a31  a32  a33  a34 |  0  0  0  1  0 |  0  0  1  0 |
-    | b4 | a40  a41  a42  a43  a44 |  0  0  0  0  1 |  0  0  0  0 |
-    | b5 | a50  a51  a52  a53  a54 |  0  0  0  0  0 |  0  0  0 -1 |
+    |  0 | -z1  -z2  -z3  -z4  -z5 |  0  0  0  0  0 |  0  0  0  0 |
+    | b1 | a11  a12  a13  a14  a15 |  1  0  0  0  0 |  1  0  0  0 |
+    | b2 | a21  a22  a23  a24  a25 |  0  1  0  0  0 |  0 -1  0  0 |
+    | b3 | a31  a32  a33  a34  a35 |  0  0 -1  0  0 |  0  0  0  0 |
+    | b4 | a41  a42  a43  a44  a45 |  0  0  0  1  0 |  0  0  1  0 |
+    | b5 | a51  a52  a53  a54  a55 |  0  0  0  0  1 |  0  0  0  0 |
+    | b6 | a61  a62  a63  a64  a65 |  0  0  0  0  0 |  0  0  0 -1 |
     +----+-------------------------+----------------+-------------+
 
     tab[0][0]           Objective function value
-    tab[0][1..]         Objective function coefficients
+    tab[0][1..]         Objective function coefficients (negated)
     tab[1..][0]         Constraint bound / Basis variable value
     tab[1..][1..]       Constraint coefficients
 
@@ -326,6 +332,8 @@ Tableau layout:
         >= -b           -1       0
         >=  0           -1       0
         >=  b           -1       1
+
+    artificial variables are set to b for initial feasible solution
 ```
 
 The simplex solver is based on the two-phase method:
@@ -338,7 +346,9 @@ artificial variables added as it goes.
 
 If a row has an artificial variable then it is made the basic variable of the row;
 Otherwise, the slack variable is made basic if it exists;
-Otherwise, the row has no associated basic variable initially.
+Otherwise, the row would have no associated basic variable initially; it appears this
+does not work with the current implementation of `optimize()`, so the simplification
+above is used instead (a fake artificial variable is added).
 
 If there are no artificial variables then phase 1 can be skipped.
 If phase 1 is not skipped then the original objective row is not added to the
@@ -351,8 +361,14 @@ Afterwards the objective row is cleared and the original objective is expanded.
 
 During tableau optimization we use Bland's rule to avoid cycling. We select the
 pivot column `c` as the one where the objective is minimum (and negative) and the pivot
-row `r` as the one where `tab[i][0] / tab[i][c]` is minimal and `tab[i][c] > 0`.
+row `r` as the one where `tab[i][0] / tab[i][c]` is minimal, `tab[i][c] > 0` and break
+ties by selecting the row where the basic variable is minimal.
 
 At the end of phase 1 the tableau pivots on every basic artificial variable to remove
 them all from the basis in case of degeneracy. The pivot columns do not matter as the
-variable values will not change, so the first is chosen.
+variable values will not change, so the first is available is chosen.
+
+Notice that in this implementation the number of tableau columns (variables) in
+`optimize()` is not necessarily larger than the number of rows (constraints), and some
+rows may not be basic in that case. Bland's rule prefers these rows if possible; I'm not
+sure if this is correct.

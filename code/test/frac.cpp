@@ -25,7 +25,7 @@ void unit_test_gcd() {
     assert(ceil(frac(6, 3)) == 2L);
     assert(ceil(frac(-7, 3)) == -2L);
     assert(ceil(frac(-6, 3)) == -2L);
-    print_ok("unit test gcd");
+    print_ok("unit test gcd frac");
 }
 
 void unit_test_ops() {
@@ -46,7 +46,7 @@ void unit_test_ops() {
     assert(frac(29, 9) % frac(-6, 7) == frac(41, 63));
     assert(frac(-29, 9) % frac(6, 7) == frac(-41, 63));
     assert(frac(-29, 9) % frac(-6, 7) == frac(-41, 63));
-    print_ok("unit test ops");
+    print_ok("unit test ops frac");
 }
 
 void unit_test_closest() {
@@ -56,7 +56,7 @@ void unit_test_closest() {
     assert(closest(pi, 30) == frac(22, 7));
     assert(closest(pi, 100) == frac(311, 99));
     assert(closest(pi, 90000) == frac(103993, 33102));
-    print_ok("unit test closest");
+    print_ok("unit test closest frac");
 }
 
 void unit_test_continued_fractions() {
@@ -72,7 +72,7 @@ void unit_test_continued_fractions() {
     cf = cf1_sequence(frac(1, 93));
     assert(cf == cf_t({0, 93}));
     assert(compute_fraction(cf) == frac(1, 93));
-    print_ok("unit test continued fractions");
+    print_ok("unit test continued fractions frac");
 }
 
 // frac is stress tested by simplex

@@ -14,15 +14,13 @@ struct frac {
     constexpr frac() : n(0), d(1) {}
     constexpr frac(long num) : n(num), d(1) {}
     constexpr frac(long num, long den) : n(num), d(den) {
-        if (d < 0) {
-            n = -n, d = -d;
-        }
         auto g = gcd(n, d);
-        g = g < 0 ? -g : g;
+        g = ((g < 0) == (d < 0)) ? g : -g;
         n /= g, d /= g;
     }
 
     explicit operator long() const noexcept { return assert(d != 0), n / d; }
+    explicit operator bool() const noexcept { return n != 0 && d != 0; }
 };
 
 frac abs(frac f) { return frac(abs(f.n), f.d); }
@@ -37,38 +35,10 @@ bool operator<(frac a, frac b) { return a.n * b.d < b.n * a.d; }
 bool operator>(frac a, frac b) { return a.n * b.d > b.n * a.d; }
 bool operator<=(frac a, frac b) { return a.n * b.d <= b.n * a.d; }
 bool operator>=(frac a, frac b) { return a.n * b.d >= b.n * a.d; }
-bool operator==(frac a, long b) { return a.n == b && a.d == 1; }
-bool operator!=(frac a, long b) { return a.n != b || a.d != 1; }
-bool operator<(frac a, long b) { return a.n < b * a.d; }
-bool operator>(frac a, long b) { return a.n > b * a.d; }
-bool operator<=(frac a, long b) { return a.n <= b * a.d; }
-bool operator>=(frac a, long b) { return a.n >= b * a.d; }
-bool operator==(long b, frac a) { return a.n == b && a.d == 1; }
-bool operator!=(long b, frac a) { return a.n != b || a.d != 1; }
-bool operator<(long b, frac a) { return b * a.d < a.n; }
-bool operator>(long b, frac a) { return b * a.d > a.n; }
-bool operator<=(long b, frac a) { return b * a.d <= a.n; }
-bool operator>=(long b, frac a) { return b * a.d >= a.n; }
 
 } // namespace frac_comparison
 
 inline namespace frac_arithmetic {
-
-frac operator+(frac a, long b) { return frac(a.n + b * a.d, a.d); }
-frac operator-(frac a, long b) { return frac(a.n - b * a.d, a.d); }
-frac operator*(frac a, long b) { return frac(a.n * b, a.d); }
-frac operator/(frac a, long b) { return frac(a.n, a.d * b); }
-frac operator%(frac a, long b) { return a - b * long(a / b); }
-frac operator+(long b, frac a) { return frac(b * a.d + a.n, a.d); }
-frac operator-(long b, frac a) { return frac(b * a.d - a.n, a.d); }
-frac operator*(long b, frac a) { return frac(b * a.n, a.d); }
-frac operator/(long b, frac a) { return frac(b * a.d, a.n); }
-frac operator%(long b, frac a) { return b - long(b / a) * a; }
-frac& operator+=(frac& a, long b) { return a = a + b; }
-frac& operator-=(frac& a, long b) { return a = a - b; }
-frac& operator*=(frac& a, long b) { return a = a * b; }
-frac& operator/=(frac& a, long b) { return a = a / b; }
-frac& operator%=(frac& a, long b) { return a = a % b; }
 
 frac operator+(frac a, frac b) { return frac(a.n * b.d + b.n * a.d, a.d * b.d); }
 frac operator-(frac a, frac b) { return frac(a.n * b.d - b.n * a.d, a.d * b.d); }

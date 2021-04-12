@@ -16,15 +16,15 @@ void unit_test_gcd() {
     assert(bfrac(-1, 0) < bigint("-1" + string(100, '0')));
     assert(bfrac(1, 0) > bigint("1" + string(100, '0')));
     assert(bfrac(7, -3) == bfrac(-7, 3));
-    assert(floor(bfrac(7, 3)) == 2L);
-    assert(floor(bfrac(6, 3)) == 2L);
-    assert(floor(bfrac(-7, 3)) == -3L);
-    assert(floor(bfrac(-6, 3)) == -2L);
-    assert(ceil(bfrac(7, 3)) == 3L);
-    assert(ceil(bfrac(6, 3)) == 2L);
-    assert(ceil(bfrac(-7, 3)) == -2L);
-    assert(ceil(bfrac(-6, 3)) == -2L);
-    print_ok("unit test gcd");
+    assert(floor(bfrac(7, 3)) == 2);
+    assert(floor(bfrac(6, 3)) == 2);
+    assert(floor(bfrac(-7, 3)) == -3);
+    assert(floor(bfrac(-6, 3)) == -2);
+    assert(ceil(bfrac(7, 3)) == 3);
+    assert(ceil(bfrac(6, 3)) == 2);
+    assert(ceil(bfrac(-7, 3)) == -2);
+    assert(ceil(bfrac(-6, 3)) == -2);
+    print_ok("unit test gcd bfrac");
 }
 
 void unit_test_ops() {
@@ -45,7 +45,7 @@ void unit_test_ops() {
     assert(bfrac(29, 9) % bfrac(-6, 7) == bfrac(41, 63));
     assert(bfrac(-29, 9) % bfrac(6, 7) == bfrac(-41, 63));
     assert(bfrac(-29, 9) % bfrac(-6, 7) == bfrac(-41, 63));
-    print_ok("unit test ops");
+    print_ok("unit test ops bfrac");
 }
 
 int main() {

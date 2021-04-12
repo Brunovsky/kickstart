@@ -83,7 +83,7 @@ void scaling_test_random_regular(double M = 1) {
     scaling_test_random_regular_run(int(M * 6), 10000, 50);
     scaling_test_random_regular_run(int(M * 1), 50000, 60);
     scaling_test_random_regular_run(int(M * 1), 50000, 120);
-    print_ok("scaling test random regular\n");
+    print_ok("scaling test random regular");
 }
 
 void visual_test_generators() {

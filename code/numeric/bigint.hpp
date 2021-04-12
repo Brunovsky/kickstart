@@ -19,12 +19,11 @@ struct bigint {
     bigint(uint n, bool s = 0) : nums(n > 0, n), sign(s) {}
     bigint(const string& s, uint b = 10);
 
-    explicit operator bool() const { return zero(); }
     auto& operator[](uint x) { return nums[x]; }
     const auto& operator[](uint x) const { return nums[x]; }
     bool bit(uint x) const { return nums[x / 32] & (1 << (x % 32)); }
     int len() const { return nums.size(); }
-    bool zero() const { return nums.empty(); }
+    bool zero() const noexcept { return nums.empty(); }
     void clear() { nums.clear(), sign = 0; }
     void flip() { sign = !sign && !zero(); }
     void trim() {
@@ -32,6 +31,8 @@ struct bigint {
             nums.pop_back();
         sign = sign && !zero();
     }
+
+    explicit operator bool() const noexcept { return zero(); }
 };
 
 inline namespace bigint_comparison {
@@ -53,20 +54,6 @@ bool operator==(const bigint& u, const bigint& v) {
     return u.sign == v.sign && u.nums == v.nums;
 }
 bool operator!=(const bigint& u, const bigint& v) { return !(u == v); }
-
-bool operator<(const bigint& u, int v) { return u < bigint(v); }
-bool operator>(const bigint& u, int v) { return u > bigint(v); }
-bool operator<=(const bigint& u, int v) { return u <= bigint(v); }
-bool operator>=(const bigint& u, int v) { return u >= bigint(v); }
-bool operator==(const bigint& u, int v) { return u == bigint(v); }
-bool operator!=(const bigint& u, int v) { return u != bigint(v); }
-
-bool operator<(int u, const bigint& v) { return bigint(u) < v; }
-bool operator>(int u, const bigint& v) { return bigint(u) > v; }
-bool operator<=(int u, const bigint& v) { return bigint(u) <= v; }
-bool operator>=(int u, const bigint& v) { return bigint(u) >= v; }
-bool operator==(int u, const bigint& v) { return bigint(u) == v; }
-bool operator!=(int u, const bigint& v) { return bigint(u) != v; }
 
 } // namespace bigint_comparison
 
@@ -286,7 +273,7 @@ void rev_sub_vec(bigint& u, const bigint& v) {
         u[i]--;
     }
     assert(k == 0);
-    u.trim();
+    u.trim(), u.flip();
 }
 
 void dyn_sub_vec(bigint& u, const bigint& v) {
@@ -294,7 +281,7 @@ void dyn_sub_vec(bigint& u, const bigint& v) {
     if (n > m) {
         return sub_vec(u, v);
     } else if (n < m) {
-        return rev_sub_vec(u, v), u.flip();
+        return rev_sub_vec(u, v);
     } else {
         int i = n - 1;
         while (i >= 0 && u[i] == v[i])

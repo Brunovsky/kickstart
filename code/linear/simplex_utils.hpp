@@ -1,16 +1,19 @@
 #ifndef SIMPLEX_UTILS_HPP
 #define SIMPLEX_UTILS_HPP
 
+#include "../formatting.hpp"
 #include "simplex.hpp"
 
 // *****
 
-bool operator==(const lp_constraint& a, const lp_constraint& b) {
+template <typename F>
+bool operator==(const lp_constraint<F>& a, const lp_constraint<F>& b) {
     return a.b == b.b && a.v == b.v && a.type == b.type;
 }
 
-bool operator==(const simplex& a, const simplex& b) {
-    return a.n == b.n && a.m == b.m && a.z == b.z && a.C == b.C;
+template <typename F>
+bool operator==(const simplex<F>& a, const simplex<F>& b) {
+    return a.N == b.N && a.M == b.M && a.z == b.z && a.C == b.C;
 }
 
 string to_string(LPState state) {
@@ -23,7 +26,8 @@ string to_string(LPConstraintType type) {
     return ss[int(type)];
 }
 
-string format_formula(const vector<frac>& x) {
+template <typename F>
+string format_formula(const vector<F>& x) {
     string s;
     for (int i = 0; i < x.size(); i++) {
         s += format("{}{}{}x{}", i ? " " : "", x[i] > 0 ? "+" : "", x[i], i + 1);
@@ -31,7 +35,8 @@ string format_formula(const vector<frac>& x) {
     return s;
 }
 
-string pretty_formula(const vector<frac>& x) {
+template <typename F>
+string pretty_formula(const vector<F>& x) {
     string s;
     for (int i = 0; i < x.size(); i++) {
         s += format(" {}·x{}", x[i], i + 1);
@@ -39,8 +44,9 @@ string pretty_formula(const vector<frac>& x) {
     return s;
 }
 
-string format_simplex(const simplex& smp) {
-    int n = smp.n, m = smp.m;
+template <typename F>
+string format_simplex(const simplex<F>& smp) {
+    int n = smp.N, m = smp.M;
     string s;
     for (int j = 0; j < n; j++) {
         s += format(" {}·x{}", smp.z[j], j + 1);
@@ -66,9 +72,10 @@ string format_simplex(const simplex& smp) {
     return s;
 }
 
-string export_simplex(const simplex& smp) {
-    int n = smp.n, m = smp.m;
-    static auto plus = [](int i, frac f) { return f < 0 ? "" : i > 0 ? "+" : " "; };
+template <typename F>
+string export_simplex(const simplex<F>& smp) {
+    int n = smp.N, m = smp.M;
+    static const auto plus = [](int i, F f) { return f < 0 ? "" : i > 0 ? "+" : " "; };
     string s;
     for (int j = 0; j < n; j++) {
         s += format(" {}{}x{}", plus(j, smp.z[j]), smp.z[j], j + 1);
@@ -95,8 +102,9 @@ string export_simplex(const simplex& smp) {
     return s;
 }
 
-string format_tableau(const simplex& smp) {
-    int n = smp.n, m = smp.m, s = smp.s, a = smp.a;
+template <typename F>
+string format_tableau(const simplex<F>& smp) {
+    int n = smp.N, m = smp.M, s = smp.S, a = smp.A;
     const auto& tab = smp.tab;
     vector<string> labels(m + 1);
     vector<string> rows(m + 1);
@@ -162,10 +170,11 @@ string format_tableau(const simplex& smp) {
 }
 
 // return equivalent lp problem with only LP_LESS constraints
-simplex standardize(const simplex& lp) {
-    simplex smp;
+template <typename F>
+auto standardize(const simplex<F>& lp) {
+    simplex<F> smp;
     smp.set_objective(lp.z);
-    for (int i = 0; i < lp.m; i++) {
+    for (int i = 0; i < lp.M; i++) {
         auto c = lp.C[i];
         if (c.type == LP_LESS) {
             smp.add_constraint(c);
@@ -185,11 +194,12 @@ simplex standardize(const simplex& lp) {
 }
 
 // Given primal lp problem must be canonical (only LP_LESS constraints)
-simplex make_dual(const simplex& primal) {
-    int n = primal.n, m = primal.m;
-    simplex dual;
-    vector<frac> z(m);
-    vector<lp_constraint> C(n);
+template <typename F>
+auto make_dual(const simplex<F>& primal) {
+    int n = primal.N, m = primal.M;
+    simplex<F> dual;
+    vector<F> z(m);
+    vector<lp_constraint<F>> C(n);
 
     for (int i = 0; i < m; i++) {
         z[i] = -primal.C[i].b;
@@ -208,9 +218,10 @@ simplex make_dual(const simplex& primal) {
     return dual;
 }
 
-bool is_feasible(const lp_constraint& c, const vector<frac>& x) {
+template <typename F>
+bool is_feasible(const lp_constraint<F>& c, const vector<F>& x) {
     assert(c.v.size() == x.size());
-    frac a = 0;
+    F a = 0;
     for (int i = 0; i < x.size(); i++) {
         a += c.v[i] * x[i];
     }
@@ -218,10 +229,11 @@ bool is_feasible(const lp_constraint& c, const vector<frac>& x) {
            (c.type == LP_GREATER && a >= c.b);
 }
 
-bool is_feasible(const simplex& lp, const vector<frac>& x) {
-    return all_of(begin(x), end(x), [](frac f) { return f >= 0; }) &&
+template <typename F>
+bool is_feasible(const simplex<F>& lp, const vector<F>& x) {
+    return all_of(begin(x), end(x), [](F f) { return f >= 0; }) &&
            all_of(begin(lp.C), end(lp.C),
-                  [&x](const lp_constraint& c) { return is_feasible(c, x); });
+                  [&x](const lp_constraint<F>& c) { return is_feasible(c, x); });
 }
 
 #endif // SIMPLEX_UTILS_HPP
