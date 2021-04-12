@@ -239,9 +239,60 @@ void scaling_test_gauss_double(int T = 100, int nmin = 5, int nmax = 300, int ni
     print("  {:5.1f}% ({}) different\n", 100.0 * total_different / N, total_different);
 }
 
+void unit_test_det() {
+    vector<vector<vector<int>>> quest = {{
+        {
+            {2, 7, 9, 3, 4},
+            {-6, 11, 2, -4, 0},
+            {0, -2, 8, -9, 6},
+            {5, 10, -1, -3, -7},
+            {1, -8, -5, -10, -12},
+        },
+        {
+            {3, 4, -7, 6, -9},
+            {-4, -2, 8, 1, 3},
+            {5, -1, 0, 7, 6},
+            {-2, 6, -2, -8, 2},
+            {1, 1, 1, 1, 1},
+        },
+        {
+            {3, 4, -7, 6, -9},
+            {-4, -2, 8, 1, 3},
+            {5, -1, 0, 7, 6},
+            {-2, 6, -2, -8, 2},
+            {8, 3, 7, 21, 17},
+        },
+    }};
+    vector<int> ans = {141267, 5870, 0};
+
+    assert(quest[0][2][3] == -9 && quest.size() == ans.size());
+
+    for (int t = 0, N = ans.size(); t < N; t++) {
+        int n = quest[t].size();
+        matd a(n, n);
+        matf b(n, n);
+        matbf c(n, n);
+
+        for (int i = 0; i < n; i++)
+            for (int j = 0, x; j < n; j++)
+                x = quest[t][i][j], a[i][j] = x, b[i][j] = x, c[i][j] = x;
+
+        double a_ans = det(a);
+        frac b_ans = det(b);
+        bfrac c_ans = det(c);
+
+        assert(abs(a_ans - ans[t]) < 1e-10);
+        assert(b_ans == ans[t]);
+        assert(c_ans == ans[t]);
+    }
+
+    print_ok("unit test det");
+}
+
 int main() {
     unit_test_gauss_frac();
     unit_test_inverse_frac();
+    unit_test_det();
     stress_test_gauss_frac();
     stress_test_gauss_double();
     stress_test_inverse_double();

@@ -30,10 +30,12 @@ optional<matd> inverse(matd a, double epsilon = 1e-15) {
         for (int k = n - 1; k >= j; k--)
             a[j][k] /= a[j][j];
         for (i = j + 1; i < n; i++) {
-            for (int k = 0; k < n; k++)
-                b[i][k] -= a[i][j] * b[j][k];
-            for (int k = n - 1; k >= j; k--)
-                a[i][k] -= a[i][j] * a[j][k];
+            if (abs(a[i][j]) > epsilon) {
+                for (int k = 0; k < n; k++)
+                    b[i][k] -= a[i][j] * b[j][k];
+                for (int k = n - 1; k >= j; k--)
+                    a[i][k] -= a[i][j] * a[j][k];
+            }
         }
     }
     for (int j = n - 1; j >= 0; j--)
@@ -60,8 +62,9 @@ optional<vecd> gauss(matd a, vecd b, double epsilon = 1e-15) {
         for (int k = n; k >= j; k--)
             a[j][k] /= a[j][j];
         for (i = j + 1; i < n; i++)
-            for (int k = n; k >= j; k--)
-                a[i][k] -= a[i][j] * a[j][k];
+            if (abs(a[i][j]) > epsilon)
+                for (int k = n; k >= j; k--)
+                    a[i][k] -= a[i][j] * a[j][k];
     }
     for (int j = n - 1; j >= 0; j--)
         for (int i = 0; i < j; i++)
@@ -69,6 +72,32 @@ optional<vecd> gauss(matd a, vecd b, double epsilon = 1e-15) {
     for (int i = 0; i < n; i++)
         b[i] = a[i][n];
     return b;
+}
+
+double det(matd a, double epsilon = 1e-15) {
+    assert(a.n == a.m);
+    int n = a.n, exchanges = 0;
+    for (int j = 0, i; j < n; j++) {
+        for (i = j; i < n; i++) {
+            if (abs(a[i][j]) > epsilon) {
+                swap(a[i], a[j]);
+                exchanges += i != j;
+                break;
+            }
+        }
+        if (i == n)
+            return 0;
+        for (int k = j + 1; k < n; k++)
+            a[j][k] /= a[j][j];
+        for (i = j + 1; i < n; i++)
+            if (abs(a[i][j]) > epsilon)
+                for (int k = j + 1; k < n; k++)
+                    a[i][k] -= a[i][j] * a[j][k];
+    }
+    double ans = (exchanges & 1) ? -1 : 1;
+    for (int i = 0; i < n; i++)
+        ans *= a[i][i];
+    return ans;
 }
 
 } // namespace system_double
@@ -84,7 +113,7 @@ optional<matf> inverse(matf a) {
     auto b = matf::identity(n);
     for (int j = 0, i; j < n; j++) {
         for (i = j; i < n; i++) {
-            if (a[i][j] != 0) {
+            if (a[i][j]) {
                 swap(a[i], a[j]);
                 break;
             }
@@ -96,10 +125,12 @@ optional<matf> inverse(matf a) {
         for (int k = n - 1; k >= j; k--)
             a[j][k] /= a[j][j];
         for (i = j + 1; i < n; i++) {
-            for (int k = 0; k < n; k++)
-                b[i][k] -= a[i][j] * b[j][k];
-            for (int k = n - 1; k >= j; k--)
-                a[i][k] -= a[i][j] * a[j][k];
+            if (a[i][j]) {
+                for (int k = 0; k < n; k++)
+                    b[i][k] -= a[i][j] * b[j][k];
+                for (int k = n - 1; k >= j; k--)
+                    a[i][k] -= a[i][j] * a[j][k];
+            }
         }
     }
     for (int j = n - 1; j >= 0; j--)
@@ -116,7 +147,7 @@ optional<vecf> gauss(matf a, vecf b) {
         a[i].push_back(b[i]);
     for (int j = 0, i; j < n; j++) {
         for (i = j; i < n; i++) {
-            if (a[i][j] != 0) {
+            if (a[i][j]) {
                 swap(a[i], a[j]);
                 break;
             }
@@ -126,8 +157,9 @@ optional<vecf> gauss(matf a, vecf b) {
         for (int k = n; k >= j; k--)
             a[j][k] /= a[j][j];
         for (i = j + 1; i < n; i++)
-            for (int k = n; k >= j; k--)
-                a[i][k] -= a[i][j] * a[j][k];
+            if (a[i][j])
+                for (int k = n; k >= j; k--)
+                    a[i][k] -= a[i][j] * a[j][k];
     }
     for (int j = n - 1; j >= 0; j--)
         for (int i = 0; i < j; i++)
@@ -135,6 +167,32 @@ optional<vecf> gauss(matf a, vecf b) {
     for (int i = 0; i < n; i++)
         b[i] = a[i][n];
     return b;
+}
+
+frac det(matf a) {
+    assert(a.n == a.m);
+    int n = a.n, exchanges = 0;
+    for (int j = 0, i; j < n; j++) {
+        for (i = j; i < n; i++) {
+            if (a[i][j]) {
+                swap(a[i], a[j]);
+                exchanges += i != j;
+                break;
+            }
+        }
+        if (i == n)
+            return 0;
+        for (int k = j + 1; k < n; k++)
+            a[j][k] /= a[j][j];
+        for (i = j + 1; i < n; i++)
+            if (a[i][j])
+                for (int k = j + 1; k < n; k++)
+                    a[i][k] -= a[i][j] * a[j][k];
+    }
+    frac ans = (exchanges & 1) ? -1 : 1;
+    for (int i = 0; i < n; i++)
+        ans *= a[i][i];
+    return ans;
 }
 
 } // namespace system_frac
@@ -150,7 +208,7 @@ optional<matbf> inverse(matbf a) {
     auto b = matbf::identity(n);
     for (int j = 0, i; j < n; j++) {
         for (i = j; i < n; i++) {
-            if (a[i][j] != 0) {
+            if (a[i][j]) {
                 swap(a[i], a[j]);
                 break;
             }
@@ -162,10 +220,12 @@ optional<matbf> inverse(matbf a) {
         for (int k = n - 1; k >= j; k--)
             a[j][k] /= a[j][j];
         for (i = j + 1; i < n; i++) {
-            for (int k = 0; k < n; k++)
-                b[i][k] -= a[i][j] * b[j][k];
-            for (int k = n - 1; k >= j; k--)
-                a[i][k] -= a[i][j] * a[j][k];
+            if (a[i][j]) {
+                for (int k = 0; k < n; k++)
+                    b[i][k] -= a[i][j] * b[j][k];
+                for (int k = n - 1; k >= j; k--)
+                    a[i][k] -= a[i][j] * a[j][k];
+            }
         }
     }
     for (int j = n - 1; j >= 0; j--)
@@ -182,7 +242,7 @@ optional<vecbf> gauss(matbf a, vecbf b) {
         a[i].push_back(b[i]);
     for (int j = 0, i; j < n; j++) {
         for (i = j; i < n; i++) {
-            if (a[i][j] != 0) {
+            if (a[i][j]) {
                 swap(a[i], a[j]);
                 break;
             }
@@ -192,8 +252,9 @@ optional<vecbf> gauss(matbf a, vecbf b) {
         for (int k = n; k >= j; k--)
             a[j][k] /= a[j][j];
         for (i = j + 1; i < n; i++)
-            for (int k = n; k >= j; k--)
-                a[i][k] -= a[i][j] * a[j][k];
+            if (a[i][j])
+                for (int k = n; k >= j; k--)
+                    a[i][k] -= a[i][j] * a[j][k];
     }
     for (int j = n - 1; j >= 0; j--)
         for (int i = 0; i < j; i++)
@@ -201,6 +262,32 @@ optional<vecbf> gauss(matbf a, vecbf b) {
     for (int i = 0; i < n; i++)
         b[i] = a[i][n];
     return b;
+}
+
+bfrac det(matbf a) {
+    assert(a.n == a.m);
+    int n = a.n, exchanges = 0;
+    for (int j = 0, i; j < n; j++) {
+        for (i = j; i < n; i++) {
+            if (a[i][j]) {
+                swap(a[i], a[j]);
+                exchanges += i != j;
+                break;
+            }
+        }
+        if (i == n)
+            return 0;
+        for (int k = j + 1; k < n; k++)
+            a[j][k] /= a[j][j];
+        for (i = j + 1; i < n; i++)
+            if (a[i][j])
+                for (int k = j + 1; k < n; k++)
+                    a[i][k] -= a[i][j] * a[j][k];
+    }
+    bfrac ans = (exchanges & 1) ? -1 : 1;
+    for (int i = 0; i < n; i++)
+        ans *= a[i][i];
+    return ans;
 }
 
 } // namespace system_bfrac
