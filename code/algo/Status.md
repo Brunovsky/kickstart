@@ -6,7 +6,7 @@
 |`boyer_moore                `| Stable       | Stable (S)     | |
 |`dynamic_programming        `| Stable       | Stable (U)     | |
 |`kmp                        `| Stable       | Stable (S)     | |
-|`knapsack                   `| Stable       | Stable (U,S)   | Add: Multibin knapsack, minimum bin packing (separate knapsack) |
+|`knapsack                   `| Stable       | Stable (U,S)   | Add: Multibin knapsack, minimum bin packing |
 |`rabin_karp                 `| Stable       | Stable (S)     | |
 |`sort                       `| Stable       | Stable (S,P)   | |
 |`string_distance            `| Stable       | Stable (U)     | |

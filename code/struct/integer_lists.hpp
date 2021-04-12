@@ -174,13 +174,13 @@ struct linked_lists {
         meet(rep(t), a), meet(rep(l), b), meet(c, rep(t)), meet(d, rep(l));
     }
 
-    void push_front(int l, int n) { meet(rep(l), n, head(l)); }
-    void push_back(int l, int n) { meet(tail(l), n, rep(l)); }
-    void insert_before(int i, int n) { meet(prev[i], n, i); }
-    void insert_after(int i, int n) { meet(i, n, next[i]); }
-    void erase(int n) { meet(prev[n], next[n]); }
-    void pop_front(int l) { meet(rep(l), next[head(l)]); }
-    void pop_back(int l) { meet(prev[tail(l)], rep(l)); }
+    void push_front(int l, int n) { assert(l < L && n < N), meet(rep(l), n, head(l)); }
+    void push_back(int l, int n) { assert(l < L && n < N), meet(tail(l), n, rep(l)); }
+    void insert_before(int i, int n) { assert(i < N && n < N), meet(prev[i], n, i); }
+    void insert_after(int i, int n) { assert(i < N && n < N), meet(i, n, next[i]); }
+    void erase(int n) { assert(n < N), meet(prev[n], next[n]); }
+    void pop_front(int l) { assert(l < L), meet(rep(l), next[head(l)]); }
+    void pop_back(int l) { assert(l < L), meet(prev[tail(l)], rep(l)); }
 
     void splice_front(int l, int b) { assert(l != b), splice_before(head(l), b); }
     void splice_back(int l, int b) { assert(l != b), splice_after(tail(l), b); }
@@ -206,9 +206,9 @@ struct linked_lists {
 };
 
 #define FOR_EACH_IN_LINKED_LIST(i, l, lists) \
-    for (int i = lists.head(l); i != lists.rep(l); i = lists.next[i])
+    for (int z##i = l, i = lists.head(z##i); i != lists.rep(z##i); i = lists.next[i])
 
 #define FOR_EACH_IN_LINKED_LIST_REVERSE(i, l, lists) \
-    for (int i = lists.tail(l); i != lists.rep(l); i = lists.prev[i])
+    for (int z##i = l, i = lists.tail(z##i); i != lists.rep(z##i); i = lists.prev[i])
 
 #endif // INTEGER_LISTS_HPP

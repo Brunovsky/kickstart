@@ -15,7 +15,7 @@ struct mat {
 
     mat() = default;
     mat(int n, int m, const T& v = T()) : n(n), m(m), arr(n, vec(m, v)) {}
-    explicit mat(vector<vec> v) : n(v.size()), m(n ? v[0].size() : 0), arr(move(v)) {}
+    mat(vector<vec> v) : n(v.size()), m(n ? v[0].size() : 0), arr(move(v)) {}
 
     array<int, 2> size() const { return {n, m}; }
     auto& operator[](int x) { return arr[x]; }
@@ -110,6 +110,8 @@ struct mat {
                 row.resize(M, val);
         n = N, m = M;
     }
+
+    void assign(int N, int M, T&& val = T()) { n = N, m = M, arr.assign(N, vec(M, val)); }
 
     void set_row(int i, T&& val = T(0)) {
         for (int j = 0; j < m; j++)

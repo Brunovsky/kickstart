@@ -1,174 +1,169 @@
 #ifndef TRANSPORTATION_HPP
 #define TRANSPORTATION_HPP
 
-#include <bits/stdc++.h>
-
-using namespace std;
+#include "matrix.hpp"
 
 // *****
 
-/**
- * Transportation solver
- * Complexity: O(S * D * #pivots)
- */
 struct transportation {
-    vector<int> supply, demand;
-    vector<vector<int>> cost;
+    int N, M;
+    array<vector<int>, 2> flow;
+    mat<int> cost, tp;
+    vector<int> upi, vpi, uQ, vQ, uvis, vvis;
+    vector<vector<int>> ubasis, vbasis;
+    int iteration;
 
-    // fill in the matrices...
+    static inline const int nil = INT_MIN, inf = INT_MAX;
 
-    int n, m;
-    vector<int> u;
-    vector<int> v;
-    vector<unordered_set<int>> row_basis;
-    vector<unordered_set<int>> col_basis;
-    vector<bool> row_vis;
-    vector<bool> col_vis;
-    vector<vector<int>> tp; // transport
+    transportation(array<vector<int>, 2> flow, mat<int> cost)
+        : N(flow[0].size()), M(flow[1].size()), flow(move(flow)), cost(move(cost)) {
+        assert(N > 0 && M > 0);
+    }
 
-    enum State { FOUND = 0, OPTIMAL = 1 };
-    static inline constexpr int nil = INT_MIN;
+    void add_basis(int u, int v) { ubasis[u].push_back(v), vbasis[v].push_back(u); }
+    void rem_basis(int u, int v) {
+        remove(begin(ubasis[u]), end(ubasis[u]), v), ubasis[u].pop_back();
+        remove(begin(vbasis[v]), end(vbasis[v]), u), vbasis[v].pop_back();
+    }
 
-    void potential_dfs_row(int r) {
-        assert(u[r] != nil);
-        for (int c : row_basis[r]) {
-            if (v[c] == nil) {
-                v[c] = cost[r][c] - u[r];
-                potential_dfs_col(c);
-            }
+    void init_feasible() {
+        int u = 0, v = 0;
+        while (u < N && v < M) {
+            add_basis(u, v);
+            tp[u][v] = min(flow[0][u], flow[1][v]);
+            flow[0][u] -= tp[u][v], flow[1][v] -= tp[u][v];
+            u += !flow[0][u] && flow[1][v], v += !flow[1][v];
         }
     }
 
-    void potential_dfs_col(int c) {
-        assert(v[c] != nil);
-        for (int r : col_basis[c]) {
-            if (u[r] == nil) {
-                u[r] = cost[r][c] - v[c];
-                potential_dfs_row(r);
+    void adjust_potentials() {
+        int i = 0, j = 0, U = 0, V = 0;
+        uvis[0] = ++iteration, upi[0] = 0, uQ[U++] = 0;
+
+        do {
+            while (i < U) {
+                int u = uQ[i++];
+                for (int v : ubasis[u]) {
+                    if (vvis[v] < iteration) {
+                        vvis[v] = iteration, vpi[v] = cost[u][v] - upi[u], vQ[V++] = v;
+                    }
+                }
             }
-        }
+            while (j < V) {
+                int v = vQ[j++];
+                for (int u : vbasis[v]) {
+                    if (uvis[u] < iteration) {
+                        uvis[u] = iteration, upi[u] = cost[u][v] - vpi[v], uQ[U++] = u;
+                    }
+                }
+            }
+        } while (i < U || j < V);
+        assert(U == N && V == M);
+
+        for (int u = 0; u < N; u++)
+            for (int v : ubasis[u])
+                assert(cost[u][v] == upi[u] + vpi[v]);
     }
 
-    State select_pivot(int& r, int& c) {
-        fill(begin(u), end(u), nil);
-        fill(begin(v), end(v), nil);
-        int x = 0, y = *row_basis[0].begin();
-        u[x] = 0, v[y] = cost[x][y];
-        potential_dfs_row(x), potential_dfs_col(y);
-
-        int delta = 0;
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                if (tp[i][j] == 0 && delta + u[i] + v[j] > cost[i][j]) {
-                    delta = cost[i][j] - u[i] - v[j];
-                    r = i, c = j;
+    tuple<int, int, int> select_pivot() const {
+        int delta = 0, u, v;
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                if (tp[i][j] == 0 && delta + upi[i] + vpi[j] > cost[i][j]) {
+                    delta = cost[i][j] - upi[i] - vpi[j];
+                    u = i, v = j;
                 }
             }
         }
-        return delta < 0 ? FOUND : OPTIMAL;
+        return {delta, u, v};
     }
 
-    int pivot_dfs_row(int r, int y, int prev_boost) {
-        if (row_vis[r]) {
-            return -1;
-        }
-        row_vis[r] = true;
-        for (int c : row_basis[r]) {
-            int boost = pivot_dfs_col(c, y, min(prev_boost, tp[r][c]));
-            if (boost != -1) {
-                tp[r][c] -= boost;
-                if (tp[r][c] == 0 && boost != prev_boost) {
-                    row_basis[r].erase(c);
-                    col_basis[c].erase(r);
+    int pivot_row(int u, int y, int predf) {
+        uvis[u] = iteration;
+        for (int v : ubasis[u]) {
+            if (vvis[v] < iteration) {
+                int df = v == y ? min(predf, tp[u][v])
+                                : pivot_col(v, y, min(predf, tp[u][v]));
+                if (df != -1) {
+                    tp[u][v] -= df;
+                    if (tp[u][v] == 0 && df != predf) {
+                        rem_basis(u, v);
+                    }
+                    return df;
                 }
-                return boost;
             }
         }
         return -1;
     }
 
-    int pivot_dfs_col(int c, int y, int prev_boost) {
-        if (c == y) {
-            return prev_boost;
-        }
-        if (col_vis[c]) {
-            return -1;
-        }
-        col_vis[c] = true;
-        for (int r : col_basis[c]) {
-            int boost = pivot_dfs_row(r, y, prev_boost);
-            if (boost != -1) {
-                tp[r][c] += boost;
-                return boost;
+    int pivot_col(int v, int y, int predf) {
+        vvis[v] = iteration;
+        for (int u : vbasis[v]) {
+            if (uvis[u] < iteration) {
+                int df = pivot_row(u, y, predf);
+                if (df != -1) {
+                    tp[u][v] += df;
+                    return df;
+                }
             }
         }
         return -1;
     }
 
-    void pivot(int r, int c) {
-        assert(tp[r][c] == 0);
-        row_vis.assign(n, false);
-        col_vis.assign(m, false);
-        int boost = pivot_dfs_row(r, c, INT_MAX);
-        assert(boost >= 0);
-        tp[r][c] = boost;
-        row_basis[r].insert(c);
-        col_basis[c].insert(r);
+    int pivot(int u, int v) {
+        iteration++;
+        int df = pivot_row(u, v, inf);
+        tp[u][v] = df;
+        add_basis(u, v);
+        return df;
     }
 
-    void compute() {
-        vector<int> rem_supply = supply;
-        vector<int> rem_demand = demand;
+    long compute() {
+        int flow0 = accumulate(begin(flow[0]), end(flow[0]), 0);
+        int flow1 = accumulate(begin(flow[1]), end(flow[1]), 0);
 
-        int tsupply = accumulate(begin(supply), end(supply), 0);
-        int tdemand = accumulate(begin(demand), end(demand), 0);
-
-        if (tsupply < tdemand) {
-            rem_supply.push_back(tdemand - tsupply);
-            cost.push_back(vector<int>(rem_demand.size(), 0));
-        } else if (tsupply > tdemand) {
-            rem_demand.push_back(tsupply - tdemand);
-            for (auto& row : cost) {
-                row.push_back(0);
-            }
+        if (flow0 < flow1) {
+            flow[0].push_back(flow1 - flow0), N++, cost.resize(N, M, 0);
+        } else if (flow0 > flow1) {
+            flow[1].push_back(flow0 - flow1), M++, cost.resize(N, M, 0);
         }
 
-        n = rem_supply.size();
-        m = rem_demand.size();
-        u.assign(n, nil);
-        v.assign(m, nil);
-        row_vis.resize(n);
-        col_vis.resize(m);
-        row_basis.assign(n, {});
-        col_basis.assign(m, {});
-        tp.assign(n, vector<int>(m, 0));
+        upi.resize(N), vpi.resize(M);
+        uQ.resize(N), vQ.resize(M);
+        uvis.assign(N, 0), vvis.assign(M, 0);
+        ubasis.assign(N, {}), vbasis.assign(M, {});
+        tp.assign(N, M, 0);
+        iteration = 0;
 
-        // find basic feasible solution
-        int r = 0, c = 0;
-        while (r < n && c < m) {
-            row_basis[r].insert(c);
-            col_basis[c].insert(r);
-            tp[r][c] = min(rem_supply[r], rem_demand[c]);
-            rem_supply[r] -= tp[r][c];
-            rem_demand[c] -= tp[r][c];
-            r += rem_demand[c] && !rem_supply[r];
-            c += !rem_demand[c];
+        init_feasible();
+
+        do {
+            adjust_potentials();
+            auto [delta, u, v] = select_pivot();
+            if (delta >= 0)
+                break;
+            pivot(u, v);
+        } while (true);
+
+        if (flow0 < flow1) {
+            N--, tp.resize(N, M);
+        } else if (flow0 > flow1) {
+            M--, tp.resize(N, M);
         }
 
-        // improvement loop
-        while (FOUND == select_pivot(r, c)) {
-            pivot(r, c);
-        }
+        long ans = 0;
+        for (int u = 0; u < N; u++)
+            for (int v : ubasis[u])
+                ans += 1L * tp[u][v] * cost[u][v];
+        return ans;
+    }
 
-        if (tsupply < tdemand) {
-            tp.pop_back();
-            cost.pop_back();
-        } else if (tsupply > tdemand) {
-            for (int i = 0; i < n; i++) {
-                tp[i].pop_back();
-                cost[i].pop_back();
-            }
-        }
+    static long solve(const array<vector<int>, 2>& flow, const mat<int>& cost,
+                      mat<int>* out_tp = nullptr) {
+        transportation solver(flow, cost);
+        long ans = solver.compute();
+        !out_tp || (*out_tp = move(solver.tp), 0);
+        return ans;
     }
 };
 
