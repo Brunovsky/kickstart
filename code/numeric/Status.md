@@ -10,3 +10,4 @@
 |`frac_extra                 `| Stable       | Stable (U)     | |
 |`math                       `| Stable       | Stable (U)     | |
 |`primes                     `| Stable       | Stable (U,S)   | |
+|`sieves                     `| Stable       | Stable (U,P)   | |
