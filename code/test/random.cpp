@@ -1,14 +1,68 @@
 #include "../random.hpp"
 
+#include "../formatting.hpp"
+#include "../hash.hpp"
 #include "../numeric/math.hpp"
+#include "../numeric/partitions.hpp"
 #include "test_utils.hpp"
+
+// *****
+
+using vi = vector<int>;
+unordered_map<vi, vector<vi>> partitions_memo;
+
+const vector<vi>& generate_all_partitions(int n, int k, int m, int M = INT_MAX) {
+    M = min(M, n);
+    if (partitions_memo.count({n, k, m, M}))
+        return partitions_memo[{n, k, m, M}];
+    if (n < m * k || M * k < n || !k)
+        return partitions_memo[{n, k, m, M}] = {};
+    if (k == 1)
+        return partitions_memo[{n, k, m, M}] = {{n}};
+
+    vector<vi> pts;
+    for (int x = min(M, n); x >= m; x--) {
+        auto subpts = generate_all_partitions(n - x, k - 1, m, x);
+        for (auto& pt : subpts)
+            pt.push_back(x);
+        pts.insert(end(pts), begin(subpts), end(subpts));
+    }
+    return partitions_memo[{n, k, m, M}] = pts;
+}
+
+template <typename I>
+auto partition_sample_naive(I n, int k, I m, I M = std::numeric_limits<I>::max()) {
+    vector<I> parts(k, m);
+    int t = k - 1;
+    n -= m * k;
+    while (n > 0) {
+        int i = intd(0, t)(mt);
+        if (++parts[i] == M) {
+            swap(parts[i], parts[t--]);
+        }
+        n--;
+    }
+    return parts;
+}
+
+long count_permutations(const vi& pt) {
+    vi k;
+    int i = 0, N = pt.size();
+    while (i < N) {
+        int j = i + 1;
+        while (j < N && pt[i] == pt[j])
+            j++;
+        k.push_back(j - i), i = j;
+    }
+    return choose(N, k);
+}
 
 // *****
 
 /**
  * Test normality of count distribution
  */
-void verify_normality(vector<int>& v) {
+void verify_normality(vi& v) {
     int n = v.size();
     int m = *min_element(begin(v), end(v));
     int M = *max_element(begin(v), end(v));
@@ -40,11 +94,55 @@ void verify_normality(vector<int>& v) {
     print("within 3 rho: {:5.2f}%\n", 100.0 * within[2] / n);
     print("within 4 rho: {:5.2f}%\n", 100.0 * within[3] / n);
     print("(remember, expected: 68.27 - 95.45 - 99.73)\n");
-    assert(m > 0.5 * mean);
-    assert(M < 2.0 * mean);
 }
 
-void stress_test_vec_sample(int T = 70000, int n = 93439, int k = 173) {
+void stress_test_partition_sample_uniform(double F = 1'000) {
+    const int N = 30, k = 5, m = 1, M = 10;
+    long f = intfac(k);
+
+    const auto& pts = generate_all_partitions(N, k, m, M);
+    int P = pts.size(); // 98
+
+    print("count_partitions({},{},1) = {}\n", N, k, count_partitions(N, k, m, M));
+    print("# partitions: {}\n", pts.size());
+    assert(count_partitions(N, k, m, M) == P);
+    for (const auto& pt : pts)
+        cout << pt << endl;
+
+    unordered_map<vi, int> id;
+    for (int i = 0; i < P; i++) {
+        id[pts[i]] = i;
+    }
+
+    vi fast(P, 0), naive(P, 0);
+    for (int t = 0, T = F * P; t < T; t++) {
+        print_progress(t, T, "stress test partition sample uniform (fast)");
+        auto pt = partition_sample(N, k, m, M);
+        sort(begin(pt), end(pt));
+        fast[id.at(pt)]++;
+    }
+    for (int t = 0, T = F * P; t < T; t++) {
+        print_progress(t, T, "stress test partition sample uniform (naive)");
+        auto pt = partition_sample_naive(N, k, m, M);
+        sort(begin(pt), end(pt));
+        naive[id.at(pt)]++;
+    }
+
+    clear_line();
+    for (int i = 0; i < P; i++) {
+        auto p = count_permutations(pts[i]);
+        double fast_w = 1.0 * fast[i] / p, naive_w = 1.0 * naive[i] / p;
+        print("{:12} -- {:5} | {:6.1f} {:6.1f}\n", pts[i], p, fast_w, naive_w);
+        fast[i] *= f / p;
+        naive[i] *= f / p;
+    }
+
+    verify_normality(fast);
+    verify_normality(naive);
+    print_ok("stress test partition sample uniform");
+}
+
+void stress_test_vec_sample(int T = 70000, int n = 4096, int k = 37) {
     int start = 87632;
     vector<int> univ(n);
     iota(begin(univ), end(univ), start);
@@ -225,6 +323,7 @@ void scaling_test_pair_sample(long F = 5'000'000) {
 }
 
 int main() {
+    stress_test_partition_sample_uniform();
     stress_test_vec_sample();
     scaling_test_int_sample();
     scaling_test_pair_sample();

@@ -269,52 +269,62 @@ auto parent_sample(int n) {
 }
 
 /**
- * Generate a partition of n into k parts each of size at least m.
- * It must hold that k > 0 and mk <= n.
+ * Generate a random partition of n into k parts each of size between m and M.
+ * It must hold that k > 0 and 0 <= m <= M and mk <= n <= Mk.
  * Complexity: faster than linear
+ * Not uniform, but close if M is sufficiently restrictive
  */
 template <typename I = int>
-auto partition_sample(I n, int k, I m = 1) {
-    assert(1L * m * k <= n && k > 0 && m >= 0);
+auto partition_sample(I n, int k, I m = 1, I M = std::numeric_limits<I>::max()) {
+    assert(n >= 0 && k > 0 && m >= 0 && m <= n / k && (n + k - 1) / k <= M);
+
     vector<I> parts(k, m);
-    intd dist(0, k - 1);
-    n -= m * k;
+    n -= m * k--;
     while (n > 0) {
-        I add = (n + k - 1) / k;
-        parts[dist(mt)] += add;
-        n -= add;
+        I add = (n + k) / (k + 1);
+        int i = intd(0, k)(mt);
+        if (parts[i] + add >= M) {
+            n -= M - parts[i];
+            parts[i] = M;
+            swap(parts[i], parts[k--]);
+        } else {
+            n -= add;
+            parts[i] += add;
+        }
     }
+    shuffle(begin(parts), end(parts), mt);
     return parts;
 }
 
 /**
- * Generate a partition of n into k parts where each has size between m_i and M_i.
+ * Generate a partition of n into k parts each of size between m_i and M_i.
  * It must hold that k > 0 and 0 <= m_i <= M_i and SUM(m_i) <= n <= SUM(M_i)
  * Complexity: faster than linear
+ * Not uniform, but close if M is sufficiently restrictive
  */
 template <typename I = int>
 auto partition_sample(I n, int k, const vector<I>& m, const vector<I>& M) {
     assert(k > 0 && k <= m.size() && k <= M.size());
+    assert(accumulate(begin(m), end(m), I(0)) <= n);
     assert(n <= accumulate(begin(M), end(M), I(0)));
+
     vector<I> parts = m;
     vector<int> id(k);
-    parts.resize(k);
+    parts.resize(k--);
     iota(begin(id), end(id), 0);
     n -= accumulate(begin(m), end(m), I(0));
     while (n > 0) {
-        I add = (n + k - 1) / k;
-        int i = intd(0, k - 1)(mt), j = id[i];
+        I add = (n + k) / (k + 1);
+        int i = intd(0, k)(mt), j = id[i];
         if (parts[j] + add >= M[j]) {
-            assert(parts[j] <= M[j]);
             n -= M[j] - parts[j];
             parts[j] = M[j];
-            swap(id[i], id[--k]);
+            swap(id[i], id[k--]);
         } else {
             n -= add;
             parts[j] += add;
         }
     }
-    assert(n == 0);
     return parts;
 }
 
@@ -322,8 +332,15 @@ auto partition_sample(I n, int k, const vector<I>& m, const vector<I>& M) {
  * Like partition_sample but the first and last levels have size exactly 1.
  */
 template <typename I = int>
-auto partition_sample_flow(I V, I ranks, I m = 1) {
-    auto R = partition_sample(V - 2, ranks - 2, m);
+auto partition_sample_flow(I V, I ranks, I m = 1, I M = std::numeric_limits<I>::max()) {
+    auto R = partition_sample(V - 2, ranks - 2, m, M);
+    R.insert(R.begin(), 1);
+    R.insert(R.end(), 1);
+    return R;
+}
+template <typename I = int>
+auto partition_sample_flow(I V, I ranks, const vector<I>& m, const vector<I>& M) {
+    auto R = partition_sample(V - 2, ranks - 2, m, M);
     R.insert(R.begin(), 1);
     R.insert(R.end(), 1);
     return R;

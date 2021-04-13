@@ -155,7 +155,7 @@ struct pairing_int_heap {
         return node[v].prev = node[v].parent = u;
     }
     void take(int u) {
-        // assert(node[u].parent > 0);
+        assert(node[u].parent > 0);
         if (node[node[u].parent].child == u)
             node[node[u].parent].child = node[u].next;
         else

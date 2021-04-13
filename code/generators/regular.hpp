@@ -6,6 +6,8 @@
 
 // *****
 
+using edges_t = vector<array<int, 2>>;
+
 edges_t degree_sample(int n, const vector<int>& k) {
     assert(k.size() == uint(n));
     int d = accumulate(begin(k), end(k), 0);
