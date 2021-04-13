@@ -7,6 +7,25 @@ using namespace std;
 
 // *****
 
+struct tuple_hasher {
+    template <int i, typename Tuple>
+    size_t compute(const Tuple& tuple) const noexcept {
+        if constexpr (i == std::tuple_size_v<Tuple>) {
+            return std::tuple_size_v<Tuple>;
+        } else {
+            using std::hash;
+            hash<std::tuple_element_t<i, Tuple>> hasher;
+            size_t seed = compute<i + 1, Tuple>(tuple);
+            size_t h = hasher(std::get<i>(tuple));
+            return seed ^ (h + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+        }
+    }
+    template <typename... Ts>
+    size_t operator()(const tuple<Ts...>& t) const noexcept {
+        return compute<0, tuple<Ts...>>(t);
+    }
+};
+
 struct vec_hasher {
     template <typename Container>
     size_t operator()(const Container& vec) const noexcept {
@@ -44,7 +63,7 @@ struct rolling_hasher {
     explicit rolling_hasher(size_t n) : n(n), mul(powovf(n) & mask) {}
 
     size_t operator()(const char* s, const char* e) const noexcept {
-        size_t seed = e - s;
+        size_t seed = 0;
         while (s != e) {
             seed = (seed * base + *s++) & mask;
         }
