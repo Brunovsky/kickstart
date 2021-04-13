@@ -1,29 +1,20 @@
-#include "../../../../code/formatting.hpp"
-#include "../../../../code/random.hpp"
+#include "../../code/testing.hpp"
 
 // *****
 
-template <typename T = int>
-auto randint(T a, T b) {
-    return uniform_int_distribution<T>(a, b)(mt);
-}
-template <typename T = double>
-auto randreal(T a, T b) {
-    return uniform_real_distribution<T>(a, b)(mt);
-}
-
-const int T = 100;
+const int T = 10;
 
 int main() {
-    print("{}\n", T);
+    // ofstream other("correct.txt");
+    putln(T);
     for (int t = 1; t <= T; t++) {
-        int N = randint(1, 500'000);
-        print("{}\n", N);
+        int N = randint(1, 5);
+        putln(N);
         for (int i = 0; i < N; i++) {
             int a = randint(1, 100'000);
             int b = randint(1, 100'000);
             int c = randint(1, 100'000);
-            print("{} {} {}\n", a, b, c);
+            putln(a, b, c);
         }
     }
     return 0;
