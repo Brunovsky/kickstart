@@ -45,27 +45,27 @@ struct mat {
         return b;
     }
 
-    mat operator-(mat a) {
+    friend mat operator-(mat a) {
         for (int i = 0; i < a.n; i++)
             for (int j = 0; j < a.m; j++)
                 a[i][j] = -a[i][j];
         return a;
     }
 
-    mat& operator+=(const mat& b) {
-        assert(n == b.n && m == b.m);
-        for (int i = 0; i < n; i++)
-            for (int j = 0; j < m; j++)
-                arr[i][j] += b[i][j];
-        return *this;
+    friend mat& operator+=(mat& a, const mat& b) {
+        assert(a.n == b.n && a.m == b.m);
+        for (int i = 0; i < a.n; i++)
+            for (int j = 0; j < a.m; j++)
+                a[i][j] += b[i][j];
+        return a;
     }
 
-    mat& operator-=(const mat& b) {
-        assert(n == b.n && m == b.m);
-        for (int i = 0; i < n; i++)
-            for (int j = 0; j < m; j++)
-                arr[i][j] -= b[i][j];
-        return *this;
+    friend mat& operator-=(mat& a, const mat& b) {
+        assert(a.n == b.n && a.m == b.m);
+        for (int i = 0; i < a.n; i++)
+            for (int j = 0; j < a.m; j++)
+                a[i][j] -= b[i][j];
+        return a;
     }
 
     friend mat operator+(mat a, const mat& b) { return a += b; }
@@ -113,12 +113,12 @@ struct mat {
 
     void assign(int N, int M, T&& val = T()) { n = N, m = M, arr.assign(N, vec(M, val)); }
 
-    void set_row(int i, T&& val = T(0)) {
+    void set_row(int i, T&& val = T()) {
         for (int j = 0; j < m; j++)
             arr[i][j] = val;
     }
 
-    void set_col(int j, T&& val = T(0)) {
+    void set_col(int j, T&& val = T()) {
         for (int i = 0; i < n; i++)
             arr[i][j] = val;
     }
@@ -165,6 +165,13 @@ struct mat {
 };
 
 inline namespace vector_arithmetic {
+
+template <typename T>
+vector<T> operator-(vector<T> a) {
+    for (int i = 0; i < a.size(); i++)
+        a[i] = -a[i];
+    return a;
+}
 
 template <typename T>
 vector<T> operator+(vector<T> a, const vector<T>& b) {
