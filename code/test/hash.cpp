@@ -25,7 +25,7 @@ void unit_test_rolling_hasher() {
 }
 
 void unit_test_tuple_hasher() {
-    tuple_hasher hasher;
+    Hasher hasher;
     print("hash<3, 'abc', 7L> = {}\n", hasher(make_tuple(3, "abc"s, 7L)));
     print("hash<2, 'abc', 7L> = {}\n", hasher(make_tuple(2, "abc"s, 7L)));
     print("hash<1, 0, 0> = {}\n", hasher(make_tuple(1, 0, 0)));

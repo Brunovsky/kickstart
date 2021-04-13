@@ -66,7 +66,7 @@ struct transportation {
     }
 
     tuple<int, int, int> select_pivot() const {
-        int delta = 0, u, v;
+        int delta = 0, u = 0, v = 0;
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < M; j++) {
                 if (tp[i][j] == 0 && delta + upi[i] + vpi[j] > cost[i][j]) {

@@ -1,7 +1,7 @@
 #ifndef MINCUT_HPP
 #define MINCUT_HPP
 
-#include "../hash.hpp" // pair_hasher
+#include "../hash.hpp"
 
 // *****
 

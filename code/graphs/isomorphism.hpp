@@ -13,7 +13,7 @@ using edges_t = vector<array<int, 2>>;
  *             O(V^2) memory
  */
 auto hash_graph_vertices(int V, const edges_t& g) {
-    static vec_hasher hasher;
+    static Hasher hasher;
     mat<size_t> m(V, V);
     for (auto [u, v] : g)
         m[u][v] = m[v][u] = 1;
@@ -31,7 +31,7 @@ auto hash_graph_vertices(int V, const edges_t& g) {
  * Compute the topological hash of a graph, irrespective of its labels.
  */
 size_t hash_graph(int V, const edges_t& g) {
-    static vec_hasher hasher;
+    static Hasher hasher;
     auto hashtable = hash_graph_vertices(V, g);
     sort(begin(hashtable), end(hashtable));
     hashtable.push_back(V), hashtable.push_back(g.size());

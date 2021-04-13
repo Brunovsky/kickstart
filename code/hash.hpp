@@ -7,26 +7,7 @@ using namespace std;
 
 // *****
 
-struct tuple_hasher {
-    template <int i, typename Tuple>
-    size_t compute(const Tuple& tuple) const noexcept {
-        if constexpr (i == std::tuple_size_v<Tuple>) {
-            return std::tuple_size_v<Tuple>;
-        } else {
-            using std::hash;
-            hash<std::tuple_element_t<i, Tuple>> hasher;
-            size_t seed = compute<i + 1, Tuple>(tuple);
-            size_t h = hasher(std::get<i>(tuple));
-            return seed ^ (h + 0x9e3779b9 + (seed << 6) + (seed >> 2));
-        }
-    }
-    template <typename... Ts>
-    size_t operator()(const tuple<Ts...>& t) const noexcept {
-        return compute<0, tuple<Ts...>>(t);
-    }
-};
-
-struct vec_hasher {
+struct Hasher {
     template <typename Container>
     size_t operator()(const Container& vec) const noexcept {
         using std::hash;
@@ -37,9 +18,6 @@ struct vec_hasher {
         }
         return seed;
     }
-};
-
-struct pair_hasher {
     template <typename U, typename V>
     size_t operator()(const pair<U, V>& p) const noexcept {
         using std::hash;
@@ -53,7 +31,36 @@ struct pair_hasher {
         size_t a = hasher(p[0]), b = hasher(p[1]);
         return (a + b) * (a + b + 1) / 2 + b;
     }
+    template <int i, typename Tuple>
+    size_t tuple_compute(const Tuple& tuple) const noexcept {
+        if constexpr (i == std::tuple_size_v<Tuple>) {
+            return std::tuple_size_v<Tuple>;
+        } else {
+            using std::hash;
+            hash<std::tuple_element_t<i, Tuple>> hasher;
+            size_t seed = tuple_compute<i + 1, Tuple>(tuple);
+            size_t h = hasher(std::get<i>(tuple));
+            return seed ^ (h + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+        }
+    }
+    template <typename... Ts>
+    size_t operator()(const tuple<Ts...>& t) const noexcept {
+        return tuple_compute<0, tuple<Ts...>>(t);
+    }
 };
+
+namespace std {
+
+template <typename T, size_t N>
+struct hash<array<T, N>> : Hasher {};
+template <typename T>
+struct hash<vector<T>> : Hasher {};
+template <typename U, typename V>
+struct hash<pair<U, V>> : Hasher {};
+template <typename... Ts>
+struct hash<tuple<Ts...>> : Hasher {};
+
+} // namespace std
 
 struct rolling_hasher {
     static constexpr size_t base = 2001539UL;
@@ -90,18 +97,5 @@ struct rolling_hasher {
         return power;
     }
 };
-
-namespace std {
-
-template <typename T, size_t N>
-struct hash<array<T, N>> : vec_hasher {};
-template <typename T>
-struct hash<vector<T>> : vec_hasher {};
-template <typename U, typename V>
-struct hash<pair<U, V>> : pair_hasher {};
-template <typename T>
-struct hash<array<T, 2>> : pair_hasher {};
-
-} // namespace std
 
 #endif // HASH_HPP
