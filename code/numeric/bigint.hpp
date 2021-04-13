@@ -505,6 +505,29 @@ bigint gcd(bigint a, bigint b) {
 
 } // namespace bigint_arithmetic
 
+inline namespace bigint_math {
+
+bigint sqrt(const bigint& u) {
+    assert(u.sign == 0); // no complex fuckery here
+    int n = u.len(), m = (n + 1) / 2;
+    if (n == 0) {
+        return 0;
+    } else if (n == 1) {
+        return uint(std::sqrt(u[0]));
+    } else if (n == 2) {
+        return uint(std::sqrt(ulong(u[1]) << 32 | u[0]));
+    }
+    bigint x, y;
+    x.nums.resize(m);
+    x.nums[m - 1] = std::sqrt(ulong(u[n - 1]) << 32 | u[n - 2]);
+    do { // iterate newton until stabilization
+        y = move(x), x = (y + u / y) >> 1;
+    } while (x != y);
+    return x;
+}
+
+} // namespace bigint_math
+
 bigint::bigint(const string& s, uint b) {
     assert(2 <= b && b <= 10);
     int i = 0, S = s.size();

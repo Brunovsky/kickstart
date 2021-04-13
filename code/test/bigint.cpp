@@ -15,6 +15,8 @@ ulongd distv(0, U), distvp(1, U);
 intd distn_small(0, 10), distn_pos(1, 8), distn_large(50, 300), distn_any(0, 40);
 boold distneg(0.5);
 
+bigint bpow10(int n) { return bigint("1" + string(n, '0')); }
+
 string trim_numeric_string(string s) {
     int S = s.size(), l = 0, r = S;
     while (r > 0 && isspace(s[r - 1]))
@@ -26,12 +28,12 @@ string trim_numeric_string(string s) {
     return s;
 }
 
-string random_numeric_string(int digits, int base = 10) {
+string random_numeric_string(int digits, int base = 10, bool neg = true) {
     static boold plusd(0.3);
     string s = generate_any_string(digits, '0', '0' + base - 1);
     if (digits && s[0] == '0')
         s[0] = '1';
-    if (distneg(mt))
+    if (neg && distneg(mt))
         return "-" + s;
     else if (plusd(mt))
         return "+" + s;
@@ -239,6 +241,27 @@ void unit_test_print() {
     print_ok("unit test print");
 }
 
+void unit_test_sqrt() {
+    bigint u = bpow10(18), v = bpow10(28) + 73, w = bpow10(12) + 12;
+    assert(sqrt(u) == bpow10(9));
+    assert(sqrt(v) == bpow10(14));
+    assert(sqrt(w) == bpow10(6));
+    print_ok("unit test sqrt");
+}
+
+void stress_test_sqrt(int R = 2000) {
+    intd digitsd(10, 500);
+    for (int i = 0; i < R; i++) {
+        print_progress(i, R, "stress test sqrt");
+        auto n = random_numeric_string(digitsd(mt), 10, false);
+        auto u = sqrt(n);
+
+        assert(u * u <= n);
+        assert(n < (u + 1) * (u + 1));
+    }
+    print_ok("stress test sqrt");
+}
+
 void stress_test_to_string(int R = 1000) {
     intd digitsd(10, 500);
     for (int i = 0; i < R; i++) {
@@ -381,7 +404,9 @@ int main() {
     unit_test_div();
     unit_test_shift();
     unit_test_print();
+    unit_test_sqrt();
 
+    stress_test_sqrt();
     stress_test_to_string();
     stress_test_compare_sort();
     stress_test_add_commutative();
