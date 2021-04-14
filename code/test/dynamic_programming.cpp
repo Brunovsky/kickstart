@@ -97,7 +97,6 @@ void stress_test_subset_sum_run(const vector<int>& nums) {
 void unit_test_subset_sum() {
     vector<int> nums = {17, 63, 49, -71, -23, 84};
     stress_test_subset_sum_run(nums);
-    print_ok("unit test subset sum");
 }
 
 void stress_test_subset_sum(int T = 50) {
@@ -115,7 +114,6 @@ void stress_test_subset_sum(int T = 50) {
             stress_test_subset_sum_run(nums);
         }
     }
-    print_ok("stress test subset sum");
 }
 
 // Knapsack
@@ -129,7 +127,6 @@ void unit_test_knapsack() {
     assert(v1 == 300 && qt1 == (vector<int>{5, 0, 0}));
     assert(v2 == 15 && qt2 == (vector<bool>{1, 1, 1, 1, 0}));
     assert(v3 == 220 && qt3 == (vector<bool>{0, 1, 1}));
-    print_ok("unit test knapsack");
 }
 
 // Subsequences
@@ -139,7 +136,6 @@ void unit_test_longest_common_subsequence() {
     auto sub1 = longest_common_subsequence("amputation", "spanking");
     assert(sub0.size() == 2); // GA, AC or GC
     assert(sub1 == "pain");
-    print_ok("unit test longest common subsequence");
 }
 
 void unit_test_longest_increasing_subsequence() {
@@ -152,14 +148,13 @@ void unit_test_longest_increasing_subsequence() {
     assert(sub1 == (vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
     assert(sub2.size() == 1);
     assert(sub3 == (vector<int>{0, 1}));
-    print_ok("unit test longest increasing subsequence");
 }
 
 int main() {
-    unit_test_string_distance();
-    unit_test_subset_sum();
-    stress_test_subset_sum();
-    unit_test_knapsack();
-    unit_test_longest_increasing_subsequence();
+    RUN_SHORT(unit_test_string_distance());
+    RUN_SHORT(unit_test_subset_sum());
+    RUN_BLOCK(stress_test_subset_sum());
+    RUN_SHORT(unit_test_knapsack());
+    RUN_SHORT(unit_test_longest_increasing_subsequence());
     return 0;
 }

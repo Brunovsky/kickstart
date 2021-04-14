@@ -53,9 +53,7 @@ struct mincost_hungarian {
         prev[1].assign(W, -1);
 
         vector<bool> vis(W, false);
-
-        auto cmp = [&](int u, int v) { return dist[0][u] < dist[0][v]; };
-        pairing_int_heap Q(W + 1, cmp);
+        pairing_int_heap<less_container<vector<long>>> Q(W + 1, dist[0]);
 
         for (int u = 0; u < W; u++)
             if (m[0][u] == W)

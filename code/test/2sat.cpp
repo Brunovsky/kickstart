@@ -39,17 +39,12 @@ bool verify(const edges_t& g, const vector<int>& assignment) {
 void unit_test_twosat() {
     // vertex 0 is completely disconnected
     edges_t g = {{0, 1}, {~1, 2}, {~0, ~1}, {2, 3}, {~2, 4}, {~3, ~4}, {~2, 3}};
-
     twosat_scc sat(5);
 
     for (auto [u, v] : g)
         sat.either(u, v);
 
-    bool ok = sat.solve();
-    assert(ok);
-    cout << sat.assignment << endl;
-
-    print_ok("unit test 2-SAT");
+    assert(sat.solve());
 }
 
 void speed_test_twosat_positive(int T = 3000) {
@@ -74,13 +69,11 @@ void speed_test_twosat_positive(int T = 3000) {
         assert(verify(g, sat.assignment));
     }
 
-    clear_line();
-    print("speed test 2-SAT positive x{}\n", T);
     PRINT_TIME(sat);
 }
 
 int main() {
-    unit_test_twosat();
-    speed_test_twosat_positive();
+    RUN_SHORT(unit_test_twosat());
+    RUN_BLOCK(speed_test_twosat_positive());
     return 0;
 }

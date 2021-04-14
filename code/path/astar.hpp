@@ -41,8 +41,7 @@ struct astar {
         prev.assign(V, -1);
         dist[s] = heur[s] = 0, prev[s] = s;
 
-        auto cmp = [&](int u, int v) { return heur[u] < heur[v]; };
-        pairing_int_heap Q(V, cmp);
+        pairing_int_heap<less_container<vector<long>>> Q(V, heur);
         Q.push(s);
 
         while (!Q.empty()) {

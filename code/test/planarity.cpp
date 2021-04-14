@@ -49,10 +49,9 @@ void dataset_test_planarity() {
         test.run();
         file >> ws;
     }
-    print_ok("dataset test planarity");
 }
 
 int main() {
-    dataset_test_planarity();
+    RUN_BLOCK(dataset_test_planarity());
     return 0;
 }

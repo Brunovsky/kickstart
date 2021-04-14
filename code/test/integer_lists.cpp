@@ -17,8 +17,6 @@ void unit_test_dancing_links() {
     assert(dl.east({2, 5}) == int2({2, 6}));
     dl.remove({3, 4});
     assert(dl.north({4, 4}) == int2({2, 4}));
-
-    print_ok("unit test dancing_links");
 }
 
 void unit_test_forward_lists() {
@@ -47,8 +45,6 @@ void unit_test_forward_lists() {
     assert(seen[3] == vector<int>({6, 1, 5}));
     assert(seen[4] == vector<int>({8}));
     assert(seen[5] == vector<int>({}));
-
-    print_ok("unit test forward_list");
 }
 
 void unit_test_linked_lists() {
@@ -112,8 +108,6 @@ void unit_test_linked_lists() {
     assert(bw[2] == vector<int>({16, 17, 18, 10, 19, 12, 8, 11, 9, 15, 14, 13}));
     assert(bw[3] == vector<int>({}));
     assert(bw[4] == vector<int>({}));
-
-    print_ok("unit test linked_list");
 }
 
 void battle_test_linked_lists(int T = 500000) {
@@ -231,7 +225,6 @@ void battle_test_linked_lists(int T = 500000) {
             print_progress(i, T, "battle test linked list");
     }
     assert(verify());
-    print_ok("battle test linked_list");
 }
 
 void unit_test_freelist() {
@@ -309,15 +302,13 @@ void unit_test_freelist() {
     assert(bw[2] == vector<int>({16, 17, 18, 10, 19, 12, 8, 11, 9, 15, 14, 13}));
     assert(bw[3] == vector<int>({}));
     assert(bw[4] == vector<int>({}));
-
-    print_ok("unit test int_freelist");
 }
 
 int main() {
-    unit_test_dancing_links();
-    unit_test_freelist();
-    unit_test_forward_lists();
-    unit_test_linked_lists();
-    battle_test_linked_lists();
+    RUN_SHORT(unit_test_dancing_links());
+    RUN_SHORT(unit_test_freelist());
+    RUN_SHORT(unit_test_forward_lists());
+    RUN_SHORT(unit_test_linked_lists());
+    RUN_BLOCK(battle_test_linked_lists());
     return 0;
 }

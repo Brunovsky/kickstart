@@ -212,8 +212,6 @@ void unit_test_simplex() {
     tie(res, optimum) = smp.compute();
     print("optimum #9.2: {} {} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && optimum == -105);
-
-    print_ok("unit test simplex " + f_name<F>);
 }
 
 template <typename F>
@@ -280,7 +278,6 @@ void stress_test_standardize(int T = 400, int lo = 2, int hi = 20, int max_sum =
     }
 
     print("Corrects:\n{}\n", to_string(corrects));
-    print_ok("stress test standardized " + f_name<F>);
 }
 
 template <typename F>
@@ -316,15 +313,14 @@ void speed_test_simplex(int T = 2000, int lo = 2, int hi = 20, int max_sum = 30)
     }
 
     print("Times:\n{}\n", to_string(times));
-    print_ok("speed test simplex " + f_name<F>);
 }
 
 int main() {
-    unit_test_simplex<frac>();
-    unit_test_simplex<bfrac>();
-    speed_test_simplex<frac>(2000, 2, 12, 15);
-    speed_test_simplex<bfrac>(100, 2, 25, 30);
-    stress_test_standardize<frac>(200, 2, 12, 15);
-    stress_test_standardize<bfrac>(10, 2, 25, 30);
+    RUN_SHORT(unit_test_simplex<frac>());
+    RUN_SHORT(unit_test_simplex<bfrac>());
+    RUN_BLOCK(speed_test_simplex<frac>(2000, 2, 12, 15));
+    RUN_BLOCK(speed_test_simplex<bfrac>(100, 2, 25, 30));
+    RUN_BLOCK(stress_test_standardize<frac>(200, 2, 12, 15));
+    RUN_BLOCK(stress_test_standardize<bfrac>(10, 2, 25, 30));
     return 0;
 }

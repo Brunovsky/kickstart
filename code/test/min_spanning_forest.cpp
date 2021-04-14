@@ -13,10 +13,9 @@ void unit_test_min_spanning_forest() {
     long w0 = min_spanning_forest_kruskal(7, g, weight);
     long w1 = min_spanning_forest_prim(7, g, weight);
     assert(w0 == 16 && w1 == 16);
-    print_ok("min spanning forest");
 }
 
 int main() {
-    unit_test_min_spanning_forest();
+    RUN_SHORT(unit_test_min_spanning_forest());
     return 0;
 }

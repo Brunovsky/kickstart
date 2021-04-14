@@ -69,7 +69,6 @@ void speed_test_max_flow() {
             speed_test_max_flow_run(flow_network_kind(i), sizes[n], amounts[n]);
         }
     }
-    print_ok("speed test max flow");
 }
 
 void stress_test_max_flow(int T = 10000) {
@@ -100,11 +99,10 @@ void stress_test_max_flow(int T = 10000) {
             fail("Random test failed: {}", fmt::join(mf, " "));
         }
     }
-    print_ok("stress test max flow");
 }
 
 int main() {
-    stress_test_max_flow();
-    speed_test_max_flow();
+    RUN_BLOCK(stress_test_max_flow());
+    RUN_BLOCK(speed_test_max_flow());
     return 0;
 }

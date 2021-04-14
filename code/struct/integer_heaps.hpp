@@ -253,7 +253,7 @@ struct pairing_int_heaps {
     }
     void clear(int h) {
         if (!empty(h)) {
-            clear_dive(root[h]), root[h] = 0;
+            clear_rec(root[h]), root[h] = 0;
         }
     }
 
@@ -288,9 +288,9 @@ struct pairing_int_heaps {
         }
         return u;
     }
-    void clear_dive(int u) {
-        for (int v = node[u].child; v; v = node[v].next)
-            clear_dive(v);
+    void clear_rec(int u) {
+        for (int v = node[u].child, w = node[v].next; v; v = w, w = node[v].next)
+            clear_rec(v);
         node[u] = node_t();
     }
 };
@@ -298,14 +298,14 @@ struct pairing_int_heaps {
 template <typename Container>
 struct less_container {
     const Container& cont;
-    explicit less_container(const Container& cont) : cont(cont) {}
+    less_container(const Container& cont) : cont(cont) {}
     inline bool operator()(int u, int v) const { return cont[u] < cont[v]; }
 };
 
 template <typename Container>
 struct greater_container {
     const Container& cont;
-    explicit greater_container(const Container& cont) : cont(cont) {}
+    greater_container(const Container& cont) : cont(cont) {}
     inline bool operator()(int u, int v) const { return cont[u] > cont[v]; }
 };
 

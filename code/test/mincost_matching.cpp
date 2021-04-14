@@ -26,8 +26,6 @@ void unit_test_mincost_matching() {
     mm = mincost_hungarian(3, 3, g, cost);
     c = mm.mincost_max_matching();
     assert(c == 407);
-
-    print_ok("unit test mincost matching");
 }
 
 void speed_test_mincost_matching_run(bipartite_graph_kind i, int S, int T) {
@@ -63,11 +61,10 @@ void speed_test_mincost_matching() {
                                             amounts[n]);
         }
     }
-    print_ok("speed test mincost matching");
 }
 
 int main() {
-    unit_test_mincost_matching();
-    speed_test_mincost_matching();
+    RUN_SHORT(unit_test_mincost_matching());
+    RUN_BLOCK(speed_test_mincost_matching());
     return 0;
 }

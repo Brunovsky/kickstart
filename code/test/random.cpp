@@ -139,7 +139,6 @@ void stress_test_partition_sample_uniform(double F = 1'000) {
 
     verify_normality(fast);
     verify_normality(naive);
-    print_ok("stress test partition sample uniform");
 }
 
 void stress_test_vec_sample(int T = 70000, int n = 4096, int k = 37) {
@@ -159,7 +158,6 @@ void stress_test_vec_sample(int T = 70000, int n = 4096, int k = 37) {
         assert(sample.size() == k);
     }
     verify_normality(cnt);
-    print_ok("stress test vec sample");
 }
 
 void scaling_test_int_sample(long F = 5'000'000) {
@@ -209,8 +207,6 @@ void scaling_test_int_sample(long F = 5'000'000) {
                   TIME_MS(sampler), 1.0 * TIME_US(sampler) / N, n, p);
         }
     }
-
-    print_ok("scaling test int sample");
 }
 
 void scaling_test_choose_sample(long F = 5'000'000) {
@@ -263,8 +259,6 @@ void scaling_test_choose_sample(long F = 5'000'000) {
                   TIME_MS(sampler), 1.0 * TIME_US(sampler) / N, n, p);
         }
     }
-
-    print_ok("scaling test int sample");
 }
 
 void scaling_test_pair_sample(long F = 5'000'000) {
@@ -318,15 +312,13 @@ void scaling_test_pair_sample(long F = 5'000'000) {
                   TIME_MS(sampler), 1.0 * TIME_US(sampler) / N, n, m, p);
         }
     }
-
-    print_ok("scaling test int sample");
 }
 
 int main() {
-    stress_test_partition_sample_uniform();
-    stress_test_vec_sample();
-    scaling_test_int_sample();
-    scaling_test_pair_sample();
-    scaling_test_choose_sample();
+    RUN_BLOCK(stress_test_partition_sample_uniform());
+    RUN_BLOCK(stress_test_vec_sample());
+    RUN_BLOCK(scaling_test_int_sample());
+    RUN_BLOCK(scaling_test_pair_sample());
+    RUN_BLOCK(scaling_test_choose_sample());
     return 0;
 }

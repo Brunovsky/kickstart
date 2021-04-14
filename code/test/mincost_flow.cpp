@@ -87,7 +87,6 @@ void dataset_test_mincost_flow() {
         test.run();
         file >> ws;
     }
-    print_ok("dataset test mincost flow");
 }
 
 void speed_test_mincost_flow_run(flow_network_kind i, int S, int T) {
@@ -119,11 +118,10 @@ void speed_test_mincost_flow() {
             speed_test_mincost_flow_run(flow_network_kind(i), sizes[n], amounts[n]);
         }
     }
-    print_ok("speed test mincost flow");
 }
 
 int main() {
-    dataset_test_mincost_flow();
-    speed_test_mincost_flow();
+    RUN_BLOCK(dataset_test_mincost_flow());
+    RUN_BLOCK(speed_test_mincost_flow());
     return 0;
 }

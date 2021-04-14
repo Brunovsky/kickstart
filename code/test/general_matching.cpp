@@ -86,7 +86,6 @@ void dataset_test_general_matching() {
         test.run();
         file >> ws;
     }
-    print_ok("dataset test general matching");
 }
 
 void stress_test_general_matching(int T = 10000) {
@@ -114,8 +113,6 @@ void stress_test_general_matching(int T = 10000) {
             fail("error -- V={} E={} M={} -- boost:{} -- mv:{}\n", V, E, M, boo, ans);
         }
     }
-
-    print_ok("stress test general matching");
 }
 
 void scaling_test_general_matching_run(int T, int V, int E) {
@@ -140,7 +137,6 @@ void scaling_test_general_matching_run(int T, int V, int E) {
 }
 
 void scaling_test_general_matching(double F = 1.0) {
-    print("scaling test general matching (factor {})\n", F);
     scaling_test_general_matching_run(int(F * 2000), 200, 300);
     scaling_test_general_matching_run(int(F * 600), 200, 2'000);
     scaling_test_general_matching_run(int(F * 800), 500, 800);
@@ -169,7 +165,6 @@ void scaling_test_general_matching(double F = 1.0) {
     scaling_test_general_matching_run(int(F * 1), 100'000, 1'000'000);
     scaling_test_general_matching_run(int(F * 2), 200'000, 300'000);
     scaling_test_general_matching_run(int(F * 2), 250'000, 300'000);
-    print_ok("scaling test general matching");
 }
 
 void speed_test_general_matching_run(int T, int V, int E) {
@@ -200,7 +195,6 @@ void speed_test_general_matching_run(int T, int V, int E) {
 }
 
 void speed_test_general_matching(double F = 1.0) {
-    print("speed test general matching (factor {})\n", F);
     speed_test_general_matching_run(int(F * 20000), 50, 70);
     speed_test_general_matching_run(int(F * 10000), 100, 150);
     speed_test_general_matching_run(int(F * 4000), 200, 300);
@@ -211,21 +205,24 @@ void speed_test_general_matching(double F = 1.0) {
     speed_test_general_matching_run(int(F * 200), 2'000, 12'000);
     speed_test_general_matching_run(int(F * 200), 5'000, 7'000);
     speed_test_general_matching_run(int(F * 80), 5'000, 30'000);
+    speed_test_general_matching_run(int(F * 30), 5'000, 100'000);
+    speed_test_general_matching_run(int(F * 12), 5'000, 300'000);
+    speed_test_general_matching_run(int(F * 5), 5'000, 1'000'000);
     speed_test_general_matching_run(int(F * 40), 10'000, 15'000);
     speed_test_general_matching_run(int(F * 30), 10'000, 25'000);
     speed_test_general_matching_run(int(F * 14), 20'000, 30'000);
     speed_test_general_matching_run(int(F * 11), 20'000, 45'000);
     speed_test_general_matching_run(int(F * 6), 30'000, 50'000);
-    speed_test_general_matching_run(int(F * 5), 30'000, 70'000);
-    speed_test_general_matching_run(int(F * 2), 50'000, 80'000);
+    speed_test_general_matching_run(int(F * 4), 30'000, 80'000);
+    speed_test_general_matching_run(int(F * 3), 30'000, 300'000);
+    speed_test_general_matching_run(int(F * 2), 50'000, 100'000);
     speed_test_general_matching_run(int(F * 1), 100'000, 150'000);
-    print_ok("speed test general matching");
 }
 
 int main() {
-    dataset_test_general_matching();
-    stress_test_general_matching();
-    scaling_test_general_matching();
-    speed_test_general_matching();
+    RUN_BLOCK(dataset_test_general_matching());
+    RUN_BLOCK(stress_test_general_matching());
+    RUN_BLOCK(speed_test_general_matching());
+    RUN_BLOCK(scaling_test_general_matching());
     return 0;
 }

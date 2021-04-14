@@ -115,10 +115,10 @@ void unit_test_modnum() {
 }
 
 int main() {
-    unit_test_gcd();
-    unit_test_others();
-    unit_test_modsqrt();
-    unit_test_modlog();
-    unit_test_modnum();
+    RUN_SHORT(unit_test_gcd());
+    RUN_SHORT(unit_test_others());
+    RUN_SHORT(unit_test_modsqrt());
+    RUN_SHORT(unit_test_modlog());
+    RUN_SHORT(unit_test_modnum());
     return 0;
 }

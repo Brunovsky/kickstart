@@ -29,12 +29,9 @@ void unit_test_stoer_wagner() {
     });
     print("stoer_wagner 2 -- mincut: {}, ({})\n", ans, cut);
     assert(ans == 382);
-
-    print_ok("unit test stoer wagner");
-
 }
 
 int main() {
-    unit_test_stoer_wagner();
+    RUN_SHORT(unit_test_stoer_wagner());
     return 0;
 }

@@ -85,10 +85,9 @@ void stress_test_string_searchers() {
             assert(i1 == i5);
         }
     }
-    print_ok("stress test string searchers");
 }
 
 int main() {
-    stress_test_string_searchers();
+    RUN_BLOCK(stress_test_string_searchers());
     return 0;
 }

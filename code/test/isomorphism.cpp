@@ -34,7 +34,6 @@ void stress_test_isomorphic_positives(int T = 3000) {
         auto g2 = relabel(V, g1);
         assert(isomorphic(V, g1, g2));
     }
-    print_ok("stress test graph isomorphism positives");
 }
 
 auto show(int negatives, int positives, int false_positives) {
@@ -84,11 +83,10 @@ void stress_test_isomorphic_false_positives() {
         fp_test_run("regular 14V k=" + to_string(k), 3000 - 400 * k,
                     generator_regular(14, k, k));
     }
-    print_ok("stress test graph isomorphism false positives");
 }
 
 int main() {
-    stress_test_isomorphic_positives();
-    stress_test_isomorphic_false_positives();
+    RUN_BLOCK(stress_test_isomorphic_positives());
+    RUN_BLOCK(stress_test_isomorphic_false_positives());
     return 0;
 }

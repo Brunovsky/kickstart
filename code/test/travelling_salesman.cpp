@@ -60,10 +60,9 @@ void dataset_test_exact_tsp() {
         test.run();
         file >> ws;
     }
-    print_ok("dataset test exact tsp");
 }
 
 int main() {
-    dataset_test_exact_tsp();
+    RUN_BLOCK(dataset_test_exact_tsp());
     return 0;
 }

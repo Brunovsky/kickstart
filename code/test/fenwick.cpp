@@ -26,8 +26,6 @@ void unit_test_1d() {
     assert(fw.lower_bound(159) == 50);
     assert(fw.lower_bound(540) == 100);
     assert(fw.lower_bound(541) == 101); // end is past N
-
-    print_ok("unit test 1d");
 }
 
 void unit_test_2d() {
@@ -48,12 +46,10 @@ void unit_test_2d() {
     assert(fw.sum(80, 90) == 210);
     assert(fw.sum(80, 94) == 210);
     assert(fw.sum(80, 95) == 270);
-
-    print_ok("unit test 2d");
 }
 
 int main() {
-    unit_test_1d();
-    unit_test_2d();
+    RUN_SHORT(unit_test_1d());
+    RUN_SHORT(unit_test_2d());
     return 0;
 }

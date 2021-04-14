@@ -79,11 +79,9 @@ void unit_test_transportation() {
                 {13, 60, 4, 0, 0, 0},
                 {67, 0, 0, 0, 0, 9}}};
     assert(tp == solution && ans == 4682);
-
-    print_ok("unit test transportation");
 }
 
 int main() {
-    unit_test_transportation();
+    RUN_SHORT(unit_test_transportation());
     return 0;
 }

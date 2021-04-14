@@ -21,7 +21,6 @@ void unit_test_range_segtree() {
     assert(tree.to_array(tree.upper_bound(78)) == 3);
     assert(tree.to_array(tree.lower_bound(80)) == 3);
     assert(tree.to_array(tree.upper_bound(80)) == 3);
-    print_ok("unit test range segtree");
 }
 
 void unit_test_dyn_segtree() {
@@ -37,11 +36,10 @@ void unit_test_dyn_segtree() {
     assert(tree.query(14, 18) == 1);
     assert(tree.query(13, 19) == 9);
     assert(tree.query(10, 30) == 28);
-    print_ok("unit test dyn segtree");
 }
 
 int main() {
-    unit_test_range_segtree();
-    unit_test_dyn_segtree();
+    RUN_SHORT(unit_test_range_segtree());
+    RUN_SHORT(unit_test_dyn_segtree());
     return 0;
 }

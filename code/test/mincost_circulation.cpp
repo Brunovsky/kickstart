@@ -65,10 +65,9 @@ void dataset_test_mincost_circulation() {
         test.run();
         file >> ws;
     }
-    print_ok("dataset test mincost circulation");
 }
 
 int main() {
-    dataset_test_mincost_circulation();
+    RUN_BLOCK(dataset_test_mincost_circulation());
     return 0;
 }

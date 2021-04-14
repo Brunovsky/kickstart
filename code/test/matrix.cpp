@@ -76,8 +76,6 @@ void unit_test_gauss_frac() {
     x = *gauss(m, b);
     assert(x == vecf({-15, 8, 2}));
     assert(m * x == b);
-
-    print_ok("unit test gauss frac");
 }
 
 void unit_test_inverse_frac() {
@@ -123,8 +121,6 @@ void unit_test_inverse_frac() {
     assert(a == i);
     a = *inverse(i);
     assert(a == m);
-
-    print_ok("unit test inverse frac");
 }
 
 void stress_test_gauss_frac(int T = 2000) {
@@ -144,7 +140,6 @@ void stress_test_gauss_frac(int T = 2000) {
         infeasible += !ok;
         different += ok && *x != z;
     }
-    print_ok("stress test gauss frac");
     print("  {:5.1f}% ({}) degenerate\n", 100.0 * degenerate / T, degenerate);
     print("  {:5.1f}% ({}) infeasible\n", 100.0 * infeasible / T, infeasible);
     print("  {:5.1f}% ({}) different\n", 100.0 * different / T, different);
@@ -167,7 +162,6 @@ void stress_test_gauss_double(int T = 1000) {
         infeasible += !ok;
         different += ok && !(min_diff(*x, z) <= 1e-12);
     }
-    print_ok("stress test gauss double");
     print("  {:5.1f}% ({}) degenerate\n", 100.0 * degenerate / T, degenerate);
     print("  {:5.1f}% ({}) infeasible\n", 100.0 * infeasible / T, infeasible);
     print("  {:5.1f}% ({}) different\n", 100.0 * different / T, different);
@@ -193,7 +187,6 @@ void stress_test_inverse_double(int T = 1000) {
         different_mul += !(min_diff(matd::identity(n), a * *b) <= 1e-16);
         different_inv += !(min_diff(a, *c) <= 1e-12);
     }
-    print_ok("stress test inverse double");
     print("  {:5.1f}% ({}) degenerate\n", 100.0 * degenerate / T, degenerate);
     print("  {:5.1f}% ({}) different mul\n", 100.0 * different_mul / T, different_mul);
     print("  {:5.1f}% ({}) different inv\n", 100.0 * different_inv / T, different_inv);
@@ -233,7 +226,6 @@ void scaling_test_gauss_double(int T = 100, int nmin = 5, int nmax = 300, int ni
     }
 
     int N = T * (nmax - nmin + ninc) / ninc;
-    print_ok("stress test gauss double");
     print("  {:5.1f}% ({}) degenerate\n", 100.0 * total_degenerate / N, total_degenerate);
     print("  {:5.1f}% ({}) infeasible\n", 100.0 * total_infeasible / N, total_infeasible);
     print("  {:5.1f}% ({}) different\n", 100.0 * total_different / N, total_different);
@@ -285,17 +277,15 @@ void unit_test_det() {
         assert(b_ans == ans[t]);
         assert(c_ans == ans[t]);
     }
-
-    print_ok("unit test det");
 }
 
 int main() {
-    unit_test_gauss_frac();
-    unit_test_inverse_frac();
-    unit_test_det();
-    stress_test_gauss_frac();
-    stress_test_gauss_double();
-    stress_test_inverse_double();
-    scaling_test_gauss_double();
+    RUN_SHORT(unit_test_gauss_frac());
+    RUN_SHORT(unit_test_inverse_frac());
+    RUN_SHORT(unit_test_det());
+    RUN_BLOCK(stress_test_gauss_frac());
+    RUN_BLOCK(stress_test_gauss_double());
+    RUN_BLOCK(stress_test_inverse_double());
+    RUN_BLOCK(scaling_test_gauss_double());
     return 0;
 }

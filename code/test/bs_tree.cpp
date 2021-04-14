@@ -1,8 +1,8 @@
-#include "../formatting.hpp"
-#include "../random.hpp"
 #include "../bstree/bs_map.hpp"
 #include "../bstree/bs_set.hpp"
 #include "../bstree/bs_tree_debug.hpp"
+#include "../formatting.hpp"
+#include "../random.hpp"
 #include "test_utils.hpp"
 
 using namespace std;
@@ -183,7 +183,6 @@ void merge_test(int T = 500) {
 
         print_progress(t + 2 * T, 3 * T, "merge");
     }
-    print_ok("merge");
 }
 
 /**
@@ -230,7 +229,6 @@ void construct_test(int T = 500) {
 
         print_progress(t, T, "construct");
     }
-    print_ok("construct");
 }
 
 /**
@@ -380,7 +378,6 @@ void iterator_test(int T = 500) {
 
         print_progress(t, T, "iterator");
     }
-    print_ok("iterator");
 }
 
 /**
@@ -427,7 +424,6 @@ void equality_test(int T = 500) {
 
         print_progress(t, T, "equality");
     }
-    print_ok("equality");
 }
 
 /**
@@ -473,8 +469,6 @@ void comparison_test(int T = 500) {
             assert(trees[i] != trees[i + 1]);
         }
     }
-
-    print_ok("comparison");
 }
 
 /**
@@ -493,7 +487,6 @@ void insert_test(int T = 500) {
         }
         print_progress(t, T, "insert");
     }
-    print_ok("insert");
 }
 
 /**
@@ -521,7 +514,6 @@ void erase_test(int T = 500) {
         }
         print_progress(t, T, "erase");
     }
-    print_ok("erase");
 }
 
 /**
@@ -567,8 +559,6 @@ void memory_test() {
     vtree.insert(v3), vtree.insert(v2);
     atree.emplace(2, 3), atree.emplace(1, 7);
     atree.emplace(3, 4), atree.emplace(2, 1);
-
-    print_ok("memory");
 }
 
 /**
@@ -613,8 +603,6 @@ void hint_test() {
     assert(tree.empty());
 
     debug_tree(tree).debug();
-
-    print_ok("hint");
 }
 
 /**
@@ -638,8 +626,6 @@ void emplace_test() {
     assert(a == b);
     debug_tree(a).debug();
     debug_tree(b).debug();
-
-    print_ok("emplace");
 }
 
 /**
@@ -689,8 +675,6 @@ void map_test() {
 
     a.emplace_hint(a.end(), "500", "400");
     assert(a == b);
-
-    print_ok("map");
 }
 
 void print_example() {
@@ -856,41 +840,40 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
 
         print_progress(t, T, "battle " + to_string(bti));
     }
-    print_ok("battle " + to_string(bti));
 }
 
 int main() {
-    insert_test();
-    erase_test();
-    hint_test();
-    emplace_test();
-    equality_test();
-    memory_test();
-    iterator_test();
-    construct_test();
-    comparison_test();
-    merge_test();
-    map_test();
+    RUN_SHORT(insert_test());
+    RUN_SHORT(erase_test());
+    RUN_SHORT(hint_test());
+    RUN_SHORT(emplace_test());
+    RUN_SHORT(equality_test());
+    RUN_SHORT(memory_test());
+    RUN_SHORT(iterator_test());
+    RUN_SHORT(construct_test());
+    RUN_SHORT(comparison_test());
+    RUN_SHORT(merge_test());
+    RUN_SHORT(map_test());
 
     // clang-format off
     // generic test with moderate conflicts
-    battle_test(800, intd(5, 700), intd(0, 7),
-                boold(0.40), boold(0.45), boold(0.30), boold(0.20), boold(0.002));
+    RUN_SHORT((battle_test(800, intd(5, 700), intd(0, 7),
+                boold(0.40), boold(0.45), boold(0.30), boold(0.20), boold(0.002))));
     // inserts only test
-    battle_test(300, intd(5, 700), intd(0, 7),
-                boold(0.00), boold(0.30), boold(0.60), boold(0.50), boold(0.000));
+    RUN_SHORT((battle_test(300, intd(5, 700), intd(0, 7),
+                boold(0.00), boold(0.30), boold(0.60), boold(0.50), boold(0.000))));
     // generic test with many conflicts
-    battle_test(800, intd(100, 700), intd(0, 3),
-                boold(0.40), boold(0.45), boold(0.30), boold(0.20), boold(0.003));
+    RUN_SHORT((battle_test(800, intd(100, 700), intd(0, 3),
+                boold(0.40), boold(0.45), boold(0.30), boold(0.20), boold(0.003))));
     // hinted test
-    battle_test(700, intd(50, 200), intd(0, 7),
-                boold(0.10), boold(0.50), boold(0.40), boold(0.90), boold(0.004));
+    RUN_SHORT((battle_test(700, intd(50, 200), intd(0, 7),
+                boold(0.10), boold(0.50), boold(0.40), boold(0.90), boold(0.004))));
     // different compare
-    battle_test<greater<pair<int, int>>>(500, intd(5, 700), intd(0, 7),
-                boold(0.40), boold(0.45), boold(0.30), boold(0.20), boold(0.002));
+    RUN_SHORT((battle_test<greater<pair<int, int>>>(500, intd(5, 700), intd(0, 7),
+                boold(0.40), boold(0.45), boold(0.30), boold(0.20), boold(0.002))));
     // many clears
-    battle_test(500, intd(200, 300), intd(0, 10),
-                boold(0.10), boold(0.25), boold(0.50), boold(0.30), boold(0.075));
+    RUN_SHORT((battle_test(500, intd(200, 300), intd(0, 10),
+                boold(0.10), boold(0.25), boold(0.50), boold(0.30), boold(0.075))));
     //               erase        emplace      multi        hint         clear
     // clang-format on
 

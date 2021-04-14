@@ -27,7 +27,6 @@ void unit_test_bits() {
     uint v = 0b10000001000001000010001001011111;
     reverse_bits(v);
     assert(v == 0b11111010010001000010000010000001);
-    print_ok("unit test bits");
 }
 
 void unit_test_foreach_mask() {
@@ -53,7 +52,6 @@ void unit_test_foreach_mask() {
         loop.push_back(mask);
 
     assert(loop == masks);
-    print_ok("unit test foreach_mask");
 }
 
 void unit_test_foreach_subset() {
@@ -81,12 +79,11 @@ void unit_test_foreach_subset() {
     sort(begin(loop), end(loop));
     sort(begin(masks), end(masks));
     assert(loop == masks);
-    print_ok("unit test foreach_subset");
 }
 
 int main() {
-    unit_test_bits();
-    unit_test_foreach_mask();
-    unit_test_foreach_subset();
+    RUN_SHORT(unit_test_bits());
+    RUN_SHORT(unit_test_foreach_mask());
+    RUN_SHORT(unit_test_foreach_subset());
     return 0;
 }

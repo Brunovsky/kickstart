@@ -89,7 +89,6 @@ void speed_test_all_pairs_shortest_paths() {
     constexpr int N = 5;
     constexpr int sizes[] = {100, 250, 500, 1400, 2000};
     constexpr int amounts[] = {1000, 100, 10, 5, 2};
-    print("speed test all pairs shortest paths\n");
     for (int n = 0; n < N; n++) {
         print("speed test group S={} x{}\n", sizes[n], amounts[n]);
         for (int i = 0; i < int(DG_END); i++) {
@@ -97,7 +96,6 @@ void speed_test_all_pairs_shortest_paths() {
                                                    amounts[n]);
         }
     }
-    print_ok("speed test all pairs shortest paths");
 }
 
 void speed_test_negative_shortest_path_run(distance_graph_kind i, int S, int T) {
@@ -128,7 +126,6 @@ void speed_test_negative_shortest_paths() {
     constexpr int N = 5;
     constexpr int sizes[] = {300, 800, 1700, 4000, 10000};
     constexpr int amounts[] = {1000, 100, 10, 5, 2};
-    print("speed test negative shortest paths\n");
     for (int n = 0; n < N; n++) {
         print("Speed test S={} x{}\n", sizes[n], amounts[n]);
         for (int i = 0; i < int(DG_END); i++) {
@@ -136,7 +133,6 @@ void speed_test_negative_shortest_paths() {
                                                   amounts[n]);
         }
     }
-    print_ok("speed test negative shortest paths");
 }
 
 void stress_test_positive_shortest_paths(int T = 2000) {
@@ -156,12 +152,11 @@ void stress_test_positive_shortest_paths(int T = 2000) {
             fail("distances not equal");
         }
     }
-    print_ok("stress test positive shortest paths");
 }
 
 int main() {
-    stress_test_positive_shortest_paths();
-    speed_test_all_pairs_shortest_paths();
-    speed_test_negative_shortest_paths();
+    RUN_BLOCK(stress_test_positive_shortest_paths());
+    RUN_BLOCK(speed_test_all_pairs_shortest_paths());
+    RUN_BLOCK(speed_test_negative_shortest_paths());
     return 0;
 }

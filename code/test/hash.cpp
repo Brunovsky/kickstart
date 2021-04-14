@@ -21,7 +21,6 @@ void unit_test_rolling_hasher() {
     print("roll(s3): {}\n", h3b);
     assert(h2 == h2b);
     assert(h3 == h3b);
-    print_ok("unit test rolling hasher");
 }
 
 void unit_test_tuple_hasher() {
@@ -37,7 +36,7 @@ void unit_test_tuple_hasher() {
 }
 
 int main() {
-    unit_test_rolling_hasher();
-    unit_test_tuple_hasher();
+    RUN_SHORT(unit_test_rolling_hasher());
+    RUN_SHORT(unit_test_tuple_hasher());
     return 0;
 }

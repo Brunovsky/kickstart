@@ -39,8 +39,7 @@ struct dijkstra {
         prev.assign(V, -1);
         dist[s] = 0, prev[s] = s;
 
-        auto cmp = [&](int u, int v) { return dist[u] < dist[v]; };
-        pairing_int_heap Q(V, cmp);
+        pairing_int_heap<less_container<vector<long>>> Q(V, dist);
         Q.push(s);
 
         while (!Q.empty()) {

@@ -50,7 +50,6 @@ void speed_test_maximum_matching() {
                                             amounts[n]);
         }
     }
-    print_ok("speed test maximum matching");
 }
 
 void stress_test_maximum_matching(int T = 2000) {
@@ -74,8 +73,6 @@ void stress_test_maximum_matching(int T = 2000) {
 
         assert(M == m0 && M == m1);
     }
-
-    print_ok("stress test maximum matching");
 }
 
 void unit_test_maximum_matching() {
@@ -91,13 +88,11 @@ void unit_test_maximum_matching() {
     mm0 = maximum_matching(8, 8, g).compute();
     mm1 = hopcroft_karp(8, 8, g).compute();
     assert(mm0 == 7 && mm1 == 7);
-
-    print_ok("unit test maximum matching");
 }
 
 int main() {
-    unit_test_maximum_matching();
-    stress_test_maximum_matching();
-    speed_test_maximum_matching();
+    RUN_SHORT(unit_test_maximum_matching());
+    RUN_BLOCK(stress_test_maximum_matching());
+    RUN_BLOCK(speed_test_maximum_matching());
     return 0;
 }

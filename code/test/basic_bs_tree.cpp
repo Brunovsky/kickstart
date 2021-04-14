@@ -28,7 +28,6 @@ void insert_test(int T = 1000) {
         debug_tree(tree).debug();
         print_progress(t, T, "insert");
     }
-    print_ok("insert");
 }
 
 void erase_test(int T = 300) {
@@ -53,11 +52,10 @@ void erase_test(int T = 300) {
         assert(tree.empty());
         print_progress(t, T, "erase");
     }
-    print_ok("erase");
 }
 
 int main() {
-    insert_test();
-    erase_test();
+    RUN_SHORT(insert_test());
+    RUN_SHORT(erase_test());
     return 0;
 }

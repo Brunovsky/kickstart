@@ -11,7 +11,7 @@ void unit_test_pairing_heaps() {
     constexpr int R = 5, N = 15;
 
     long cost[N] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28};
-    pairing_int_heaps heaps(R, N, greater_container(cost));
+    pairing_int_heaps<greater_container<long*>> heaps(R, N, cost);
     int u;
 
     heaps.push(0, 1);
@@ -56,8 +56,6 @@ void unit_test_pairing_heaps() {
 
     heaps.push_or_improve(0, 3);
     assert(heaps.top(0) == 3);
-
-    print_ok("unit test pairing_int_heaps");
 }
 
 struct cost_graph {
@@ -141,8 +139,8 @@ void speed_test_int_heaps(int T = 10000) {
             g.cost[e] = costd(mt);
 
         vector<long> dist[3];
-        pairing_int_heap pairing_heap(V, less_container(dist[1]));
-        binary_int_heap binary_heap(V, less_container(dist[2]));
+        pairing_int_heap<less_container<vector<long>>> pairing_heap(V, dist[1]);
+        binary_int_heap<less_container<vector<long>>> binary_heap(V, dist[2]);
 
         START(dijkstra);
         for (int s = 0; s < V; s += step)
@@ -164,14 +162,13 @@ void speed_test_int_heaps(int T = 10000) {
         }
     }
 
-    clear_line(), print("speed test int heaps (x{} graphs)\n", T);
     PRINT_TIME(dijkstra);
     PRINT_TIME(pairing);
     PRINT_TIME(binary);
 }
 
 int main() {
-    unit_test_pairing_heaps();
-    speed_test_int_heaps();
+    RUN_SHORT(unit_test_pairing_heaps());
+    RUN_BLOCK(speed_test_int_heaps());
     return 0;
 }

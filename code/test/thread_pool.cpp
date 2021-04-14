@@ -182,7 +182,6 @@ void stress_test_fn_orchestrator(int T = 100) {
         print_progress(t, T, "stress test fn orchestrator");
         fn_orchestrator_stress_run(600, 40, 32);
     }
-    print("\n");
 }
 
 void speed_test_fn_orchestrator(int T = 25) {
@@ -190,7 +189,6 @@ void speed_test_fn_orchestrator(int T = 25) {
         print_progress(t, T, "speed test fn orchestrator");
         fn_orchestrator_speed_run(1000, 70, 3 * (t + 1), 16);
     }
-    print("\n");
 }
 
 void graph_orchestrator_stress_run(int V, int E, int nthreads) {
@@ -256,7 +254,6 @@ void stress_test_graph_orchestrator(int T = 100) {
         print_progress(t, T, "stress test graph orchestrator");
         graph_orchestrator_stress_run(V, E, 8);
     }
-    print("\n");
 }
 
 void speed_test_graph_orchestrator(int T = 25) {
@@ -266,17 +263,15 @@ void speed_test_graph_orchestrator(int T = 25) {
         int E = 1L * (t * max_E + (T - 1 - t) * min_E) / (T - 1);
         graph_orchestrator_speed_run(V, E, 50, 16);
     }
-    print("\n");
 }
 
 int main() {
-    setbuf(stdout, nullptr);
-    setbuf(stderr, nullptr);
-    stress_test_graph_orchestrator();
-    speed_test_graph_orchestrator();
-    stress_test_fn_orchestrator();
-    speed_test_fn_orchestrator();
-    stress_test_pool_submit();
-    stress_test_priority_pool_submit();
+    setbuf(stdout, nullptr), setbuf(stderr, nullptr);
+    RUN_BLOCK(stress_test_graph_orchestrator());
+    RUN_BLOCK(speed_test_graph_orchestrator());
+    RUN_BLOCK(stress_test_fn_orchestrator());
+    RUN_BLOCK(speed_test_fn_orchestrator());
+    RUN_BLOCK(stress_test_pool_submit());
+    RUN_BLOCK(stress_test_priority_pool_submit());
     return 0;
 }

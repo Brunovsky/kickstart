@@ -40,11 +40,10 @@ void unit_test_lca() {
     assert(lca.dist(6, 8) == 4);
     assert(lca.dist(3, 3) == 0);
     assert(lca.dist(3, 15) == 2);
-    print_ok("unit test lca");
 }
 
 int main() {
     setup();
-    unit_test_lca();
+    RUN_SHORT(unit_test_lca());
     return 0;
 }

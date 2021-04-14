@@ -214,52 +214,52 @@ void run(Args&&... args) {
 
 int main() {
     print("# minmax compare and accumulate (int) low inserts -----\n");
-    run<minmax_test>(1'000'000, 1000, 2, 50);
+    RUN_BLOCK(run<minmax_test>(1'000'000, 1000, 2, 50));
 
     print("# minmax compare and accumulate (int) many inserts -----\n");
-    run<minmax_test>(1'000'000, 500, 10, 20);
+    RUN_BLOCK(run<minmax_test>(1'000'000, 500, 10, 20));
 
     print("# ordered hinted insertion begin (int) few collisions -----\n");
-    run<ordered_insert_hint_begin_test>(1'000'000, 2000, 20);
+    RUN_BLOCK(run<ordered_insert_hint_begin_test>(1'000'000, 2000, 20));
 
     print("# ordered hinted insertion begin (int) many collisions -----\n");
-    run<ordered_insert_hint_begin_test>(1'000, 2000, 20);
+    RUN_BLOCK(run<ordered_insert_hint_begin_test>(1'000, 2000, 20));
 
     print("# ordered hinted insertion end (int) few collisions -----\n");
-    run<ordered_insert_hint_end_test>(1'000'000, 2000, 20);
+    RUN_BLOCK(run<ordered_insert_hint_end_test>(1'000'000, 2000, 20));
 
     print("# ordered hinted insertion end (int) many collisions -----\n");
-    run<ordered_insert_hint_end_test>(1'000, 2000, 20);
+    RUN_BLOCK(run<ordered_insert_hint_end_test>(1'000, 2000, 20));
 
     print("# unordered insertion (int) few collisions -----\n");
-    run<unordered_insert_test>(1'000'000, 1000, 20);
+    RUN_BLOCK(run<unordered_insert_test>(1'000'000, 1000, 20));
 
     print("# unordered insertion (int) moderate collisions -----\n");
-    run<unordered_insert_test>(25'000, 1000, 20);
+    RUN_BLOCK(run<unordered_insert_test>(25'000, 1000, 20));
 
     print("# unordered insertion (int) many collisions -----\n");
-    run<unordered_insert_test>(1'000, 1000, 20);
+    RUN_BLOCK(run<unordered_insert_test>(1'000, 1000, 20));
 
     print("# count query (int) unlikely -----\n");
-    run<count_query_test>(1'000'000, 500, 20, 100);
+    RUN_BLOCK(run<count_query_test>(1'000'000, 500, 20, 100));
 
     print("# count query (int) moderate -----\n");
-    run<count_query_test>(25'000, 500, 20, 100);
+    RUN_BLOCK(run<count_query_test>(25'000, 500, 20, 100));
 
     print("# count query (int) likely -----\n");
-    run<count_query_test>(1'000, 500, 20, 100);
+    RUN_BLOCK(run<count_query_test>(1'000, 500, 20, 100));
 
     print("# random erase test (int) unlikely -----\n");
-    run<random_erase_test>(1'000'000, 500, 20, 100);
+    RUN_BLOCK(run<random_erase_test>(1'000'000, 500, 20, 100));
 
     print("# random erase test (int) moderate -----\n");
-    run<random_erase_test>(25'000, 500, 20, 100);
+    RUN_BLOCK(run<random_erase_test>(25'000, 500, 20, 100));
 
     print("# random erase test (int) likely -----\n");
-    run<random_erase_test>(1'000, 500, 20, 100);
+    RUN_BLOCK(run<random_erase_test>(1'000, 500, 20, 100));
 
     print("# perfect unordered erase test (int) -----\n");
-    run<perfect_unordered_erase_test>(1'000'000, 1000, 20);
+    RUN_BLOCK(run<perfect_unordered_erase_test>(1'000'000, 1000, 20));
 
     return 0;
 }

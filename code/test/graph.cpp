@@ -64,7 +64,6 @@ void scaling_test_random_regular_run(int T, int n, int k) {
 }
 
 void scaling_test_random_regular(double M = 1) {
-    print("scaling test random regular\n");
     scaling_test_random_regular_run(int(M * 10), 300, 100);
     scaling_test_random_regular_run(int(M * 10), 300, 200);
     scaling_test_random_regular_run(int(M * 5000), 25, 6);
@@ -83,7 +82,6 @@ void scaling_test_random_regular(double M = 1) {
     scaling_test_random_regular_run(int(M * 6), 10000, 50);
     scaling_test_random_regular_run(int(M * 1), 50000, 60);
     scaling_test_random_regular_run(int(M * 1), 50000, 120);
-    print_ok("scaling test random regular");
 }
 
 void visual_test_generators() {
@@ -202,7 +200,6 @@ void balance_test_generate_flow() {
         }
         print("{1:<{0}} --- {2:5.1f}\n", 96, "", sum_W / int(FN_END));
     }
-    print_ok("balance test flow");
 }
 
 void balance_test_generate_circulation() {
@@ -234,7 +231,6 @@ void balance_test_generate_circulation() {
         }
         print("{1:<{0}} --- {2:5.1f}\n", 96, "", sum_W / int(CN_END));
     }
-    print_ok("balance test circulation");
 }
 
 void balance_test_generate_distance() {
@@ -265,7 +261,6 @@ void balance_test_generate_distance() {
         }
         print("{1:<{0}} --- {2:5.1f}\n", 96, "", sum_W / int(DG_END));
     }
-    print_ok("balance test distance");
 }
 
 void balance_test_generate_bipartite() {
@@ -297,15 +292,14 @@ void balance_test_generate_bipartite() {
         }
         print("{1:<{0}} --- {2:5.1f}\n", 105, "", sum_W / int(BG_END));
     }
-    print_ok("balance test bipartite");
 }
 
 int main() {
-    visual_test_generators();
-    balance_test_generate_distance();
-    balance_test_generate_flow();
-    balance_test_generate_circulation();
-    balance_test_generate_bipartite();
-    scaling_test_random_regular(1);
+    RUN_BLOCK(visual_test_generators());
+    RUN_BLOCK(balance_test_generate_distance());
+    RUN_BLOCK(balance_test_generate_flow());
+    RUN_BLOCK(balance_test_generate_circulation());
+    RUN_BLOCK(balance_test_generate_bipartite());
+    RUN_BLOCK(scaling_test_random_regular(1));
     return 0;
 }

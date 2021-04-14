@@ -38,7 +38,6 @@ void unit_test_collinear() {
             assert(!onsegment(a, d, b));
         }
     }
-    print_ok("unit test collinear");
 }
 
 void unit_test_circles() {
@@ -48,12 +47,10 @@ void unit_test_circles() {
     assert(c == P(6, -8));
     assert(abs(r - 4.0) <= eps);
     assert(intersect(c, 4, P(2, 8), P(10, -16)) == vecP({P(6, -4), P(8.4, -11.2)}));
-
-    print_ok("unit test collinear");
 }
 
 int main() {
-    unit_test_collinear();
-    unit_test_circles();
+    RUN_SHORT(unit_test_collinear());
+    RUN_SHORT(unit_test_circles());
     return 0;
 }

@@ -61,8 +61,7 @@ struct johnsons {
         prev[s].assign(V, -1);
         dist[s][s] = 0, prev[s][s] = s;
 
-        auto cmp = [&](int u, int v) { return dist[s][u] < dist[s][v]; };
-        pairing_int_heap Q(V, cmp);
+        pairing_int_heap<less_container<vector<long>>> Q(V, dist[s]);
         Q.push(s);
 
         while (!Q.empty()) {

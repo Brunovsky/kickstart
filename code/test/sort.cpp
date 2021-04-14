@@ -49,7 +49,6 @@ void speed_test_radix_sort_idx(int T = 100) {
         assert(verify(idx[2], dist));
     }
 
-    clear_line(), print("speed test radix sort idx\n");
     PRINT_TIME(lsb);
     PRINT_TIME(msb);
     PRINT_TIME(std);
@@ -81,14 +80,13 @@ void speed_test_radix_sort(int T = 100) {
         assert(v1 == v2);
     }
 
-    clear_line(), print("speed test radix sort\n");
     PRINT_TIME(lsb);
     PRINT_TIME(msb);
     PRINT_TIME(std);
 }
 
 int main() {
-    speed_test_radix_sort();
-    speed_test_radix_sort_idx();
+    RUN_BLOCK(speed_test_radix_sort());
+    RUN_BLOCK(speed_test_radix_sort_idx());
     return 0;
 }

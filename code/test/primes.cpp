@@ -59,8 +59,6 @@ void unit_test_classic_sieve() {
     assert(count_primes(15485863, 32452843, primes) == 1'000'001);
     // wolfram: 1.00e7th prime is 179424673, 1.05e7th prime is 188943803
     assert(count_primes(179424674, 188943803, primes) == 500'000);
-
-    print_ok("unit test sieve and count");
 }
 
 #define PRINT(vec)                   \
@@ -126,8 +124,6 @@ void unit_test_num_divisors_sieve() {
         }
         assert(actual == divs[n]);
     }
-
-    print_ok("unit test sieve num divisors");
 }
 
 void unit_test_factor() {
@@ -144,7 +140,6 @@ void unit_test_factor() {
         sort(begin(simple), end(simple));
         assert(simple == factors);
     }
-    print_ok("unit test factor");
 }
 
 void stress_test_factor(int T = 500) {
@@ -169,7 +164,6 @@ void stress_test_factor(int T = 500) {
         sort(begin(simple), end(simple));
         assert(simple == factors);
     }
-    print_ok("stress test factor");
 }
 
 void stress_test_jacobi() {
@@ -183,15 +177,14 @@ void stress_test_jacobi() {
             }
         }
     }
-    print_ok("stress test jacobi");
 }
 
 int main() {
-    unit_test_sieves();
-    unit_test_factor();
-    unit_test_num_divisors_sieve();
-    stress_test_factor();
-    stress_test_jacobi();
-    speed_test_sieves();
+    RUN_SHORT(unit_test_sieves());
+    RUN_SHORT(unit_test_factor());
+    RUN_SHORT(unit_test_num_divisors_sieve());
+    RUN_BLOCK(stress_test_factor());
+    RUN_BLOCK(stress_test_jacobi());
+    RUN_BLOCK(speed_test_sieves());
     return 0;
 }

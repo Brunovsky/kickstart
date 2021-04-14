@@ -101,8 +101,6 @@ void minimum_usability_test() {
     w = -18;
     assert(u + v + w < 0 && u + v + w > -10);
     assert(abs(u + v + w) == 4);
-
-    print_ok("minimum usability");
 }
 
 void unit_test_add() {
@@ -130,8 +128,6 @@ void unit_test_add() {
     assert(u == c);
     u -= b;
     assert(u == a);
-
-    print_ok("unit test add");
 }
 
 void unit_test_sub() {
@@ -156,8 +152,6 @@ void unit_test_sub() {
     assert(u == a);
     b -= a;
     assert(b == 8);
-
-    print_ok("unit test sub");
 }
 
 void unit_test_mul() {
@@ -178,8 +172,6 @@ void unit_test_mul() {
     for (int i = 1; i <= 100; i++)
         u *= 37;
     assert(u == v);
-
-    print_ok("unit test mul");
 }
 
 void unit_test_div() {
@@ -196,8 +188,6 @@ void unit_test_div() {
     d = "137519289137519289"s;
     x = div_mod(a, b);
     assert(a == c && x == d);
-
-    print_ok("unit test div");
 }
 
 void unit_test_shift() {
@@ -216,8 +206,6 @@ void unit_test_shift() {
         bigint w(z.substr(0, m + (127 - i)), 2);
         assert(u == w);
     }
-
-    print_ok("unit test shift");
 }
 
 void unit_test_print() {
@@ -238,7 +226,6 @@ void unit_test_print() {
         bigint u(str);
         assert(to_string(u) == trim_numeric_string(str));
     }
-    print_ok("unit test print");
 }
 
 void unit_test_sqrt() {
@@ -246,7 +233,6 @@ void unit_test_sqrt() {
     assert(sqrt(u) == bpow10(9));
     assert(sqrt(v) == bpow10(14));
     assert(sqrt(w) == bpow10(6));
-    print_ok("unit test sqrt");
 }
 
 void stress_test_sqrt(int R = 2000) {
@@ -259,7 +245,6 @@ void stress_test_sqrt(int R = 2000) {
         assert(u * u <= n);
         assert(n < (u + 1) * (u + 1));
     }
-    print_ok("stress test sqrt");
 }
 
 void stress_test_to_string(int R = 1000) {
@@ -279,7 +264,6 @@ void stress_test_to_string(int R = 1000) {
             assert(msb == lsb);
         }
     }
-    print_ok("stress test to_string");
 }
 
 void stress_test_compare_sort(int R = 2000) {
@@ -303,7 +287,6 @@ void stress_test_add_commutative(int R = 2000) {
         bigint d = b + a;
         assert(c == d);
     }
-    print_ok("stress test add commutative");
 }
 
 void stress_test_add_transitive(int R = 2000) {
@@ -314,7 +297,6 @@ void stress_test_add_transitive(int R = 2000) {
         bigint e = a + (b + c);
         assert(d == e);
     }
-    print_ok("stress test add transitive");
 }
 
 void stress_test_add_sub_reverse(int R = 2000) {
@@ -325,7 +307,6 @@ void stress_test_add_sub_reverse(int R = 2000) {
         bigint d = b + c;
         assert(a == d);
     }
-    print_ok("stress test add sub reverse");
 }
 
 void stress_test_add_sub_group(int R = 2000) {
@@ -338,7 +319,6 @@ void stress_test_add_sub_group(int R = 2000) {
         bigint g = a - (b + c);
         assert(d == e && f == g);
     }
-    print_ok("stress test add sub group");
 }
 
 void stress_test_mul_commutative(int R = 2000) {
@@ -349,7 +329,6 @@ void stress_test_mul_commutative(int R = 2000) {
         bigint d = b * a;
         assert(c == d);
     }
-    print_ok("stress test mul commutative");
 }
 
 void stress_test_mul_transitive(int R = 2000) {
@@ -360,7 +339,6 @@ void stress_test_mul_transitive(int R = 2000) {
         bigint e = a * (b * c);
         assert(d == e);
     }
-    print_ok("stress test mul transitive");
 }
 
 void stress_test_mul_distributive(int R = 2000) {
@@ -371,7 +349,6 @@ void stress_test_mul_distributive(int R = 2000) {
         bigint e = a * b + a * c;
         assert(d == e);
     }
-    print_ok("stress test mul distributive");
 }
 
 void stress_test_div_perfect(int R = 2000) {
@@ -382,7 +359,6 @@ void stress_test_div_perfect(int R = 2000) {
         bigint d = c / a;
         assert(d == b);
     }
-    print_ok("stress test div perfect");
 }
 
 void stress_test_div_imperfect(int R = 2000) {
@@ -393,31 +369,30 @@ void stress_test_div_imperfect(int R = 2000) {
         bigint r = div_mod(q, b);
         assert(q * b + r == a && magnitude_cmp(r, b));
     }
-    print_ok("stress test div imperfect");
 }
 
 int main() {
-    minimum_usability_test();
-    unit_test_add();
-    unit_test_sub();
-    unit_test_mul();
-    unit_test_div();
-    unit_test_shift();
-    unit_test_print();
-    unit_test_sqrt();
+    RUN_SHORT(minimum_usability_test());
+    RUN_SHORT(unit_test_add());
+    RUN_SHORT(unit_test_sub());
+    RUN_SHORT(unit_test_mul());
+    RUN_SHORT(unit_test_div());
+    RUN_SHORT(unit_test_shift());
+    RUN_SHORT(unit_test_print());
+    RUN_SHORT(unit_test_sqrt());
 
-    stress_test_sqrt();
-    stress_test_to_string();
-    stress_test_compare_sort();
-    stress_test_add_commutative();
-    stress_test_add_transitive();
-    stress_test_add_sub_reverse();
-    stress_test_add_sub_group();
-    stress_test_mul_commutative();
-    stress_test_mul_transitive();
-    stress_test_mul_distributive();
-    stress_test_div_perfect();
-    stress_test_div_imperfect();
+    RUN_SHORT(stress_test_sqrt());
+    RUN_SHORT(stress_test_to_string());
+    RUN_SHORT(stress_test_compare_sort());
+    RUN_SHORT(stress_test_add_commutative());
+    RUN_SHORT(stress_test_add_transitive());
+    RUN_SHORT(stress_test_add_sub_reverse());
+    RUN_SHORT(stress_test_add_sub_group());
+    RUN_SHORT(stress_test_mul_commutative());
+    RUN_SHORT(stress_test_mul_transitive());
+    RUN_SHORT(stress_test_mul_distributive());
+    RUN_SHORT(stress_test_div_perfect());
+    RUN_SHORT(stress_test_div_imperfect());
 
     return 0;
 }
