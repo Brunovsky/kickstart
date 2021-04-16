@@ -6,36 +6,31 @@
 #include <fmt/ostream.h>
 
 using namespace std;
-using fmt::print, fmt::format;
+using fmt::print;
+using fmt::format;
 
 // *****
 
 #define DV(a) ("["s + #a + "=" + to_string(a) + "]")
 
-struct nesting_writer {
-    FILE* f;
-    int width, depth;
-
-    explicit nesting_writer(FILE* f = stdout, int width = 4, int depth = 0)
-        : f(f), width(width), depth(depth) {}
+struct debugger {
+    static FILE* f;
+    static int width, depth;
 
     template <typename... Ts>
-    void print(string_view format_str, Ts&&... args) const {
+    static void print(string_view format_str, Ts&&... args) {
         fmt::print(f, "{:2}| {:{}}", depth, "", depth * width);
         fmt::print(f, format_str, forward<Ts>(args)...);
         fmt::print("\n");
     }
+
     template <typename T>
     auto& operator<<(T&& arg) const {
-        return print("{}", forward<T>(arg)), *this;
+        return debugger::print("{}", forward<T>(arg)), *this;
     }
 };
-
-template <typename... Args>
-void print_indented(int indent, string_view format_str, Args&&... args) {
-    print("{:{}}", "", indent);
-    print(format_str, std::forward<Args>(args)...);
-}
+FILE* debugger::f = stderr;
+int debugger::width = 4, debugger::depth = 0;
 
 namespace std {
 

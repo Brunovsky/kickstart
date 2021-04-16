@@ -13,8 +13,9 @@ using namespace std;
  *
  * Solves 2-SAT in linear time and finds strongly connected components.
  *
+ * Complexity: O(N)
  * Usage:
- *   twosat_scc sat(N);                     N variables
+ *   twosat_scc sat(N);                     N variables, [0,N)
  *   sat.set(3);                            Set variable 3 to true
  *   sat.set(~4);                           Set variable 4 to false
  *   sat.either(2,~6);                      var(2) ∨ !var(6)
@@ -25,7 +26,7 @@ using namespace std;
  *   }
  */
 struct twosat_scc {
-    int N, C = 0; // N is the number of variables, which half the number of nodes
+    int N, C = 0; // N is the number of variables
     vector<unordered_set<int>> adj;
     vector<int> assignment, cmap;
 

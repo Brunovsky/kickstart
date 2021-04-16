@@ -8,23 +8,23 @@ using namespace std;
 // *****
 
 /**
- * Whether there exists a subset with target sum
+ * Determine whether there exists a subset of nums with the given sum
  * O(ns) time, where s is the total range of sums.
  */
-bool subset_sum(const vector<int>& nums, int target) {
+bool subset_sum(const vector<int>& nums, int target_sum) {
     int N = nums.size();
     int neg = 0, pos = 0;
     for (int i = 0; i < N; i++)
         nums[i] > 0 ? pos += nums[i] : neg += nums[i];
 
-    if (target < neg || pos < target)
+    if (target_sum < neg || pos < target_sum)
         return false;
 
     // note: if you have a dynamic bitset class, use it instead and shift by x
     int S = pos - neg + 1;
     vector<bool> dp(S, false);
 
-    for (int i = 0; i < N; i++) {
+    for (int i = 0; i < N && !dp[target_sum - neg]; i++) {
         int x = nums[i];
         if (x >= 0) {
             for (int s = pos; s >= x + neg; s--) {
@@ -36,11 +36,9 @@ bool subset_sum(const vector<int>& nums, int target) {
             }
         }
         dp[x - neg] = true;
-        if (dp[target - neg])
-            return true;
     }
 
-    return false;
+    return dp[target_sum - neg];
 }
 
 /**
@@ -73,7 +71,7 @@ auto repeated_knapsack(int cap, const vector<int>& weight, const vector<int>& va
 
 /**
  * Maximum value 0-1 knapsack
- * O(nW) time, O(cap) space
+ * O(nW) time, O(n*cap) space
  */
 auto unit_knapsack(int cap, const vector<int>& weight, const vector<int>& value) {
     int N = weight.size();
