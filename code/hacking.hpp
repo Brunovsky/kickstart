@@ -1,5 +1,5 @@
-#ifndef TESTING_HPP
-#define TESTING_HPP
+#ifndef HACKING_HPP
+#define HACKING_HPP
 
 #include "formatting.hpp"
 #include "random.hpp"
@@ -40,4 +40,15 @@ auto putln(Ts&&... args) {
     return print(make_format_string(sizeof...(Ts)) + "\n", std::forward<Ts>(args)...);
 }
 
-#endif // TESTING_HPP
+template <typename... Ts>
+auto put(ostream& out, Ts&&... args) {
+    return print(out, make_format_string(sizeof...(Ts)), std::forward<Ts>(args)...);
+}
+
+template <typename... Ts>
+auto putln(ostream& out, Ts&&... args) {
+    return print(out, make_format_string(sizeof...(Ts)) + "\n",
+                 std::forward<Ts>(args)...);
+}
+
+#endif // HACKING_HPP

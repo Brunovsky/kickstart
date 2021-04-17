@@ -1,15 +1,3 @@
-# * Dialect
-
-CXX := $(CC) -std=$(CPP_STANDARD) -pipe -pthread -pedantic -march=native
-VALGRIND := valgrind --show-leak-kinds=all
-
-# * Standard library
-
-USE_CLANG_LIBCPP := -stdlib=libc++
-USE_GLIBS_DEBUG := -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
-
-# * Warnings
-
 WARNS := -Wall -Wextra -Wpedantic
 
 # Unused code
@@ -46,6 +34,7 @@ endif
 
 # Clang https://clang.llvm.org/docs/DiagnosticsReference.html
 ifeq ($(COMPILER),clang)
+	WARNS += -ferror-limit=5
 	WARNS += -Qunused-arguments
     WARNS += -Wno-float-conversion
 
@@ -63,7 +52,7 @@ ifeq ($(COMPILER),clang)
 	WARNS += -Wformat-pedantic
 	WARNS += -Wgcc-compat
 	WARNS += -Wgnu
-	#WARNS += -Wheader-hygiene
+	# WARNS += -Wheader-hygiene
 	WARNS += -Widiomatic-parentheses
 	WARNS += -Wimplicit-fallthrough
 	WARNS += -Winfinite-recursion
@@ -90,7 +79,7 @@ ifeq ($(COMPILER),clang)
 	WARNS += -Wtautological-compare
 	WARNS += -Wtautological-constant-in-range-compare
 	WARNS += -Wthread-safety
-	#WARNS += -Wundef
+	# WARNS += -Wundef
 	WARNS += -Wundefined-func-template
 	WARNS += -Wundefined-internal-type
 	WARNS += -Wunreachable-code
@@ -110,78 +99,5 @@ WARNS += -Wno-missing-declarations
 WARNS += -Wno-unknown-pragmas
 WARNS += -Wno-null-dereference # Too many spurious warnings
 
-# * Optimization
-
-OPTIM := -O3 -flto
-OPTIM += -funroll-loops -ftree-vectorize
-
-ifeq ($(COMPILER),gcc)
-	OPTIM += -floop-nest-optimize
-endif
-
-PROF := $(OPTIM) -pg
-
-# * Debug
-
-DEBUG := -g -Og -ggdb -gdwarf-4
-
-ifeq ($(COMPILER),gcc)
-	DEBUG += -fvar-tracking-assignments
-	DEBUG += $(USE_GLIBS_DEBUG)
-endif
-
-# Sanitizers
-
-# * Sanitizers
-# ? https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html
-
-# Address sanitizer, fast memory error detector. Incompatible with =thread
-# ? https://github.com/google/sanitizers/wiki#addresssanitizer
-# Memory leak detector. Incompatible with =thread
-# ? https://github.com/google/sanitizers/wiki/AddressSanitizerLeakSanitizer
-LEAK_SANIT := -fsanitize=address -fsanitize=leak
-LEAK_SANIT += -fsanitize=pointer-compare
-LEAK_SANIT += -fsanitize=pointer-subtract
-
-# Thread sanitizer, fast data race sanitizer. Incompatible with =address, =leak
-# ? https://github.com/google/sanitizers/wiki#threadsanitizer
-THREAD_SANIT := -fsanitize=thread
-
-# Enable one:
-SANIT := $(LEAK_SANIT)
-#SANIT := $(THREAD_SANIT)
-
-# Undefined Behaviour detector.
-UB_SANIT := -fsanitize=pointer-overflow
-UB_SANIT += -fsanitize=builtin
-UB_SANIT += -fsanitize=undefined
-UB_SANIT +=   -fsanitize=shift
-UB_SANIT +=     -fsanitize=shift-base
-UB_SANIT +=     -fsanitize=shift-exponent
-UB_SANIT +=   -fsanitize=integer-divide-by-zero
-UB_SANIT +=   -fsanitize=return
-UB_SANIT +=   -fsanitize=signed-integer-overflow
-UB_SANIT +=   -fsanitize=bounds
-UB_SANIT +=   -fsanitize=float-divide-by-zero
-UB_SANIT +=   -fsanitize=float-cast-overflow
-UB_SANIT +=   -fsanitize=bool
-UB_SANIT +=   -fsanitize=enum
-UB_SANIT +=   -fsanitize=vptr
-
-SANIT += $(UB_SANIT)
-
-SANIT_LIST := $(subst -fsanitize=,,${SANIT})
-
-CXXFLAGS := $(WARNS)
-
-output_debug_flags:
-	@echo $(CXXFLAGS) $(DEBUG)
-
-output_optim_flags:
-	@echo $(CXXFLAGS) $(OPTIM)
-
-output_sanit_flags:
-	@echo $(CXXFLAGS) $(DEBUG) $(SANIT)
-
-output_prof_flags:
-	@echo $(CXXFLAGS) $(PROF)
+output_warns:
+	@echo $(WARNS)

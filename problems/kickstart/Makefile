@@ -1,13 +1,7 @@
-.PHONY: new kickstart build debug clean run formatall
-.PHONY: cpp
+.PHONY: new kickstart cpp build all debug clean run formatall
 
-new kickstart: cpp
-
-cpp:
+new kickstart cpp:
 	@./kickstart.py cpp
-
-build:
-	@+./all.sh BUILD
 
 debug:
 	@+./all.sh BUILD debug

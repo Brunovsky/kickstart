@@ -6,16 +6,11 @@ import os
 import shutil
 import subprocess
 import signal
+from datetime import datetime
 
 template = sys.argv[1]
-
-
-def signal_handler(sig, frame):
-    sys.exit(0)
-
-
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, lambda sig, frame: sys.exit(0))
+signal.signal(signal.SIGTERM, lambda sig, frame: sys.exit(0))
 
 
 def tryinput(str):
@@ -26,62 +21,73 @@ def tryinput(str):
 
 
 def read_year():
-    year = tryinput("Problem Year?  ex: 2020\n> ")
-    if not re.match("^20[0-9]{2}$", year):
+    year = tryinput("Year: ")
+    if len(year) == 0:
+        return datetime.now().year
+    if not re.match("^20[0-9]{2}|tmp$", year):
         print(f"Bad input year: {year}")
         return read_year()
     return year
 
 
 def read_round():
-    rnd = tryinput("Problem Round?  ex: B\n> ")
-    if not re.match("^[A-Z1-9]{1,2}$", rnd):
+    rnd = tryinput("Round: ")
+    if not re.match("^[a-zA-Z1-9]{1,2}$", rnd):
         print(f"Bad input round: {rnd}")
         return read_round()
-    return rnd
+    return rnd.upper()
+
+
+def read_folder():
+    folder = tryinput("Folder: ")
+    if not re.match("^[a-zA-Z0-9-\+]+$", folder):
+        print(f"Bad input folder: {folder}")
+        return read_folder()
+    return folder
 
 
 def read_name():
-    name = tryinput("Problem Name?  ex: le-problemo\n> ")
-    if not re.match("^[a-zA-Z0-9-]+$", name):
-        print(f"Bad input name: {name}")
+    name = tryinput("Name: ")
+    if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]+$", name):
+        print(f"Bad input name name: {name}")
         return read_name()
     return name
 
 
-def read_friendly():
-    friendly = tryinput("Problem Friendly Name?  ex: Le Problemo\n> ")
-    if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]+$", friendly):
-        print(f"Bad input friendly name: {friendly}")
-        return read_friendly()
-    return friendly
-
-
-def read_points(index):
-    pts = tryinput(f"Problem points #{index}?  ex: 10  (as in 10pts)\n> ")
-    if not re.match("^[0-9]{1,2}$", pts):
+def read_points(index, need=False):
+    pts = tryinput(f"Points #{index}: ")
+    if not need and len(pts) == 0:
+        return ""
+    if not re.match("^[0-9]+$", pts):
         print(f"Bad input points: {pts}")
         return read_points(index)
     return pts
 
 
+def read_all_points():
+    s, i = f"{read_points(1, True)}pts", 2
+    pts = read_points(i)
+    while len(pts) > 0:
+        s, i, pts = s + f", {pts}pts", i + 1, read_points(i + 1)
+    return s
+
+
 def read_link():
-    link = tryinput("Problem URL?  (warning: not sanitized)\n> ")
+    link = tryinput("URL: ")
     return link
 
 
 year = read_year()
 rnd = read_round()
+foldername = read_folder()
 name = read_name()
-friendly = read_friendly()
-pts1 = read_points(1)
-pts2 = read_points(2)
+pts = read_all_points()
 link = read_link()
 
-folder = f"{year}/{rnd}-{name}"
-readme = f"""# Kickstart {year} - {friendly}
+folder = f"{year}/{rnd}-{foldername}"
+readme = f"""# Kickstart {year} - {name}
 
-## [{friendly} ({pts1}pts, {pts2}pts)]({link})
+## [{name} ({pts})]({link})
 
 Unattempted
 
@@ -101,10 +107,8 @@ readmefile.close()
 if template == "cpp":
     shutil.copy("templates/cpp/code.cpp", folder)
     shutil.copy("templates/cpp/input.txt", folder)
-    os.symlink("../../templates/cpp/Makefile",
-               f"{folder}/Makefile")
-    subprocess.call(["code",
-                     f"{folder}/README.md",
-                     f"{folder}/code.cpp",
-                     f"{folder}/input.txt"
-                     ])
+    os.symlink("../../templates/cpp/Makefile", f"{folder}/Makefile")
+    subprocess.call([
+        "code", f"{folder}/README.md", f"{folder}/code.cpp",
+        f"{folder}/input.txt"
+    ])

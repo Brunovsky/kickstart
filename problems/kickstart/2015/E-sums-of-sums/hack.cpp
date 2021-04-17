@@ -1,5 +1,4 @@
-#include "../../../../code/debug_print.hpp"
-#include "../../../../code/random.hpp"
+#include "../../../../code/hacking.hpp"
 
 // *****
 
