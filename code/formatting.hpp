@@ -57,7 +57,7 @@ string to_string(const array<T, N>& v) {
     string s;
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), s;
+    return s.empty() ? s : (s.pop_back(), s);
 }
 
 template <typename T>
@@ -65,10 +65,22 @@ string to_string(const vector<T>& v) {
     string s;
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), s;
+    return s.empty() ? s : (s.pop_back(), s);
 }
 template <typename T>
 ostream& operator<<(ostream& out, const vector<T>& v) {
+    return out << to_string(v);
+}
+
+template <typename T>
+string to_string(const vector<vector<T>>& v) {
+    string s;
+    for (const auto& el : v)
+        s += "[" + to_string(el) + "] ";
+    return s.empty() ? s : (s.pop_back(), s);
+}
+template <typename T>
+ostream& operator<<(ostream& out, const vector<vector<T>>& v) {
     return out << to_string(v);
 }
 
@@ -77,7 +89,7 @@ string to_string(const list<T>& v) {
     string s;
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), s;
+    return s.empty() ? s : (s.pop_back(), s);
 }
 template <typename T>
 ostream& operator<<(ostream& out, const list<T>& v) {
@@ -89,7 +101,7 @@ string to_string(const set<T>& v) {
     string s;
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), s;
+    return s.empty() ? s : (s.pop_back(), s);
 }
 template <typename T>
 ostream& operator<<(ostream& out, const set<T>& v) {
@@ -101,7 +113,7 @@ string to_string(const unordered_set<T>& v) {
     string s;
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), s;
+    return s.empty() ? s : (s.pop_back(), s);
 }
 template <typename T>
 ostream& operator<<(ostream& out, const unordered_set<T>& v) {
@@ -113,7 +125,7 @@ string to_string(const map<K, V>& v) {
     string s;
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), s;
+    return s.empty() ? s : (s.pop_back(), s);
 }
 template <typename K, typename V>
 ostream& operator<<(ostream& out, const map<K, V>& v) {
@@ -125,7 +137,7 @@ string to_string(const unordered_map<K, V>& v) {
     string s;
     for (const auto& el : v)
         s += to_string(el) + " ";
-    return s.pop_back(), s;
+    return s.empty() ? s : (s.pop_back(), s);
 }
 template <typename K, typename V>
 ostream& operator<<(ostream& out, const unordered_map<K, V>& v) {

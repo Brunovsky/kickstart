@@ -1,15 +1,11 @@
 #ifndef TEST_UTILS_HPP
 #define TEST_UTILS_HPP
 
-#include <bits/stdc++.h>
-#include <fmt/format.h>
-#include <fmt/ostream.h>
 #include <unistd.h>
 
-using namespace std;
+#include "../formatting.hpp"
+
 using namespace std::chrono;
-using fmt::print;
-using fmt::format;
 using us = microseconds;
 using ms = milliseconds;
 

@@ -28,7 +28,7 @@ auto hash_graph_vertices(int V, const edges_t& g) {
 }
 
 /**
- * Compute the topological hash of a graph, irrespective of its labels.
+ * Compute the topological hash of a graph, irrespective of its labels (0-indexed)
  */
 size_t hash_graph(int V, const edges_t& g) {
     static Hasher hasher;
@@ -39,7 +39,7 @@ size_t hash_graph(int V, const edges_t& g) {
 }
 
 /**
- * Isomorphism heuristic for two graphs
+ * Isomorphism heuristic for two graphs (0-indexed)
  */
 bool isomorphic(int V, const edges_t& g1, const edges_t& g2) {
     return g1.size() == g2.size() && hash_graph(V, g1) == hash_graph(V, g2);

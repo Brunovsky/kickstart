@@ -1,5 +1,6 @@
-#include "../graphs/scc.hpp"
+#include "../graphs/topology.hpp"
 
+#include "../generators/graph_operations.hpp"
 #include "test_utils.hpp"
 
 // *****
@@ -8,9 +9,11 @@ void unit_test_scc() {
     // vertex 0 is completely disconnected
     edges_t g = {{1, 2}, {2, 3}, {3, 1}, {4, 2}, {4, 3}, {4, 6}, {5, 3},
                  {5, 7}, {6, 4}, {6, 5}, {7, 5}, {8, 6}, {8, 7}, {8, 8}};
-    strongly_connected_components scc(9, g);
 
-    scc.compute();
+    strongly_connected_components scc;
+    scc.V = 9, scc.out = make_adjacency_lists_directed(g, scc.V);
+
+    scc.find_scc();
     scc.condensate();
     print("components #1: {}\n", scc.C);
 

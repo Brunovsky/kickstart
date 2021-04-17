@@ -4,13 +4,6 @@ CC := g++
 CPP_STANDARD := c++17
 EXTRA_CXXFLAGS := -lfmt -Wno-sign-compare
 
-.PHONY: default-target
-default-target: debug
-
-# * Files
-
-FILE := code.cpp
-EXE := ./hack
 BIN_DIR := ./bin
 DEP_DIR := ./dep
 
@@ -20,37 +13,10 @@ CXX_FILES := $(filter-out $(FILE), $(CXX_FILES))
 EXE_FILES := $(CXX_FILES:%.cpp=${BIN_DIR}/%)
 DEP_FILES := $(CXX_FILES:%.cpp=${DEP_DIR}/%.d)
 
-include ../../common/cxxflags.make
+include ../../common/cxx.make
 CXXFLAGS += $(EXTRA_CXXFLAGS)
 
 -include $(DEP_FILES)
-
-# * Modes
-
-.PHONY: debug perfm sanit prof clean
-
-debug: MODE := debug
-debug: CXXFLAGS += $(DEBUG)
-debug: $(EXE)
-
-perfm: MODE := performance
-perfm: CXXFLAGS += $(OPTIM)
-perfm: $(EXE)
-
-sanit: MODE := sanitizer
-sanit: CXXFLAGS += $(DEBUG) $(SANIT)
-sanit: $(EXE)
-
-prof: MODE := profiling
-prof: CXXFLAGS += $(OPTIM) -pg
-prof: $(EXE)
-
-clean:
-	@rm -f $(EXE) core vgcore.* *.log
-
-$(EXE): $(FILE) $(HEADERS)
-	@echo "CC (${COMPILER} $(MODE)) $@"
-	@$(CXX) $(FILE) $(CXXFLAGS) -o $@
 
 # global build
 
@@ -83,13 +49,13 @@ cleanall: clean
 
 # ---
 
-.PHONY: run fast valgrind
+$(SOLVER): $(HEADERS)
 
 run: debug
-	@$(EXE)
+	@$(SOLVER)
 
 fast: perfm
-	@$(EXE)
+	@$(SOLVER)
 
 valgrind: debug
-	@$(VALGRIND) $(EXE)
+	@$(VALGRIND) $(SOLVER)
