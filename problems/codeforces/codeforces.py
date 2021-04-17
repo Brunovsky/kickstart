@@ -32,7 +32,7 @@ def read_year():
 
 def read_round():
     rnd = tryinput("Round: ")
-    if not re.match("^[a-zA-Z1-9]{1,2}$", rnd):
+    if not re.match("^[a-zA-Z1-9]{1,10}$", rnd):
         print(f"Bad input round: {rnd}")
         return read_round()
     return rnd.upper()
@@ -54,24 +54,6 @@ def read_name():
     return name
 
 
-def read_points(index, need=False):
-    pts = tryinput(f"Points #{index}: ")
-    if not need and len(pts) == 0:
-        return ""
-    if not re.match("^[0-9]+$", pts):
-        print(f"Bad input points: {pts}")
-        return read_points(index)
-    return pts
-
-
-def read_all_points():
-    s, i = f"{read_points(1, True)}pts", 2
-    pts = read_points(i)
-    while len(pts) > 0:
-        s, i, pts = s + f", {pts}pts", i + 1, read_points(i + 1)
-    return s
-
-
 def read_link():
     link = tryinput("URL: ")
     return link
@@ -81,13 +63,10 @@ year = read_year()
 rnd = read_round()
 foldername = read_folder()
 name = read_name()
-pts = read_all_points()
 link = read_link()
 
 folder = f"{year}/{rnd}-{foldername}"
-readme = f"""# Facebook Hacker Cup {year} - {name}
-
-## [{name} ({pts})]({link})
+readme = f"""# Codeforces {year} - {rnd} - {name}
 
 Unattempted
 

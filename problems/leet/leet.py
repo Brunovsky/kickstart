@@ -8,14 +8,8 @@ import subprocess
 import signal
 
 template = sys.argv[1]
-
-
-def signal_handler(sig, frame):
-    sys.exit(0)
-
-
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, lambda sig, frame: sys.exit(0))
+signal.signal(signal.SIGTERM, lambda sig, frame: sys.exit(0))
 
 
 def tryinput(str):
@@ -26,53 +20,53 @@ def tryinput(str):
 
 
 def read_difficulty():
-    difficulty = tryinput("Problem Difficulty?  ex: medium\n> ")
-    if not re.match("^easy|medium|hard$", difficulty):
+    difficulty = tryinput("Difficulty: ")
+    if not re.match("^easy|medium|hard$", difficulty, flags=re.IGNORECASE):
         print(f"Bad input difficulty: {difficulty}")
         return read_difficulty()
-    return difficulty
+    return difficulty.lower()
 
 
 def read_number():
-    number = tryinput("Problem Number?  ex: 123\n> ")
+    number = tryinput("Number: ")
     if not re.match("^[0-9]+$", number):
         print(f"Bad input number: {number}")
         return read_number()
     return number
 
 
+def read_folder():
+    folder = tryinput("Folder: ")
+    if not re.match("^[a-zA-Z0-9-\+]+$", folder):
+        print(f"Bad input folder: {folder}")
+        return read_folder()
+    return folder
+
+
 def read_name():
-    name = tryinput("Problem Name?  ex: le-problemo\n> ")
-    if not re.match("^[a-zA-Z0-9-]+$", name):
-        print(f"Bad input name: {name}")
+    name = tryinput("Name: ")
+    if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]+$", name):
+        print(f"Bad input name name: {name}")
         return read_name()
     return name
 
 
-def read_friendly():
-    friendly = tryinput("Problem Friendly Name?  ex: Le Problemo\n> ")
-    if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]+$", friendly):
-        print(f"Bad input friendly name: {friendly}")
-        return read_friendly()
-    return friendly
-
-
-def read_link(name):
-    default = f"https://leetcode.com/problems/{name}"
-    link = tryinput(f"Problem URL?  ({default})\n> ")
+def read_link(foldername):
+    default = f"https://leetcode.com/problems/{foldername}"
+    link = tryinput("URL: ")
     return link if link else default
 
 
 difficulty = read_difficulty()
 number = read_number()
+foldername = read_folder()
 name = read_name()
-friendly = read_friendly()
-link = read_link(name)
+link = read_link(foldername)
 
-folder = f"{number}-{name}"
+folder = f"{number}-{foldername}"
 readme = f"""# LeetCode - {difficulty}
 
-## [{number}. {friendly}]({link})
+## [{number}. {name}]({link})
 
 Unattempted
 
@@ -91,23 +85,18 @@ readmefile.close()
 if template == "cpp":
     shutil.copy("templates/cpp/code.cpp", folder)
     os.symlink("../templates/cpp/Makefile", f"{folder}/Makefile")
-    subprocess.call(["code",
-                     f"{folder}/README.md",
-                     f"{folder}/code.cpp"
-                     ])
+    subprocess.call(["code", f"{folder}/README.md", f"{folder}/code.cpp"])
 
 if template == "shell":
     shutil.copy("templates/shell/code.sh", folder)
     os.symlink("../templates/shell/Makefile", f"{folder}/Makefile")
-    subprocess.call(["code",
-                     f"{folder}/README.md",
-                     f"{folder}/code.sh",
-                     ])
+    subprocess.call([
+        "code",
+        f"{folder}/README.md",
+        f"{folder}/code.sh",
+    ])
 
 if template == "js":
     shutil.copy("templates/js/code.js", folder)
     os.symlink("../templates/js/Makefile", f"{folder}/Makefile")
-    subprocess.call(["code",
-                     f"{folder}/README.md",
-                     f"{folder}/code.js"
-                     ])
+    subprocess.call(["code", f"{folder}/README.md", f"{folder}/code.js"])
