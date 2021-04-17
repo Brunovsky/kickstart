@@ -2,6 +2,7 @@
 #define HACKING_HPP
 
 #include "formatting.hpp"
+#include "hash.hpp"
 #include "random.hpp"
 
 // *****
