@@ -15,6 +15,7 @@ struct disjoint_set {
         iota(begin(next), end(next), 0);
     }
 
+    void assign(int N) { *this = disjoint_set(N); }
     bool same(int i, int j) { return find(i) == find(j); }
 
     int find(int i) {

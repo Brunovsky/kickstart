@@ -253,4 +253,90 @@ struct cut_points {
     }
 };
 
+/**
+ * Compute the dominator tree of a directed graph
+ * Nodes 1-indexed
+ * Complexity: O((V + E) log(V))
+ * Source:
+ *     "A Fast Algorithm for Finding Dominators in a Flow Graph", T. Lengauer, R. Tarjan
+ *      https://tanujkhattar.wordpress.com/2016/01/11/dominator-tree-of-a-directed-graph/
+ */
+struct dominator_tree {
+    int V;
+    vector<vector<int>> out, in; // edges u->v
+    vector<int> dom;             // dom[u]: immediate dominator of u (when done)
+    vector<int> parent, semi, vertex, ancestor, label;
+    int timer = 0;
+
+    void dfs_index(int u) {
+        vertex[timer] = u, semi[u] = timer++;
+        for (int v : out[u]) {
+            if (semi[v] == 0) {
+                parent[v] = u;
+                dfs_index(v);
+            }
+        }
+    }
+
+    void compress(int v) {
+        if (ancestor[ancestor[v]] != 0) {
+            compress(ancestor[v]);
+            if (semi[label[v]] > semi[label[ancestor[v]]]) {
+                label[v] = label[ancestor[v]];
+            }
+            ancestor[v] = ancestor[ancestor[v]];
+        }
+    }
+
+    int eval(int v) {
+        if (ancestor[v] == 0) {
+            return v;
+        } else {
+            compress(v);
+            return label[v];
+        }
+    }
+
+    void build_dominator_tree(int root = 1) {
+        dom.assign(V + 1, 0);
+        parent.assign(V + 1, 0);
+        semi.assign(V + 1, 0);
+        vertex.assign(V + 1, 0);
+        ancestor.assign(V + 1, 0);
+        label.assign(V + 1, 0), iota(begin(label), end(label), 0);
+        timer = 1;
+
+        dfs_index(root);
+
+        vector<int> bucket_head(V + 1, 0), bucket_next(V + 1, 0);
+
+        for (int i = V; i >= 2; i--) {
+            int w = vertex[i];
+            for (int v : in[w]) {
+                int u = eval(v);
+                semi[w] = min(semi[w], semi[u]);
+            }
+            // push w onto the front of bucket b
+            int b = vertex[semi[w]];
+            bucket_next[w] = bucket_head[b], bucket_head[b] = w;
+            ancestor[w] = parent[w]; // link
+            // visit all nodes in bucket parent[w]
+            for (int v = bucket_head[parent[w]]; v != 0; v = bucket_next[v]) {
+                int u = eval(v);
+                dom[v] = semi[u] < semi[v] ? u : parent[w];
+            }
+            bucket_head[parent[w]] = 0;
+        }
+
+        for (int i = 2; i <= V; i++) {
+            int w = vertex[i];
+            if (dom[w] != vertex[semi[w]]) {
+                dom[w] = dom[dom[w]];
+            }
+        }
+
+        dom[root] = 0;
+    }
+};
+
 #endif // TOPOLOGY_HPP

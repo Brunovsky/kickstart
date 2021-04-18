@@ -494,7 +494,7 @@ bigint operator%(bigint u, int n) { return u %= n; }
 bigint operator-(bigint u) { return u.flip(), u; }
 bool operator!(const bigint& u) { return u.zero(); }
 
-bigint abs(bigint u) { return u.sign ? -u : u; }
+bigint abs(const bigint& u) { return u.sign ? -u : u; }
 bigint gcd(bigint a, bigint b) {
     while (a != 0) {
         b = b % a;
