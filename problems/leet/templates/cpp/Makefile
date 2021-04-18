@@ -4,43 +4,18 @@ CC := g++
 CPP_STANDARD := c++17
 EXTRA_CXXFLAGS := -lfmt
 
-.PHONY: default-target
-default-target: debug
+include ../../../common/cxx.make
 
-# * Files
+.PHONY: run fast valgrind
 
-CODE := ./code.cpp
-EXE := ./hack
-
-# * Modes
-
-include ../../../common/cxxflags.make
-CXXFLAGS += $(EXTRA_CXXFLAGS)
-
-.PHONY: debug perfm clean
-
-debug: MODE := debug
-debug: CXXFLAGS += $(DEBUG)
-debug: $(EXE)
-
-perfm: MODE := performance
-perfm: CXXFLAGS += $(OPTIM)
-perfm: $(EXE)
-
-clean:
-	@rm -f $(EXE) core vgcore.* *.log
-
-$(EXE): $(CODE)
-	@echo "CC (${COMPILER} $(MODE))  $@"
-	@$(CXX) $(CODE) $(CXXFLAGS) -o $@
-
-# ---
-
+# Compile and run with debug flags
 run: debug
-	@$(EXE)
+	./solver | tee output.txt
 
+# Compile and run, optimized
 fast: perfm
-	@$(EXE)
+	time ./solver | tee output.txt
 
+# Build and run under valgrind
 valgrind: debug
-	@$(VALGRIND) $(EXE)
+	$(VALGRIND) ./solver | tee output.txt

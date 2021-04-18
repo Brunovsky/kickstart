@@ -2,13 +2,9 @@
 
 # Usage: ./status.sh
 
-for year in 20*; do
-    echo "$year"
-    for folder in "$year"/*/; do
-        folder="${folder%/}"
-        if test -f "$folder/README.md"; then
-            problem="${folder#"$year"/}"
-            echo -e "  " $(sed '3q;d' "$folder/README.md") "\t" "$problem"
-        fi
-    done
+ls -1Fv | grep -Ee '^[0-9]+-.+/' | while read -r folder; do
+    folder="${folder%/}"
+    if test -f "$folder/README.md"; then
+        echo -e "  " $(sed '3q;d' $folder/README.md) "\t" "$folder"
+    fi
 done

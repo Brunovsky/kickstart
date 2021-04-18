@@ -20,30 +20,12 @@ def tryinput(str):
         sys.exit(0)
 
 
-def read_year():
-    year = tryinput("Year: ")
-    if len(year) == 0:
-        return datetime.now().year
-    if not re.match("^20[0-9]{2}|tmp$", year):
-        print(f"Bad input year: {year}")
-        return read_year()
-    return year
-
-
 def read_round():
     rnd = tryinput("Round: ")
-    if not re.match("^[a-zA-Z1-9]{1,10}$", rnd):
+    if not re.match("^[a-zA-Z1-9-\+]{1,10}$", rnd):
         print(f"Bad input round: {rnd}")
         return read_round()
     return rnd.upper()
-
-
-def read_folder():
-    folder = tryinput("Folder: ")
-    if not re.match("^[a-zA-Z0-9-\+]+$", folder):
-        print(f"Bad input folder: {folder}")
-        return read_folder()
-    return folder
 
 
 def read_name():
@@ -54,19 +36,12 @@ def read_name():
     return name
 
 
-def read_link():
-    link = tryinput("URL: ")
-    return link
-
-
-year = read_year()
 rnd = read_round()
-foldername = read_folder()
 name = read_name()
-link = read_link()
+foldername = name.lower().replace(' ', '-')
 
-folder = f"{year}/{rnd}-{foldername}"
-readme = f"""# Codeforces {year} - {rnd} - {name}
+folder = f"{rnd}-{foldername}"
+readme = f"""# Codeforces {rnd} - {name}
 
 Unattempted
 
@@ -86,7 +61,7 @@ readmefile.close()
 if template == "cpp":
     shutil.copy("templates/cpp/code.cpp", folder)
     shutil.copy("templates/cpp/input.txt", folder)
-    os.symlink("../../templates/cpp/Makefile", f"{folder}/Makefile")
+    os.symlink("../templates/cpp/Makefile", f"{folder}/Makefile")
     subprocess.call([
         "code", f"{folder}/README.md", f"{folder}/code.cpp",
         f"{folder}/input.txt"

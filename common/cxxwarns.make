@@ -98,6 +98,3 @@ endif
 WARNS += -Wno-missing-declarations
 WARNS += -Wno-unknown-pragmas
 WARNS += -Wno-null-dereference # Too many spurious warnings
-
-output_warns:
-	@echo $(WARNS)

@@ -3,7 +3,7 @@ default-target: run
 
 # * Files
 
-EXE := node code.js
+SOLVER := node code.js
 
 # ---
 
@@ -13,4 +13,4 @@ clean:
 # ---
 
 run fast:
-	@$(EXE)
+	@$(SOLVER)

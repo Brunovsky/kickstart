@@ -26,37 +26,31 @@ def tryinput(str):
 
 
 def read_year():
-    year = tryinput("Problem Year?  ex: 2020\n> ")
-    if not re.match("^20[0-9]{2}$", year):
+    year = tryinput("Year: ")
+    if len(year) == 0:
+        return datetime.now().year
+    if not re.match("^20[0-9]{2}|tmp$", year):
         print(f"Bad input year: {year}")
         return read_year()
     return year
 
 
 def read_name():
-    name = tryinput("Problem Name?  ex: le-problemo\n> ")
-    if not re.match("^[a-zA-Z0-9-]+$", name):
-        print(f"Bad input name: {name}")
+    name = tryinput("Name: ")
+    if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]+$", name):
+        print(f"Bad input name name: {name}")
         return read_name()
     return name
 
 
-def read_friendly():
-    friendly = tryinput("Problem Friendly Name?  ex: Le Problemo\n> ")
-    if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]+$", friendly):
-        print(f"Bad input friendly name: {friendly}")
-        return read_friendly()
-    return friendly
-
-
 year = read_year()
 name = read_name()
-friendly = read_friendly()
+foldername = name.lower().replace(' ', '-')
 
-folder = f"{year}-{name}"
+folder = f"{year}-{foldername}"
 readme = f"""# Hashcode {year}
 
-## {friendly}
+## {name}
 
 Unattempted
 
@@ -75,10 +69,10 @@ readmefile.close()
 if template == "cpp":
     shutil.copy("templates/cpp/code.cpp", folder)
     shutil.copy("templates/cpp/run.sh", folder)
-    os.symlink("../templates/cpp/Makefile",
-               f"{folder}/Makefile")
-    subprocess.call(["code",
-                     f"{folder}/README.md",
-                     f"{folder}/code.cpp",
-                     f"{folder}/run.sh",
-                     ])
+    os.symlink("../templates/cpp/Makefile", f"{folder}/Makefile")
+    subprocess.call([
+        "code",
+        f"{folder}/README.md",
+        f"{folder}/code.cpp",
+        f"{folder}/run.sh",
+    ])

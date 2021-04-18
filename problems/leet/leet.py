@@ -35,14 +35,6 @@ def read_number():
     return number
 
 
-def read_folder():
-    folder = tryinput("Folder: ")
-    if not re.match("^[a-zA-Z0-9-\+]+$", folder):
-        print(f"Bad input folder: {folder}")
-        return read_folder()
-    return folder
-
-
 def read_name():
     name = tryinput("Name: ")
     if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]+$", name):
@@ -59,8 +51,8 @@ def read_link(foldername):
 
 difficulty = read_difficulty()
 number = read_number()
-foldername = read_folder()
 name = read_name()
+foldername = name.lower().replace(' ', '-')
 link = read_link(foldername)
 
 folder = f"{number}-{foldername}"

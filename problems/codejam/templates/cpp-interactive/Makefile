@@ -6,10 +6,6 @@ EXTRA_CXXFLAGS := -lfmt
 
 include ../../../../common/cxx.make
 
-# ---
-
-.PHONY: run fast
-
 run: debug
 	@+$(RUN) --from-make
 

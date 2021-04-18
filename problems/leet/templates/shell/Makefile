@@ -3,14 +3,14 @@ default-target: run
 
 # * Files
 
-EXE := ./code.sh
+SOLVER := ./code.sh
 
 # ---
 
-.PHONY: run test clean
+.PHONY: run fast clean
 
 clean:
 	@rm -f core log stdout
 
 run fast:
-	@$(EXE)
+	@$(SOLVER)

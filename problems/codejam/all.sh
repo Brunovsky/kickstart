@@ -1,12 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Usage: ./all.sh CMD [makeargs...]
-
-CMD="$1"
-shift
+set -eu
 
 for folder in 20*/*/; do
 	folder="${folder%/}"
-	echo "$CMD  $folder"
-	make -s -C "$folder" "$@" | sed 's/^/  /'
+	echo "$*    $folder"
+	cd "$folder" && "$@" ; cd ../..
 done

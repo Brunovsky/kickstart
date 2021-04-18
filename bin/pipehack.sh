@@ -1,6 +1,7 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 
 declare -r SOLVER='./solver' HACKER='./hacker'
+declare -r INPUT='./input.txt' OUTPUT='./output.txt'
 declare -r PATTERN='^Case #\d+:' TRACE='^::hack'
 
 print_input_case() {
@@ -9,7 +10,7 @@ print_input_case() {
 }
 
 main() {
-	if "$HACKER" "$@" | tee "$INPUT" | grep -vP "$TRACE" | "$SOLVER" > program.txt; then
+	if "$HACKER" "$@" | tee "$INPUT" | grep -vP "$TRACE" | "$SOLVER" > "$OUTPUT"; then
 		echo OK
 	else
 		CASES="$(grep -cPe "$PATTERN" "$OUTPUT")"

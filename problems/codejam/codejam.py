@@ -38,14 +38,6 @@ def read_round():
     return rnd.upper()
 
 
-def read_folder():
-    folder = tryinput("Folder: ")
-    if not re.match("^[a-zA-Z0-9-\+]+$", folder):
-        print(f"Bad input folder: {folder}")
-        return read_folder()
-    return folder
-
-
 def read_name():
     name = tryinput("Name: ")
     if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]+$", name):
@@ -79,8 +71,8 @@ def read_link():
 
 year = read_year()
 rnd = read_round()
-foldername = read_folder()
 name = read_name()
+foldername = name.lower().replace(' ', '-')
 pts = read_all_points()
 link = read_link()
 
