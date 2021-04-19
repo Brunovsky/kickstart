@@ -45,7 +45,7 @@ def read_name():
 
 year = read_year()
 name = read_name()
-foldername = name.lower().replace(' ', '-')
+foldername = re.sub('[^a-zA-Z0-9-\+]+', '', name.lower().replace(' ', '-'))
 
 folder = f"{year}-{foldername}"
 readme = f"""# Hashcode {year}
@@ -53,9 +53,6 @@ readme = f"""# Hashcode {year}
 ## {name}
 
 Unattempted
-
-* Time spent: 0 hours
-* Runtime: -
 """
 
 print(f"Problem folder: {folder}")

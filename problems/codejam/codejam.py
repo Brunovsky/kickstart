@@ -72,7 +72,7 @@ def read_link():
 year = read_year()
 rnd = read_round()
 name = read_name()
-foldername = name.lower().replace(' ', '-')
+foldername = re.sub('[^a-zA-Z0-9-\+]+', '', name.lower().replace(' ', '-'))
 pts = read_all_points()
 link = read_link()
 
@@ -82,10 +82,6 @@ readme = f"""# CodeJam {year} - {name}
 ## [{name} ({pts})]({link})
 
 Unattempted
-
-* Time: 0 hours
-* Complexity: -
-* Memory: -
 """
 
 print(f"Problem folder: {folder}")

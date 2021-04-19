@@ -52,7 +52,7 @@ def read_link(foldername):
 difficulty = read_difficulty()
 number = read_number()
 name = read_name()
-foldername = name.lower().replace(' ', '-')
+foldername = re.sub('[^a-zA-Z0-9-\+]+', '', name.lower().replace(' ', '-'))
 link = read_link(foldername)
 
 folder = f"{number}-{foldername}"
@@ -61,9 +61,6 @@ readme = f"""# LeetCode - {difficulty}
 ## [{number}. {name}]({link})
 
 Unattempted
-
-* Complexity: -
-* Memory: -
 """
 
 print(f"Problem folder: {folder}")

@@ -19,7 +19,7 @@ debug: ./solver
 
 perfm: MODE := perfm
 perfm: CXXFLAGS += $(OPTIM)
-perfm: ./hacker
+perfm: ./solver
 
 clean::
 	@rm -f solver hacker core vgcore.* *.log output.txt answer.txt
