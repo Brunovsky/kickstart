@@ -96,7 +96,4 @@ if template == "cpp":
     shutil.copy("templates/cpp/code.cpp", folder)
     shutil.copy("templates/cpp/input.txt", folder)
     os.symlink("../../templates/cpp/Makefile", f"{folder}/Makefile")
-    subprocess.call([
-        "code", f"{folder}/README.md", f"{folder}/code.cpp",
-        f"{folder}/input.txt"
-    ])
+    subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/input.txt"])

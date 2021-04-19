@@ -41,24 +41,12 @@ name = read_name()
 foldername = re.sub('[^a-zA-Z0-9-\+]+', '', name.lower().replace(' ', '-'))
 
 folder = f"{rnd}-{foldername}"
-readme = f"""# Codeforces {rnd} - {name}
-
-Unattempted
-"""
-
 print(f"Problem folder: {folder}")
 
 os.makedirs(folder, exist_ok=True)
-
-readmefile = open(f"{folder}/README.md", "w")
-readmefile.write(readme)
-readmefile.close()
 
 if template == "cpp":
     shutil.copy("templates/cpp/code.cpp", folder)
     shutil.copy("templates/cpp/input.txt", folder)
     os.symlink("../templates/cpp/Makefile", f"{folder}/Makefile")
-    subprocess.call([
-        "code", f"{folder}/README.md", f"{folder}/code.cpp",
-        f"{folder}/input.txt"
-    ])
+    subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/input.txt"])
