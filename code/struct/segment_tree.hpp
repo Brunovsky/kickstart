@@ -144,11 +144,11 @@ struct dyn_segtree {
     long data = 0;
 
     void apply(long v) { data += v; }
-    void merge() { data = link[0]->data + link[1]->data; }
+    auto merge(long a, long b) { return a + b; }
 
-    dyn_segtree(int L, int R) : L(L), R(R) {}
+    explicit dyn_segtree(int L = 0, int R = 0) : L(L), R(R) {}
 
-    void add(int i, long v) {
+    void update(int i, long v) {
         assert(L <= i && i < R);
         if (R - L == 1) {
             return apply(v);
@@ -158,7 +158,8 @@ struct dyn_segtree {
             link[0] = make_unique<dyn_segtree>(L, M);
             link[1] = make_unique<dyn_segtree>(M, R);
         }
-        link[i >= M]->add(i, v), apply(v);
+        link[i >= M]->update(i, v);
+        data = merge(link[0]->data, link[1]->data);
     }
 
     auto query(int l, int r) {
@@ -166,7 +167,7 @@ struct dyn_segtree {
             return 0L;
         if (l <= L && R <= r)
             return data;
-        return link[0] ? link[0]->query(l, r) + link[1]->query(l, r) : 0;
+        return link[0] ? merge(link[0]->query(l, r), link[1]->query(l, r)) : 0L;
     }
 };
 

@@ -2,7 +2,7 @@
 COMPILER := gcc
 CC := g++
 CPP_STANDARD := c++17
-EXTRA_CXXFLAGS := -lfmt -Wno-sign-compare
+EXTRA_CXXFLAGS := -lfmt
 
 BIN_DIR := ./bin
 DEP_DIR := ./dep
@@ -14,8 +14,6 @@ EXE_FILES := $(CXX_FILES:%.cpp=${BIN_DIR}/%)
 DEP_FILES := $(CXX_FILES:%.cpp=${DEP_DIR}/%.d)
 
 include ../../common/cxx.make
-CXXFLAGS += $(EXTRA_CXXFLAGS)
-
 -include $(DEP_FILES)
 
 # global build
@@ -34,7 +32,7 @@ $(EXE_FILES): $(BIN_DIR)/%: %.cpp $(DEP_DIR)/%.d
 	@$(CXX) $< $(CXXFLAGS) $(DEPCOMPILEARGS) -o $@
 	@$(CMD_MV_DEPENDENCY)
 
-.PHONY: all cleanall
+.PHONY: all allperfm
 
 all: MODE := debug
 all: CXXFLAGS += $(DEBUG)
@@ -44,18 +42,18 @@ allperfm: MODE := perfm
 allperfm: CXXFLAGS += $(OPTIM)
 allperfm: $(EXE_FILES)
 
-cleanall: clean
+clean::
 	@rm -rf $(DEP_DIR) $(BIN_DIR)
 
 # ---
 
-$(SOLVER): $(HEADERS)
+./solver: $(HEADERS)
 
 run: debug
-	@$(SOLVER)
+	@./solver
 
 fast: perfm
-	@$(SOLVER)
+	@./solver
 
 valgrind: debug
-	@$(VALGRIND) $(SOLVER)
+	@$(VALGRIND) ./solver

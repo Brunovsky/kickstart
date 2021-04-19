@@ -25,13 +25,13 @@ void unit_test_range_segtree() {
 
 void unit_test_dyn_segtree() {
     dyn_segtree tree(10, 30);
-    tree.add(14, 1);
-    tree.add(13, 2);
-    tree.add(27, 3);
-    tree.add(21, 4);
-    tree.add(24, 5);
-    tree.add(18, 6);
-    tree.add(21, 7);
+    tree.update(14, 1);
+    tree.update(13, 2);
+    tree.update(27, 3);
+    tree.update(21, 4);
+    tree.update(24, 5);
+    tree.update(18, 6);
+    tree.update(21, 7);
     assert(tree.query(21, 22) == 11);
     assert(tree.query(14, 18) == 1);
     assert(tree.query(13, 19) == 9);
