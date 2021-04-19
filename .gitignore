@@ -44,6 +44,8 @@ hack_naive
 # Dumps
 core
 vgcore*
+output.txt
+answer.txt
 program.txt
 debug.txt
 
