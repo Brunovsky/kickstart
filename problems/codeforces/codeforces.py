@@ -22,7 +22,7 @@ def tryinput(str):
 
 def read_round():
     rnd = tryinput("Round: ")
-    if not re.match("^[a-zA-Z1-9-\+]{1,10}$", rnd):
+    if not re.match("^[a-zA-Z0-9-\+]{1,10}$", rnd):
         print(f"Bad input round: {rnd}")
         return read_round()
     return rnd.upper()
