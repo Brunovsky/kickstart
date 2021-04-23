@@ -9,5 +9,4 @@
 |`lca                        `| Stable       | Stable (U)     | |
 |`rmq                        `| Stable       | Stable (U)     | |
 |`segment_tree               `| Stable       | Stable (U)     | |
-|`simple_data_structures     `| Stable       | -              | |
 |`link_cut_tree              `| TODO :(      |                | |

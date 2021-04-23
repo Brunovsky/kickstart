@@ -40,9 +40,8 @@ auto solve() {
         }
     }
     for (int i = 1; i <= N; i++) {
-        cout << garden[i].substr(1, N) << endl;
+        cout << garden[i].substr(1, M) << endl;
     }
-    cout << endl;
 }
 
 // *****
