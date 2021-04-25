@@ -11,12 +11,13 @@ using namespace std;
  * Range Minimum Query
  * Source: kth (https://github.com/kth-competitive-programming/kactl)
  * For maximum just exchange min() for max().
- * Construction: O(V log V)
- * Query: O(1)
+ * Complexity: O(V log V) construction, O(1) query
  */
-template <class T>
+template <typename T>
 struct RMQ {
     vector<vector<T>> jmp;
+
+    RMQ() = default;
     RMQ(const vector<T>& V) : jmp(1, V) {
         for (uint pw = 1, k = 1; pw * 2 <= V.size(); pw *= 2, ++k) {
             jmp.emplace_back(V.size() - pw * 2 + 1);
@@ -24,7 +25,8 @@ struct RMQ {
                 jmp[k][j] = min(jmp[k - 1][j], jmp[k - 1][j + pw]);
         }
     }
-    T query(int a, int b) {
+
+    T query(int a, int b) /* [a,b) */ {
         assert(a < b); // or return inf if a == b
         static constexpr int bits = CHAR_BIT * sizeof(int) - 1;
         int dep = bits - __builtin_clz(b - a);
