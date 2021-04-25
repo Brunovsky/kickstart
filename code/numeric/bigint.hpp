@@ -32,7 +32,7 @@ struct bigint {
         sign = sign && !zero();
     }
 
-    explicit operator bool() const noexcept { return zero(); }
+    explicit operator bool() const noexcept { return !zero(); }
 };
 
 inline namespace bigint_comparison {
@@ -588,5 +588,16 @@ string to_string(bigint u, uint b = 10) {
 }
 
 ostream& operator<<(ostream& out, const bigint& u) { return out << to_string(u); }
+
+namespace std {
+
+template <>
+struct hash<bigint> {
+    size_t operator()(const bigint& u) const noexcept {
+        return std::hash<pair<vector<uint>, bool>>{}(make_pair(u.nums, u.sign));
+    }
+};
+
+} // namespace std
 
 #endif // BIGINT_HPP

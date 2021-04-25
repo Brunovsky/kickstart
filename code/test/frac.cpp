@@ -71,6 +71,25 @@ void unit_test_continued_fractions() {
     assert(compute_fraction(cf) == frac(1, 93));
 }
 
+void unit_test_read() {
+    assert(stofrac("-123") == -123);
+    assert(stofrac("-123.00") == -123);
+    assert(stofrac("-123.5") == frac(-247, 2));
+    assert(stofrac(" -247/2") == frac(-247, 2));
+    assert(stofrac("  -494/4") == frac(-247, 2));
+    assert(stofrac(" -494/-4") == -494);
+    assert(stofrac("+7/8") == frac(7, 8));
+    assert(stofrac(" 123/456") == frac(123, 456));
+    assert(stofrac(" 123/0") == frac(1, 0));
+    assert(stofrac(" 0/123 ") == 0);
+    assert(stofrac("  1.5") == frac(3, 2));
+    assert(stofrac(" 1.") == 1);
+    assert(stofrac(" .1") == frac(1, 10));
+    assert(stofrac(" -.100") == frac(-1, 10));
+    assert(stofrac(" -712412.71231") == -frac(71241271231, 100000));
+    assert(stofrac(" -712412/71231") == -frac(712412, 71231));
+}
+
 // frac is stress tested by simplex
 
 int main() {
@@ -78,5 +97,6 @@ int main() {
     RUN_SHORT(unit_test_ops());
     RUN_SHORT(unit_test_closest());
     RUN_SHORT(unit_test_continued_fractions());
+    RUN_SHORT(unit_test_read());
     return 0;
 }
