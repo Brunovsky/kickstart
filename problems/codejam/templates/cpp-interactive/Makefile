@@ -7,7 +7,7 @@ EXTRA_CXXFLAGS := -lfmt
 include ../../../../common/cxx.make
 
 run: debug
-	@+$(RUN) --from-make
+	@./run.sh --from-make
 
 fast: perfm
-	@+$(RUN) --from-make
+	@./run.sh --from-make
