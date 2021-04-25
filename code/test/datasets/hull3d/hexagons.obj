@@ -1,0 +1,34 @@
+# V=23 H=9 -- hexagons.obj
+# Multi-point faces with internal points and sides with collinear points.
+v  2  2  0
+v  3  1  0
+v  4  0  0
+v  2 -1  3
+v  3 -2  3
+v -1  1  4
+v -1 -1  6
+v -1  5  0
+v  1  1  2
+v  1 -3  6
+v  4 -3  1
+v  2 -4  2
+v -1 -4  3
+v -3  1  2
+v -2  3  1
+v  0  1  1
+v -1 -1  2
+v  2 -1  1
+v 0.5 -1 3
+v 0 -2 3.5
+v 0 -1 4.5
+v -1 1.5 2
+v -2 -1 3
+f 3 2 1 8 6 7 10 5
+f 8 15 14 7 6
+f 14 13 7
+f 10 13 12
+f 7 13 10
+f 5 11 3
+f 10 11 5
+f 10 12 11
+f 8 1 2 3 11 12 13 14 15

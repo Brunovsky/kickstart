@@ -1,0 +1,33 @@
+# V=18 H=12 -- messy.obj
+# Hull only has triangular faces.
+# There are collinear triples and coplanar non-collinear quadruples, but not many.
+v   4    4    12
+v   8    4    -8
+v   4   -4     4
+v   4   -4     0
+v  -4    8     4
+v  -4   16    -4
+v  -8   -4     4
+v  -4    0    -4
+v  -2   -3     1
+v  -2    5     3
+v   2    4     3
+v  -1.5  0     6
+v   2.5  0.5   7.5
+v   2    4.5  -4
+v   0    6     0
+v  -4    6.5   0
+v  -1   10    -2
+v   3.5  4     1
+f 6 5 1
+f 5 7 1
+f 7 3 1
+f 3 2 1
+f 2 6 1
+f 2 8 6
+f 8 7 6
+f 7 5 6
+f 4 2 3
+f 4 8 2
+f 4 3 7
+f 4 7 8

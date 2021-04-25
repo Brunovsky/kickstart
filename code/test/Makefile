@@ -15,6 +15,7 @@ DEP_FILES := $(CXX_FILES:%.cpp=${DEP_DIR}/%.d)
 
 include ../../common/cxx.make
 -include $(DEP_FILES)
+DEBUG += $(SANIT)
 
 # global build
 
