@@ -1,5 +1,8 @@
 # V=8 H=7 -- nearcube.obj
 # Looks like a distorted cube where one face is actually broken
+#  Incident: no
+# Collinear: no
+#  Coplanar: yes: 2 0 1 3
 v -3 -4 -3
 v -3 -4  8
 v -3  4 -3

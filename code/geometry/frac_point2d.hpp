@@ -1,5 +1,5 @@
-#ifndef POINT2D_HPP
-#define POINT2D_HPP
+#ifndef FRAC_POINT2D_HPP
+#define FRAC_POINT2D_HPP
 
 #include "../hash.hpp"
 #include "../numeric/bfrac.hpp"
@@ -137,4 +137,4 @@ struct Point2d {
     friend ostream& operator<<(ostream& out, const P& a) { return out << to_string(a); }
 };
 
-#endif // POINT2D_HPP
+#endif // FRAC_POINT2D_HPP

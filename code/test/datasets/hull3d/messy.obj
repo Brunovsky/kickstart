@@ -1,6 +1,9 @@
 # V=18 H=12 -- messy.obj
 # Hull only has triangular faces.
 # There are collinear triples and coplanar non-collinear quadruples, but not many.
+#  Incident: no
+# Collinear: yes: 2 5 14
+#  Coplanar: yes: 10 0 1 17
 v   4    4    12
 v   8    4    -8
 v   4   -4     4

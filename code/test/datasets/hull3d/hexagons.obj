@@ -1,5 +1,8 @@
 # V=23 H=9 -- hexagons.obj
 # Multi-point faces with internal points and sides with collinear points.
+#  Incident: no
+# Collinear: yes: 0 1 2
+#  Coplanar: yes: 3 0 1 4
 v  2  2  0
 v  3  1  0
 v  4  0  0

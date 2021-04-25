@@ -1,9 +1,7 @@
 #ifndef BIGINT_HPP
 #define BIGINT_HPP
 
-#include <bits/stdc++.h>
-
-using namespace std;
+#include "hash.hpp" // if necessary
 
 // *****
 

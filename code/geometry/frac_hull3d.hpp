@@ -1,8 +1,7 @@
 #ifndef FRAC_QUICKHULL3D_HPP
 #define FRAC_QUICKHULL3D_HPP
 
-#include "../formatting.hpp"
-#include "point3d.hpp" // Point3d, Plane
+#include "frac_point3d.hpp" // Point3d, Plane
 
 // *****
 
@@ -80,8 +79,6 @@ struct frac_quickhull3d {
 
     void link_open(int v) { open[v] = open[0], open[0] = v; }
     void link_eye(int u, int v) { eye_next[u] = v, eye_prev[v] = u; }
-    void clear_open() { open[0] = 0; }
-    void clear_eye(int v) { eye_face[v] = nullptr, eye_prev[v] = eye_next[v] = 0; }
 
     void add_eye(int v, Face* face) {
         assert(v && !eye_face[v]);
@@ -89,22 +86,30 @@ struct frac_quickhull3d {
         link_eye(eye_prev[face->outside], v);
         link_eye(v, face->outside);
         face->outside = v;
-        return;
-        if (face->outside != 0) {
-            auto vdist = face->plane.signed_planedist2(points[v]);
-            auto odist = face->plane.signed_planedist2(points[face->outside]);
-            if (vdist < odist) {
-                link_eye(v, eye_next[face->outside]);
-                link_eye(face->outside, v);
-                return;
-            }
-        }
-        link_eye(eye_prev[face->outside], v);
-        link_eye(v, face->outside);
-        face->outside = v;
     }
 
-    int find_next_eye(Face* face) {
+    void remove_eye(int v) {
+        assert(v && eye_face[v]);
+        Face* face = eye_face[v];
+        if (face->outside == v)
+            face->outside = eye_next[v];
+
+        link_eye(eye_prev[v], eye_next[v]);
+        eye_face[v] = nullptr;
+    }
+
+    void remove_all_eyes(Face* face) {
+        int v = face->outside, head = eye_prev[face->outside];
+        while (v && eye_face[v] == face) {
+            eye_face[v] = nullptr;
+            link_open(v);
+            v = eye_next[v]; // untouched
+        }
+        link_eye(head, v);
+    }
+
+    int find_furthest_eye() {
+        Face* face = eye_face[eye_next[0]];
         assert(face->mark == VISIBLE && face->outside != 0);
         auto maxdist = face->plane.planedist2(points[face->outside]);
         int best = face->outside, v = eye_next[face->outside];
@@ -116,27 +121,6 @@ struct frac_quickhull3d {
             v = eye_next[v];
         }
         return best;
-    }
-
-    void remove_eye(int v) {
-        assert(v && eye_face[v]);
-        Face* face = eye_face[v];
-        if (face->outside == v)
-            face->outside = eye_next[v];
-
-        link_eye(eye_prev[v], eye_next[v]);
-        clear_eye(v);
-    }
-
-    void remove_all_eyes(Face* face) {
-        int v = face->outside, head = eye_prev[face->outside];
-        while (v && eye_face[v] == face) {
-            int next = eye_next[v];
-            clear_eye(v);
-            link_open(v);
-            v = next;
-        }
-        link_eye(head, v);
     }
 
     // Face subroutines
@@ -233,15 +217,12 @@ struct frac_quickhull3d {
     }
 
     void merge_faces(Edge* edge, bool recurse = true) {
-        assert(should_merge(edge));
-
         Face *face = edge->face, *oface = edge->opposite->face;
         Edge *a = edge->prev, *c = edge->opposite->prev;
         Edge *b = edge->next, *d = edge->opposite->next;
 
         // merge edge->opposite->face (with no eyes) into edge->face
-        assert(oface->outside == 0);
-        assert(face->mark == VISIBLE && oface->mark == VISIBLE);
+        assert(oface->outside == 0 && face->mark == VISIBLE && oface->mark == VISIBLE);
         //        a \         face -->     / b
         //        ^  * ---- *[----]* ---- *  v
         //        d /     <-- oface        \ c
@@ -270,18 +251,20 @@ struct frac_quickhull3d {
     }
 
     void merge_new_faces() {
+        vector<Face*> merged_faces; // merged + new unmerged faces
         for (Face* face : new_faces) {
             if (face->mark == VISIBLE) {
                 if (should_merge(face->edge)) {
+                    merged_faces.push_back(face->edge->opposite->face);
                     merge_faces(face->edge->opposite);
                 } else if (should_merge(face->edge->next)) {
                     merge_faces(face->edge->next->opposite);
+                } else {
+                    merged_faces.push_back(face);
                 }
             }
         }
-        new_faces.erase(remove_if(begin(new_faces), end(new_faces),
-                                  [](Face* face) { return face->mark == DELETED; }),
-                        end(new_faces));
+        new_faces = move(merged_faces);
     }
 
     // Main routines
@@ -377,13 +360,6 @@ struct frac_quickhull3d {
         return true;
     }
 
-    void extend_simplex() {
-        while (eye_next[0]) {
-            int eye = find_next_eye(eye_face[eye_next[0]]);
-            add_vertex_to_hull(eye);
-        }
-    }
-
     void compute_horizon(int eye, Edge* cross, Face* face) {
         assert(eye && face && face->mark == VISIBLE && (!cross || cross->face == face));
         remove_all_eyes(face);
@@ -404,7 +380,7 @@ struct frac_quickhull3d {
         } while (edge != cross);
     }
 
-    void resolve_unassigned_points() {
+    void resolve_open_points() {
         for (int v = open[0]; v; v = open[v]) {
             F maxdist = 0;
             Face* maxface = nullptr;
@@ -418,10 +394,7 @@ struct frac_quickhull3d {
                 add_eye(v, maxface);
             }
         }
-        for (int v = open[0], next; v != 0; v = next) {
-            next = open[v], open[v] = 0;
-        }
-        clear_open();
+        open[0] = 0;
         new_faces.clear();
     }
 
@@ -431,9 +404,15 @@ struct frac_quickhull3d {
         compute_horizon(eye, nullptr, face);
         add_horizon_faces(eye);
         merge_new_faces();
-        resolve_unassigned_points();
+        resolve_open_points();
         delete_old_faces();
-        verify_invariants();
+    }
+
+    void extend_simplex() {
+        while (eye_next[0]) {
+            int eye = find_furthest_eye();
+            add_vertex_to_hull(eye);
+        }
     }
 
     // Interface
@@ -458,190 +437,6 @@ struct frac_quickhull3d {
         }
         return hull;
     }
-
-#ifdef DEBUG_HULL3D
-#define my_ass(test, msg) assert(test&& bool(msg))
-
-    void debug_iteration(int iteration) {
-        print("===== iteration {}, nfaces={}\n", iteration, faces.size());
-        auto ordered_faces = extract_hull(0);
-
-        if (eye_next[0]) {
-            int eye = eye_next[0], id = eye_face[eye]->id;
-            print("eye={} -> {}    face={} -> [{}]\n", eye - 1, points[eye], id,
-                  ordered_faces[id]);
-        } else {
-            print("DONE\n");
-        }
-        debug();
-    }
-
-    void debug_eyes() {
-        print("      nodes: NIL");
-        for (int v = 1; v <= N; v++) {
-            print(" {:>2}", v - 1);
-        }
-        cout << endl;
-
-        print("   eye_face: ");
-        for (int v = 0; v <= N; v++) {
-            print(" {:>2}", eye_face[v] ? to_string(eye_face[v]->id) : "");
-        }
-        cout << endl;
-
-        print("   eye_next: ");
-        for (int v = 0; v <= N; v++) {
-            print(" {:>2}", eye_next[v] ? to_string(eye_next[v] - 1) : "");
-        }
-        cout << endl;
-
-        print("   eye_prev: ");
-        for (int v = 0; v <= N; v++) {
-            print(" {:>2}", eye_prev[v] ? to_string(eye_prev[v] - 1) : "");
-        }
-        cout << endl;
-
-        print("outsides:");
-        for (int f = 0; f < int(faces.size()); f++) {
-            print("  {}->{}", f, faces[f]->outside);
-        }
-        cout << endl;
-    }
-
-    void debug_faces() {
-        auto ordered_faces = extract_hull(0);
-
-        print("faces:");
-        for (int i = 0, f = ordered_faces.size(); i < f; i++) {
-            print(" {}=[{}]", i, ordered_faces[i]);
-        }
-        cout << endl;
-    }
-
-    void debug_unassigned() {
-        print(" open: ");
-        for (int v = 0; v <= N; v++) {
-            print(" {:>2}", open[v] ? to_string(open[v] - 1) : "");
-        }
-        cout << endl;
-    }
-
-    void debug_horizon() {
-        print("horizon:\n");
-        for (Edge* edge : horizon) {
-            assert(edge && edge->face->mark == DELETED);
-            print("   {} (face={})\n", edge->vertex - 1, edge->face->id);
-        }
-        cout << flush;
-    }
-
-    void debug() {
-        debug_faces();
-        debug_eyes();
-        debug_unassigned();
-        debug_horizon();
-    }
-
-    void verify_horizon() {
-        unordered_set<Edge*> horizonset(begin(horizon), end(horizon));
-        unordered_set<Face*> oldset(begin(old_faces), end(old_faces));
-
-        for (Edge* edge : horizon) {
-            Face *face = edge->face, *oface = edge->opposite->face;
-            my_ass(face->mark == DELETED && oldset.count(face),
-                   "horizon edge is apparently visible");
-            my_ass(oface->mark == VISIBLE && !oldset.count(oface),
-                   "horizon opposite edge is apparently not visible");
-        }
-    }
-
-    void verify_active_faces() {
-        unordered_set<Face*> oldset(begin(old_faces), end(old_faces));
-        for (int f = 0, Q = faces.size(); f < Q; f++) {
-            Face* face = faces[f].get();
-            my_ass(face, "faces[] contains null list");
-            my_ass(face->edge, "face has null head edge");
-            my_ass(face->edge->face == face, "face head edge assigned to wrong face");
-            my_ass(faces[face->id].get() == face, "face in wrong position in faces[]");
-            my_ass((face->mark == VISIBLE || oldset.count(face)), "not in old_faces");
-            my_ass(face->outside >= 0 && face->outside <= N, "bad face outside eye");
-        }
-    }
-
-    void verify_old_faces() {
-        unordered_set<Face*> oldset(begin(old_faces), end(old_faces));
-
-        for (Face* face : old_faces) {
-            my_ass(face->mark == DELETED, "old face is not deleted");
-        }
-    }
-
-    void verify_eyes() {
-        vector<unordered_set<int>> eyes(faces.size());
-
-        for (int f = 0, Q = faces.size(); f < Q; f++) {
-            Face* face = faces[f].get();
-            int eye = face->outside;
-            while (eye && eye_face[eye] == face) {
-                eyes[face->id].insert(eye);
-                eye = eye_next[eye];
-            }
-        }
-
-        for (int v = 1; v <= N; v++) {
-            if (eye_face[v] == nullptr) {
-                my_ass(eye_prev[v] == 0 && eye_next[v] == 0, "eye was not cleared");
-                continue;
-            }
-            Face* face = eye_face[v];
-            my_ass(face && faces[face->id].get() == face, "bad eye face");
-            my_ass(face && face->mark == VISIBLE, "bad eye face");
-
-            my_ass(eyes[face->id].count(v), "eye not reachable from face");
-            my_ass(eye_prev[eye_next[v]] == v, "fucked up eye list next");
-            my_ass(eye_next[eye_prev[v]] == v, "fucked up eye list prev");
-        }
-    }
-
-    void verify_edges(bool nocoplanar = false) {
-        for (int f = 0, Q = faces.size(); f < Q; f++) {
-            Face* face = faces[f].get();
-
-            vector<Edge*> edges;
-            Edge* edge = face->edge;
-            do {
-                my_ass(edge->face == face, "edge assigned to wrong face");
-                my_ass(edge->prev->next == edge, "edge incorrect prev->next");
-                my_ass(edge->next->prev == edge, "edge incorrect next->prev");
-                my_ass(edge->opposite->opposite == edge, "edge incorrect opposite");
-                my_ass(edge->opposite->face != face, "edge opposite shares face");
-                my_ass(edge->next->vertex == edge->opposite->vertex,
-                       "incorrect next->vertex/opposite->vertex");
-
-                int v = edge->vertex;
-                my_ass(face->plane.planeside(points[v]) == 0, "vertex is not in plane");
-                my_ass(edge->opposite->face->plane.planeside(points[v]) == 0,
-                       "vertex is not in opposite face's plane");
-
-                if (nocoplanar) {
-                    my_ass(face->plane != edge->opposite->face->plane,
-                           "should have merged faces");
-                }
-
-                edges.push_back(edge);
-                edge = edge->next;
-            } while (edge != face->edge);
-        }
-    }
-
-    void verify_invariants() {
-        verify_horizon();
-        verify_active_faces();
-        verify_old_faces();
-        verify_eyes();
-        verify_edges(true);
-    }
-#endif
 };
 
 #endif // FRAC_QUICKHULL3D_HPP

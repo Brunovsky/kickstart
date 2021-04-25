@@ -1,5 +1,5 @@
-#include "../geometry/point2d.hpp"
-#include "../geometry/point3d.hpp"
+#include "../geometry/frac_point2d.hpp"
+#include "../geometry/frac_point3d.hpp"
 #include "test_utils.hpp"
 
 // *****
