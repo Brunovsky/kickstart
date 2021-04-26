@@ -67,12 +67,13 @@ struct Point2d {
     friend bool onsegment(const P& a, const P& b, const P& c) {
         return collinear(a, b, c) && dot(a - b, c - b) <= 0;
     }
-    // Compute intersection of lines uv and ab (should not be parallel/concurrent)
-    friend P intersect(const P& u, const P& v, const P& a, const P& b) {
-        auto d = crossed(v - u, b - a);
-        assert(d != 0);
-        auto p = a.cross(v, b), q = a.cross(b, u);
-        return (u * p + v * q) / d;
+    // Are vectors u and v parallel? (either way)
+    friend bool parallel(const P& u, const P& v) { return crossed(u, v) == zero(); }
+
+    // Is point P on left of (1), on (0) or right of (-1) the semiline u->v?
+    friend int lineside(const P& p, const P& u, const P& v) {
+        auto c = u.cross(v, p);
+        return (c >= 0) - (c <= 0);
     }
 
     // k=0 => a, k=1 => b, 0<k<1 inside segment [ab]
@@ -87,6 +88,14 @@ struct Point2d {
     friend T linedist2(const P& a, const P& u, const P& v) {
         auto A = area(a, u, v);
         return 4 * A * A / dist2(u, v);
+    }
+
+    // Compute intersection of lines uv and ab (should not be parallel/concurrent)
+    friend P intersect(const P& u, const P& v, const P& a, const P& b) {
+        auto d = crossed(v - u, b - a);
+        assert(d != 0);
+        auto p = a.cross(v, b), q = a.cross(b, u);
+        return (u * p + v * q) / d;
     }
 
     // -- Area

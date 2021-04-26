@@ -74,7 +74,7 @@ struct Point3d {
         return collinear(a, b, c) && dot(a - b, c - b) <= 0;
     }
     // Are vectors u and v parallel? (either way)
-    friend bool parallel(const P& u, const P& v) { return crossed(u, v).norm2() == 0; }
+    friend bool parallel(const P& u, const P& v) { return crossed(u, v) == zero(); }
 
     // k=0 => a, k=1 => b, 0<k<1 inside segment [ab]
     friend P interpolate(const P& a, const P& b, const T& k) {

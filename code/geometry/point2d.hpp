@@ -121,6 +121,12 @@ struct Point2d {
     friend bool parallel(const P& u, const P& v, double eps = deps) {
         return collinear(zero(), u, v, eps);
     }
+    // Is point P on left of (1), on (0) or right of (-1) the semiline u->v?
+    friend int lineside(const P& p, const P& u, const P& v, double eps = deps) {
+        auto c = u.cross(v, p);
+        auto uv = dist2(u, v);
+        return (c >= uv * eps) - (c <= -uv * eps);
+    }
 
     // k<0 => before a, k=0 => a, k=1 => b, k>1 => after b, 0<k<1 => in segment [ab]
     friend P interpolate(const P& a, const P& b, double k) { return a + (b - a) * k; }
