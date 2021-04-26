@@ -19,18 +19,19 @@ struct Point3d {
     constexpr Point3d(const array<double, 3>& a) : x(a[0]), y(a[1]), z(a[2]) {}
 
     using P = Point3d;
-    static inline const double inf = numeric_limits<double>::infinity();
+    static inline constexpr double inf = numeric_limits<double>::infinity();
     static inline double deps = 1e-10; // default epsilon for comparisons etc (positive)
 
-    static auto origin() { return P(0, 0, 0); }
-    static auto pinf() { return P(inf, inf, inf); }
+    static constexpr P zero() { return P(0, 0, 0); }
+    static constexpr P one() { return P(1, 1, 1); }
+    static constexpr P pinf() { return P(inf, inf, inf); }
 
     friend bool same(const P& a, const P& b, double eps = deps) {
         return dist(a, b) <= eps;
     }
     bool operator==(const P& b) const { return same(*this, b); }
     bool operator!=(const P& b) const { return same(*this, b); }
-    explicit operator bool() const noexcept { return *this != origin(); }
+    explicit operator bool() const noexcept { return *this != zero(); }
 
     double& operator[](int i) { return assert(0 <= i && i < 3), *(&x + i); }
     double operator[](int i) const { return assert(0 <= i && i < 3), *(&x + i); }
@@ -50,11 +51,12 @@ struct Point3d {
     double norm() const { return dist(*this); }
     double norm2() const { return dist2(*this); }
     friend auto dot(const P& u, const P& v) { return u.x * v.x + u.y * v.y + u.z * v.z; }
-    friend auto dot2(const P& a, const P& b) { return dot(a, b) * dot(a, b); }
+    friend auto dot2(const P& u, const P& v) { return dot(u, v) * dot(u, v); }
     friend double dist(const P& u) { return std::sqrt(dist2(u)); }
     friend double dist(const P& a, const P& b) { return std::sqrt(dist2(a, b)); }
     friend double dist2(const P& u) { return dot(u, u); }
     friend double dist2(const P& a, const P& b) { return dist2(a - b); }
+
     double xcross(const P& a, const P& b) const { return xcrossed(a - *this, b - *this); }
     double ycross(const P& a, const P& b) const { return ycrossed(a - *this, b - *this); }
     double zcross(const P& a, const P& b) const { return zcrossed(a - *this, b - *this); }
@@ -110,12 +112,6 @@ struct Point3d {
     friend double sin(const P& u, const P& v) {
         return clamp(crossed(u, v).norm() / std::sqrt(u.norm2() * v.norm2()), -1.0, 1.0);
     }
-    friend double cos2(const P& u, const P& v) {
-        return clamp(dot2(u, v) / (u.norm2() * v.norm2()), 0.0, 1.0);
-    }
-    friend double sin2(const P& u, const P& v) {
-        return 1.0 - cos2(u, v); // well...
-    }
 
     // -- Lines
 
@@ -138,10 +134,6 @@ struct Point3d {
     // Distance of a to line uv
     friend double linedist(const P& a, const P& u, const P& v) {
         return a.cross(u, v).norm() / dist(u, v);
-    }
-    // Squared distance of a to line uv
-    friend double linedist2(const P& a, const P& u, const P& v) {
-        return a.cross(u, v).norm2() / dist2(u, v);
     }
 
     // -- Planes
@@ -179,7 +171,7 @@ struct Point3d {
 struct Plane {
     using P = Point3d;
     P n;      // normal; null if plane is degenerate (e.g. 3 collinear points)
-    double d; // distance to origin; plane equation: dot(n,x) + d = 0
+    double d; // distance to zero; plane equation: dot(n,x) + d = 0
 
     Plane() = default;
     Plane(const P& n, double d) : n(n), d(d) {}

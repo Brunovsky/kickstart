@@ -18,22 +18,21 @@
 template <typename F>
 struct Point2d {
     F x, y;
-    Point2d() = default;
+    Point2d() : x(0), y(0) {}
     Point2d(const F& x, const F& y) : x(x), y(y) {}
     Point2d(const pair<F, F>& p) : x(p.first), y(p.second) {}
     Point2d(const array<F, 2>& a) : x(a[0]), y(a[1]) {}
 
     using P = Point2d<F>;
     static inline const F inf = F(1, 0); // positive infinity
-    static inline const P origin = P(0, 0);
-    static inline const P pinf = P(inf, inf); // point at infinity
+
+    static P zero() { return P(0, 0); }
+    static P one() { return P(1, 1); }
+    static P pinf() { return P(inf, inf); }
 
     bool operator==(const P& b) const { return x == b.x && y == b.y; }
     bool operator!=(const P& b) const { return !(*this == b); }
-    bool operator<(const P& b) const { return tie(x, y) < tie(b.x, b.y); }
-    bool operator>(const P& b) const { return b < *this; }
-    bool operator<=(const P& b) const { return !(b < *this); }
-    bool operator>=(const P& b) const { return !(*this < b); }
+    explicit operator bool() const noexcept { return *this != zero(); }
 
     F& operator[](int i) { return assert(0 <= i && i < 2), *(&x + i); }
     const F& operator[](int i) const { return assert(0 <= i && i < 2), *(&x + i); }
@@ -49,21 +48,20 @@ struct Point2d {
     friend P& operator/=(P& a, const F& k) { return a = a / k; }
 
     F norm2() const { return dist2(*this); }
-    friend double dist(const P& a) { return sqrt(dist2(a)); }
-    friend double dist(const P& a, const P& b) { return sqrt(dist2(a, b)); }
-    friend F dist2(const P& a) { return a.x * a.x + a.y * a.y; }
-    friend F dist2(const P& a, const P& b) {
-        auto dx = a.x - b.x, dy = a.y - b.y;
-        return dx * dx + dy * dy;
-    }
-
     friend F dot(const P& a, const P& b) { return a.x * b.x + a.y * b.y; }
-    friend P perp(const P& a) { return P(-a.y, a.x); }  // 90 degrees clockwise
-    friend P rperp(const P& a) { return P(a.y, -a.x); } // 90 degrees counterclockwise
+    friend F dot2(const P& a, const P& b) { return dot(a, b) * dot(a, b); }
+    friend double dist(const P& u) { return std::sqrt(double(dist2(u))); }
+    friend double dist(const P& a, const P& b) { return std::sqrt(double(dist2(a, b))); }
+    friend F dist2(const P& u) { return dot(u, u); }
+    friend F dist2(const P& a, const P& b) { return dist2(a - b); }
+
     F cross(const P& a, const P& b) const { return crossed(a - *this, b - *this); }
-    friend F crossed(const P& a, const P& b) { return a.x * b.y - a.y * b.x; }
+    friend F crossed(const P& u, const P& v) { return u.x * v.y - u.y * v.x; }
+    friend P rperp(const P& u) { return P(-u.y, u.x); } // 90 degrees counterclockwise
+    friend P lperp(const P& u) { return P(u.y, -u.x); } // 90 degrees clockwise
 
     // -- Lines
+
     // Are points a, b, c collinear in any order? (degenerate=yes)
     friend bool collinear(const P& a, const P& b, const P& c) {
         return a.cross(b, c) == 0;
@@ -76,10 +74,11 @@ struct Point2d {
     friend P intersect(const P& u, const P& v, const P& a, const P& b) {
         auto d = crossed(v - u, b - a);
         if (d == 0)
-            return pinf;
+            return pinf();
         auto p = a.cross(v, b), q = a.cross(b, u);
         return (u * p + v * q) / d;
     }
+
     // k=0 => a, k=1 => b, 0<k<1 inside segment [ab]
     friend P interpolate(const P& a, const P& b, const F& k) {
         return (1 - k) * a + k * b;
@@ -112,10 +111,6 @@ struct Point2d {
     // -- Area
     // Oriented area of triangle abc (positive=ccw)
     friend F area(const P& a, const P& b, const P& c) { return a.cross(b, c) / 2; }
-    // Squared area of triangle abc
-    friend F area2(const P& a, const P& b, const P& c) {
-        return a.cross(b, c) * a.cross(b, c) / 4;
-    }
     // Oriented area of polygon, e.g. convex hull (positive=ccw)
     friend F area(const vector<P>& ps) {
         F ans = 0;
@@ -126,7 +121,6 @@ struct Point2d {
         return ans;
     }
 
-    explicit operator bool() const noexcept { return !x && !y; }
     bool boxed(const P& min, const P& max) const {
         return min.x <= x && x <= max.x && min.y <= y && y <= max.y;
     }

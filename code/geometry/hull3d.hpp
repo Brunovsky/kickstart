@@ -5,6 +5,8 @@
 
 // *****
 
+using hull_t = vector<vector<int>>;
+
 /**
  * 3D Quickhull for double points.
  *
@@ -14,11 +16,12 @@
  *   - 4+ points coplanar ==> handled properly, faces can have >3 points
  *
  * The convex hull generated
- *   - is not simple nor complete: faces whose sides have multiple collinear points
+ * (A) - is not simple nor complete: faces whose sides have multiple collinear points
  *       might include none, any or all of those "interior" points.
- *   - is not canonical: the output hull's faces are in arbitrary order, and each face
+ * (B) - is not canonical: the output hull's faces are in arbitrary order, and each face
  *       starts at an arbitrary point.
- * To address these issues see hull3d_utils.hpp
+ * To address these issues see call appropriate functions (see below).
+ * In most cases these are not problems.
  *
  * Complexity: O(N log N) expected, O(N^2) worst-case
  * Reference: https://github.com/mauriciopoppe/quickhull3d
@@ -26,9 +29,11 @@
  * Usage:
  *     vector<P> points = {P(1,2,3), ...};
  *     quickhull3d qh(points);
- *     bool ok = qh.compute();              // returns false if all points are coplanar
- *     auto hull = qh.extract_hull();       // points 0-indexed in the faces
- *     for (auto face : hull) {
+ *     bool ok = qh.compute();               // returns false if all points are coplanar
+ *     auto hull = qh.extract_hull();        // points 0-indexed in the faces
+ *     simplify_hull(hull, points, qh.eps);  // simplify if needed, (A)
+ *     canonicalize_hull(hull);              // canonicalize if needed (simplify 1st), (B)
+ *     for (const auto& face : hull) {
  *         for (int v : face) {
  *             ... // points[v]
  *         }
@@ -36,7 +41,6 @@
  */
 struct quickhull3d {
     using P = Point3d;
-    using Hull = vector<vector<int>>;
     struct Face;
 
     static inline constexpr int VISIBLE = 0, DELETED = 1;
@@ -296,6 +300,22 @@ struct quickhull3d {
         new_faces = move(merged_faces);
     }
 
+    void final_merge_faces() {
+        for (auto&& face : faces) {
+            if (face->mark == VISIBLE) {
+                Edge* edge = face->edge;
+                do {
+                    if (should_merge(edge)) {
+                        merge_faces(edge->opposite);
+                        break;
+                    }
+                    edge = edge->next;
+                } while (edge != face->edge);
+            }
+        }
+        delete_old_faces();
+    }
+
     // Main routines
 
     /**
@@ -458,6 +478,7 @@ struct quickhull3d {
         bool ok = initialize_simplex();
         if (ok) {
             extend_simplex();
+            final_merge_faces();
         }
         return ok;
     }
@@ -475,5 +496,44 @@ struct quickhull3d {
         return hull;
     }
 };
+
+using hull_t = vector<vector<int>>;
+
+/**
+ *  ,7,,,,,,
+ *  ,,,,,,,,  The 2D convex hull of this plane is <7->5->6->9->4->2->1->0> but the points
+ *  ,,,,,,,,  5, 0 and 1 are collinear with their neighbors, so the convex hull algorithm
+ *  ,,,,0,,,  might "optimize" them away (i.e. it unfortunately won't find them).
+ *  ,5,8,1,,  This is by design. If it finds them, it remembers them moving forward
+ *  ,,,,,,2,  instead of detecting and discarding them. This means verification gets
+ *  ,6,,3,,,  a bit tricky. To fix this issue we simply remove 5, 0 and 1 from the hull,
+ *  ,,,,,4,,  and say that the simplified hull is
+ *  ,,,9,,,,                      7->6->9->4->2
+ * You should simplify before canonicalizing.
+ */
+void simplify_hull(hull_t& hull, const vector<Point3d>& points, double eps, int s = 0) {
+    for (auto& face : hull) {
+        vector<int> filtered_face;
+        for (int j = 0, N = face.size(); j < N; j++) {
+            int i = (j + N - 1) % N, k = (j + 1) % N;
+            int u = face[i] - s, v = face[j] - s, w = face[k] - s;
+            if (!collinear(points[u], points[v], points[w], eps))
+                filtered_face.push_back(face[j]);
+        }
+        face = move(filtered_face);
+    }
+}
+
+/**
+ * Rotate the faces in the hull so that the lowest index vertex is at the beginning.
+ * Then sort all of the hull lexicographically.
+ * You should simplify before canonicalizing.
+ */
+void canonicalize_hull(hull_t& hull) {
+    for (auto& face : hull) {
+        rotate(begin(face), min_element(begin(face), end(face)), end(face));
+    }
+    sort(begin(hull), end(hull));
+}
 
 #endif // QUICKHULL3D_HPP

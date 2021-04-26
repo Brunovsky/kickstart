@@ -148,7 +148,7 @@ struct quickhull3d_dataset_test_t {
                 hull.emplace_back(move(face));
             }
         }
-        simplify_hull(hull, points, 1, 1e-9);
+        simplify_hull(hull, points, 1e-12, 1);
         canonicalize_hull(hull);
     }
 
@@ -158,7 +158,7 @@ struct quickhull3d_dataset_test_t {
         quickhull3d qh(points);
         qh.compute();
         auto got = qh.extract_hull(1);
-        simplify_hull(got, points, 1, 1e-9);
+        simplify_hull(got, points, 1e-12, 1);
         canonicalize_hull(got);
 
         if (got != hull) {

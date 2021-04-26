@@ -19,8 +19,9 @@ struct frac {
         n /= g, d /= g;
     }
 
-    explicit operator long() const noexcept { return assert(d != 0), n / d; }
     explicit operator bool() const noexcept { return n != 0 && d != 0; }
+    explicit operator long() const noexcept { return assert(d != 0), n / d; }
+    explicit operator double() const noexcept { return assert(d != 0), 1.0 * n / d; }
 };
 
 frac abs(frac f) { return frac(abs(f.n), f.d); }

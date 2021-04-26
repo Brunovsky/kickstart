@@ -19,8 +19,11 @@ struct bfrac {
         n /= g, d /= g;
     }
 
-    explicit operator bigint() const noexcept { return assert(d != 0), n / d; }
     explicit operator bool() const noexcept { return n != 0 && d != 0; }
+    explicit operator bigint() const noexcept { return assert(d != 0), n / d; }
+    explicit operator double() const noexcept {
+        return assert(d != 0), double(n) / double(d);
+    }
 };
 
 bfrac abs(const bfrac& f) { return bfrac(abs(f.n), f.d); }

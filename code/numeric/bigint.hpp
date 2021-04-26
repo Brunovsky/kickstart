@@ -31,6 +31,12 @@ struct bigint {
     }
 
     explicit operator bool() const noexcept { return !zero(); }
+    explicit operator double() const noexcept {
+        double v = 0;
+        for (int i = 0; i < len(); i++)
+            v = pow(2, 32) * v + nums[i];
+        return v;
+    }
 };
 
 inline namespace bigint_comparison {

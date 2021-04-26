@@ -4,18 +4,20 @@
 
 // *****
 
+template struct Point2d<frac>;
+template struct Point2d<bfrac>;
+template struct Point2d<long long>;
 template struct Point3d<frac>;
 template struct Point3d<bfrac>;
+template struct Point3d<long long>;
 template struct Plane<frac>;
 template struct Plane<bfrac>;
 using F = frac;
-using Pf = Point2d<F>;
-using Pb = Point2d<bfrac>;
-using P3f = Point3d<F>;
-using P3b = Point3d<bfrac>;
+using P = Point2d<F>;
+using P3 = Point3d<F>;
 
 void unit_test_point2d() {
-    Pf A(1, 4), B(7, 0), C(6, 8);
+    P A(1, 4), B(7, 0), C(6, 8);
     auto a2 = dist2(B, C), b2 = dist2(A, C), c2 = dist2(A, B);
     auto ha2 = linedist2(A, B, C);
     auto hb2 = linedist2(B, C, A);
@@ -31,7 +33,7 @@ void unit_test_point2d() {
 }
 
 void unit_test_point3d_2d() {
-    P3f A(1, 4, 0), B(7, 0, 0), C(6, 8, 0);
+    P3 A(1, 4, 0), B(7, 0, 0), C(6, 8, 0);
     auto a2 = dist2(B, C), b2 = dist2(A, C), c2 = dist2(A, B);
     auto ha2 = linedist2(A, B, C);
     auto hb2 = linedist2(B, C, A);
@@ -47,7 +49,7 @@ void unit_test_point3d_2d() {
 }
 
 void unit_test_point3d_3d() {
-    P3f A(1, 4, 8), B(7, 0, 13), C(6, 8, 9);
+    P3 A(1, 4, 8), B(7, 0, 13), C(6, 8, 9);
     auto a2 = dist2(B, C), b2 = dist2(A, C), c2 = dist2(A, B);
     auto ha2 = linedist2(A, B, C);
     auto hb2 = linedist2(B, C, A);

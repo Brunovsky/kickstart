@@ -23,12 +23,12 @@ struct Point3d {
     using P = Point3d<F>;
     static inline const F inf = F(1, 0); // positive infinity
 
-    static auto origin() { return P(0, 0, 0); }
-    static auto pinf() { return P(inf, inf, inf); }
+    static P zero() { return P(0, 0, 0); }
+    static P pinf() { return P(inf, inf, inf); }
 
     bool operator==(const P& b) const { return x == b.x && y == b.y && z == b.z; }
     bool operator!=(const P& b) const { return !(*this == b); }
-    explicit operator bool() const noexcept { return *this != origin(); }
+    explicit operator bool() const noexcept { return *this != zero(); }
 
     F& operator[](int i) { return assert(0 <= i && i < 3), *(&x + i); }
     const F& operator[](int i) const { return assert(0 <= i && i < 3), *(&x + i); }
@@ -46,8 +46,11 @@ struct Point3d {
     F norm2() const { return dist2(*this); }
     friend F dot(const P& a, const P& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
     friend F dot2(const P& a, const P& b) { return dot(a, b) * dot(a, b); }
+    friend double dist(const P& u) { return std::sqrt(double(dist2(u))); }
+    friend double dist(const P& a, const P& b) { return std::sqrt(double(dist2(a, b))); }
     friend F dist2(const P& a) { return dot(a, a); }
     friend F dist2(const P& a, const P& b) { return dist2(a - b); }
+
     F xcross(const P& a, const P& b) const { return xcrossed(a - *this, b - *this); }
     F ycross(const P& a, const P& b) const { return ycrossed(a - *this, b - *this); }
     F zcross(const P& a, const P& b) const { return zcrossed(a - *this, b - *this); }
@@ -63,16 +66,14 @@ struct Point3d {
 
     // Are points a, b, c collinear in any order? (degenerate=yes)
     friend bool collinear(const P& a, const P& b, const P& c) {
-        return a.cross(b, c) == origin();
+        return a.cross(b, c) == zero();
     }
     // Are point a, b, c collinear in this order? (degenerate=yes)
     friend bool onsegment(const P& a, const P& b, const P& c) {
         return collinear(a, b, c) && dot(a - b, c - b) <= 0;
     }
     // Are vectors u and v parallel? (either way)
-    friend bool parallel(const P& u, const P& v) {
-        return dot2(u, v) == u.norm2() * v.norm2();
-    }
+    friend bool parallel(const P& u, const P& v) { return crossed(u, v).norm2() == 0; }
 
     // k=0 => a, k=1 => b, 0<k<1 inside segment [ab]
     friend P interpolate(const P& a, const P& b, const F& k) {
@@ -126,7 +127,7 @@ template <typename F>
 struct Plane {
     using P = Point3d<F>;
     P n; // normal; null if plane is degenerate (e.g. 3 collinear points)
-    F d; // distance to origin; plane equation: dot(n,x) + d = 0
+    F d; // distance to zero; plane equation: dot(n,x) + d = 0
 
     Plane() = default;
     Plane(const P& n, const F& d) : n(n), d(d) {}
