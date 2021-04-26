@@ -51,12 +51,15 @@ struct Point2d {
     P unit() const { return *this / norm(); }
     double norm() const { return dist(*this); }
     double norm2() const { return dist2(*this); }
-    friend double dot(const P& u, const P& v) { return u.x * v.x + u.y * v.y; }
-    friend double dot2(const P& u, const P& v) { return dot(u, v) * dot(u, v); }
+    friend auto dot(const P& u, const P& v) { return u.x * v.x + u.y * v.y; }
+    friend auto dot2(const P& u, const P& v) { return dot(u, v) * dot(u, v); }
     friend double dist(const P& u) { return std::sqrt(dist2(u)); }
     friend double dist(const P& a, const P& b) { return std::sqrt(dist2(a, b)); }
     friend double dist2(const P& u) { return dot(u, u); }
     friend double dist2(const P& a, const P& b) { return dist2(a - b); }
+    double manhattan() const { return abs(x) + abs(y); }
+    friend double manhattan(const P& a, const P& b) { return (a - b).manhattan(); }
+    friend P abs(const P& u) { return P(abs(u.x), abs(u.y)); }
 
     double cross(const P& a, const P& b) const { return crossed(a - *this, b - *this); }
     friend double crossed(const P& u, const P& v) { return u.x * v.y - u.y * v.x; }
@@ -80,7 +83,6 @@ struct Point2d {
 
     // Angle with the x-axis in [-pi, pi], right-hand
     double angle() const { return atan2(y, x); }
-
     // Angle with the x-axis in [-pi, pi], right-hand
     double angle(const P& p) { return p.angle(); }
 
@@ -123,6 +125,7 @@ struct Point2d {
     friend double linedist(const P& a, const P& u, const P& v) {
         return a.cross(u, v) / dist(u, v);
     }
+
     // {B,C} such that y = Bx + C (possibly B=inf)
     friend pair<double, double> slope_line(const P& u, const P& v, double eps = deps) {
         const auto a = u.x, b = u.y, c = v.x, d = v.y;
@@ -132,12 +135,11 @@ struct Point2d {
         else
             return {inf, a};
     }
-
     // Compute intersection of lines uv and ab (point at infinity if parallel/concurrent)
     friend P intersect(const P& u, const P& v, const P& a, const P& b,
                        double eps = deps) {
         auto d = crossed(v - u, b - a);
-        if (d <= eps)
+        if (abs(d) <= eps)
             return pinf();
         auto p = a.cross(v, b), q = a.cross(b, u);
         return (u * p + v * q) / d;

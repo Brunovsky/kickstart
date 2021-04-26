@@ -6,12 +6,16 @@
 
 template struct Point2d<frac>;
 template struct Point2d<bfrac>;
-template struct Point2d<long long>;
+template struct Point2d<int64_t>;
+template struct Point2d<int>;
 template struct Point3d<frac>;
 template struct Point3d<bfrac>;
-template struct Point3d<long long>;
+template struct Point3d<int64_t>;
+template struct Point3d<int>;
 template struct Plane<frac>;
 template struct Plane<bfrac>;
+template struct Plane<int64_t>;
+template struct Plane<int>;
 using F = frac;
 using P = Point2d<F>;
 using P3 = Point3d<F>;

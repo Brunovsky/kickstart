@@ -56,6 +56,9 @@ struct Point3d {
     friend double dist(const P& a, const P& b) { return std::sqrt(dist2(a, b)); }
     friend double dist2(const P& u) { return dot(u, u); }
     friend double dist2(const P& a, const P& b) { return dist2(a - b); }
+    double manhattan() const { return abs(x) + abs(y) + abs(z); }
+    friend double manhattan(const P& a, const P& b) { return (a - b).manhattan(); }
+    friend P abs(const P& u) { return P(abs(u.x), abs(u.y), abs(u.z)); }
 
     double xcross(const P& a, const P& b) const { return xcrossed(a - *this, b - *this); }
     double ycross(const P& a, const P& b) const { return ycrossed(a - *this, b - *this); }
@@ -91,20 +94,17 @@ struct Point3d {
     double phi() const { return atan2(y, x); }
     // Zenith angle (latitude) to the z-axis in interval [0, pi]
     double theta() const { return atan2(std::sqrt(x * x + y * y), z); }
-
     // Azimuthal angle (longitude) to x-axis in interval [-pi, pi], ignoring z
     friend double phi(const P& p) { return p.phi(); }
     // Zenith angle (latitude) to the z-axis in interval [0, pi]
     friend double theta(const P& p) { return p.theta(); }
 
-    // Rotate angle radians ccw around axis
-    P rotate(double rad, P axis) const {
+    P rotated(double rad, P axis) const {
         double s = sin(rad), c = cos(rad);
         axis.normalize();
         return axis * dot(*this, axis) * (1 - c) + (*this) * c + crossed(*this, axis) * s;
     }
-    // Rotate this vector/point angle radians ccw around axis
-    P& rotated(double rad, P axis) { return *this = rotate(rad, axis); }
+    P& rotate(double rad, P axis) { return *this = rotated(rad, axis); }
 
     friend double cos(const P& u, const P& v) {
         return clamp(dot(u, v) / std::sqrt(u.norm2() * v.norm2()), -1.0, 1.0);
