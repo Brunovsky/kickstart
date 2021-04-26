@@ -1,12 +1,13 @@
-#ifndef FRAC_QUICKHULL3D_HPP
-#define FRAC_QUICKHULL3D_HPP
+#ifndef QUICKHULL3D_HPP
+#define QUICKHULL3D_HPP
 
-#include "frac_point3d.hpp" // Point3d, Plane
+#include "point3d.hpp" // Point3d, Plane
 
 // *****
 
 /**
- * 3D Quickhull for rational points.
+ * 3D Quickhull for double points.
+ *
  * All degenerate cases are handled:
  *   - 2+ points incident ==> all but one will be completely ignored
  *   - 3+ points collinear ==> handled properly, face edges may be collinear
@@ -22,14 +23,9 @@
  * Complexity: O(N log N) expected, O(N^2) worst-case
  * Reference: https://github.com/mauriciopoppe/quickhull3d
  *
- * Note: I do not intend for this to be used directly. It is a proof of concept
- * implementation with perfect precision that can be a reliable hull algorithm for
- * floating point implementations. It has considerable overflow issues with frac even
- * for small fractions (e.g. numerator>=50, denominator>=4 already causes overflows).
- *
  * Usage:
  *     vector<P> points = {P(1,2,3), ...};
- *     frac_quickhull3d qh(points);
+ *     quickhull3d qh(points);
  *     bool ok = qh.compute();              // returns false if all points are coplanar
  *     auto hull = qh.extract_hull();       // points 0-indexed in the faces
  *     for (auto face : hull) {
@@ -38,9 +34,8 @@
  *         }
  *     }
  */
-template <typename F>
-struct frac_quickhull3d {
-    using P = Point3d<F>;
+struct quickhull3d {
+    using P = Point3d;
     using Hull = vector<vector<int>>;
     struct Face;
 
@@ -56,9 +51,10 @@ struct frac_quickhull3d {
     };
 
     struct Face {
-        Plane<F> plane; // not normalized
-        Edge* edge;     // an arbitrary edge in the face; a particular one initially
-        int mark = VISIBLE, outside = 0, id;
+        Plane plane; // not normalized
+        Point3d centroid;
+        Edge* edge; // an arbitrary edge in the face; a particular one initially
+        int mark = VISIBLE, outside = 0, id, npoints = 3;
         explicit Face(int id) : id(id) {}
     };
 
@@ -68,8 +64,9 @@ struct frac_quickhull3d {
     vector<int> eye_prev, eye_next, open;
     vector<Face*> eye_face, new_faces, old_faces;
     vector<Edge*> horizon;
+    double eps = Point3d::deps;
 
-    frac_quickhull3d(const vector<P>& input)
+    quickhull3d(const vector<P>& input)
         : N(input.size()), points(N + 1), eye_prev(N + 1, 0), eye_next(N + 1, 0),
           open(N + 1, 0), eye_face(N + 1) {
         copy(begin(input), end(input), begin(points) + 1);
@@ -111,10 +108,10 @@ struct frac_quickhull3d {
     int find_furthest_eye() {
         Face* face = eye_face[eye_next[0]];
         assert(face->mark == VISIBLE && face->outside != 0);
-        auto maxdist = face->plane.planedist2(points[face->outside]);
+        auto maxdist = face->plane.planedist(points[face->outside]);
         int furthest = face->outside, v = eye_next[face->outside];
         while (v && eye_face[v] == face) {
-            auto dist = face->plane.planedist2(points[v]);
+            auto dist = face->plane.planedist(points[v]);
             if (maxdist < dist) {
                 maxdist = dist, furthest = v;
             }
@@ -140,8 +137,10 @@ struct frac_quickhull3d {
         Edge::link(e0, e1), Edge::link(e1, e2), Edge::link(e2, e0);
         face->edge = e0;
 
-        face->plane = Plane<F>(points[v0], points[v1], points[v2]);
-        assert(!face->plane.is_degenerate());
+        // assert(!collinear(points[v0], points[v1], points[v2], eps));
+        face->centroid = (points[v0] + points[v1] + points[v2]) / 3.0;
+        face->plane = Plane(points[v0], points[v1], points[v2]);
+        face->plane.normalize();
         return face;
     }
 
@@ -213,7 +212,10 @@ struct frac_quickhull3d {
     // Edge subroutines (merging)
 
     bool should_merge(Edge* edge) const {
-        return edge->face->plane == edge->opposite->face->plane;
+        Face *face = edge->face, *oface = edge->opposite->face;
+        return same_oriented(face->plane, oface->plane, eps) &&
+               face->plane.planeside(oface->centroid, eps) >= 0 &&
+               oface->plane.planeside(face->centroid, eps) >= 0;
     }
 
     void merge_faces(Edge* edge, bool recurse = true) {
@@ -239,10 +241,37 @@ struct frac_quickhull3d {
         for (Edge* other = d; other != c->next; other = other->next)
             other->face = face;
 
+        // Fix edges and mark face for deletion
         mark_face_for_deletion(oface);
         oface->edge = c->next;
         Edge::link(d->prev, oface->edge);
         Edge::link(a, d), Edge::link(c, b);
+
+        // Recompute centroid
+        Point3d centroid;
+        face->npoints = 0, edge = face->edge;
+        do {
+            centroid += points[edge->vertex];
+            face->npoints++, edge = edge->next;
+        } while (edge != face->edge);
+        face->centroid = centroid /= face->npoints;
+
+        // Pick edge with largest (oriented) area relative to centroid
+        Edge* best = nullptr;
+        double best_area = 0;
+        edge = edge->next;
+        do {
+            int v = edge->vertex, nv = edge->next->vertex;
+            double edge_area = area(points[v], points[nv], centroid);
+            if (best_area < edge_area) {
+                best = edge, best_area = edge_area;
+            }
+            edge = edge->next;
+        } while (edge != face->edge);
+
+        assert(best != nullptr);
+        int v = best->vertex, nv = best->next->vertex;
+        face->plane = Plane(points[v], points[nv], centroid);
 
         if (recurse && should_merge(a))
             merge_faces(a, true);
@@ -270,11 +299,14 @@ struct frac_quickhull3d {
     // Main routines
 
     /**
+     * Compute min/max points along each axis and set epsilon based on the minimum
+     * enveloping box's dimensions.
      * Create initial (maximal tetrahedral) simplex with four non-coplanar points and
-     * create the four faces supporting it. Then set eye_face[v] for each v as the
-     * hull face seen from v that is furthest from it (or leave null if none exists,
-     * meaning v is inside the hull already).
-     * Fails and returns false if all points are coplanar. Otherwise returns true
+     * create the four faces supporting it.
+     * Set eye_face[v] for each v as the hull face seen from v that is furthest from it
+     * (or leave null if none exists, meaning v is inside the hull already).
+     *
+     * This fails and returns false if all points are coplanar. Otherwise returns true
      * with 4 faces forming a tetrahedron.
      */
     bool initialize_simplex() {
@@ -292,8 +324,13 @@ struct frac_quickhull3d {
             }
         }
 
+        // set epsilon (found through experimentation)
+        eps = 2 * DBL_EPSILON *
+              (points[maxvert[0]][0] + points[maxvert[1]][1] + points[maxvert[2]][2] -
+               points[minvert[0]][0] - points[minvert[1]][1] - points[minvert[2]][2]);
+
         int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
-        F maxdist = 0;
+        double maxdist = eps;
 
         // select v0, v1 such that dist2(v0, v1) is maximal (furthest pair along an axis)
         for (int d = 0; d < 3; d++) {
@@ -307,10 +344,10 @@ struct frac_quickhull3d {
         }
 
         // select v2 such that linedist2(v2, v0, v1) is maximum (furthest from line)
-        maxdist = 0;
+        maxdist = eps;
         for (int v = 1; v <= N; v++) {
             if (v != v0 && v != v1) {
-                auto dist = linedist2(points[v], points[v0], points[v1]);
+                auto dist = linedist(points[v], points[v0], points[v1]);
                 if (maxdist < dist) {
                     maxdist = dist, v2 = v;
                 }
@@ -321,11 +358,11 @@ struct frac_quickhull3d {
         }
 
         // select v3 such that base.planedist2(v3) is maximum (furthest from plane)
-        Plane<F> base(points[v0], points[v1], points[v2]);
-        maxdist = 0;
+        Plane base(points[v0], points[v1], points[v2]);
+        maxdist = eps;
         for (int v = 1; v <= N; v++) {
             if (v != v0 && v != v1 && v != v2) {
-                auto dist = base.planedist2(points[v]);
+                auto dist = base.planedist(points[v]);
                 if (maxdist < dist) {
                     maxdist = dist, v3 = v;
                 }
@@ -335,7 +372,7 @@ struct frac_quickhull3d {
             return false;
         }
 
-        if (base.planeside(points[v3]) == -1) {
+        if (base.signed_planedist(points[v3]) < 0) {
             make_simplex_faces(v0, v2, v1, v3);
         } else {
             make_simplex_faces(v0, v1, v2, v3);
@@ -343,10 +380,10 @@ struct frac_quickhull3d {
 
         for (int v = 1; v <= N; v++) {
             if (v != v0 && v != v1 && v != v2 && v != v3) {
-                maxdist = 0;
+                maxdist = eps;
                 Face* maxface = nullptr;
                 for (auto&& face : faces) {
-                    auto dist = face->plane.signed_planedist2(points[v]);
+                    auto dist = face->plane.signed_planedist(points[v]);
                     if (maxdist < dist) {
                         maxdist = dist, maxface = face.get();
                     }
@@ -370,7 +407,7 @@ struct frac_quickhull3d {
         do {
             Edge* opposite = edge->opposite;
             if (opposite->face->mark == VISIBLE) {
-                if (opposite->face->plane.planeside(points[eye]) == 1) {
+                if (opposite->face->plane.planeside(points[eye], eps) == 1) {
                     compute_horizon(eye, opposite, opposite->face);
                 } else {
                     horizon.push_back(edge);
@@ -382,10 +419,10 @@ struct frac_quickhull3d {
 
     void resolve_open_points() {
         for (int v = open[0]; v; v = open[v]) {
-            F maxdist = 0;
+            auto maxdist = eps;
             Face* maxface = nullptr;
             for (Face* face : new_faces) {
-                F dist = face->plane.signed_planedist2(points[v]);
+                auto dist = face->plane.signed_planedist(points[v]);
                 if (maxdist < dist) {
                     maxdist = dist, maxface = face;
                 }
@@ -439,4 +476,4 @@ struct frac_quickhull3d {
     }
 };
 
-#endif // FRAC_QUICKHULL3D_HPP
+#endif // QUICKHULL3D_HPP
