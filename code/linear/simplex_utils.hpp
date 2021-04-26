@@ -29,7 +29,7 @@ string to_string(LPConstraintType type) {
 template <typename F>
 string format_formula(const vector<F>& x) {
     string s;
-    for (int i = 0; i < x.size(); i++) {
+    for (int i = 0; i < int(x.size()); i++) {
         s += format("{}{}{}x{}", i ? " " : "", x[i] > 0 ? "+" : "", x[i], i + 1);
     }
     return s;
@@ -38,7 +38,7 @@ string format_formula(const vector<F>& x) {
 template <typename F>
 string pretty_formula(const vector<F>& x) {
     string s;
-    for (int i = 0; i < x.size(); i++) {
+    for (int i = 0; i < int(x.size()); i++) {
         s += format(" {}·x{}", x[i], i + 1);
     }
     return s;
@@ -222,7 +222,7 @@ template <typename F>
 bool is_feasible(const lp_constraint<F>& c, const vector<F>& x) {
     assert(c.v.size() == x.size());
     F a = 0;
-    for (int i = 0; i < x.size(); i++) {
+    for (int i = 0; i < int(x.size()); i++) {
         a += c.v[i] * x[i];
     }
     return (c.type == LP_LESS && a <= c.b) || (c.type == LP_EQUAL && a == c.b) ||

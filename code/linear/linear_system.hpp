@@ -46,7 +46,7 @@ optional<matd> inverse(matd a, double epsilon = 1e-15) {
 }
 
 optional<vecd> gauss(matd a, vecd b, double epsilon = 1e-15) {
-    assert(a.n == b.size() && a.n == a.m);
+    assert(a.n == int(b.size()) && a.n == a.m);
     int n = a.n;
     for (int i = 0; i < n; i++)
         a[i].push_back(b[i]);
@@ -141,7 +141,7 @@ optional<matf> inverse(matf a) {
 }
 
 optional<vecf> gauss(matf a, vecf b) {
-    assert(a.n == b.size() && a.n == a.m);
+    assert(a.n == int(b.size()) && a.n == a.m);
     int n = a.n;
     for (int i = 0; i < n; i++)
         a[i].push_back(b[i]);
@@ -236,7 +236,7 @@ optional<matbf> inverse(matbf a) {
 }
 
 optional<vecbf> gauss(matbf a, vecbf b) {
-    assert(a.n == b.size() && a.n == a.m);
+    assert(a.n == int(b.size()) && a.n == a.m);
     int n = a.n;
     for (int i = 0; i < n; i++)
         a[i].push_back(b[i]);

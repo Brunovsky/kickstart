@@ -21,7 +21,7 @@ struct bellman_ford {
 
     bellman_ford(int V, const edges_t& g, const vector<long>& weight)
         : V(V), E(size(g)), edge(E) {
-        assert(weight.size() == E);
+        assert(int(weight.size()) == E);
         for (int e = 0; e < E; e++) {
             auto [u, v] = g[e];
             edge[e] = {u, v, weight[e]};

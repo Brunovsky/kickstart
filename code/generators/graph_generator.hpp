@@ -1040,7 +1040,7 @@ auto random_exact_undirected_connected(int V, int E) {
     edges_t g;
     auto parent = parent_sample(V);
     add_parent_edges(g, parent, 1, V);
-    if (E == g.size())
+    if (E == int(g.size()))
         return g;
 
     int k = min(1L * V * (V - 1) / 2, 0L + E + V);
@@ -1055,7 +1055,7 @@ auto random_exact_rooted_dag_connected(int V, int E) {
     edges_t g;
     auto parent = parent_sample(V);
     add_parent_edges(g, parent, 1, V, false, true);
-    if (E == g.size())
+    if (E == int(g.size()))
         return g;
 
     int k = min(1L * V * (V - 1) / 2, 0L + E + V);
@@ -1072,8 +1072,8 @@ auto random_exact_directed_connected(int V, int E) {
     add_parent_edges(g, parent, 1, V, false, true);
     add_tarjan_back_edges(g, V);
     assert(is_connected_directed(g, V));
-    assert(g.size() <= E);
-    if (E == g.size())
+    assert(int(g.size()) <= E);
+    if (E == int(g.size()))
         return g;
 
     int n = g.size();

@@ -51,7 +51,10 @@ auto generate_distance_graph(distance_graph_kind i, int S, bool bidirectional = 
     static auto roughly = [](int x, double lo, double hi, int min, int max) -> int {
         return clamp(intd(rs(x, lo), rs(x, hi))(mt), min, max);
     };
-    static auto bid = [](bool dir, edges_t& g) { !dir || (join(g, reverse(g)), true); };
+    static auto bid = [](bool dir, edges_t& g) {
+        if (dir)
+            join(g, reverse(g));
+    };
 
     edges_t g;
     int V, X = 0, Y = 0, Z = 0, n = 0, k = 0;

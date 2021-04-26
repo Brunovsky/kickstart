@@ -55,7 +55,7 @@ struct action_t {
 
 void stress_test_pool_submit(int N = 200, int rate = 47, int nthreads = 5) {
     thread_pool pool(nthreads);
-    assert(pool.pool_size() == nthreads);
+    assert(int(pool.pool_size()) == nthreads);
     int i = 1;
     print("stress test iterative submit\n");
     while (i <= N) {
@@ -75,7 +75,7 @@ void stress_test_pool_submit(int N = 200, int rate = 47, int nthreads = 5) {
 
 void stress_test_priority_pool_submit(int N = 200, int rate = 47, int nthreads = 5) {
     priority_thread_pool<int> pool(nthreads);
-    assert(pool.pool_size() == nthreads);
+    assert(int(pool.pool_size()) == nthreads);
     int i = 1;
     intd priorityd(1000, 9999);
     print("stress test iterative submit with priority\n");

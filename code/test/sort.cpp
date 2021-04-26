@@ -7,7 +7,7 @@
 
 bool verify(const vector<int>& idx, const vector<long>& dist) {
     int N = dist.size();
-    if (idx.size() != N)
+    if (int(idx.size()) != N)
         return false;
     for (int i = 0; i + 1 < N; i++)
         if (dist[idx[i]] > dist[idx[i + 1]])

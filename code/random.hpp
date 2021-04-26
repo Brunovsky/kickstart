@@ -304,7 +304,7 @@ auto partition_sample(I n, int k, I m = 1, I M = std::numeric_limits<I>::max()) 
  */
 template <typename I = int>
 auto partition_sample(I n, int k, const vector<I>& m, const vector<I>& M) {
-    assert(k > 0 && k <= m.size() && k <= M.size());
+    assert(k > 0 && k <= int(m.size()) && k <= int(M.size()));
     assert(accumulate(begin(m), end(m), I(0)) <= n);
     assert(n <= accumulate(begin(M), end(M), I(0)));
 

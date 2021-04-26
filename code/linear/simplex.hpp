@@ -29,12 +29,12 @@ struct simplex {
     vector<constraint_t> C;
 
     void set_objective(vector<F> f) {
-        assert(!N || N == f.size());
+        assert(!N || N == int(f.size()));
         z = move(f), N = z.size();
     }
 
     void add_constraint(constraint_t constraint) {
-        assert(N && constraint.v.size() == N);
+        assert(N && int(constraint.v.size()) == N);
         C.push_back(move(constraint)), M++;
     }
 

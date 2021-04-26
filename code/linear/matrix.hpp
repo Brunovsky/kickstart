@@ -82,7 +82,7 @@ struct mat {
     }
 
     friend vec operator*(const mat& a, const vec& b) {
-        assert(a.m == b.size() && "Matrix and column operand have unequal dimensions");
+        assert(a.m == int(b.size()) && "Matrix and column have unequal dimensions");
         vec c(a.n);
         for (int i = 0; i < a.n; i++)
             for (int j = 0; j < a.m; j++)

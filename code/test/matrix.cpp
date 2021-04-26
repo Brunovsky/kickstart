@@ -12,7 +12,7 @@
 
 double min_diff(const vecd& u, const vecd& v) {
     double x = numeric_limits<double>::max();
-    for (int i = 0; i < u.size(); i++)
+    for (int i = 0, n = u.size(); i < n; i++)
         x = min(x, abs(u[i] - v[i]));
     return x;
 }

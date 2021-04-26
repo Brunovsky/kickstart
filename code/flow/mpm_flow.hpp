@@ -100,7 +100,7 @@ struct mpm_flow {
         excess[w] = augf;
         discharge<c>(w);
         int j = 0;
-        while (j < frontier.size() && frontier[j] != t) {
+        while (j < int(frontier.size()) && frontier[j] != t) {
             int u = frontier[j++];
             pi[u][0] -= excess[u];
             pi[u][1] -= excess[u];

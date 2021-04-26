@@ -155,7 +155,7 @@ void stress_test_vec_sample(int T = 70000, int n = 4096, int k = 37) {
             assert(start <= m && m < start + n);
             cnt[m - start]++;
         }
-        assert(sample.size() == k);
+        assert(int(sample.size()) == k);
     }
     verify_normality(cnt);
 }

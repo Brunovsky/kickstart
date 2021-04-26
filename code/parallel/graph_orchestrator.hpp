@@ -47,7 +47,7 @@ struct graph_orchestrator {
             adj[cur[u]++] = v;
     }
 
-    bool verify() const { return toposort().size() == N; }
+    bool verify() const { return int(toposort().size()) == N; }
 
     template <typename Fn>
     void sequential_make(const Fn& job) {
