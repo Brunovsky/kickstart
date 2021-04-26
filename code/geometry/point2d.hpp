@@ -21,14 +21,14 @@ struct Point2d {
 
     using P = Point2d;
     static inline constexpr double inf = numeric_limits<double>::infinity();
-    static inline double deps = 1e-10; // default epsilon for comparisons etc (positive)
+    static inline double deps = 20 * numeric_limits<double>::epsilon();
 
     static constexpr P zero() { return P(0, 0); }
     static constexpr P one() { return P(1, 1); }
     static constexpr P pinf() { return P(inf, inf); }
 
     friend bool same(const P& a, const P& b, double eps = deps) {
-        return dist(a, b) <= eps;
+        return dist(a, b) <= max(a.manhattan(), b.manhattan()) * eps;
     }
     bool operator==(const P& b) const { return same(*this, b); }
     bool operator!=(const P& b) const { return same(*this, b); }
@@ -63,8 +63,8 @@ struct Point2d {
 
     double cross(const P& a, const P& b) const { return crossed(a - *this, b - *this); }
     friend double crossed(const P& u, const P& v) { return u.x * v.y - u.y * v.x; }
-    friend P rperp(const P& u) { return P(-u.y, u.x); } // 90 degrees counterclockwise
-    friend P lperp(const P& u) { return P(u.y, -u.x); } // 90 degrees clockwise
+    P rperp() const { return P(-y, x); } // 90 degrees counterclockwise
+    P lperp() const { return P(y, -x); } // 90 degrees clockwise
 
     // -- Lattice points
 
@@ -108,7 +108,10 @@ struct Point2d {
 
     // Are points a, b, c collinear in any order? (degenerate=yes)
     friend bool collinear(const P& a, const P& b, const P& c, double eps = deps) {
-        return a.cross(b, c) <= eps * eps;
+        double ab = dist(a, b), ac = dist(a, c), bc = dist(b, c);
+        return ab >= max(ac, bc)   ? linedist(c, a, b) <= ab * eps
+               : ac >= max(ab, bc) ? linedist(b, a, c) <= ac * eps
+                                   : linedist(a, b, c) <= bc * eps;
     }
     // Are point a, b, c collinear in this order? (degenerate=yes)
     friend bool onsegment(const P& a, const P& b, const P& c, double eps = deps) {
@@ -116,14 +119,14 @@ struct Point2d {
     }
     // Are vectors u and v parallel? (either way)
     friend bool parallel(const P& u, const P& v, double eps = deps) {
-        return crossed(u, v) <= eps * eps;
+        return collinear(zero(), u, v, eps);
     }
 
     // k<0 => before a, k=0 => a, k=1 => b, k>1 => after b, 0<k<1 => in segment [ab]
-    friend P interpolate(const P& a, const P& b, double k) { return (1 - k) * a + k * b; }
+    friend P interpolate(const P& a, const P& b, double k) { return a + (b - a) * k; }
     // Distance of a to line uv
     friend double linedist(const P& a, const P& u, const P& v) {
-        return a.cross(u, v) / dist(u, v);
+        return abs(a.cross(u, v)) / dist(u, v);
     }
 
     // {B,C} such that y = Bx + C (possibly B=inf)

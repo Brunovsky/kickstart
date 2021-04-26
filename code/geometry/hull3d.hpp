@@ -29,10 +29,10 @@ using hull_t = vector<vector<int>>;
  * Usage:
  *     vector<P> points = {P(1,2,3), ...};
  *     quickhull3d qh(points);
- *     bool ok = qh.compute();               // returns false if all points are coplanar
- *     auto hull = qh.extract_hull();        // points 0-indexed in the faces
- *     simplify_hull(hull, points, qh.eps);  // simplify if needed, (A)
- *     canonicalize_hull(hull);              // canonicalize if needed (simplify 1st), (B)
+ *     bool ok = qh.compute();          // returns false if all points are coplanar
+ *     auto hull = qh.extract_hull();   // points 0-indexed in the faces
+ *     simplify_hull(hull, points);     // simplify if needed, (A)
+ *     canonicalize_hull(hull);         // canonicalize if needed (simplify 1st), (B)
  *     for (const auto& face : hull) {
  *         for (int v : face) {
  *             ... // points[v]
@@ -60,6 +60,14 @@ struct quickhull3d {
         Edge* edge; // an arbitrary edge in the face; a particular one initially
         int mark = VISIBLE, outside = 0, id, npoints = 3;
         explicit Face(int id) : id(id) {}
+        ~Face() noexcept {
+            Edge* u = edge;
+            do {
+                Edge* v = u->next;
+                delete u;
+                u = v;
+            } while (u && u != edge);
+        }
     };
 
     int N;                          // number of points
@@ -141,7 +149,6 @@ struct quickhull3d {
         Edge::link(e0, e1), Edge::link(e1, e2), Edge::link(e2, e0);
         face->edge = e0;
 
-        // assert(!collinear(points[v0], points[v1], points[v2], eps));
         face->centroid = (points[v0] + points[v1] + points[v2]) / 3.0;
         face->plane = Plane(points[v0], points[v1], points[v2]);
         face->plane.normalize();
@@ -195,12 +202,6 @@ struct quickhull3d {
     void delete_face(Face* face) {
         assert(face->mark == DELETED && face->edge != nullptr);
         int id = face->id;
-        Edge* u = face->edge;
-        do {
-            Edge* v = u->next;
-            delete u;
-            u = v;
-        } while (u && u != face->edge);
         swap(faces[id], faces.back());
         faces[id]->id = id;
         faces.pop_back();
@@ -248,7 +249,7 @@ struct quickhull3d {
         // Fix edges and mark face for deletion
         mark_face_for_deletion(oface);
         oface->edge = c->next;
-        Edge::link(d->prev, oface->edge);
+        Edge::link(d->prev, a->next), Edge::link(b->prev, c->next); // cycle old edges
         Edge::link(a, d), Edge::link(c, b);
 
         // Recompute centroid
@@ -301,7 +302,9 @@ struct quickhull3d {
     }
 
     void final_merge_faces() {
-        for (auto&& face : faces) {
+        int H = faces.size();
+        for (int i = 0; i < H; i++) {
+            Face* face = faces[i].get();
             if (face->mark == VISIBLE) {
                 Edge* edge = face->edge;
                 do {
@@ -344,13 +347,8 @@ struct quickhull3d {
             }
         }
 
-        // set epsilon (found through experimentation)
-        eps = 2 * DBL_EPSILON *
-              (points[maxvert[0]][0] + points[maxvert[1]][1] + points[maxvert[2]][2] -
-               points[minvert[0]][0] - points[minvert[1]][1] - points[minvert[2]][2]);
-
         int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
-        double maxdist = eps;
+        double maxdist = P::deps;
 
         // select v0, v1 such that dist2(v0, v1) is maximal (furthest pair along an axis)
         for (int d = 0; d < 3; d++) {
@@ -362,6 +360,8 @@ struct quickhull3d {
         if (!v0 || !v1) {
             return false;
         }
+
+        eps = 40 * numeric_limits<double>::epsilon() * (1 + log10(max(maxdist, 1.0)));
 
         // select v2 such that linedist2(v2, v0, v1) is maximum (furthest from line)
         maxdist = eps;

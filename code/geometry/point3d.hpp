@@ -20,14 +20,14 @@ struct Point3d {
 
     using P = Point3d;
     static inline constexpr double inf = numeric_limits<double>::infinity();
-    static inline double deps = 1e-10; // default epsilon for comparisons etc (positive)
+    static inline double deps = 30 * numeric_limits<double>::epsilon();
 
     static constexpr P zero() { return P(0, 0, 0); }
     static constexpr P one() { return P(1, 1, 1); }
     static constexpr P pinf() { return P(inf, inf, inf); }
 
     friend bool same(const P& a, const P& b, double eps = deps) {
-        return dist(a, b) <= eps;
+        return dist(a, b) <= max(a.manhattan(), b.manhattan()) * eps;
     }
     bool operator==(const P& b) const { return same(*this, b); }
     bool operator!=(const P& b) const { return same(*this, b); }
@@ -117,7 +117,10 @@ struct Point3d {
 
     // Are points a, b, c collinear in any order? (degenerate=yes)
     friend bool collinear(const P& a, const P& b, const P& c, double eps = deps) {
-        return a.cross(b, c).norm() <= eps;
+        double ab = dist(a, b), ac = dist(a, c), bc = dist(b, c);
+        return ab >= max(ac, bc)   ? linedist(c, a, b) <= ab * eps
+               : ac >= max(ab, bc) ? linedist(b, a, c) <= ac * eps
+                                   : linedist(a, b, c) <= bc * eps;
     }
     // Are points a, b, c collinear in this order? (degenerate=yes)
     friend bool onsegment(const P& a, const P& b, const P& c, double eps = deps) {
@@ -125,28 +128,28 @@ struct Point3d {
     }
     // Are vectors u and v parallel? (either way)
     friend bool parallel(const P& u, const P& v, double eps = deps) {
-        double n = u.norm() * v.norm();
-        return abs(dot(u, v) - n) / n <= eps;
+        return collinear(zero(), u, v, eps);
     }
 
     // k<0 => before a, k=0 => a, k=1 => b, k>1 => after b, 0<k<1 => in segment [ab]
-    friend P interpolate(const P& a, const P& b, double k) { return (1 - k) * a + k * b; }
+    friend P interpolate(const P& a, const P& b, double k) { return a + (b - a) * k; }
     // Distance of a to line uv
     friend double linedist(const P& a, const P& u, const P& v) {
         return a.cross(u, v).norm() / dist(u, v);
     }
 
     // -- Planes
-
-    // Are points a, b, c, d coplanar in any order?
-    friend bool coplanar(const P& a, const P& b, const P& c, const P& d,
-                         double eps = deps) {
-        return parallel(a.cross(c, d), b.cross(c, d), eps);
+  public:
+    // Are points a, b, c, d coplanar (any layout)?
+    friend bool coplanar(P a, P b, P c, P d, double eps = deps) {
+        P n = (a.cross(b, c) + b.cross(c, d) + c.cross(d, a) + d.cross(a, b));
+        return !planeside(a, b, n, eps) || !planeside(b, c, n, eps) ||
+               !planeside(c, d, n, eps) || !planeside(d, a, n, eps);
     }
     // Is point P above (1), in (0) or below (-1) the plane by C with normal N?
     friend int planeside(const P& p, const P& c, const P& n, double eps = deps) {
-        double s = dot(n, p - c);
-        return (s >= eps) - (s <= -eps);
+        double s = dot(n, p - c), k = c.norm() * n.norm();
+        return (s >= k * 4 * eps) - (s <= -k * 4 * eps);
     }
 
     // -- Area
@@ -175,7 +178,7 @@ struct Plane {
 
     Plane() = default;
     Plane(const P& n, double d) : n(n), d(d) {}
-    Plane(const P& a, const P& b, const P& c) : n(a.cross(b, c)), d(-dot(n, a)) {}
+    Plane(const P& a, const P& b, const P& c) : n(a.cross(b, c).unit()), d(-dot(n, a)) {}
 
     Plane& normalize() { return d /= n.norm(), n /= n.norm(), *this; }
     bool is_degenerate(double eps = Point3d::deps) const { return n.norm() <= eps; }
@@ -183,8 +186,8 @@ struct Plane {
     // True if same plane and same orientation
     friend bool same_oriented(const Plane& a, const Plane& b,
                               double eps = Point3d::deps) {
-        double da = a.d / a.n.norm(), db = b.d / b.n.norm();
-        return abs(da - db) <= eps && same(a.n.unit(), b.n.unit(), eps);
+        return (a.d >= 0) == (b.d >= 0) &&
+               abs(a.d - b.d) <= max(abs(a.d), abs(b.d)) * eps && same(a.n, b.n, eps);
     }
     // True if same plane and same orientation
     bool operator==(const Plane& b) const { return same_oriented(*this, b); }
@@ -196,8 +199,8 @@ struct Plane {
 
     // Is point P above (1), in (0) or below (-1) this plane?
     int planeside(const P& p, double eps = Point3d::deps) const {
-        double s = (dot(p, n) + d) / p.norm();
-        return (s >= eps) - (s <= -eps);
+        double s = dot(p, n) + d;
+        return (s >= p.norm() * eps) - (s <= -p.norm() * eps);
     }
 
     double planedist(const P& p) const { return abs(dot(p, n) + d) / n.norm(); }

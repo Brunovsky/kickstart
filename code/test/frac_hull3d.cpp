@@ -213,7 +213,7 @@ void dataset_test_quickhull3d() {
     }
 }
 
-void stress_test_quickhull3d(int T = 300, int N = 25, long R = 50, long maxd = 10) {
+void stress_test_quickhull3d(int T = 300, int N = 10, long R = 60, long maxd = 10) {
     auto dir = fs::temp_directory_path();
     print("Temp directory: {}\n", dir);
 
@@ -223,7 +223,7 @@ void stress_test_quickhull3d(int T = 300, int N = 25, long R = 50, long maxd = 1
         ofstream out(file.string());
 
         auto points = random_points(N, R, maxd);
-        add_coplanar_points(4 * N, points, 2 * R, maxd);
+        add_coplanar_points(2 * N, points, 2 * R, maxd);
         add_collinear_points(N, points, 2 * R, maxd);
         out << format_header(points) << format_points(points);
 
@@ -292,7 +292,7 @@ void scaling_test_quickhull3d(double F = 1.0) {
 
 int main() {
     RUN_BLOCK(dataset_test_quickhull3d());
-    RUN_BLOCK(stress_test_quickhull3d());
-    RUN_BLOCK(scaling_test_quickhull3d());
+    RUN_BLOCK(stress_test_quickhull3d(5));
+    // RUN_BLOCK(scaling_test_quickhull3d());
     return 0;
 }

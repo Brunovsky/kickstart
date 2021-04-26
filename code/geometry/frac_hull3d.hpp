@@ -64,6 +64,14 @@ struct frac_quickhull3d {
         Edge* edge;     // an arbitrary edge in the face; a particular one initially
         int mark = VISIBLE, outside = 0, id;
         explicit Face(int id) : id(id) {}
+        ~Face() noexcept {
+            Edge* u = edge;
+            do {
+                Edge* v = u->next;
+                delete u;
+                u = v;
+            } while (u && u != edge);
+        }
     };
 
     int N;                          // number of points
@@ -120,7 +128,7 @@ struct frac_quickhull3d {
         while (v && eye_face[v] == face) {
             auto dist = face->plane.planedist2(points[v]);
             if (maxdist < dist) {
-                maxdist = dist, furthest = v;
+                maxdist = move(dist), furthest = v;
             }
             v = eye_next[v];
         }
@@ -196,12 +204,6 @@ struct frac_quickhull3d {
     void delete_face(Face* face) {
         assert(face->mark == DELETED && face->edge != nullptr);
         int id = face->id;
-        Edge* u = face->edge;
-        do {
-            Edge* v = u->next;
-            delete u;
-            u = v;
-        } while (u && u != face->edge);
         swap(faces[id], faces.back());
         faces[id]->id = id;
         faces.pop_back();
@@ -245,7 +247,7 @@ struct frac_quickhull3d {
 
         mark_face_for_deletion(oface);
         oface->edge = c->next;
-        Edge::link(d->prev, oface->edge);
+        Edge::link(d->prev, a->next), Edge::link(b->prev, c->next); // cycle old edges
         Edge::link(a, d), Edge::link(c, b);
 
         if (recurse && should_merge(a))
@@ -303,7 +305,7 @@ struct frac_quickhull3d {
         for (int d = 0; d < 3; d++) {
             auto dist = points[maxvert[d]][d] - points[minvert[d]][d];
             if (maxdist < dist) {
-                maxdist = dist, v0 = minvert[d], v1 = maxvert[d];
+                maxdist = move(dist), v0 = minvert[d], v1 = maxvert[d];
             }
         }
         if (!v0 || !v1) {
@@ -316,7 +318,7 @@ struct frac_quickhull3d {
             if (v != v0 && v != v1) {
                 auto dist = linedist2(points[v], points[v0], points[v1]);
                 if (maxdist < dist) {
-                    maxdist = dist, v2 = v;
+                    maxdist = move(dist), v2 = v;
                 }
             }
         }
@@ -331,7 +333,7 @@ struct frac_quickhull3d {
             if (v != v0 && v != v1 && v != v2) {
                 auto dist = base.planedist2(points[v]);
                 if (maxdist < dist) {
-                    maxdist = dist, v3 = v;
+                    maxdist = move(dist), v3 = v;
                 }
             }
         }
@@ -352,7 +354,7 @@ struct frac_quickhull3d {
                 for (auto&& face : faces) {
                     auto dist = face->plane.signed_planedist2(points[v]);
                     if (maxdist < dist) {
-                        maxdist = dist, maxface = face.get();
+                        maxdist = move(dist), maxface = face.get();
                     }
                 }
                 if (maxface) {
@@ -391,7 +393,7 @@ struct frac_quickhull3d {
             for (Face* face : new_faces) {
                 F dist = face->plane.signed_planedist2(points[v]);
                 if (maxdist < dist) {
-                    maxdist = dist, maxface = face;
+                    maxdist = move(dist), maxface = face;
                 }
             }
             if (maxface) {

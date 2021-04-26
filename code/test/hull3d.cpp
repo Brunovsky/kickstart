@@ -303,7 +303,7 @@ void scaling_test_quickhull3d(double F = 1.0) {
 
 int main() {
     RUN_BLOCK(dataset_test_quickhull3d());
-    RUN_BLOCK(stress_test_quickhull3d());
-    RUN_BLOCK(scaling_test_quickhull3d());
+    RUN_BLOCK(stress_test_quickhull3d(.01));
+    // RUN_BLOCK(scaling_test_quickhull3d());
     return 0;
 }
