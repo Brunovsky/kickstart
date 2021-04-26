@@ -66,9 +66,7 @@ void add_collinear_points(int N, vector<P>& points, long R = 100, long maxd = 4,
         P p = f * points[i] + (1 - f) * points[j];
 
         if (!pointset.count(p)) {
-            bool ok = cube ? abs(p.x) <= R && abs(p.y) <= R && abs(p.z) <= R
-                           : p.norm2() <= R * R;
-            if (ok) {
+            if (cube ? p.boxed(P(-R, -R, -R), P(R, R, R)) : p.norm2() <= R * R) {
                 pointset.insert(p);
                 points.push_back(p), M++, S++;
             }
@@ -94,9 +92,7 @@ void add_coplanar_points(int N, vector<P>& points, long R = 100, long maxd = 4,
         P p = f1 * points[i] + f2 * points[j] + (1 - f1 - f2) * points[k];
 
         if (!pointset.count(p)) {
-            bool ok = cube ? abs(p.x) <= R && abs(p.y) <= R && abs(p.z) <= R
-                           : p.norm2() <= R * R;
-            if (ok) {
+            if (cube ? p.boxed(P(-R, -R, -R), P(R, R, R)) : p.norm2() <= R * R) {
                 pointset.insert(p);
                 points.push_back(move(p)), M++, S++;
             }

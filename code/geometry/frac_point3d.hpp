@@ -28,7 +28,7 @@ struct Point3d {
 
     bool operator==(const P& b) const { return x == b.x && y == b.y && z == b.z; }
     bool operator!=(const P& b) const { return !(*this == b); }
-    explicit operator bool() const noexcept { return *this != origin; }
+    explicit operator bool() const noexcept { return *this != origin(); }
 
     F& operator[](int i) { return assert(0 <= i && i < 3), *(&x + i); }
     const F& operator[](int i) const { return assert(0 <= i && i < 3), *(&x + i); }
@@ -43,12 +43,9 @@ struct Point3d {
     friend P& operator*=(P& a, const F& k) { return a = a * k; }
     friend P& operator/=(P& a, const F& k) { return a = a / k; }
 
-    double norm() const { return dist(*this); }
     F norm2() const { return dist2(*this); }
     friend F dot(const P& a, const P& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
     friend F dot2(const P& a, const P& b) { return dot(a, b) * dot(a, b); }
-    friend double dist(const P& a) { return sqrt(dist2(a)); }
-    friend double dist(const P& a, const P& b) { return sqrt(dist2(a, b)); }
     friend F dist2(const P& a) { return dot(a, a); }
     friend F dist2(const P& a, const P& b) { return dist2(a - b); }
     F xcross(const P& a, const P& b) const { return xcrossed(a - *this, b - *this); }
@@ -66,7 +63,7 @@ struct Point3d {
 
     // Are points a, b, c collinear in any order? (degenerate=yes)
     friend bool collinear(const P& a, const P& b, const P& c) {
-        return a.cross(b, c) == origin;
+        return a.cross(b, c) == origin();
     }
     // Are point a, b, c collinear in this order? (degenerate=yes)
     friend bool onsegment(const P& a, const P& b, const P& c) {
@@ -147,10 +144,10 @@ struct Plane {
 
     // True if same plane and same orientation
     friend bool same_oriented(const Plane& a, const Plane& b) {
-        if (d != 0)
-            return b.d != 0 && (d > 0) == (b.d > 0) && d * b.n == b.d * n;
+        if (a.d != 0)
+            return b.d != 0 && (a.d > 0) == (b.d > 0) && a.d * b.n == b.d * a.n;
         else
-            return b.d == 0 && dot(n, b.n) > 0 && parallel(n, b.n);
+            return b.d == 0 && dot(a.n, b.n) > 0 && parallel(a.n, b.n);
     }
     // True if same plane and same orientation
     bool operator==(const Plane& b) const { return same_oriented(*this, b); }

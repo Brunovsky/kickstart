@@ -98,7 +98,7 @@ optional<array<int, 3>> find_collinear(const vector<Point3d>& points) {
 optional<array<int, 2>> find_incident(const vector<Point3d>& points) {
     unordered_map<array<long, 3>, int> pointmap;
     for (int u = 0, N = points.size(); u < N; u++) {
-        auto lattice = (1'000'000'000 * points[u]).closest_lattice_point();
+        auto lattice = (1'000'000'000 * points[u]).round_lattice_point();
         if (pointmap.count(lattice))
             return {{u, pointmap[lattice]}};
         pointmap.emplace(lattice, u);
