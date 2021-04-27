@@ -20,7 +20,7 @@ void unit_test_aho_corasick() {
     };
     string text = "aabababacbcabbaccadbcbacbabcabcababa";
     aho_corasick aho(words);
-    print("states: {}\n", aho.num_states());
+    print("states: {}\n", aho.num_nodes());
     print("matches: {}\n", aho.count_matches(text));
     print("unique matches: {}\n", aho.count_unique_matches(text));
     aho.visit_all(text, visitor(words));

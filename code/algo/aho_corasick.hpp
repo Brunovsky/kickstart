@@ -1,29 +1,30 @@
 #ifndef AHO_CORASICK_HPP
 #define AHO_CORASICK_HPP
 
-#include "../hash.hpp"
+#include <bits/stdc++.h>
+
+using namespace std;
 
 /**
  * Aho-Corasick string automaton
- * Edit A and chash before using (hopefully they don't need to be dynamic)
- * Requires 4(A+c)S bytes where S is the number of states.
+ * Edit A and chash before using. Add extra preprocessing in the constructor.
+ * Requires 4(A+c)S bytes where S=#states and S<=W=#dict length. Not adequate if A>50.
  *
- * Complexity: O(AS+M) construction, where S=#states and M=#dict length.
- *             O(AS) space
- *             O(N) for main queries
+ * Complexity: O(AS+M) construction, O(AS) space, O(N) for main queries.
  * Reference: https://github.com/indy256/codelibrary
  */
 template <typename Vec = string, typename T = typename Vec::value_type>
 struct aho_corasick {
     static constexpr int A = 26;
-    static constexpr int chash(T v) { return v - 'a'; }
+    static constexpr int chash(T value) { return value - 'a'; }
 
     struct Node {
-        int next[A] = {}, parent = 0, depth = 0, ch = 0;
+        int next[A] = {};
+        int parent = 0, len = 0, ch = 0;
         int escape = 0, link = 0; // nearest leaf / suffix link
         int nmatches = 0, wordid = -1;
         Node() = default;
-        Node(int parent, int depth, int ch) : parent(parent), depth(depth), ch(ch) {}
+        Node(int parent, int len, int ch) : parent(parent), len(len), ch(ch) {}
     };
 
     vector<Node> node;
@@ -32,21 +33,23 @@ struct aho_corasick {
     explicit aho_corasick(const vector<Vec>& words) : node(1) {
         for (int i = 0, W = words.size(); i < W; i++) {
             assert(!words[i].empty());
-            int v = 0, depth = 1;
-            for (const auto& ch : words[i]) {
-                if (!node[v].next[chash(ch)]) {
-                    node[v].next[chash(ch)] = node.size();
-                    node.emplace_back(v, depth, chash(ch));
+            int v = 0, len = 1;
+            for (auto value : words[i]) {
+                int c = chash(value);
+                if (!node[v].next[c]) {
+                    node[v].next[c] = node.size();
+                    node.emplace_back(v, len, c);
                 }
-                v = node[v].next[chash(ch)], depth++;
+                v = node[v].next[c], len++;
             }
             node[v].escape = v;
-            // ignore repeated words. add other properties: word mask, sum of lengths...
+
+            // Preprocess: ignore repeated words
             node[v].nmatches = 1;
             node[v].wordid = i;
         }
 
-        vector<int> bfs(num_states());
+        vector<int> bfs(num_nodes());
         int s = 0, t = 1;
         while (s < t) {
             int v = bfs[s++], u = node[v].link;
@@ -62,14 +65,15 @@ struct aho_corasick {
                     w = node[u].next[c];
                 }
             }
-            // dp extra properties
+            // Preprocess:
             node[v].nmatches += node[u].nmatches;
         }
-        assert(t == num_states());
+        assert(t == num_nodes());
     }
 
-    int num_states() const { return node.size(); }
+    int num_nodes() const { return node.size(); }
 
+    // Count number of distinct indices where words end.
     int count_unique_matches(const Vec& text) const {
         int matches = 0;
         for (int v = 0, i = 0, N = text.size(); i < N; i++) {
@@ -79,6 +83,7 @@ struct aho_corasick {
         return matches;
     }
 
+    // Count total number of matches across all words and indices
     long count_matches(const Vec& text) const {
         long matches = 0;
         for (int v = 0, i = 0, N = text.size(); i < N; i++) {
