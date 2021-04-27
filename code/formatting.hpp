@@ -23,11 +23,6 @@ struct debugger {
         fmt::print(f, format_str, forward<Ts>(args)...);
         fmt::print("\n");
     }
-
-    template <typename T>
-    auto& operator<<(T&& arg) const {
-        return debugger::print("{}", forward<T>(arg)), *this;
-    }
 };
 FILE* debugger::f = stderr;
 int debugger::width = 4, debugger::depth = 0;

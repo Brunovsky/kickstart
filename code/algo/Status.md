@@ -2,6 +2,7 @@
 
 | File                        | Code Status  | Testing Status | Notes |
 |-----------------------------|--------------|:--------------:|-------|
+|`aho_cosarick               `| Stable       | Stable (U)     | |
 |`2sat                       `| Stable       | Stable (U,S,P) | |
 |`boyer_moore                `| Stable       | Stable (S)     | |
 |`dynamic_programming        `| Stable       | Stable (U)     | |
