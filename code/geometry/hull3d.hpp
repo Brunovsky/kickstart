@@ -5,45 +5,28 @@
 
 // *****
 
-using hull_t = vector<vector<int>>;
-
 /**
  * 3D Quickhull for double points.
- *
- * All degenerate cases are handled:
- *   - 2+ points incident ==> all but one will be completely ignored
- *   - 3+ points collinear ==> handled properly, face edges may be collinear
- *   - 4+ points coplanar ==> handled properly, faces can have >3 points
- *
- * The convex hull generated
- * (A) - is not simple nor complete: faces whose sides have multiple collinear points
- *       might include none, any or all of those "interior" points.
- * (B) - is not canonical: the output hull's faces are in arbitrary order, and each face
- *       starts at an arbitrary point.
- * To address these issues see call appropriate functions (see below).
- * In most cases these are not problems.
+ * All degenerate cases (2+ incident, 3+ collinear, 4+ coplanar) are handled.
  *
  * Complexity: O(N log N) expected, O(N^2) worst-case
  * Reference: https://github.com/mauriciopoppe/quickhull3d
+ * Tested on SPOJ-CH3D
  *
  * Usage:
  *     vector<P> points = {P(1,2,3), ...};
- *     quickhull3d qh(points);
- *     bool ok = qh.compute();          // returns false if all points are coplanar
- *     auto hull = qh.extract_hull();   // points 0-indexed in the faces
- *     simplify_hull(hull, points);     // simplify if needed, (A)
- *     canonicalize_hull(hull);         // canonicalize if needed (simplify 1st), (B)
+ *     auto hull = compute_hull3d(points);   // returns {} if all points are coplanar
+ *     canonicalize_hull3d(hull);            // canonicalize if needed (B)
  *     for (const auto& face : hull) {
  *         for (int v : face) {
  *             ... // points[v]
  *         }
  *     }
  */
+using P = Point3d;
 struct quickhull3d {
-    using P = Point3d;
     struct Face;
-
-    static inline constexpr int VISIBLE = 0, DELETED = 1;
+    static constexpr int VISIBLE = 0, DELETED = 1;
 
     struct Edge {
         Face* face = nullptr;
@@ -55,7 +38,7 @@ struct quickhull3d {
     };
 
     struct Face {
-        Plane plane; // not normalized
+        Plane plane;
         Point3d centroid;
         Edge* edge; // an arbitrary edge in the face; a particular one initially
         int mark = VISIBLE, outside = 0, id, npoints = 3;
@@ -70,7 +53,7 @@ struct quickhull3d {
         }
     };
 
-    int N;                          // number of points
+    int N;
     vector<P> points;               // points[1..N] from input
     vector<unique_ptr<Face>> faces; // active faces list
     vector<int> eye_prev, eye_next, open;
@@ -78,10 +61,10 @@ struct quickhull3d {
     vector<Edge*> horizon;
     double eps = Point3d::deps;
 
-    quickhull3d(const vector<P>& input)
-        : N(input.size()), points(N + 1), eye_prev(N + 1, 0), eye_next(N + 1, 0),
+    quickhull3d(const vector<P>& input, int skip_0 = 0)
+        : N(input.size() - skip_0), points(N + 1), eye_prev(N + 1, 0), eye_next(N + 1, 0),
           open(N + 1, 0), eye_face(N + 1) {
-        copy(begin(input), end(input), begin(points) + 1);
+        copy(begin(input) + skip_0, end(input), begin(points) + 1);
     }
 
     // Eye tables subroutines
@@ -141,7 +124,8 @@ struct quickhull3d {
      *        2={v2 to v0}.          v0 -> 0 -> v1
      */
     auto add_face(int v0, int v1, int v2) {
-        Face* face = faces.emplace_back(make_unique<Face>(faces.size())).get();
+        faces.emplace_back(make_unique<Face>(faces.size()));
+        Face* face = faces.back().get();
 
         auto e0 = new Edge(v0, face);
         auto e1 = new Edge(v1, face);
@@ -151,7 +135,6 @@ struct quickhull3d {
 
         face->centroid = (points[v0] + points[v1] + points[v2]) / 3.0;
         face->plane = Plane(points[v0], points[v1], points[v2]);
-        face->plane.normalize();
         return face;
     }
 
@@ -261,22 +244,14 @@ struct quickhull3d {
         } while (edge != face->edge);
         face->centroid = centroid /= face->npoints;
 
-        // Pick edge with largest (oriented) area relative to centroid
-        Edge* best = nullptr;
-        double best_area = 0;
-        edge = edge->next;
+        // Recompute normal
+        Point3d normal;
         do {
-            int v = edge->vertex, nv = edge->next->vertex;
-            double edge_area = area(points[v], points[nv], centroid);
-            if (best_area < edge_area) {
-                best = edge, best_area = edge_area;
-            }
+            normal += centroid.cross(points[edge->vertex], points[edge->next->vertex]);
             edge = edge->next;
         } while (edge != face->edge);
 
-        assert(best != nullptr);
-        int v = best->vertex, nv = best->next->vertex;
-        face->plane = Plane(points[v], points[nv], centroid);
+        face->plane = Plane(normal, centroid);
 
         if (recurse && should_merge(a))
             merge_faces(a, true);
@@ -361,7 +336,7 @@ struct quickhull3d {
             return false;
         }
 
-        eps = 40 * numeric_limits<double>::epsilon() * (1 + log10(max(maxdist, 1.0)));
+        eps = 5 * P::deps * (1 + log10(max(maxdist, 1.0)));
 
         // select v2 such that linedist2(v2, v0, v1) is maximum (furthest from line)
         maxdist = eps;
@@ -483,12 +458,12 @@ struct quickhull3d {
         return ok;
     }
 
-    auto extract_hull(int s = 0) const {
+    auto extract_hull(int skip_0 = 0) const {
         vector<vector<int>> hull(faces.size());
         for (auto&& face : faces) {
             Edge* edge = face->edge;
             do {
-                int v = edge->vertex - 1 + s;
+                int v = edge->vertex - 1 + skip_0;
                 hull[face->id].push_back(v);
                 edge = edge->next;
             } while (edge != face->edge);
@@ -499,24 +474,13 @@ struct quickhull3d {
 
 using hull_t = vector<vector<int>>;
 
-/**
- *  ,7,,,,,,
- *  ,,,,,,,,  The 2D convex hull of this plane is <7->5->6->9->4->2->1->0> but the points
- *  ,,,,,,,,  5, 0 and 1 are collinear with their neighbors, so the convex hull algorithm
- *  ,,,,0,,,  might "optimize" them away (i.e. it unfortunately won't find them).
- *  ,5,8,1,,  This is by design. If it finds them, it remembers them moving forward
- *  ,,,,,,2,  instead of detecting and discarding them. This means verification gets
- *  ,6,,3,,,  a bit tricky. To fix this issue we simply remove 5, 0 and 1 from the hull,
- *  ,,,,,4,,  and say that the simplified hull is
- *  ,,,9,,,,                      7->6->9->4->2
- * You should simplify before canonicalizing.
- */
-void simplify_hull(hull_t& hull, const vector<Point3d>& points, double eps, int s = 0) {
+void simplify_hull(hull_t& hull, const vector<P>& points, double eps) {
+    // Remove collinear points from faces.
     for (auto& face : hull) {
         vector<int> filtered_face;
         for (int j = 0, N = face.size(); j < N; j++) {
             int i = (j + N - 1) % N, k = (j + 1) % N;
-            int u = face[i] - s, v = face[j] - s, w = face[k] - s;
+            int u = face[i], v = face[j], w = face[k];
             if (!collinear(points[u], points[v], points[w], eps))
                 filtered_face.push_back(face[j]);
         }
@@ -524,16 +488,12 @@ void simplify_hull(hull_t& hull, const vector<Point3d>& points, double eps, int 
     }
 }
 
-/**
- * Rotate the faces in the hull so that the lowest index vertex is at the beginning.
- * Then sort all of the hull lexicographically.
- * You should simplify before canonicalizing.
- */
-void canonicalize_hull(hull_t& hull) {
-    for (auto& face : hull) {
-        rotate(begin(face), min_element(begin(face), end(face)), end(face));
-    }
-    sort(begin(hull), end(hull));
+auto compute_hull(const vector<P>& points, int skip_0 = 0) {
+    quickhull3d qh(points, skip_0);
+    qh.compute();
+    auto hull = qh.extract_hull(skip_0);
+    simplify_hull(hull, points, qh.eps);
+    return hull;
 }
 
 #endif // QUICKHULL3D_HPP

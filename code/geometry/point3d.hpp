@@ -19,8 +19,8 @@ struct Point3d {
     constexpr Point3d(const array<double, 3>& a) : x(a[0]), y(a[1]), z(a[2]) {}
 
     using P = Point3d;
-    static inline constexpr double inf = numeric_limits<double>::infinity();
-    static inline double deps = 30 * numeric_limits<double>::epsilon();
+    static constexpr double inf = numeric_limits<double>::infinity();
+    static constexpr double deps = 30 * numeric_limits<double>::epsilon();
 
     static constexpr P zero() { return P(0, 0, 0); }
     static constexpr P one() { return P(1, 1, 1); }
@@ -115,7 +115,6 @@ struct Point3d {
 
     // -- Lines
 
-    // Are points a, b, c collinear in any order? (degenerate=yes)
     friend bool collinear(const P& a, const P& b, const P& c, double eps = deps) {
         double ab = dist(a, b), ac = dist(a, c), bc = dist(b, c);
         return ab >= max(ac, bc)   ? linedist(c, a, b) <= ab * eps
@@ -126,12 +125,10 @@ struct Point3d {
     friend bool onsegment(const P& a, const P& b, const P& c, double eps = deps) {
         return collinear(a, b, c, eps) && dot(a - b, c - b) <= 0; // <=0, not eps
     }
-    // Are vectors u and v parallel? (either way)
     friend bool parallel(const P& u, const P& v, double eps = deps) {
         return collinear(zero(), u, v, eps);
     }
 
-    // k<0 => before a, k=0 => a, k=1 => b, k>1 => after b, 0<k<1 => in segment [ab]
     friend P interpolate(const P& a, const P& b, double k) { return a + (b - a) * k; }
     // Distance of a to line uv
     friend double linedist(const P& a, const P& u, const P& v) {
@@ -139,14 +136,13 @@ struct Point3d {
     }
 
     // -- Planes
-  public:
-    // Are points a, b, c, d coplanar (any layout)?
-    friend bool coplanar(P a, P b, P c, P d, double eps = deps) {
+    friend bool coplanar(const P& a, const P& b, const P& c, const P& d,
+                         double eps = deps) {
         P n = (a.cross(b, c) + b.cross(c, d) + c.cross(d, a) + d.cross(a, b));
         return !planeside(a, b, n, eps) || !planeside(b, c, n, eps) ||
                !planeside(c, d, n, eps) || !planeside(d, a, n, eps);
     }
-    // Is point P above (1), in (0) or below (-1) the plane by C with normal N?
+    // Is point P above (1), in (0) or below (-1) the plane by C with normal n?
     friend int planeside(const P& p, const P& c, const P& n, double eps = deps) {
         double s = dot(n, p - c), k = c.norm() * n.norm();
         return (s >= k * 4 * eps) - (s <= -k * 4 * eps);
@@ -154,9 +150,11 @@ struct Point3d {
 
     // -- Area
 
-    // Area of triangle abc
     friend double area(const P& a, const P& b, const P& c) {
         return a.cross(b, c).norm() / 2;
+    }
+    friend double volume(const P& a, const P& b, const P& c, const P& d) {
+        return dot(a - d, crossed(b - d, c - d)) / 6;
     }
 
     bool boxed(const P& min, const P& max) const {
@@ -173,11 +171,12 @@ struct Point3d {
 
 struct Plane {
     using P = Point3d;
-    P n;      // normal; null if plane is degenerate (e.g. 3 collinear points)
-    double d; // distance to zero; plane equation: dot(n,x) + d = 0
+    P n;          // normal; null if plane is degenerate (e.g. 3 collinear points)
+    double d = 0; // distance to zero; plane equation: dot(n,x) + d = 0
 
     Plane() = default;
-    Plane(const P& n, double d) : n(n), d(d) {}
+    Plane(const P& N, double d) : n(N.unit()), d(d / N.norm()) {}
+    Plane(const P& N, const P& c) : n(N.unit()), d(-dot(n, c)) {}
     Plane(const P& a, const P& b, const P& c) : n(a.cross(b, c).unit()), d(-dot(n, a)) {}
 
     Plane& normalize() { return d /= n.norm(), n /= n.norm(), *this; }

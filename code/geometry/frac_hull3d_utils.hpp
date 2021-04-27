@@ -14,26 +14,27 @@ inline namespace hull3d_utils {
  */
 template <typename F>
 optional<tuple<int, int, int>> verify_hull(const hull_t& hull,
-                                           const vector<Point3d<F>>& points, int s = 0) {
+                                           const vector<Point3d<F>>& points,
+                                           int skip_0 = 0) {
     int H = hull.size(), N = points.size();
     vector<Plane<F>> planes;
     vector<unordered_set<int>> vfaces(N);
     for (int f = 0; f < H; f++) {
         const auto& face = hull[f];
-        int u = face[0] - s, v = face[1] - s, w = face[2] - s;
+        int u = face[0], v = face[1], w = face[2];
         planes.emplace_back(points[u], points[v], points[w]);
         for (int v : face) {
-            vfaces[v - s].insert(f);
+            vfaces[v].insert(f);
         }
     }
-    for (int v = 0; v < N; v++) {
+    for (int v = skip_0; v < N; v++) {
         for (int f : vfaces[v]) {
             if (planes[f].planeside(points[v]) != 0) {
                 return {{v, f, 0}};
             }
         }
     }
-    for (int v = 0; v < N; v++) {
+    for (int v = skip_0; v < N; v++) {
         for (int f = 0; f < H; f++) {
             if (!vfaces[v].count(f) && planes[f].planeside(points[v]) == 1) {
                 return {{v, f, 1}};

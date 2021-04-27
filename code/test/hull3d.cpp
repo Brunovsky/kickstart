@@ -1,6 +1,7 @@
 #include "../geometry/hull3d.hpp"
 
 #include "../formatting.hpp"
+#include "../geometry/hull3d_functions.hpp"
 #include "../geometry/hull3d_utils.hpp"
 #include "../geometry/point3d.hpp"
 #include "../random.hpp"
@@ -11,7 +12,6 @@ namespace fs = std::filesystem;
 // *****
 
 const string DATASET_FOLDER = "datasets/hull3d";
-using P = Point3d;
 
 inline namespace {
 
@@ -121,11 +121,12 @@ string format_hull(const hull_t& hull) {
 struct quickhull3d_dataset_test_t {
     string name, comment;
     vector<P> points;
-    hull_t hull;
+    hull_t ans;
 
     void read(string name, istream& in) {
         this->name = name;
         string s, line;
+        points = {P::zero()};
         while (getline(in, line)) {
             if (line.empty())
                 continue;
@@ -145,29 +146,28 @@ struct quickhull3d_dataset_test_t {
                 while (ss >> v) {
                     face.push_back(v);
                 }
-                hull.emplace_back(move(face));
+                ans.emplace_back(move(face));
             }
         }
-        simplify_hull(hull, points, 1e-12, 1);
-        canonicalize_hull(hull);
+        simplify_hull(ans, points, 1e-12);
+        canonicalize_hull(ans);
     }
 
     void write() { print("== {}\n{}", name, comment); }
 
     void run() {
-        quickhull3d qh(points);
-        qh.compute();
-        auto got = qh.extract_hull(1);
-        simplify_hull(got, points, 1e-12, 1);
-        canonicalize_hull(got);
+        auto hull = compute_hull(points, 1);
+        canonicalize_hull(hull);
 
-        if (got != hull) {
+        print("hull area: {}\n", area_hull(hull, points));
+        print("hull volume: {}\n", volume_hull(hull, points));
+        if (hull != ans) {
             print("-- quickhull error on {}\n", name);
-            print("     got: {}\n", got);
-            print("expected: {}\n", hull);
+            print("     got: {}\n", hull);
+            print("expected: {}\n", ans);
         }
 
-        auto counterexample = verify_hull(hull, points, 1, 1e4 * qh.eps);
+        auto counterexample = verify_hull(hull, points, P::deps, 1);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
             clear_line(), print("Incorrect convex hull\n");
@@ -203,6 +203,7 @@ void stress_test_quickhull3d_run(int T, int N, int L, int C, int I, long R = 50)
         print_progress(t, T, "stress test quickhull3d");
 
         auto points = random_points(N, R);
+        points.insert(begin(points), P::zero());
         add_coplanar_points(L, points, 2 * R);
         add_collinear_points(C, points, 2 * R);
         add_incident_points(I, points);
@@ -211,14 +212,10 @@ void stress_test_quickhull3d_run(int T, int N, int L, int C, int I, long R = 50)
         ofstream out(file.string());
         out << format_header(points) << format_points(points);
 
-        quickhull3d qh(points);
-        bool ok = qh.compute();
-        assert(ok); // very unlikely they're all coplanar
-        auto hull = qh.extract_hull(1);
-
+        auto hull = compute_hull(points, 1);
         out << format_hull(hull);
 
-        auto counterexample = verify_hull(hull, points, 1, 25 * qh.eps);
+        auto counterexample = verify_hull(hull, points, 10 * P::deps, 1);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
             clear_line();
@@ -267,10 +264,7 @@ void scaling_test_quickhull3d_run(int T, int N, int L, int C, int I = 0, long R 
         assert(points.size() == uint(N + L + C + I));
 
         START(quickhull3d);
-        quickhull3d qh(points);
-        bool ok = qh.compute();
-        assert(ok);
-        auto hull = qh.extract_hull(0);
+        auto hull = compute_hull(points, 0);
         ADD_TIME(quickhull3d);
     }
 
@@ -298,12 +292,12 @@ void scaling_test_quickhull3d(double F = 1.0) {
     scaling_test_quickhull3d_run(int(F * 20), 100000, 0, 0);
     scaling_test_quickhull3d_run(int(F * 20), 10000, 90000, 0);
     scaling_test_quickhull3d_run(int(F * 5), 1'000'000, 0, 0);
-    scaling_test_quickhull3d_run(int(F * 5), 10'000, 900'000, 0);
+    scaling_test_quickhull3d_run(int(F * 5), 10'000, 900'000, 90'000);
 }
 
 int main() {
     RUN_BLOCK(dataset_test_quickhull3d());
-    RUN_BLOCK(stress_test_quickhull3d(.01));
-    // RUN_BLOCK(scaling_test_quickhull3d());
+    RUN_BLOCK(stress_test_quickhull3d());
+    RUN_BLOCK(scaling_test_quickhull3d());
     return 0;
 }

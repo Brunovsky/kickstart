@@ -13,7 +13,7 @@
  *                 https://cp-algorithms.com/geometry/basic-geometry.html
  */
 
-template <typename T> // frac, bfrac or long long
+template <typename T> // frac, bfrac or long, but long has issues
 struct Point3d {
     T x, y, z;
     Point3d() : x(0), y(0), z(0) {}
@@ -63,9 +63,17 @@ struct Point3d {
         return P(xcrossed(a, b), ycrossed(a, b), zcrossed(a, b));
     }
 
+    // -- Angles
+
+    friend double cos(const P& u, const P& v) {
+        return clamp(dot(u, v) / (u.norm() * v.norm()), -1.0, 1.0);
+    }
+    friend double sin(const P& u, const P& v) {
+        return clamp(crossed(u, v).norm() / (u.norm() * v.norm()), -1.0, 1.0);
+    }
+
     // -- Lines
 
-    // Are points a, b, c collinear in any order? (degenerate=yes)
     friend bool collinear(const P& a, const P& b, const P& c) {
         return a.cross(b, c) == zero();
     }
@@ -73,13 +81,9 @@ struct Point3d {
     friend bool onsegment(const P& a, const P& b, const P& c) {
         return collinear(a, b, c) && dot(a - b, c - b) <= 0;
     }
-    // Are vectors u and v parallel? (either way)
     friend bool parallel(const P& u, const P& v) { return crossed(u, v) == zero(); }
 
-    // k=0 => a, k=1 => b, 0<k<1 inside segment [ab]
-    friend P interpolate(const P& a, const P& b, const T& k) {
-        return (1 - k) * a + k * b;
-    }
+    friend P interpolate(const P& a, const P& b, const T& k) { return a + (b - a) * k; }
     // Distance of a to line uv
     friend double linedist(const P& a, const P& u, const P& v) {
         return a.cross(u, v).norm() / dist(u, v);
@@ -88,22 +92,12 @@ struct Point3d {
     friend T linedist2(const P& a, const P& u, const P& v) {
         return a.cross(u, v).norm2() / dist2(u, v);
     }
-    friend double cos(const P& u, const P& v) {
-        return clamp(dot(u, v) / (u.norm() * v.norm()), -1.0, 1.0);
-    }
-    friend double sin(const P& u, const P& v) {
-        return clamp(crossed(u, v).norm() / (u.norm() * v.norm()), -1.0, 1.0);
-    }
-    friend T cos2(const P& u, const P& v) { return dot2(u, v) / (u.norm2() * v.norm2()); }
-    friend T sin2(const P& u, const P& v) { return 1 - cos2(u, v); }
 
     // -- Planes
-
-    // Are points a, b, c, d coplanar in any order?
     friend bool coplanar(const P& a, const P& b, const P& c, const P& d) {
         return parallel(a.cross(c, d), b.cross(c, d));
     }
-    // Is point P above (1), in (0) or below (-1) the plane by C with normal N?
+    // Is point P above (1), in (0) or below (-1) the plane by C with normal n?
     friend int planeside(const P& p, const P& c, const P& n) {
         T s = dot(n, p - c);
         return (s >= 0) - (s <= 0);
@@ -111,13 +105,14 @@ struct Point3d {
 
     // -- Area
 
-    // Area of triangle abc
     friend double area(const P& a, const P& b, const P& c) {
         return a.cross(b, c).norm() / 2;
     }
-    // Squared area of triangle abc
     friend T area2(const P& a, const P& b, const P& c) {
         return a.cross(b, c).norm2() / 4;
+    }
+    friend T volume(const P& a, const P& b, const P& c, const P& d) {
+        return dot(a - d, crossed(b - d, c - d)) / 6;
     }
 
     bool boxed(const P& min, const P& max) const {
@@ -140,6 +135,7 @@ struct Plane {
 
     Plane() = default;
     Plane(const P& n, const T& d) : n(n), d(d) {}
+    Plane(const P& N, const P& c) : n(N), d(-dot(n, c)) {}
     Plane(const P& a, const P& b, const P& c) : n(a.cross(b, c)), d(-dot(n, a)) {}
 
     void normalize() { // set the first non-zero coordinate of n to 1.
