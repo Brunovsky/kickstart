@@ -1,9 +1,9 @@
 #ifndef FRAC_POINT2D_HPP
 #define FRAC_POINT2D_HPP
 
-#include "../hash.hpp"
-#include "../numeric/bfrac.hpp"
-#include "../numeric/frac.hpp"
+#include "../../hash.hpp"
+#include "../../numeric/bfrac.hpp"
+#include "../../numeric/frac.hpp"
 
 // *****
 

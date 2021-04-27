@@ -1,11 +1,11 @@
-#include "../geometry/frac_hull3d.hpp"
+#include "../geometry/frac/frac_hull3d.hpp"
 
 #include <filesystem>
 
 #include "../formatting.hpp"
 #include "../generators/frac.hpp"
-#include "../geometry/frac_hull3d_functions.hpp"
-#include "../geometry/frac_hull3d_utils.hpp"
+#include "../geometry/frac/frac_hull3d_functions.hpp"
+#include "../geometry/frac/frac_hull3d_utils.hpp"
 #include "test_utils.hpp"
 
 namespace fs = std::filesystem;

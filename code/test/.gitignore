@@ -3,3 +3,4 @@ logs
 dep/
 bin/
 datasets/latest_error.txt
+output
