@@ -73,8 +73,6 @@ class BoyerMoore {
 int boyer_moore_search(const string& text, const BoyerMoore& bm) {
     const string& needle = bm.get_pattern();
     int P = needle.size(), T = text.size();
-
-    vector<int> match;
     int i = 0, j = P - 1;
 
     while (i <= T - P) {

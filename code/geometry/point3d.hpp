@@ -60,30 +60,21 @@ struct Point3d {
     friend double manhattan(const P& a, const P& b) { return (a - b).manhattan(); }
     friend P abs(const P& u) { return P(abs(u.x), abs(u.y), abs(u.z)); }
 
-    double xcross(const P& a, const P& b) const { return xcrossed(a - *this, b - *this); }
-    double ycross(const P& a, const P& b) const { return ycrossed(a - *this, b - *this); }
-    double zcross(const P& a, const P& b) const { return zcrossed(a - *this, b - *this); }
     P cross(const P& a, const P& b) const { return crossed(a - *this, b - *this); }
-    friend double xcrossed(const P& u, const P& v) { return u.y * v.z - u.z * v.y; }
-    friend double ycrossed(const P& u, const P& v) { return u.z * v.x - u.x * v.z; }
-    friend double zcrossed(const P& u, const P& v) { return u.x * v.y - u.y * v.x; }
     friend P crossed(const P& u, const P& v) {
-        return P(xcrossed(u, v), ycrossed(u, v), zcrossed(u, v));
+        return P(u.y * v.z - u.z * v.y, u.z * v.x - u.x * v.z, u.x * v.y - u.y * v.x);
     }
     P normal(const P& a, const P& b) const { return cross(a, b).unit(); }
     friend P normal(const P& u, const P& v) { return crossed(u, v).unit(); }
 
     // -- Lattice points
 
-    // Round to nearest lattice point (e.g. for hashing)
     array<long, 3> round_lattice_point() const {
         return {long(round(x)), long(round(y)), long(round(z))};
     }
-    // Round to nearest lattice point, floor each coordinate (e.g. for hashing)
     array<long, 3> floor_lattice_point() const {
         return {long(floor(x)), long(floor(y)), long(floor(z))};
     }
-    // Round to nearest lattice point, ceil each coordinate (e.g. for hashing)
     array<long, 3> ceil_lattice_point() const {
         return {long(ceil(x)), long(ceil(y)), long(ceil(z))};
     }
@@ -130,6 +121,7 @@ struct Point3d {
     }
 
     friend P interpolate(const P& a, const P& b, double k) { return a + (b - a) * k; }
+
     // Distance of a to line uv
     friend double linedist(const P& a, const P& u, const P& v) {
         return a.cross(u, v).norm() / dist(u, v);
@@ -167,19 +159,19 @@ struct Point3d {
         return '(' + to_string(a.x) + ',' + to_string(a.y) + ',' + to_string(a.z) + ')';
     }
     friend ostream& operator<<(ostream& out, const P& a) { return out << to_string(a); }
+    friend istream& operator>>(istream& in, P& a) { return in >> a.x >> a.y >> a.z; }
 };
 
 struct Plane {
     using P = Point3d;
-    P n;          // normal; null if plane is degenerate (e.g. 3 collinear points)
-    double d = 0; // distance to zero; plane equation: dot(n,x) + d = 0
+    P n;          // normal; constructors set norm to 1
+    double d = 0; // distance to origin; plane equation: dot(n,x) + d = 0
 
     Plane() = default;
     Plane(const P& N, double d) : n(N.unit()), d(d / N.norm()) {}
     Plane(const P& N, const P& c) : n(N.unit()), d(-dot(n, c)) {}
     Plane(const P& a, const P& b, const P& c) : n(a.cross(b, c).unit()), d(-dot(n, a)) {}
 
-    Plane& normalize() { return d /= n.norm(), n /= n.norm(), *this; }
     bool is_degenerate(double eps = Point3d::deps) const { return n.norm() <= eps; }
 
     // True if same plane and same orientation

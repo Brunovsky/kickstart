@@ -11,5 +11,6 @@
 |`sort                       `| Stable       | Stable (S,P)   | |
 |`string_distance            `| Stable       | Stable (U)     | |
 |`z_search                   `| Stable       | Stable (S)     | |
-|`suffix_array               `| TODO :(      |                | |
+|`suffix_array               `| Stable       | -              | |
+|`lyndon                     `| Stable       | -              | |
 |`suffix_tree                `| TODO :(      |                | |

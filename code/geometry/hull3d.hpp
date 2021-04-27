@@ -16,7 +16,7 @@
  * Usage:
  *     vector<P> points = {P(1,2,3), ...};
  *     auto hull = compute_hull3d(points);   // returns {} if all points are coplanar
- *     canonicalize_hull3d(hull);            // canonicalize if needed (B)
+ *     canonicalize_hull3d(hull);            // canonicalize if needed
  *     for (const auto& face : hull) {
  *         for (int v : face) {
  *             ... // points[v]

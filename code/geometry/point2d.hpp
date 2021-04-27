@@ -20,8 +20,8 @@ struct Point2d {
     constexpr Point2d(const array<double, 2>& a) : x(a[0]), y(a[1]) {}
 
     using P = Point2d;
-    static inline constexpr double inf = numeric_limits<double>::infinity();
-    static inline double deps = 20 * numeric_limits<double>::epsilon();
+    static constexpr double inf = numeric_limits<double>::infinity();
+    static constexpr double deps = 20 * numeric_limits<double>::epsilon();
 
     static constexpr P zero() { return P(0, 0); }
     static constexpr P one() { return P(1, 1); }
@@ -68,15 +68,12 @@ struct Point2d {
 
     // -- Lattice points
 
-    // Round to nearest lattice point (e.g. for hashing)
     array<long, 2> round_lattice_point() const {
         return {long(round(x)), long(round(y))};
     }
-    // Round to nearest lattice point, floor each coordinate (e.g. for hashing)
     array<long, 2> floor_lattice_point() const {
         return {long(floor(x)), long(floor(y))};
     }
-    // Round to nearest lattice point, ceil each coordinate (e.g. for hashing)
     array<long, 2> ceil_lattice_point() const { return {long(ceil(x)), long(ceil(y))}; }
 
     // -- Angles
@@ -106,7 +103,6 @@ struct Point2d {
 
     // -- Lines
 
-    // Are points a, b, c collinear in any order? (degenerate=yes)
     friend bool collinear(const P& a, const P& b, const P& c, double eps = deps) {
         double ab = dist(a, b), ac = dist(a, c), bc = dist(b, c);
         return ab >= max(ac, bc)   ? linedist(c, a, b) <= ab * eps
@@ -117,19 +113,12 @@ struct Point2d {
     friend bool onsegment(const P& a, const P& b, const P& c, double eps = deps) {
         return collinear(a, b, c, eps) && dot(a - b, c - b) <= 0; // <=0, not eps
     }
-    // Are vectors u and v parallel? (either way)
     friend bool parallel(const P& u, const P& v, double eps = deps) {
         return collinear(zero(), u, v, eps);
     }
-    // Is point P on left of (1), on (0) or right of (-1) the semiline u->v?
-    friend int lineside(const P& p, const P& u, const P& v, double eps = deps) {
-        auto c = u.cross(v, p);
-        auto uv = dist2(u, v);
-        return (c >= uv * eps) - (c <= -uv * eps);
-    }
 
-    // k<0 => before a, k=0 => a, k=1 => b, k>1 => after b, 0<k<1 => in segment [ab]
     friend P interpolate(const P& a, const P& b, double k) { return a + (b - a) * k; }
+
     // Distance of a to line uv
     friend double linedist(const P& a, const P& u, const P& v) {
         return abs(a.cross(u, v)) / dist(u, v);
@@ -138,30 +127,33 @@ struct Point2d {
     // {B,C} such that y = Bx + C (possibly B=inf)
     friend pair<double, double> slope_line(const P& u, const P& v, double eps = deps) {
         const auto a = u.x, b = u.y, c = v.x, d = v.y;
-        assert(!same(u, v, eps));
-        if (abs(a - c) > eps)
-            return {(b - d) / (a - c), (a * d - b * c) / (a - c)};
-        else
+        if (abs(a - c) <= max(abs(a), abs(c)) * eps)
             return {inf, a};
+        return {(b - d) / (a - c), crossed(u, v) / (a - c)};
     }
     // Compute intersection of lines uv and ab (point at infinity if parallel/concurrent)
     friend P intersect(const P& u, const P& v, const P& a, const P& b,
                        double eps = deps) {
         auto d = crossed(v - u, b - a);
-        if (abs(d) <= eps)
+        if (abs(d) <= dist(u, v) * dist(a, b) * eps)
             return pinf();
         auto p = a.cross(v, b), q = a.cross(b, u);
         return (u * p + v * q) / d;
     }
 
+    // Is point P on left of (1), on (0) or right of (-1) the semiline u->v?
+    friend int lineside(const P& p, const P& u, const P& v, double eps = deps) {
+        auto c = u.cross(v, p);
+        auto uv = dist2(u, v);
+        return (c >= uv * eps) - (c <= -uv * eps);
+    }
+
     // -- Area
-    // Oriented area of triangle abc (positive=ccw)
     friend double area(const P& a, const P& b, const P& c) { return a.cross(b, c) / 2; }
-    // Oriented area of polygon, e.g. convex hull (positive=ccw)
     friend double area(const vector<P>& ps) {
         double ans = 0;
         for (int i = 0, n = ps.size(); i < n; i++) {
-            auto u = i ? ps[i - 1] : ps[n - 1], v = ps[i];
+            const auto &u = i ? ps[i - 1] : ps[n - 1], v = ps[i];
             ans += (u.x - v.x) * (u.y + v.y);
         }
         return ans;
@@ -175,6 +167,7 @@ struct Point2d {
         return '(' + to_string(a.x) + ',' + to_string(a.y) + ')';
     }
     friend ostream& operator<<(ostream& out, const P& a) { return out << to_string(a); }
+    friend istream& operator>>(istream& in, P& a) { return in >> a.x >> a.y; }
 };
 
 #endif // POINT2D_HPP

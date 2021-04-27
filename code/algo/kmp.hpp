@@ -43,8 +43,6 @@ class KMP {
 int kmp_search(const string& text, const KMP& kmp) {
     const string& needle = kmp.get_pattern();
     int P = needle.size(), T = text.size();
-
-    vector<int> match;
     int i = 0, j = 0;
 
     while (i <= T - P) {
