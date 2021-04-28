@@ -2,6 +2,8 @@
 
 using namespace std;
 
+#define long int64_t
+
 // *****
 
 auto solve() {

@@ -20,14 +20,6 @@ def tryinput(str):
         sys.exit(0)
 
 
-def read_round():
-    rnd = tryinput("Round: ")
-    if not re.match("^[a-zA-Z0-9-\+]{1,10}$", rnd):
-        print(f"Bad input round: {rnd}")
-        return read_round()
-    return rnd.upper()
-
-
 def read_name():
     name = tryinput("Name: ")
     if not re.match("^[a-zA-Z0-9-_!?#)(=~+\-*/.:,; ]+$", name):
@@ -36,11 +28,10 @@ def read_name():
     return name
 
 
-rnd = read_round()
 name = read_name()
 foldername = re.sub('[^a-zA-Z0-9-\+]+', '', name.lower().replace(' ', '-'))
 
-folder = f"{rnd}-{foldername}"
+folder = f"{foldername}"
 print(f"Problem folder: {folder}")
 
 os.makedirs(folder, exist_ok=True)

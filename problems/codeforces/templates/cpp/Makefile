@@ -2,7 +2,7 @@
 COMPILER := gcc
 CC := g++
 CPP_STANDARD := c++17
-EXTRA_CXXFLAGS := -lfmt
+EXTRA_CXXFLAGS := -lfmt -Wno-keyword-macro
 TRACE := '::hack '
 
 include ../../../common/cxx.make
