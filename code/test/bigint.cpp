@@ -240,7 +240,7 @@ void stress_test_sqrt(int R = 2000) {
     for (int i = 0; i < R; i++) {
         print_progress(i, R, "stress test sqrt");
         auto n = random_numeric_string(digitsd(mt), 10, false);
-        auto u = sqrt(n);
+        auto u = sqrt(bigint(n));
 
         assert(u * u <= n);
         assert(n < (u + 1) * (u + 1));

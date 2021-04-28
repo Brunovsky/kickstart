@@ -5,9 +5,10 @@
 
 using namespace std;
 
-// *****
-
-// positive infinity is frac(1, 0) and negative infinity is frac(-1, 0)
+/**
+ * Frac for rational arithmetic, nothing surprising going on here.
+ * Positive infinity is frac(1, 0) and negative infinity is frac(-1, 0).
+ */
 struct frac {
     long n, d;
 
@@ -22,40 +23,55 @@ struct frac {
     explicit operator bool() const noexcept { return n != 0 && d != 0; }
     explicit operator long() const noexcept { return assert(d != 0), n / d; }
     explicit operator double() const noexcept { return assert(d != 0), 1.0 * n / d; }
+
+    friend frac abs(frac f) { return frac(abs(f.n), f.d); }
+    friend long floor(frac f) { return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d; }
+    friend long ceil(frac f) { return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d; }
+    friend frac gcd(frac a, frac b) {
+        while (a != 0) {
+            b = b % a;
+            swap(a, b);
+        }
+        return abs(b);
+    }
+
+    friend bool operator==(frac a, frac b) { return a.n == b.n && a.d == b.d; }
+    friend bool operator!=(frac a, frac b) { return a.n != b.n || a.d != b.d; }
+    friend bool operator<(frac a, frac b) { return a.n * b.d < b.n * a.d; }
+    friend bool operator>(frac a, frac b) { return a.n * b.d > b.n * a.d; }
+    friend bool operator<=(frac a, frac b) { return a.n * b.d <= b.n * a.d; }
+    friend bool operator>=(frac a, frac b) { return a.n * b.d >= b.n * a.d; }
+
+    friend frac operator+(frac a, frac b) {
+        return frac(a.n * b.d + b.n * a.d, a.d * b.d);
+    }
+    friend frac operator-(frac a, frac b) {
+        return frac(a.n * b.d - b.n * a.d, a.d * b.d);
+    }
+    friend frac operator*(frac a, frac b) { return frac(a.n * b.n, a.d * b.d); }
+    friend frac operator/(frac a, frac b) { return frac(a.n * b.d, a.d * b.n); }
+    friend frac operator%(frac a, frac b) { return a - long(a / b) * b; }
+    friend frac& operator+=(frac& a, frac b) { return a = a + b; }
+    friend frac& operator-=(frac& a, frac b) { return a = a - b; }
+    friend frac& operator*=(frac& a, frac b) { return a = a * b; }
+    friend frac& operator/=(frac& a, frac b) { return a = a / b; }
+    friend frac& operator%=(frac& a, frac b) { return a = a % b; }
+
+    friend frac operator-(frac f) { return frac(-f.n, f.d); }
+    friend bool operator!(frac f) { return f.n == 0; }
+
+    friend string to_string(frac f) {
+        if (f.d == 0) {
+            return f.n ? f.n > 0 ? "inf" : "-inf" : "undef";
+        } else if (f.d == 1) {
+            return to_string(f.n);
+        } else {
+            return to_string(f.n) + '/' + to_string(f.d);
+        }
+    }
+
+    friend ostream& operator<<(ostream& out, frac f) { return out << to_string(f); }
 };
-
-frac abs(frac f) { return frac(abs(f.n), f.d); }
-long floor(frac f) { return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d; }
-long ceil(frac f) { return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d; }
-
-inline namespace frac_comparison {
-
-bool operator==(frac a, frac b) { return a.n == b.n && a.d == b.d; }
-bool operator!=(frac a, frac b) { return a.n != b.n || a.d != b.d; }
-bool operator<(frac a, frac b) { return a.n * b.d < b.n * a.d; }
-bool operator>(frac a, frac b) { return a.n * b.d > b.n * a.d; }
-bool operator<=(frac a, frac b) { return a.n * b.d <= b.n * a.d; }
-bool operator>=(frac a, frac b) { return a.n * b.d >= b.n * a.d; }
-
-} // namespace frac_comparison
-
-inline namespace frac_arithmetic {
-
-frac operator+(frac a, frac b) { return frac(a.n * b.d + b.n * a.d, a.d * b.d); }
-frac operator-(frac a, frac b) { return frac(a.n * b.d - b.n * a.d, a.d * b.d); }
-frac operator*(frac a, frac b) { return frac(a.n * b.n, a.d * b.d); }
-frac operator/(frac a, frac b) { return frac(a.n * b.d, a.d * b.n); }
-frac operator%(frac a, frac b) { return a - long(a / b) * b; }
-frac& operator+=(frac& a, frac b) { return a = a + b; }
-frac& operator-=(frac& a, frac b) { return a = a - b; }
-frac& operator*=(frac& a, frac b) { return a = a * b; }
-frac& operator/=(frac& a, frac b) { return a = a / b; }
-frac& operator%=(frac& a, frac b) { return a = a % b; }
-
-frac operator-(frac f) { return frac(-f.n, f.d); }
-bool operator!(frac f) { return f.n == 0; }
-
-} // namespace frac_arithmetic
 
 inline namespace frac_format {
 
@@ -96,22 +112,7 @@ istream& operator>>(istream& in, frac& f) {
     return in >> s, f = stofrac(s), in;
 }
 
-double fractod(frac f) { return assert(f.d != 0), 1.0 * f.n / f.d; }
-double to_decimal(frac f) { return fractod(f); }
-
 } // namespace frac_format
-
-string to_string(frac f) {
-    if (f.d == 0) {
-        return f.n ? f.n > 0 ? "inf" : "-inf" : "undef";
-    } else if (f.d == 1) {
-        return to_string(f.n);
-    } else {
-        return to_string(f.n) + '/' + to_string(f.d);
-    }
-}
-
-ostream& operator<<(ostream& out, frac f) { return out << to_string(f); }
 
 namespace std {
 

@@ -121,7 +121,7 @@ string format_header(const vector<P>& points, int t = -1) {
 string format_points(const vector<P>& points) {
     string s;
     for (const auto& p : points) {
-        s += format("v {} {} {}\n", to_decimal(p.x), to_decimal(p.y), to_decimal(p.z));
+        s += format("v {} {} {}\n", double(p.x), double(p.y), double(p.z));
     }
     return s;
 }
