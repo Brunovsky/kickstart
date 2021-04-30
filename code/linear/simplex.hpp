@@ -28,14 +28,17 @@ struct simplex {
     vector<F> z;
     vector<constraint_t> C;
 
+    simplex() = default;
+    simplex(int N) : N(N), z(N, 1) {}
+
     void set_objective(vector<F> f) {
         assert(!N || N == int(f.size()));
         z = move(f), N = z.size();
     }
 
     void add_constraint(constraint_t constraint) {
-        assert(N && int(constraint.v.size()) == N);
-        C.push_back(move(constraint)), M++;
+        assert(!N || int(constraint.v.size()) == N);
+        C.push_back(move(constraint)), M++, N = N ? N : constraint.v.size();
     }
 
     void add_constraints(const vector<constraint_t>& constraints) {
@@ -43,7 +46,10 @@ struct simplex {
             add_constraint(constraint);
     }
 
-    void clear() { N = M = 0, z.clear(), C.clear(); }
+    void clear() {
+        N = M = S = A = 0, z.clear(), C.clear();
+        var_to_row.clear(), row_to_var.clear();
+    }
 
     int S = 0, A = 0; // slack and artificial variable count
     mat<F> tab;

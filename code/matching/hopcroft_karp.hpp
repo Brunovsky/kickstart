@@ -7,8 +7,6 @@ using namespace std;
 
 // *****
 
-using edges_t = vector<array<int, 2>>;
-
 /**
  * Hopcroft-Karp maximum bipartite matching
  * Complexity: O(V^1/2 E)
@@ -18,7 +16,8 @@ struct hopcroft_karp {
     vector<vector<int>> adj;
     vector<int> mu, mv;
 
-    hopcroft_karp(int U, int V, const edges_t& g = {}) : U(U), V(V), adj(U) {
+    hopcroft_karp(int U, int V, const vector<array<int, 2>>& g = {})
+        : U(U), V(V), adj(U) {
         for (auto [u, v] : g)
             add(u, v);
     }
