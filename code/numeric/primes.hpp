@@ -36,10 +36,6 @@ bool is_quadratic_residue(long a, long p) {
     return a != 0 && modpow(a, (p - 1) / 2, p) == 1;
 }
 
-/**
- * Compute primes dividing n naively (best for small prime divisors or small n)
- * Complexity: O(n^1/2) worst case (prime)
- */
 auto factor_simple(long n) {
     vector<long> primes;
     while (n && (n & 1) == 0) {
@@ -56,6 +52,40 @@ auto factor_simple(long n) {
         primes.push_back(n);
     }
     return primes;
+}
+
+auto factor_map(long n) {
+    unordered_map<long, int> primes;
+    for (long p = 2; p * p <= n; p++) {
+        while (n % p == 0) {
+            primes[p]++;
+            n = n / p;
+        }
+    }
+    if (n > 1) {
+        primes[n]++;
+    }
+    return primes;
+}
+
+auto get_divisors(const unordered_map<long, int>& factors, bool one, bool self) {
+    vector<long> divs = {1};
+    for (const auto& [p, e] : factors) {
+        int D = divs.size();
+        divs.resize(D * (e + 1));
+        for (int n = 1; n <= e; n++) {
+            for (int d = 0; d < D; d++) {
+                divs[d + n * D] = divs[d + (n - 1) * D] * p;
+            }
+        }
+    }
+    if (!one) {
+        divs.erase(begin(divs));
+    }
+    if (!self && !divs.empty()) {
+        divs.erase(begin(divs) + (divs.size() - 1));
+    }
+    return divs;
 }
 
 #endif // PRIMES_HPP

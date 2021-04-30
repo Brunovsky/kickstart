@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Compute all primes p<=N.
  * This allows querying primes or number of primes in a range [L,R] at most N*N.
@@ -14,7 +12,8 @@ using namespace std;
  */
 auto classic_sieve(int N) {
     vector<int> primes;
-    vector<bool> isprime(N + 1, true);
+    vector<bool> isprime;
+    isprime.assign(N + 1, true);
 
     for (int n = 4; n <= N; n += 2)
         isprime[n] = false;
@@ -39,14 +38,15 @@ auto classic_sieve(int N) {
  *         https://cp-algorithms.com/algebra/prime-sieve-linear.html
  */
 auto least_prime_sieve(int N) {
-    vector<int> primes, lp(N + 1, 0);
+    vector<int> primes, lp, nxt;
+    lp.assign(N + 1, 0), nxt.assign(N + 1, 0);
 
     for (int P = 0, n = 2; n <= N; n++) {
         if (lp[n] == 0) {
             lp[n] = n, primes.push_back(n), P++;
         }
         for (int i = 0; i < P && primes[i] <= lp[n] && n * primes[i] <= N; ++i) {
-            lp[n * primes[i]] = primes[i];
+            lp[n * primes[i]] = primes[i], nxt[n * primes[i]] = n;
         }
     }
 
@@ -58,7 +58,8 @@ auto least_prime_sieve(int N) {
  * Complexity: O(N log log N)
  */
 auto num_prime_divisors_sieve(int N) {
-    vector<int> num_prime_divisors(N + 1, 0);
+    vector<int> num_prime_divisors;
+    num_prime_divisors.assign(N + 1, 0);
 
     for (int n = 2; n <= N; n++) {
         if (num_prime_divisors[n] == 0) {
@@ -76,7 +77,8 @@ auto num_prime_divisors_sieve(int N) {
  * Complexity: O(N log log N)
  */
 auto num_divisors_sieve(int N) {
-    vector<int> num_divisors(N + 1, 1);
+    vector<int> num_divisors;
+    num_divisors.assign(N + 1, 1);
     num_divisors[0] = 0;
 
     for (int n = 2; n <= N; n++) {
@@ -99,7 +101,8 @@ auto num_divisors_sieve(int N) {
  * Complexity: O(N log log N)
  */
 auto sum_divisors_sieve(int N) {
-    vector<long> sum_divisors(N + 1, 1);
+    vector<long> sum_divisors;
+    sum_divisors.assign(N + 1, 1);
     sum_divisors[0] = 0;
 
     for (int n = 2; n <= N; n++) {
@@ -122,7 +125,8 @@ auto sum_divisors_sieve(int N) {
  * Complexity: O(N log log N)
  */
 auto phi_sieve(int N) {
-    vector<int> phi(N + 1);
+    vector<int> phi;
+    phi.resize(N + 1);
     iota(begin(phi), end(phi), 0);
 
     for (int n = 2; n <= N; n++) {
@@ -142,7 +146,8 @@ auto phi_sieve(int N) {
  */
 auto modinv_sieve(int N, int mod) {
     N = min(N, mod - 1);
-    vector<int> inv(N + 1);
+    vector<int> inv;
+    inv.resize(N + 1);
     inv[1] = 1;
 
     for (int n = 2; n <= N; n++) {
@@ -196,6 +201,17 @@ auto get_primes(long L, long R, const vector<int>& primes) {
         if (isprime[n - L])
             new_primes.push_back(n);
     return new_primes;
+}
+
+/**
+ * Factor primes out of n.
+ */
+auto factor_primes(int n, const vector<int>& lp, const vector<int>& nxt) {
+    unordered_map<int, int> primes;
+    while (n > 1) {
+        primes[lp[n]]++, n = nxt[n];
+    }
+    return primes;
 }
 
 #endif // SIEVES_HPP
