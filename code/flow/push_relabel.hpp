@@ -5,34 +5,42 @@
 
 // *****
 
-using edges_t = vector<array<int, 2>>;
-
 /**
  * Push relabel with highest label selection rule, gap and global relabeling heuristics
  * Also known as Preflow-Push (GAP)
  * Complexity: O(V^2 E^1/2)
  */
+template <typename Flow = long, typename FlowSum = Flow>
 struct push_relabel {
+    using edges_t = vector<array<int, 2>>;
     int V, E = 0;
     vector<vector<int>> res;
     edges_t edge;
-    vector<long> flow, cap;
+    vector<Flow> flow, cap;
 
-    push_relabel(int V, const edges_t& g, const vector<long>& caps)
+    push_relabel(int V, const edges_t& g = {}, const vector<Flow>& caps = {})
         : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E) {
         int e = 0, c = 0;
         for (auto [u, v] : g) {
-            assert(u < V && v < V);
+            assert(0 <= u && u < V && 0 <= v && v < V && u != v);
             res[u].push_back(e), edge[e] = {u, v}, cap[e++] = caps[c++];
             res[v].push_back(e), edge[e] = {v, u}, cap[e++] = 0;
         }
     }
 
+    void add(int u, int v, Flow c) {
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
+        int uv = 2 * E, vu = 2 * E + 1;
+        res[u].push_back(uv), edge.push_back({u, v}), cap.push_back(c);
+        res[v].push_back(vu), edge.push_back({v, u}), cap.push_back(0), E++;
+        flow.push_back(0), flow.push_back(0);
+    }
+
     vector<int> height, arc;
-    vector<long> excess;
+    vector<FlowSum> excess;
     linked_lists active, labeled;
     int relabel_count, b; // current bucket (height)
-    static constexpr long inf = LONG_MAX / 2;
+    static constexpr FlowSum inf = numeric_limits<FlowSum>::max() / 2;
 
     int global_relabel_threshold() const {
         return 1 + int(ceil(log2(1.5 * E + 1) / log2(V + 1) * V));
@@ -95,7 +103,7 @@ struct push_relabel {
 
     void push(int e) {
         auto [u, v] = edge[e];
-        long df = min(excess[u], cap[e] - flow[e]);
+        Flow df = min(excess[u], cap[e] - flow[e]);
         assert(df > 0);
         if (excess[v] == 0) {
             active.push_back(height[v], v);
@@ -146,7 +154,7 @@ struct push_relabel {
         }
     }
 
-    long maxflow(int s, int t, bool value_only = true) {
+    FlowSum maxflow(int s, int t, bool value_only = true) {
         excess.assign(V, 0);
         arc.assign(V, 0);
         active.assign(2 * V + 1, V);

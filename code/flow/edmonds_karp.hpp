@@ -7,19 +7,19 @@ using namespace std;
 
 // *****
 
-using edges_t = vector<array<int, 2>>;
-
 /**
  * Edmonds-Karp augmenting paths
  * Complexity: O(VE^2), not good
  */
+template <typename Flow = long, typename FlowSum = Flow>
 struct edmonds_karp {
+    using edges_t = vector<array<int, 2>>;
     int V, E = 0;
     vector<vector<int>> res;
     edges_t edge;
-    vector<long> flow, cap;
+    vector<Flow> flow, cap;
 
-    edmonds_karp(int V, const edges_t& g, const vector<long>& caps)
+    edmonds_karp(int V, const edges_t& g = {}, const vector<Flow>& caps = {})
         : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E) {
         int e = 0, c = 0;
         for (auto [u, v] : g) {
@@ -28,8 +28,16 @@ struct edmonds_karp {
         }
     }
 
+    void add(int u, int v, Flow c) {
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
+        int uv = 2 * E, vu = 2 * E + 1;
+        res[u].push_back(uv), edge.push_back({u, v}), cap.push_back(c);
+        res[v].push_back(vu), edge.push_back({v, u}), cap.push_back(0), E++;
+        flow.push_back(0), flow.push_back(0);
+    }
+
     vector<int> pred;
-    static constexpr long inf = LONG_MAX / 2;
+    static constexpr FlowSum inf = numeric_limits<FlowSum>::max() / 2;
 
     bool bfs(int s, int t) {
         fill(begin(pred), end(pred), -1);
@@ -50,8 +58,8 @@ struct edmonds_karp {
         return false;
     }
 
-    long augment(int t) {
-        long aug_flow = inf;
+    Flow augment(int t) {
+        Flow aug_flow = numeric_limits<Flow>::max();
         for (int e = pred[t]; e != -1; e = pred[edge[e][0]]) {
             aug_flow = min(aug_flow, cap[e] - flow[e]);
         }
@@ -62,9 +70,9 @@ struct edmonds_karp {
         return aug_flow;
     }
 
-    long maxflow(int s, int t) {
+    FlowSum maxflow(int s, int t) {
         pred.resize(V);
-        long max_flow = 0;
+        FlowSum max_flow = 0;
         while (bfs(s, t)) {
             max_flow += augment(t);
         }

@@ -7,19 +7,19 @@ using namespace std;
 
 // *****
 
-using edges_t = vector<array<int, 2>>;
-
 /**
  * Dinitz's blocking flows
  * Complexity: O(V^2 E), close to push relabel in practice
  */
+template <typename Flow = long, typename FlowSum = Flow>
 struct dinitz_flow {
+    using edges_t = vector<array<int, 2>>;
     int V, E = 0;
     vector<vector<int>> res;
     edges_t edge;
-    vector<long> flow, cap;
+    vector<Flow> flow, cap;
 
-    dinitz_flow(int V, const edges_t& g, const vector<long>& caps)
+    dinitz_flow(int V, const edges_t& g = {}, const vector<Flow>& caps = {})
         : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E) {
         int e = 0, c = 0;
         for (auto [u, v] : g) {
@@ -28,8 +28,16 @@ struct dinitz_flow {
         }
     }
 
+    void add(int u, int v, Flow c) {
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
+        int uv = 2 * E, vu = 2 * E + 1;
+        res[u].push_back(uv), edge.push_back({u, v}), cap.push_back(c);
+        res[v].push_back(vu), edge.push_back({v, u}), cap.push_back(0), E++;
+        flow.push_back(0), flow.push_back(0);
+    }
+
     vector<int> level, arc;
-    static constexpr long inf = LONG_MAX / 2;
+    static constexpr FlowSum inf = numeric_limits<FlowSum>::max() / 2;
 
     bool bfs(int s, int t) {
         fill(begin(level), end(level), -1);
@@ -51,15 +59,15 @@ struct dinitz_flow {
         return false;
     }
 
-    long dfs(int u, int t, long mincap) {
+    auto dfs(int u, int t, Flow mincap) {
         if (u == t) {
             return mincap;
         }
-        long preflow = 0;
+        FlowSum preflow = 0;
         for (int &i = arc[u], vsize = res[u].size(); i < vsize; i++) {
             int e = res[u][i], v = edge[e][1];
             if (flow[e] < cap[e] && level[u] < level[v]) {
-                long df = dfs(v, t, min(mincap, cap[e] - flow[e]));
+                FlowSum df = dfs(v, t, min(mincap, cap[e] - flow[e]));
                 flow[e] += df;
                 flow[e ^ 1] -= df;
                 preflow += df, mincap -= df;
@@ -70,10 +78,10 @@ struct dinitz_flow {
         return preflow;
     }
 
-    long maxflow(int s, int t) {
+    FlowSum maxflow(int s, int t) {
         level.assign(V, 0);
         arc.assign(V, 0);
-        long max_flow = 0;
+        FlowSum max_flow = 0;
         while (bfs(s, t)) {
             max_flow += dfs(s, t, inf);
             fill(begin(arc), end(arc), 0);

@@ -7,21 +7,21 @@ using namespace std;
 
 // *****
 
-using edges_t = vector<array<int, 2>>;
-
 /**
  * Simple tidal flow algorithm
  * Complexity: O(V E^2)
  * Based on "Tidal Flow: A Fast and Teachable Maximum Flow Algorithm" by Fontaine, M.C.
  * Slower than push-relabel, comparable to dinitz
  */
+template <typename Flow = long, typename FlowSum = Flow>
 struct tidal_flow {
+    using edges_t = vector<array<int, 2>>;
     int V, E = 0;
     vector<vector<int>> res;
     edges_t edge;
-    vector<long> flow, cap;
+    vector<Flow> flow, cap;
 
-    tidal_flow(int V, const edges_t& g, const vector<long>& caps)
+    tidal_flow(int V, const edges_t& g = {}, const vector<Flow>& caps = {})
         : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E) {
         int e = 0, c = 0;
         for (auto [u, v] : g) {
@@ -30,9 +30,17 @@ struct tidal_flow {
         }
     }
 
+    void add(int u, int v, int c) {
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
+        int uv = 2 * E, vu = 2 * E + 1;
+        res[u].push_back(uv), edge.push_back({u, v}), cap.push_back(c);
+        res[v].push_back(vu), edge.push_back({v, u}), cap.push_back(0), E++;
+        flow.push_back(0), flow.push_back(0);
+    }
+
     vector<int> level, edges;
-    vector<long> p, h, l;
-    static constexpr long inf = LONG_MAX / 2;
+    vector<FlowSum> p, h, l;
+    static constexpr FlowSum inf = numeric_limits<FlowSum>::max() / 2;
 
     bool bfs(int s, int t) {
         fill(begin(level), end(level), -1);
@@ -58,7 +66,7 @@ struct tidal_flow {
         return level[t] != -1;
     }
 
-    long tide(int s, int t) {
+    FlowSum tide(int s, int t) {
         fill(begin(h), end(h), 0);
         h[s] = inf;
         for (int e : edges) {
@@ -91,13 +99,13 @@ struct tidal_flow {
         return h[t];
     }
 
-    long maxflow(int s, int t) {
+    FlowSum maxflow(int s, int t) {
         level.assign(V, 0);
         h.assign(V, 0);
         l.assign(V, 0);
         p.assign(2 * E, 0);
         flow.assign(2 * E, 0);
-        long max_flow = 0, df;
+        FlowSum max_flow = 0, df;
         while (bfs(s, t)) {
             do {
                 df = tide(s, t);
