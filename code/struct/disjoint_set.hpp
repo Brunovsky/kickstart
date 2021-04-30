@@ -17,6 +17,8 @@ struct disjoint_set {
 
     void assign(int N) { *this = disjoint_set(N); }
     bool same(int i, int j) { return find(i) == find(j); }
+    bool unit(int i) { return size[find(i)] == 1; }
+    bool root(int i) { return find(i) == i; }
 
     int find(int i) {
         while (i != next[i]) {
