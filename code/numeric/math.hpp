@@ -7,7 +7,6 @@ using namespace std;
 
 // *****
 
-// Compute b^e
 long intpow(long b, long e) {
     long power = 1;
     while (e > 0) {
@@ -20,7 +19,6 @@ long intpow(long b, long e) {
     return power;
 }
 
-// Compute b^e (mod m)
 long modpow(long b, long e, long m) {
     long power = 1;
     b = b % m;
@@ -33,28 +31,24 @@ long modpow(long b, long e, long m) {
     return power;
 }
 
-// Compute n!
-ulong intfac(uint n) {
-    ulong f = 1;
+long intfac(int n) {
+    long f = 1;
     while (n > 1) {
         f = f * n--;
     }
     return f;
 }
 
-// Compute n! (mod m)
-ulong modfac(uint n, ulong m) {
-    ulong f = 1;
+long modfac(int n, long m) {
+    long f = 1;
     while (n > 1) {
         f = (f * n--) % m;
     }
     return f;
 }
 
-// Compute lcm(a,b)
-ulong lcm(ulong a, ulong b) { return a * (b / gcd(a, b)); }
+long lcm(long a, long b) { return a * (b / gcd(a, b)); }
 
-// Compute gcd(a,b)
 long gcd(long a, long b) {
     while (a != 0) {
         b = b % a;
@@ -63,7 +57,6 @@ long gcd(long a, long b) {
     return abs(b);
 }
 
-// Compute x, y such that ax + by = gcd(a,b)
 long gcd(long a, long b, long& x, long& y) {
     long xn = 1, yn = 0;
     x = 0, y = 1;
@@ -143,13 +136,12 @@ long modsqrt(long a, long p) {
 }
 
 // Solve the system a = b[i] (mod p[i]), i = 0,...,n-1. Complexity: O(n log p)
-long chinese(int n, long* remainders, long* primes) {
+long chinese(int n, long* b, long* primes) {
     long p = 1, a = 0;
     for (int i = 0; i < n; i++) {
-        long q = primes[i], b = remainders[i];
-        long x, y, g = gcd(p, q, x, y);
+        long q = primes[i], x, y, g = gcd(p, q, x, y);
         (void)g, assert(g == 1);
-        a = a * q * y + b * p * x;
+        a = a * q * y + b[i] * p * x;
         p = p * q;
         a = a % p, a = a >= 0 ? a : a + p;
     }
@@ -157,25 +149,24 @@ long chinese(int n, long* remainders, long* primes) {
 }
 
 // Compute phi(n) (totient function), naively
-ulong totient(ulong n) {
-    ulong tot = 1;
+long phi(long n) {
+    long tot = 1;
     if ((n & 1) == 0) {
         n >>= 1;
-        while ((n & 1) == 0) {
-            tot <<= 1;
-            n >>= 1;
-        }
+        while ((n & 1) == 0)
+            tot <<= 1, n >>= 1;
     }
-    for (ulong p = 3; n > 1; p += 2) {
-        if ((n % p) == 0) {
+    for (long p = 3; p * p <= n; p += 2) {
+        if (n % p == 0) {
             tot *= p - 1;
             n = n / p;
-            while ((n % p) == 0) {
+            while (n % p == 0) {
                 tot *= p;
                 n = n / p;
             }
         }
     }
+    tot *= n > 1 ? n - 1 : 1;
     return tot;
 }
 
@@ -193,27 +184,39 @@ long choose(int n, int k) {
     return binom;
 }
 
-// Compute n!/(k1!k2!k3!...)
-long choose(int n, const vector<int>& k) {
-    assert(accumulate(begin(k), end(k), 0L) <= n);
+// Compute n!/(k1!k2!k3!...) (multinomial)
+long choose(long n, const vector<int>& ks) {
+    assert(accumulate(begin(ks), end(ks), 0L) <= n);
     long multi = 1;
     int m = 1, r = 1;
-    for (int i = 0, K = k.size(); i < K; i++) {
-        for (int j = 1; j <= k[i]; j++)
+    for (int i = 0, K = ks.size(); i < K; i++) {
+        for (int j = 1; j <= ks[i]; j++) {
             multi = multi * m++ / j;
+        }
     }
-    while (m < n)
+    while (m < n) {
         multi = multi * m++ / r++;
+    }
     return multi;
 }
 
-// Compute (n choose k) (mod m) | k! and (n-k)! coprime with m / m prime
+// Compute (n choose k) (mod m)
 long choosemod(long n, long k, long m) {
     if (k < 0 || k > n)
         return 0;
     long x = modfac(n, m);
     x = x * invmod(modfac(n - k, m), m) % m;
     x = x * invmod(modfac(k, m), m) % m;
+    return x;
+}
+
+// Compute n!/(k1!k2!k3!...) (mod m) (multinomial)
+long choosemod(long n, vector<int>& ks, long m) {
+    assert(accumulate(begin(ks), end(ks), 0) == n);
+    long x = modfac(n, m);
+    for (int k : ks) {
+        x = x * invmod(modfac(k, m), m) % m;
+    }
     return x;
 }
 

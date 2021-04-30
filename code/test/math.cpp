@@ -31,12 +31,12 @@ void unit_test_others() {
     assert(intpow(3, 17) == 129140163);
     assert(intfac(6) == 720);
     assert(intfac(10) == 3628800);
-    assert(totient(35) == 24);
-    assert(totient(70) == 24);
-    assert(totient(97) == 96);
-    assert(totient(194) == 96);
-    assert(totient(73) == 72);
-    assert(totient(48) == 16);
+    assert(phi(35) == 24);
+    assert(phi(70) == 24);
+    assert(phi(97) == 96);
+    assert(phi(194) == 96);
+    assert(phi(73) == 72);
+    assert(phi(48) == 16);
     assert(choose(4, 2) == 6);
     assert(choose(6, 3) == 20);
     assert(choose(6, 2) == 15);
