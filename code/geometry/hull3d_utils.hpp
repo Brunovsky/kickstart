@@ -23,8 +23,8 @@ optional<tuple<int, int, int>> verify_hull(const hull_t& hull,
         const auto& face = hull[f];
         const auto &u = points[face[0]], v = points[face[1]], w = points[face[2]];
         planes.emplace_back(u, v, w);
-        for (int v : face) {
-            vfaces[v].insert(f);
+        for (int n : face) {
+            vfaces[n].insert(f);
         }
     }
     for (int v = skip_0; v < N; v++) {

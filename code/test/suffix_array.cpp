@@ -1,6 +1,4 @@
-#include "../algo/suffix_array.hpp"
-
-#include "../algo/lyndon.hpp"
+#include "../algo/strings.hpp"
 #include "test_utils.hpp"
 
 void unit_test_suffix_array() {

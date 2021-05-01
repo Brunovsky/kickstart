@@ -55,7 +55,7 @@ struct action_t {
 
 void stress_test_pool_submit(int N = 200, int rate = 47, int nthreads = 5) {
     thread_pool pool(nthreads);
-    assert(int(pool.pool_size()) == nthreads);
+    assert(pool.pool_size() == nthreads);
     int i = 1;
     print("stress test iterative submit\n");
     while (i <= N) {

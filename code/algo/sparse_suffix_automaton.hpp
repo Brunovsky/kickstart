@@ -1,47 +1,41 @@
-#ifndef SUFFIX_AUTOMATON_HPP
-#define SUFFIX_AUTOMATON_HPP
+#ifndef SPARSE_SUFFIX_AUTOMATON_HPP
+#define SPARSE_SUFFIX_AUTOMATON_HPP
 
-#include "../hash.hpp" // for sparse unordered_map<pair<int,int>>
+#include <bits/stdc++.h>
 
-/**
- * Suffix DFA string automation
- * Edit A and chash before using. Add extra preprocessing at the end of preprocess().
- * Requires 8(A+c)N bytes, where N is the length of the text. Not adequate if A>50.
- *
- * Complexity: O(AN)  construction (includes preprocess()), O(AN) space
- *
- * Usage is straightforward if the automaton does not need to grow. If it does, call
- * preprocess() after growing the automaton to use the methods that need preprocessing.
- * Usage:
- *     suffix_automaton sa(text);
- *     bool found = sa.contains(word);
- *     long n = sa.count_distinct_substrings();
- *     int m = sa.count_matches(word);
- *     ...
- */
+using namespace std;
+
 template <typename Vec = string, typename T = typename Vec::value_type>
-struct suffix_automaton {
-    static constexpr int A = 26;
+struct sparse_suffix_automaton {
+    // We do not need alphabet size :)
     static constexpr int chash(T value) { return value - 'a'; }
 
     struct Node {
-        int next[A] = {};
-        int len = 0, link = 0; // suffix link
+        int len = 0, link = 0;
         int ch = 0;
         int numpos = 0;
         bool terminal = false;
         Node() = default;
         Node(int len, int ch) : len(len), ch(ch) {}
+        Node(const Node& o, int len, int ch) : Node(o) { this->len = len, this->ch = ch; }
+    };
+    struct Edge {
+        int ch = -1, node = 0;
+        Edge() = default;
+        Edge(int ch, int node) : ch(ch), node(node) {}
     };
 
-    int V, last = 1; // node[0] is empty; last is id of node with entire string
+    int V, E, last = 1; // node[0] is empty; last is id of node with entire string
     vector<Node> node;
-    vector<int> pi;
+    vector<Edge> edge;
+    vector<int> head, next, pi;
 
-    suffix_automaton() : V(2), node(2) {}
-    explicit suffix_automaton(const Vec& text) : suffix_automaton() {
-        node.reserve(2 * text.size() + 2);
-        for (auto c : text) {
+    sparse_suffix_automaton() : V(2), E(1), node(2), edge(1), head(2, 0), next(1, 0) {}
+    explicit sparse_suffix_automaton(const Vec& s) : sparse_suffix_automaton() {
+        auto S = s.size();
+        head.reserve(2 * S + 2), node.reserve(2 * S + 2);
+        next.reserve(3 * S + 2), edge.reserve(3 * S + 2);
+        for (char c : s) {
             extend(c);
         }
         toposort();
@@ -49,32 +43,58 @@ struct suffix_automaton {
     }
 
     int num_nodes() const { return V; }
+    int num_edges() const { return E; }
 
-    int extend(T value) {
-        int c = chash(value), v = V, p = last;
-        node.emplace_back(node[p].len + 1, c), V++;
-        while (p && !node[p].next[c]) {
-            assert(node[p].len < node[v].len);
-            node[p].next[c] = v, p = node[p].link;
+    int extend(const T& value) {
+        int c = chash(value), p = last;
+        int v = add_node(node[p].len + 1, c);
+        while (p && !get_link(p, c)) {
+            add_link(p, c, v), p = node[p].link;
         }
         if (p == 0)
             node[v].link = 1;
         else {
-            int q = node[p].next[c];
+            int q = get_link(p, c);
             if (node[p].len + 1 == node[q].len)
                 node[v].link = q;
             else {
-                int u = node.size();
-                node.emplace_back(node[q]), V++;
-                node[u].len = node[p].len + 1, node[u].ch = c;
-                assert(node[u].len <= node[v].len);
-                while (p && node[p].next[c] == q) {
-                    node[p].next[c] = u, p = node[p].link;
+                int u = clone_node(q, node[p].len + 1, c);
+                while (p && get_link(p, c) == q) {
+                    set_link(p, c, u), p = node[p].link;
                 }
                 node[q].link = node[v].link = u;
             }
         }
         return last = v;
+    }
+
+    int get_link(int u, int c) const {
+        int e = head[u];
+        while (e && edge[e].ch != c) {
+            e = next[e];
+        }
+        return edge[e].node;
+    }
+    int set_link(int u, int c, int v) {
+        int e = head[u];
+        while (e && edge[e].ch != c) {
+            e = next[e];
+        }
+        return assert(e), edge[e].node = v, e;
+    }
+    int add_link(int u, int c, int v) {
+        return next.push_back(head[u]), edge.emplace_back(c, v), head[u] = E++;
+    }
+    int add_node(int len, int ch) {
+        return node.emplace_back(len, ch), head.push_back(0), V++;
+    }
+    int clone_node(int u, int len, int ch) {
+        node.push_back(node[u]), head.push_back(0);
+        for (int e = head[u]; e; e = next[e]) {
+            add_link(V, edge[e].ch, edge[e].node);
+        }
+        node[V].len = len, node[V].ch = ch;
+        return V++;
     }
 
     void toposort() {
@@ -111,18 +131,18 @@ struct suffix_automaton {
     int get_state(const Vec& word) const {
         int v = 1;
         for (int i = 0, W = word.size(); i < W && v; i++) {
-            v = node[v].next[chash(word[i])];
+            v = get_link(v, chash(word[i]));
         }
         return v;
     }
 
-    // O(AN) Count the number of distinct substrings (including the empty substring)
+    // O(N) Count the number of distinct substrings (including the empty substring)
     long count_distinct_substrings() const {
         vector<long> dp(V, 1);
         dp[0] = 0;
         for (int i = V - 1; i >= 1; i--) {
-            for (int v = pi[i], c = 0; c < A; c++) {
-                dp[v] += dp[node[v].next[c]];
+            for (int v = pi[i], e = head[v]; e; e = next[e]) {
+                dp[v] += dp[edge[e].node];
             }
         }
         return dp[1];
@@ -134,7 +154,7 @@ struct suffix_automaton {
     // O(W) Length of the longest prefix of word that matches a substring of this text
     int longest_prefix(const Vec& word) const {
         for (int v = 1, i = 0, W = word.size(); i < W; i++) {
-            v = node[v].next[chash(word[i])];
+            v = get_link(v, chash(word[i]));
             if (v == 0) {
                 return i;
             }
