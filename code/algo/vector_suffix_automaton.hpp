@@ -1,52 +1,65 @@
-#ifndef SUFFIX_AUTOMATON_HPP
-#define SUFFIX_AUTOMATON_HPP
+#ifndef VECTOR_SUFFIX_AUTOMATON
+#define VECTOR_SUFFIX_AUTOMATON
 
 #include <bits/stdc++.h>
 
 using namespace std;
 
-/**
- * Suffix DFA string automation
- * Edit A and chash before using. Add extra preprocessing at the end of preprocess().
- * Requires 8(A+c)N bytes, where N is the length of the text. Not adequate if A>50.
- *
- * Complexity: O(AN)  construction (includes preprocess()), O(AN) space
- *
- * Usage is straightforward if the automaton does not need to grow. If it does, call
- * preprocess() after growing the automaton to use the methods that need preprocessing.
- * Usage:
- *     suffix_automaton sa(text);
- *     bool found = sa.contains(word);
- *     long n = sa.count_distinct_substrings();
- *     int m = sa.count_matches(word);
- *     ...
- */
 template <typename Vec = string, typename T = typename Vec::value_type>
-struct suffix_automaton {
-    static constexpr int A = 26;
-    static constexpr int chash(T value) { return value - 'a'; }
+struct vector_suffix_automaton {
+    // We do not need alphabet size :)
+    static constexpr int chash(T value) { return value; }
 
     struct Node {
-        int next[A] = {};
-        int len = 0, link = 0; // suffix link
+        int len = 0, link = 0;
         int ch = 0;
         int numpos = 0;
         bool terminal = false;
         Node() = default;
         Node(int len, int ch) : len(len), ch(ch) {}
     };
+    struct Edge {
+        int ch = -1, node = 0;
+        Edge() = default;
+        Edge(int ch, int node) : ch(ch), node(node) {}
+    };
 
-    int V, last = 1; // node[0] is empty; last is id of node with entire string
+    int V, E, last = 1; // node[0] is empty; last is id of node with entire string
     vector<Node> node;
+    vector<vector<pair<int, int>>> edge;
     vector<int> pi;
 
-    suffix_automaton() : V(2), node(2) {}
-    explicit suffix_automaton(const Vec& text) : suffix_automaton() {
+    vector_suffix_automaton() : V(2), E(0), node(2), edge(2) {}
+    explicit vector_suffix_automaton(const Vec& text) : vector_suffix_automaton() {
         extend(text);
         toposort();
     }
 
     int num_nodes() const { return V; }
+    int num_edges() const { return E; }
+    int get_link(int u, int c) const {
+        for (int i = 0, n = edge[u].size(); i < n; i++)
+            if (edge[u][i].first == c)
+                return edge[u][i].second;
+        return 0;
+    }
+    void set_link(int u, int c, int v) {
+        for (int i = 0, n = edge[u].size(); i < n; i++) {
+            if (edge[u][i].first == c) {
+                edge[u][i].second = v;
+                break;
+            }
+        }
+    }
+    void add_link(int u, int c, int v) { edge[u].emplace_back(c, v), E++; }
+    int add_node(int len, int ch) {
+        return node.emplace_back(len, ch), edge.push_back({}), V++;
+    }
+    int clone_node(int u, int len, int ch) {
+        int v = add_node(len, ch);
+        edge[v] = edge[u], node[v].link = node[u].link;
+        return v;
+    }
 
     void extend(const Vec& s) {
         for (char c : s) {
@@ -54,28 +67,25 @@ struct suffix_automaton {
         }
     }
 
-    void extend(T value) {
-        int c = chash(value), v = V, p = last;
-        node.emplace_back(node[p].len + 1, c), V++;
-        while (p && !node[p].next[c]) {
-            assert(node[p].len < node[v].len);
-            node[p].next[c] = v, p = node[p].link;
+    void extend(const T& value) {
+        int c = chash(value), p = last;
+        int v = add_node(node[p].len + 1, c);
+        while (p && !get_link(p, c)) {
+            add_link(p, c, v), p = node[p].link;
         }
         if (p == 0)
             node[v].link = 1;
         else {
-            int q = node[p].next[c];
+            int q = get_link(p, c);
             if (node[p].len + 1 == node[q].len)
                 node[v].link = q;
             else {
-                int u = node.size();
-                node.emplace_back(node[q]), V++;
-                node[u].len = node[p].len + 1, node[u].ch = c;
-                assert(node[u].len <= node[v].len);
-                while (p && node[p].next[c] == q) {
-                    node[p].next[c] = u, p = node[p].link;
+                int u = clone_node(q, node[p].len + 1, c);
+                while (p && get_link(p, c) == q) {
+                    set_link(p, c, u), p = node[p].link;
                 }
                 node[q].link = node[v].link = u;
+                node[q].terminal = false;
             }
         }
         last = v;
@@ -113,24 +123,24 @@ struct suffix_automaton {
         int u = last;
         do {
             node[u].terminal = true, u = node[u].link;
-        } while (u > 1);
+        } while (u > 1 && !node[u].terminal);
     }
 
     int get_state(const Vec& word) const {
         int v = 1;
         for (int i = 0, W = word.size(); i < W && v; i++) {
-            v = node[v].next[chash(word[i])];
+            v = get_link(v, chash(word[i]));
         }
         return v;
     }
 
-    // O(AN) Count the number of distinct substrings (including the empty substring)
+    // O(N) Count the number of distinct substrings (including the empty substring)
     long count_distinct_substrings() const {
         vector<long> dp(V, 1);
         dp[0] = 0;
-        for (int i = V - 1; i >= 1; i--) {
-            for (int v = pi[i], c = 0; c < A; c++) {
-                dp[v] += dp[node[v].next[c]];
+        for (int i = V - 1, v = pi[i]; i >= 1; i--, v = pi[i]) {
+            for (auto [c, u] : edge[v]) {
+                dp[v] += dp[u];
             }
         }
         return dp[1];
@@ -142,7 +152,7 @@ struct suffix_automaton {
     // O(W) Length of the longest prefix of word that matches a substring of this text
     int longest_prefix(const Vec& word) const {
         for (int v = 1, i = 0, W = word.size(); i < W; i++) {
-            v = node[v].next[chash(word[i])];
+            v = get_link(v, chash(word[i]));
             if (v == 0) {
                 return i;
             }
@@ -154,4 +164,4 @@ struct suffix_automaton {
     int count_matches(const Vec& word) const { return node[get_state(word)].numpos; }
 };
 
-#endif // SUFFIX_AUTOMATON_HPP
+#endif // VECTOR_SUFFIX_AUTOMATON

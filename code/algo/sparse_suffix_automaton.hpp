@@ -8,7 +8,7 @@ using namespace std;
 template <typename Vec = string, typename T = typename Vec::value_type>
 struct sparse_suffix_automaton {
     // We do not need alphabet size :)
-    static constexpr int chash(T value) { return value - 'a'; }
+    static constexpr int chash(T value) { return value; }
 
     struct Node {
         int len = 0, link = 0;
@@ -17,7 +17,6 @@ struct sparse_suffix_automaton {
         bool terminal = false;
         Node() = default;
         Node(int len, int ch) : len(len), ch(ch) {}
-        Node(const Node& o, int len, int ch) : Node(o) { this->len = len, this->ch = ch; }
     };
     struct Edge {
         int ch = -1, node = 0;
@@ -31,21 +30,48 @@ struct sparse_suffix_automaton {
     vector<int> head, next, pi;
 
     sparse_suffix_automaton() : V(2), E(1), node(2), edge(1), head(2, 0), next(1, 0) {}
-    explicit sparse_suffix_automaton(const Vec& s) : sparse_suffix_automaton() {
-        auto S = s.size();
-        head.reserve(2 * S + 2), node.reserve(2 * S + 2);
-        next.reserve(3 * S + 2), edge.reserve(3 * S + 2);
-        for (char c : s) {
-            extend(c);
-        }
+    explicit sparse_suffix_automaton(const Vec& text) : sparse_suffix_automaton() {
+        extend(text);
         toposort();
-        preprocess();
     }
 
     int num_nodes() const { return V; }
     int num_edges() const { return E; }
+    int get_link(int u, int c) const {
+        int e = head[u];
+        while (e && edge[e].ch != c) {
+            e = next[e];
+        }
+        return edge[e].node;
+    }
+    void set_link(int u, int c, int v) {
+        int e = head[u];
+        while (e && edge[e].ch != c) {
+            e = next[e];
+        }
+        assert(e), edge[e].node = v;
+    }
+    void add_link(int u, int c, int v) {
+        next.push_back(head[u]), edge.emplace_back(c, v), head[u] = E++;
+    }
+    int add_node(int len, int ch) {
+        return node.emplace_back(len, ch), head.push_back(0), V++;
+    }
+    int clone_node(int u, int len, int ch) {
+        node.push_back(node[u]), head.push_back(0), node[V].len = len, node[V].ch = ch;
+        for (int e = head[u]; e; e = next[e]) {
+            add_link(V, edge[e].ch, edge[e].node);
+        }
+        return V++;
+    }
 
-    int extend(const T& value) {
+    void extend(const Vec& s) {
+        for (char c : s) {
+            extend(c);
+        }
+    }
+
+    void extend(const T& value) {
         int c = chash(value), p = last;
         int v = add_node(node[p].len + 1, c);
         while (p && !get_link(p, c)) {
@@ -63,38 +89,11 @@ struct sparse_suffix_automaton {
                     set_link(p, c, u), p = node[p].link;
                 }
                 node[q].link = node[v].link = u;
+                node[q].terminal = false;
             }
         }
-        return last = v;
-    }
-
-    int get_link(int u, int c) const {
-        int e = head[u];
-        while (e && edge[e].ch != c) {
-            e = next[e];
-        }
-        return edge[e].node;
-    }
-    int set_link(int u, int c, int v) {
-        int e = head[u];
-        while (e && edge[e].ch != c) {
-            e = next[e];
-        }
-        return assert(e), edge[e].node = v, e;
-    }
-    int add_link(int u, int c, int v) {
-        return next.push_back(head[u]), edge.emplace_back(c, v), head[u] = E++;
-    }
-    int add_node(int len, int ch) {
-        return node.emplace_back(len, ch), head.push_back(0), V++;
-    }
-    int clone_node(int u, int len, int ch) {
-        node.push_back(node[u]), head.push_back(0);
-        for (int e = head[u]; e; e = next[e]) {
-            add_link(V, edge[e].ch, edge[e].node);
-        }
-        node[V].len = len, node[V].ch = ch;
-        return V++;
+        last = v;
+        preprocess_extend();
     }
 
     void toposort() {
@@ -111,21 +110,24 @@ struct sparse_suffix_automaton {
             pi[pos[v]] = v;
 
         // topological order: pi[0], pi[1], pi[2], ...
+        preprocess_toposort();
     }
 
-    void preprocess() {
+    void preprocess_toposort() {
         // numpos: number of positions where state v can be found.
         for (int i = V - 1, v = pi[i]; i >= 1; i--, v = pi[i]) {
             node[v].numpos++;
             node[node[v].link].numpos += node[v].numpos;
         }
         node[0].numpos = 0;
+    }
 
+    void preprocess_extend() {
         // terminal: whether a state is terminal (corresponds to a suffix)
         int u = last;
         do {
             node[u].terminal = true, u = node[u].link;
-        } while (u > 1);
+        } while (u > 1 && !node[u].terminal);
     }
 
     int get_state(const Vec& word) const {
@@ -166,4 +168,4 @@ struct sparse_suffix_automaton {
     int count_matches(const Vec& word) const { return node[get_state(word)].numpos; }
 };
 
-#endif // SUFFIX_AUTOMATON_HPP
+#endif // SPARSE_SUFFIX_AUTOMATON_HPP

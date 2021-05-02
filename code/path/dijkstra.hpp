@@ -5,14 +5,13 @@
 
 // *****
 
-using edges_t = vector<array<int, 2>>;
-
 /**
  * Implementation for directed graphs
  * For undirected graphs insert edges both ways
  * Complexity: O(E + V log(V))
  */
 struct dijkstra {
+    using edges_t = vector<array<int, 2>>;
     int V, E = 0;
     vector<vector<pair<int, long>>> adj;
 

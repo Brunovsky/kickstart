@@ -114,7 +114,7 @@ auto build_z_function(const Vec& s) {
 
 /**
  * Compute the prefix function of string s (KMP function)
- * pf[i] := longest proper prefix of s[0..i] that is also a suffix of it; pf[i]=0.
+ * pf[i] := longest proper prefix of s[0..i] that is also a suffix of it; pf[0]=0.
  *
  * Complexity: O(N)
  * Reference: https://cp-algorithms.com/string/prefix-function.html

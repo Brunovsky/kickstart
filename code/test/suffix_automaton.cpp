@@ -1,20 +1,31 @@
 #include "../algo/suffix_automaton.hpp"
 
+#include "../algo/map_suffix_automaton.hpp"
 #include "../algo/sparse_suffix_automaton.hpp"
+#include "../algo/vector_suffix_automaton.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 
 template <typename SA = suffix_automaton<>>
 void stress_test_suffix_automaton() {
     int errors = 0;
+    for (int i = 0; i < 1000; i++) {
+        string s = generate_any_string(10000, 'a', 'z');
+        SA sa(s);
+        for (int j = 0; j < 200; j++) {
+            errors += !sa.contains(s.substr(intd(0, 2000)(mt), intd(100, 500)(mt)));
+        }
+    }
+    print("errors: {}\n", errors);
+    return;
     for (int n = 1; n < 20; n++) {
         string s(n, 'a');
         SA sa(s);
         int got = sa.count_distinct_substrings();
         errors += got != n + 1;
     }
-    for (int n = 0; n < 40; n++) {
-        for (int m = 1; m < 40; m++) {
+    for (int n = 0; n < 30; n++) {
+        for (int m = 1; m < 30; m++) {
             string s = string(n, 'a') + string(m, 'b') + string(n, 'a');
             SA sa(s);
             int got = sa.count_distinct_substrings();
@@ -22,9 +33,9 @@ void stress_test_suffix_automaton() {
             errors += got != expected;
         }
     }
-    for (int n = 1; n < 30; n++) {
-        for (int m = 1; m < 30; m++) {
-            for (int k = 1; k < 30; k++) {
+    for (int n = 1; n < 25; n++) {
+        for (int m = 1; m < 25; m++) {
+            for (int k = 1; k < 25; k++) {
                 string s = string(n, 'a') + string(m, 'b') + string(n, 'a') +
                            string(k, 'c') + string(n, 'a');
                 SA sa(s);
@@ -37,15 +48,6 @@ void stress_test_suffix_automaton() {
             }
         }
     }
-    for (int i = 0; i < 1000; i++) {
-        string s = generate_any_string(15000, 'a', 'z');
-        SA sa(s);
-        errors += !sa.contains(s.substr(19, 73));
-        errors += !sa.contains(s.substr(43, 23));
-        errors += !sa.contains(s.substr(32, 1));
-        errors += !sa.contains(s.substr(17, 89));
-        errors += !sa.contains(s.substr(0, 110));
-    }
     for (int n = 1; n < 20; n++) {
         string s(n, '\0');
         iota(begin(s), end(s), 'a');
@@ -53,12 +55,11 @@ void stress_test_suffix_automaton() {
         int got = sa.count_distinct_substrings();
         errors += got != 1 + n * (n + 1) / 2;
     }
-    print("errors: {}\n", errors);
 }
 
 void unit_test_suffix_automaton() {
     int errors = 0;
-    sparse_suffix_automaton sa("aabaababaabab"s);
+    vector_suffix_automaton sa("aabaababaabab"s);
     errors += (1 != sa.contains("aabaababaabab"));
     errors += (0 != sa.contains("babaababaabab"));
     errors += (1 != sa.contains("abaababaabab"));
@@ -76,5 +77,7 @@ int main() {
     RUN_SHORT(unit_test_suffix_automaton());
     RUN_SHORT(stress_test_suffix_automaton<suffix_automaton<>>());
     RUN_SHORT(stress_test_suffix_automaton<sparse_suffix_automaton<>>());
+    RUN_SHORT(stress_test_suffix_automaton<map_suffix_automaton<>>());
+    RUN_SHORT(stress_test_suffix_automaton<vector_suffix_automaton<>>());
     return 0;
 }
