@@ -1,9 +1,9 @@
-#include "../algo/suffix_automaton.hpp"
+#include "../strings/suffix_automaton.hpp"
 
-#include "../algo/map_suffix_automaton.hpp"
-#include "../algo/sparse_suffix_automaton.hpp"
-#include "../algo/vector_suffix_automaton.hpp"
 #include "../random.hpp"
+#include "../strings/map_suffix_automaton.hpp"
+#include "../strings/sparse_suffix_automaton.hpp"
+#include "../strings/vector_suffix_automaton.hpp"
 #include "test_utils.hpp"
 
 template <typename SA = suffix_automaton<>>

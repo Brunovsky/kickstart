@@ -1,4 +1,4 @@
-#include "../algo/aho_corasick.hpp"
+#include "../strings/aho_corasick.hpp"
 
 #include "test_utils.hpp"
 

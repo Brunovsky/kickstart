@@ -1,4 +1,4 @@
-#include "../algo/strings.hpp"
+#include "../strings/strings.hpp"
 
 #include "../formatting.hpp"
 #include "test_utils.hpp"

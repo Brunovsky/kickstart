@@ -1,4 +1,4 @@
-#include "../algo/strings.hpp"
+#include "../strings/strings.hpp"
 #include "test_utils.hpp"
 
 void unit_test_suffix_array() {

@@ -1,8 +1,8 @@
-#include "../algo/boyer_moore.hpp"
-#include "../algo/kmp.hpp"
-#include "../algo/rabin_karp.hpp"
-#include "../algo/z_search.hpp"
 #include "../random.hpp"
+#include "../strings/boyer_moore.hpp"
+#include "../strings/kmp.hpp"
+#include "../strings/rabin_karp.hpp"
+#include "../strings/z_search.hpp"
 #include "test_utils.hpp"
 
 // *****

@@ -1,9 +1,9 @@
 #include "../algo/dynamic_programming.hpp"
 
 #include "../algo/knapsack.hpp"
-#include "../algo/string_distance.hpp"
 #include "../formatting.hpp"
 #include "../random.hpp"
+#include "../strings/string_distance.hpp"
 #include "test_utils.hpp"
 
 // *****
