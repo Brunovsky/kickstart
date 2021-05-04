@@ -40,6 +40,7 @@ auto classic_sieve(int N) {
 auto least_prime_sieve(int N) {
     vector<int> primes, lp, nxt;
     lp.assign(N + 1, 0), nxt.assign(N + 1, 0);
+    lp[1] = nxt[1] = 1;
 
     for (int P = 0, n = 2; n <= N; n++) {
         if (lp[n] == 0) {
@@ -145,8 +146,8 @@ auto phi_sieve(int N) {
  * Complexity: O(N)
  */
 auto modinv_sieve(int N, int mod) {
-    N = min(N, mod - 1);
     vector<int> inv;
+    N = min(N, mod - 1);
     inv.resize(N + 1);
     inv[1] = 1;
 
@@ -155,6 +156,31 @@ auto modinv_sieve(int N, int mod) {
     }
 
     return inv;
+}
+
+/**
+ * Compute (n choose m) for all 0<=m<=n and all n<=N, along with fac and inv.
+ * Complexity: O(N^2)
+ */
+auto pascal_sieve(int N, int mod) {
+    vector<int> fac, inv;
+    vector<vector<int>> choose;
+    fac.resize(N + 1), inv.resize(N + 1);
+    choose.resize(N + 1);
+    fac[0] = 1;
+    choose[0] = {1};
+
+    for (int n = 1; n <= N; n++) {
+        choose.emplace_back(n + 1);
+        choose[n][0] = choose[n][n] = 1;
+        for (int m = 1; m < n; m++) {
+            choose[n][m] = (choose[n - 1][m - 1] + choose[n - 1][m]) % mod;
+        }
+        fac[n] = 1LL * n * fac[n - 1] % mod;
+        inv[n] = n > 1 ? mod - (mod / n) * inv[mod % n] % mod : 1;
+    }
+
+    return choose;
 }
 
 /**
@@ -173,8 +199,7 @@ int count_primes(long L, long R, const vector<int>& primes) {
         for (long n = k * p; n <= R; n += p)
             isprime[n - L] = false;
     }
-    if (L == 1)
-        isprime[0] = false;
+    isprime[0] = isprime[0] & (L > 1);
 
     return count(begin(isprime), end(isprime), true);
 }

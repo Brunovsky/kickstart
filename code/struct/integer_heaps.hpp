@@ -57,6 +57,13 @@ struct binary_int_heap {
             id[u] = -1;
         c.clear();
     }
+    void fill() {
+        for (int u = 0, N = id.size(); u < N; u++) {
+            if (!contains(u)) {
+                push(u);
+            }
+        }
+    }
 
   private:
     static int parent(int i) { return (i - 1) >> 1; }
@@ -82,17 +89,8 @@ struct binary_int_heap {
 /**
  * Pairing heap over the unique integers [0...N)
  * By default a min-heap, but you'll usually need a custom compare.
- * Unfortunately slower than binary_int_heap in practice.
- *
- * Operation complexities (n is the size of the heap, u is a value)
- *           O(N)            construction
- *           O(1)            top()
- *           O(1)            contains(u)
- *           O(1)            push(u)
- *           O(log log n)*   decrease_key(u)
- *           O(log n)*       pop()
- *           O(log n)*       erase(u)     not implemented
- *           O(n)            clear()
+ * Unfortunately slower than binary_int_heap in practice, unless you need the
+ * special operations.
  *
  * Usage:
  *      vector<int> dist(V); ...
@@ -100,15 +98,17 @@ struct binary_int_heap {
  *      heap.push(0);                  -- push 0 onto heap
  *      heap.push_or_improve(1);       -- dec. key of 1 (or push)
  *      heap.improve(0);               -- dec. key of 0, 0 must've been pushed
+ *      heap.adjust(2);                -- dec. or inc. key of 2 (erase+push)
+ *      heap.fill();                   -- push all missing integers
  *      int v = heap.top();            -- top of heap
- *      heap.clear();                  -- clear the whole heap (not recommended)
  *      v = heap.pop(0);               -- pop from heap (returns value)
+ *      heap.clear();                  -- clear the whole heap (not recommended)
  */
 template <typename Compare = less<>>
 struct pairing_int_heap {
     struct node_t {
         int parent = 0, child = 0, next = 0, prev = 0;
-    };
+    }; // elements are shifted by 1 to allow 0 to be used as a scratchpad
     vector<node_t> node;
     int root = 0;
     Compare comp;
@@ -129,7 +129,7 @@ struct pairing_int_heap {
         assert(!empty());
         int u = root;
         root = two_pass_pairing(u);
-        node[u] = node_t();
+        node[root].parent = -1, node[u] = node_t();
         return u - 1;
     }
     void improve(int u) {
@@ -138,11 +138,38 @@ struct pairing_int_heap {
             take(u), root = meld(root, u);
         }
     }
-    void push_or_improve(int u) { contains(u) ? improve(u) : push(u); }
-
+    void push_or_improve(int u) {
+        if (contains(u)) {
+            improve(u);
+        } else {
+            push(u);
+        }
+    }
+    void adjust(int u) {
+        erase(u);
+        push(u);
+    }
+    void erase(int u) {
+        assert(contains(u)), u++;
+        if (u == root) {
+            pop();
+        } else {
+            take(u);
+            int v = two_pass_pairing(u);
+            root = v ? meld(root, v) : root;
+            node[root].parent = -1, node[u] = node_t();
+        }
+    }
     void clear() {
         if (!empty()) {
-            clear_dive(root), root = 0;
+            clear_rec(root), root = 0;
+        }
+    }
+    void fill() {
+        for (int u = 1, N = node.size() - 1; u <= N; u++) {
+            if (!contains(u)) {
+                push(u);
+            }
         }
     }
 
@@ -156,10 +183,11 @@ struct pairing_int_heap {
     }
     void take(int u) {
         assert(node[u].parent > 0);
-        if (node[node[u].parent].child == u)
+        if (node[node[u].parent].child == u) {
             node[node[u].parent].child = node[u].next;
-        else
+        } else {
             node[node[u].prev].next = node[u].next;
+        }
         node[node[u].next].prev = node[u].prev;
     }
     int two_pass_pairing(int n) {
@@ -177,9 +205,10 @@ struct pairing_int_heap {
         }
         return u;
     }
-    void clear_dive(int u) {
-        for (int v = node[u].child; v; v = node[v].next)
-            clear_dive(v);
+    void clear_rec(int u) {
+        for (int v = node[u].child, w = node[v].next; v; v = w, w = node[v].next) {
+            clear_rec(v);
+        }
         node[u] = node_t();
     }
 };
@@ -234,7 +263,7 @@ struct pairing_int_heaps {
         assert(!empty(h));
         int u = root[h];
         root[h] = two_pass_pairing(u);
-        node[u] = node_t();
+        node[root[h]].parent = -1, node[u] = node_t();
         return u - 1;
     }
     void improve(int h, int u) {
@@ -243,8 +272,28 @@ struct pairing_int_heaps {
             take(u), root[h] = meld(root[h], u);
         }
     }
-    void push_or_improve(int h, int u) { contains(u) ? improve(h, u) : push(h, u); }
-
+    void push_or_improve(int h, int u) {
+        if (contains(u)) {
+            improve(h, u);
+        } else {
+            push(h, u);
+        }
+    }
+    void adjust(int h, int u) {
+        erase(h, u);
+        push(h, u);
+    }
+    void erase(int h, int u) {
+        assert(!empty(h) && contains(u)), u++;
+        if (u == root[h]) {
+            pop();
+        } else {
+            take(u);
+            int v = two_pass_pairing(u);
+            root[h] = v ? meld(root[h], v) : root[h];
+            node[root[h]].parent = -1, node[u] = node_t();
+        }
+    }
     void merge(int h, int g) {
         if (h != g && !empty(g)) {
             root[h] = empty(h) ? root[g] : meld(root[h], root[g]);
@@ -254,6 +303,13 @@ struct pairing_int_heaps {
     void clear(int h) {
         if (!empty(h)) {
             clear_rec(root[h]), root[h] = 0;
+        }
+    }
+    void fill(int h) {
+        for (int u = 1, N = node.size() - 1; u <= N; u++) {
+            if (!contains(u)) {
+                push(h, u);
+            }
         }
     }
 
@@ -267,10 +323,11 @@ struct pairing_int_heaps {
     }
     void take(int u) {
         assert(node[u].parent > 0);
-        if (node[node[u].parent].child == u)
+        if (node[node[u].parent].child == u) {
             node[node[u].parent].child = node[u].next;
-        else
+        } else {
             node[node[u].prev].next = node[u].next;
+        }
         node[node[u].next].prev = node[u].prev;
     }
     int two_pass_pairing(int n) {
@@ -289,8 +346,9 @@ struct pairing_int_heaps {
         return u;
     }
     void clear_rec(int u) {
-        for (int v = node[u].child, w = node[v].next; v; v = w, w = node[v].next)
+        for (int v = node[u].child, w = node[v].next; v; v = w, w = node[v].next) {
             clear_rec(v);
+        }
         node[u] = node_t();
     }
 };
@@ -299,14 +357,18 @@ template <typename Container>
 struct less_container {
     const Container& cont;
     less_container(const Container& cont) : cont(cont) {}
-    inline bool operator()(int u, int v) const { return cont[u] < cont[v]; }
+    inline bool operator()(int u, int v) const {
+        return tie(cont[u], u) < tie(cont[v], v);
+    }
 };
 
 template <typename Container>
 struct greater_container {
     const Container& cont;
     greater_container(const Container& cont) : cont(cont) {}
-    inline bool operator()(int u, int v) const { return cont[u] > cont[v]; }
+    inline bool operator()(int u, int v) const {
+        return tie(cont[u], u) > tie(cont[v], v);
+    }
 };
 
 #endif // INTEGER_HEAPS_HPP

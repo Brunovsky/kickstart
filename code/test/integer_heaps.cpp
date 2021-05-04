@@ -7,6 +7,116 @@
 
 // *****
 
+template <typename Compare>
+ostream& operator<<(ostream& out, pairing_int_heap<Compare> heap) {
+    vector<int> nums;
+    while (!heap.empty())
+        nums.push_back(heap.pop());
+    return out << nums;
+}
+
+template <typename Compare>
+ostream& operator<<(ostream& out, binary_int_heap<Compare> heap) {
+    vector<int> nums;
+    while (!heap.empty())
+        nums.push_back(heap.pop());
+    return out << nums;
+}
+
+template <template <typename> typename Heap, bool adjust = true>
+void stress_test_int_heap(int N = 60, int T = 300'000) {
+    const int K = 100'000;
+    assert(2LL * K * N <= INT_MAX);
+    int super = N * K + 1, bound = N * K;
+    intd numd(0, N - 1), vald(0, K);
+
+    vector<int> weight(N);
+    Heap heap(N, greater_container(weight));
+    set<int, greater_container<vector<int>>> nums(weight);
+    long size_sum = 0;
+
+    auto getnext = [&](int n) {
+        if constexpr (adjust) {
+            return (void)n, vald(mt) * N + n;
+        } else if (weight[n] >= bound) {
+            return super++;
+        } else {
+            return weight[n] = intd(weight[n] / N, K)(mt) * N + n;
+        }
+    };
+
+    for (int n = 0; n < N; n++) {
+        weight[n] = getnext(n);
+        heap.push(n), nums.insert(n);
+    }
+    for (int n = 0; n < N; n++) {
+        assert(heap.contains(n));
+    }
+
+    reald actiond(0, 1);
+    double action;
+
+#define STRESS_VERIFY(ok) verify(ok, #ok, __LINE__)
+
+    auto verify = [&](bool ok, string text, int line) {
+        if (!ok) {
+            print("{}: Assertion '{}' failed.\nHeap: {}\nNums: {}\nAction: {}\n", line,
+                  text, heap, nums, action);
+            abort();
+        }
+    };
+
+    for (int t = 0; t < T; t++) {
+        action = actiond(mt);
+        if (t % 500 == 0) {
+            print_progress(t, T, "stress heap");
+        }
+
+        if (action < 0.0000) { // clear
+            nums.clear();
+            heap.clear();
+        } else if (action < 0.40) { // push
+            int n = numd(mt);
+            if (!nums.count(n)) {
+                STRESS_VERIFY(!heap.contains(n));
+                weight[n] = getnext(n);
+                heap.push(n);
+                nums.insert(n);
+            }
+        } else if (action < 0.80) { // improve or adjust
+            int n = numd(mt);
+            if (nums.count(n)) {
+                STRESS_VERIFY(heap.contains(n));
+                nums.erase(n);
+                weight[n] = getnext(n);
+                if constexpr (adjust) {
+                    heap.adjust(n);
+                } else {
+                    heap.improve(n);
+                }
+                nums.insert(n);
+            }
+        } else if (action < 1.0) { // pop
+            if (!nums.empty()) {
+                STRESS_VERIFY(!heap.empty());
+                int n = *nums.begin();
+                nums.erase(nums.begin());
+                int m = heap.pop();
+                STRESS_VERIFY(n == m);
+            }
+        }
+
+        size_sum += nums.size();
+
+        STRESS_VERIFY(heap.empty() == nums.empty());
+        STRESS_VERIFY(heap.empty() || heap.top() == *nums.begin());
+    }
+
+    double avg = 1.0 * size_sum / T;
+    clear_line();
+    print("average size: {:.2f} ({:.2f}%)\n", avg, 100.0 * avg / N);
+}
+
 void unit_test_pairing_heaps() {
     constexpr int R = 5, N = 15;
 
@@ -168,6 +278,9 @@ void speed_test_int_heaps(int T = 10000) {
 }
 
 int main() {
+    RUN_BLOCK((stress_test_int_heap<binary_int_heap, false>()));
+    RUN_BLOCK((stress_test_int_heap<pairing_int_heap, false>()));
+    RUN_BLOCK((stress_test_int_heap<pairing_int_heap, true>()));
     RUN_SHORT(unit_test_pairing_heaps());
     RUN_BLOCK(speed_test_int_heaps());
     return 0;
