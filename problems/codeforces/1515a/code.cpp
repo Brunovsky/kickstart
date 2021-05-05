@@ -3,7 +3,6 @@
 using namespace std;
 
 #define long int64_t
-#define DV(a) (" [" #a "=" + to_string(a) + "]")
 
 // *****
 
@@ -82,6 +81,14 @@ ostream& operator<<(ostream& out, const array<T, N>& v) {
     return out << to_string(v);
 }
 
+template <typename T, size_t N>
+string to_string(const array<T, N>& v) {
+    string s;
+    for (const auto& el : v)
+        s += to_string(el) + " ";
+    return s.empty() ? s : (s.pop_back(), s);
+}
+
 template <typename T>
 string to_string(const vector<T>& v) {
     string s;
@@ -94,9 +101,102 @@ ostream& operator<<(ostream& out, const vector<T>& v) {
     return out << to_string(v);
 }
 
+template <typename T>
+string to_string(const vector<vector<T>>& v) {
+    string s;
+    for (const auto& el : v)
+        s += "[" + to_string(el) + "] ";
+    return s.empty() ? s : (s.pop_back(), s);
+}
+template <typename T>
+ostream& operator<<(ostream& out, const vector<vector<T>>& v) {
+    return out << to_string(v);
+}
+
+template <typename T>
+string to_string(const list<T>& v) {
+    string s;
+    for (const auto& el : v)
+        s += to_string(el) + " ";
+    return s.empty() ? s : (s.pop_back(), s);
+}
+template <typename T>
+ostream& operator<<(ostream& out, const list<T>& v) {
+    return out << to_string(v);
+}
+
+template <typename T>
+string to_string(const set<T>& v) {
+    string s;
+    for (const auto& el : v)
+        s += to_string(el) + " ";
+    return s.empty() ? s : (s.pop_back(), s);
+}
+template <typename T>
+ostream& operator<<(ostream& out, const set<T>& v) {
+    return out << to_string(v);
+}
+
+template <typename T>
+string to_string(const unordered_set<T>& v) {
+    string s;
+    for (const auto& el : v)
+        s += to_string(el) + " ";
+    return s.empty() ? s : (s.pop_back(), s);
+}
+template <typename T>
+ostream& operator<<(ostream& out, const unordered_set<T>& v) {
+    return out << to_string(v);
+}
+
+template <typename K, typename V>
+string to_string(const map<K, V>& v) {
+    string s;
+    for (const auto& el : v)
+        s += to_string(el) + " ";
+    return s.empty() ? s : (s.pop_back(), s);
+}
+template <typename K, typename V>
+ostream& operator<<(ostream& out, const map<K, V>& v) {
+    return out << to_string(v);
+}
+
+template <typename K, typename V>
+string to_string(const unordered_map<K, V>& v) {
+    string s;
+    for (const auto& el : v)
+        s += to_string(el) + " ";
+    return s.empty() ? s : (s.pop_back(), s);
+}
+template <typename K, typename V>
+ostream& operator<<(ostream& out, const unordered_map<K, V>& v) {
+    return out << to_string(v);
+}
+
 } // namespace std
 
-auto solve() { return 0; }
+auto solve() {
+    int N, W;
+    cin >> N >> W;
+    vector<int> w(N);
+    for (int i = 0; i < N; i++) {
+        cin >> w[i];
+    }
+    int S = accumulate(begin(w), end(w), 0);
+    if (S == W) {
+        cout << "NO" << endl;
+        return;
+    }
+    sort(begin(w), end(w));
+    int k = 0;
+    for (int i = 0; i + 1 < N; i++) {
+        if (k + w[i] == W) {
+            swap(w[i], w[i + 1]);
+        }
+        k += w[i];
+    }
+    cout << "YES\n" << w << endl;
+}
 
 // *****
 
@@ -105,7 +205,7 @@ int main() {
     unsigned T;
     cin >> T >> ws;
     for (unsigned t = 1; t <= T; ++t) {
-        cout << solve() << endl;
+        solve();
     }
     return 0;
 }
