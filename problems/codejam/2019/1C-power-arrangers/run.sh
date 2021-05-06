@@ -7,4 +7,4 @@ else
 fi
 
 SET="${1:-0}"
-python3 interactive_runner.py python3 testing_tool.py "$SET" -- ./hack
+python3 interactive_runner.py python3 testing_tool.py "$SET" -- ./solver
