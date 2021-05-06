@@ -22,12 +22,16 @@ perfm: CXXFLAGS += $(OPTIM)
 perfm: ./solver
 
 clean::
-	@rm -f solver hacker core vgcore.* *.log output.txt answer.txt
+	@rm -f solver hacker judge core vgcore.* *.log output.txt answer.txt
+
+./solver: code.cpp
+	@echo CC ${COMPILER} ${MODE} $@
+	@$(CXX) code.cpp $(CXXFLAGS) -o $@
 
 ./hacker: hack.cpp
 	@echo CC ${COMPILER} $@
 	@$(CXX) hack.cpp $(CXXFLAGS) $(OPTIM) -o $@
 
-./solver: code.cpp
-	@echo CC ${COMPILER} ${MODE} $@
-	@$(CXX) code.cpp $(CXXFLAGS) -o $@
+./judge: judge.cpp
+	@echo CC ${COMPILER} $@
+	@$(CXX) judge.cpp $(CXXFLAGS) $(OPTIM) -o $@

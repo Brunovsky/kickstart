@@ -96,7 +96,9 @@ ostream& operator<<(ostream& out, const vector<T>& v) {
 
 } // namespace std
 
-auto solve() { return 0; }
+auto solve() {
+    return 0;
+}
 
 // *****
 
