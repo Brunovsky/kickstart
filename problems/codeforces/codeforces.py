@@ -41,3 +41,13 @@ if template == "cpp":
     shutil.copy("templates/cpp/input.txt", folder)
     os.symlink("../templates/cpp/Makefile", f"{folder}/Makefile")
     subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/input.txt"])
+
+if template == "cpp-interactive":
+    shutil.copy("templates/cpp-interactive/code.cpp", folder)
+    shutil.copy("templates/cpp-interactive/run.sh", folder)
+    os.symlink("../../templates/cpp-interactive/Makefile",
+               f"{folder}/Makefile")
+    os.symlink("../../templates/cpp-interactive/interactive_runner.py",
+               f"{folder}/interactive_runner.py")
+    print("Don't forget to add the testing tool (testing_tool.py)")
+    subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/run.sh"])
