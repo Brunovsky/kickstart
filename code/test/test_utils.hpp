@@ -102,4 +102,23 @@ bool all_eq(const vector<T>& v) {
         print("OK {:>6.2f}s === {}\n", TIME_S(runner), #test); \
     } while (0)
 
+/**
+ * Action selector
+ * Each action is given a probability out of an integer total
+ */
+struct action_selector {
+    vector<int> steps;
+
+    action_selector(const vector<int>& ratio) : steps(ratio.size()) {
+        partial_sum(begin(ratio), end(ratio), begin(steps));
+    }
+
+    int total() const { return steps.back(); }
+    int options() const { return steps.size(); }
+    int select() const {
+        int k = intd(1, steps.back())(mt);
+        return lower_bound(begin(steps), end(steps), k) - begin(steps);
+    }
+};
+
 #endif // TEST_UTILS_HPP
