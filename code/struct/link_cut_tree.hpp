@@ -19,12 +19,36 @@ struct link_cut_tree {
         int path_size = 1; // size of splay tree below u
         int vir_size = 0;  // sum of sizes of all virtual subtrees of u
         long self = 0;     // this node's value
-        long path = 0;     // path aggregate -> aggregate of splay tree below u
-        long sub = 0;      // subtree aggregate -> aggregate of represented tree below u
-        long vir = 0;      // virtual aggregate -> aggregate of virtual trees below u
+        long path = 0;     // path aggregate ~= aggregate of splay tree below u
+        long sub = 0;      // subtree aggregate ~= aggregate of represented tree below u
+        long vir = 0;      // virtual aggregate == aggregate of virtual trees below u
     };
 
     // ***** Debugging
+
+    void dump_graphviz() const {
+        int N = t.size() - 1;
+        vector<array<int, 2>> g;
+        for (int u = 1; u <= N; u++) {
+            if (t[u].parent) {
+                g.push_back({t[u].parent, u});
+            }
+        }
+        auto node_ann = [&](int u) {
+            return format("label=\"{}\\nv={}\\npath={}\\nsub={}\\nvir={}\\nf={}\"", u,
+                          t[u].self, t[u].path, t[u].sub, t[u].vir, t[u].flip);
+        };
+        auto edge_ann = [&](int u, int v) {
+            if (v == t[u].child[0]) {
+                return "style=\"bold\" label=0"s;
+            } else if (v == t[u].child[1]) {
+                return "style=\"bold\" label=1"s;
+            } else {
+                return "style=\"dashed\""s;
+            }
+        };
+        print("{}", full_dot(g, 1, N, true, node_ann, edge_ann));
+    }
 
     void verify_invariants() const {
         int N = t.size() - 1;
@@ -93,14 +117,14 @@ struct link_cut_tree {
     }
 
     // Add c as virtual subtree of u
-    void link_virtual_update(int u, int c) {
+    void link_virtual_subtree(int u, int c) {
         t[u].vir_size += t[c].sub_size;
         t[u].vir += t[c].sub;
         pushup(u);
     }
 
     // Remove c as virtual subtree of u
-    void cut_virtual_update(int u, int c) {
+    void cut_virtual_subtree(int u, int c) {
         t[u].vir_size -= t[c].sub_size;
         t[u].vir -= t[c].sub;
         pushup(u);
@@ -112,7 +136,7 @@ struct link_cut_tree {
     void link(int u, int v) {
         access(u), access(v);
         assert(!t[u].parent && !t[v].parent);
-        t[u].parent = v, link_virtual_update(v, u);
+        t[u].parent = v, link_virtual_subtree(v, u);
     }
 
     // cut link from child u to v
@@ -122,17 +146,30 @@ struct link_cut_tree {
         t[v].child[1] = t[u].parent = 0, pushup(v);
     }
 
+    void reroot(int u) {
+        access(u), trim(u);
+        t[u].flip ^= 1, pushdown(u);
+    }
+
+    int findroot(int u) {
+        access(u);
+        while (t[u].child[0])
+            u = t[u].child[0];
+        return u;
+    }
+
     auto query_subtree(int u) {
         access(u);
-        return t[u].sub - t[t[u].child[0]].sub;
+        return t[u].sub - t[t[u].child[0]].sub; // exclude above u
     }
 
     auto query_root_path(int u) {
         access(u);
-        return t[u].path - t[t[u].child[1]].path;
+        return t[u].path - t[t[u].child[1]].path; // exclude path below u
     }
 
     auto query_path(int u, int v) {
+        // return reroot(v), query_root_path(u);
         return u == v ? t[u].self : query_root_path(u) - query_root_path(v) + t[v].self;
     }
 
@@ -147,10 +184,10 @@ struct link_cut_tree {
     }
 
     auto path_length(int u, int v) {
+        // return reroot(v), root_path_length(u);
         return u == v ? 1 : root_path_length(u) - root_path_length(v) + 1;
     }
 
-    // Update node u with given value
     void update_node(int u, long value) {
         access(u);
         apply(u, value);
@@ -211,32 +248,23 @@ struct link_cut_tree {
     }
 
     void access(int u) {
-        int v = u;
         splay(u);
-        while (t[u].parent) {
-            int last = u;
-            u = t[u].parent;
-            splay(u);
-            cut_virtual_update(u, last);
-            link_virtual_update(u, t[u].child[1]);
-            t[u].child[1] = last;
-            pushup(u);
+        int v = u;
+        while (t[v].parent) {
+            int last = v;
+            v = t[v].parent;
+            splay(v);
+            link_virtual_subtree(v, t[v].child[1]);
+            t[v].child[1] = last;
+            cut_virtual_subtree(v, last);
         }
-        splay(v);
+        splay(u);
     }
 
     void trim(int u) {
         assert(u && !t[u].flip);
-        if (t[u].child[1]) {
-            int c = t[u].child[1];
-            t[c].parent = t[u].child[1] = 0;
-            while (t[c].child[1]) {
-                c = t[c].child[1];
-            }
-            splay(c);
-            t[c].parent = u;
-            link_virtual_update(u, c);
-        }
+        int v = t[u].child[1];
+        t[u].child[1] = 0, link_virtual_subtree(u, v);
     }
 };
 

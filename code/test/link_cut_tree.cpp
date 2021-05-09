@@ -1,5 +1,5 @@
+#include "../generators/graph_formats.hpp"
 #include "../struct/link_cut_tree.hpp"
-
 #include "../random.hpp"
 #include "test_utils.hpp"
 
@@ -19,6 +19,18 @@ struct slow_tree {
     }
 
     // ***** UTILS
+
+    void dump_graphviz() const {
+        vector<array<int, 2>> g;
+        for (int u = 1; u <= N; u++) {
+            for (int v : children[u]) {
+                g.push_back({u, v});
+            }
+        }
+        auto node_ann = [&](int u) { return format("label=\"{}\\nv={}\"", u, val[u]); };
+        auto edge_ann = [&](int, int) { return ""s; };
+        print("{}", full_dot(g, 1, N, true, node_ann, edge_ann));
+    }
 
     int random_root() const {
         assert(!orphans.empty());
@@ -83,6 +95,8 @@ struct slow_tree {
         }
         parent[u] = c;
         children[c].insert(u);
+        children[u].erase(c);
+        orphans.erase(u), non_orphans.insert(u);
     }
 
     // ***** CORE
@@ -104,6 +118,8 @@ struct slow_tree {
     void reroot(int u) {
         if (parent[u]) {
             flip_to_child(parent[u], u);
+            parent[u] = 0;
+            orphans.insert(u), non_orphans.erase(u);
         }
     }
 
@@ -168,42 +184,45 @@ struct slow_tree {
     }
 };
 
-bool show_query_all(int lo, int hi, slow_tree& slow, link_cut_tree& tree, int D = 3) {
+bool show_query_all(int lo, int hi, slow_tree& slow, link_cut_tree& tree, int D = 2) {
     assert(1 <= D && D <= 9 && lo <= hi);
     int N = hi - lo + 1;
 
-    vector<vector<int>> subt(D), rootpath(D), path(D), subt_size(D), path_length(D);
-    vector<int> exp_subt(N), exp_rootpath(N), exp_path(N), exp_subt_size(N);
-    vector<int> exp_path_length(N), nodes(N), above(N);
+    vector<vector<int>> subtree(D), rootpath(D), path(D);
+    vector<vector<int>> subtree_size(D), path_length(D), findroot(D);
+    vector<int> exp_subtree(N), exp_rootpath(N), exp_path(N);
+    vector<int> exp_subtree_size(N), exp_path_length(N), exp_findroot(N);
+    vector<int> nodes(N), above(N);
     iota(begin(nodes), end(nodes), lo);
 
-    bool ok_subt = true, ok_rootpath = true, ok_path = true;
-    bool ok_subt_size = true, ok_path_length = true;
+    bool ok_subtree = true, ok_rootpath = true, ok_path = true;
+    bool ok_subtree_size = true, ok_path_length = true, ok_findroot = true;
 
     for (int u = lo; u <= hi; u++) {
         auto on_path = slow.get_root_path(u);
         int S = on_path.size(), i = intd(0, S - 1)(mt);
         above[u - lo] = *next(begin(on_path), i);
 
-        exp_subt[u - lo] = slow.query_subtree(u);
+        exp_subtree[u - lo] = slow.query_subtree(u);
         exp_rootpath[u - lo] = slow.query_root_path(u);
         exp_path[u - lo] = slow.query_path(u, above[u - lo]);
-        exp_subt_size[u - lo] = slow.subtree_size(u);
+        exp_subtree_size[u - lo] = slow.subtree_size(u);
         exp_path_length[u - lo] = slow.path_length(u, above[u - lo]);
+        exp_findroot[u - lo] = slow.findroot(u);
     }
     for (int d = 0; d < D; d++) {
         vector<int> order = nodes;
         shuffle(begin(order), end(order), mt);
-        subt[d].resize(N);
+        subtree[d].resize(N);
         for (int u : order) {
-            subt[d][u - lo] = tree.query_subtree(u);
+            subtree[d][u - lo] = tree.query_subtree(u);
         }
-        if (subt[d] != exp_subt) {
-            if (ok_subt) {
-                ok_subt = false;
-                print("expect_subtree: {}\n", exp_subt);
+        if (subtree[d] != exp_subtree) {
+            if (ok_subtree) {
+                ok_subtree = false;
+                print("expect_subtree: {}\n", exp_subtree);
             }
-            print("got_subtree[{}]: {}\n", d + 1, subt[d]);
+            print("got_subtree[{}]: {}\n", d + 1, subtree[d]);
             tree.debug();
         }
     }
@@ -243,16 +262,16 @@ bool show_query_all(int lo, int hi, slow_tree& slow, link_cut_tree& tree, int D 
     for (int d = 0; d < D; d++) {
         vector<int> order = nodes;
         shuffle(begin(order), end(order), mt);
-        subt_size[d].resize(N);
+        subtree_size[d].resize(N);
         for (int v : order) {
-            subt_size[d][v - lo] = tree.subtree_size(v);
+            subtree_size[d][v - lo] = tree.subtree_size(v);
         }
-        if (subt_size[d] != exp_subt_size) {
-            if (ok_subt_size) {
-                ok_subt_size = false;
-                print("expect_subtree_size: {}\n", exp_subt_size);
+        if (subtree_size[d] != exp_subtree_size) {
+            if (ok_subtree_size) {
+                ok_subtree_size = false;
+                print("expect_subtree_size: {}\n", exp_subtree_size);
             }
-            print("got_subtree_size[{}]: {}\n", d + 1, subt_size[d]);
+            print("got_subtree_size[{}]: {}\n", d + 1, subtree_size[d]);
             tree.debug();
         }
     }
@@ -273,18 +292,36 @@ bool show_query_all(int lo, int hi, slow_tree& slow, link_cut_tree& tree, int D 
             tree.debug();
         }
     }
+    for (int d = 0; d < D; d++) {
+        vector<int> order = nodes;
+        shuffle(begin(order), end(order), mt);
+        findroot[d].resize(N);
+        for (int u : order) {
+            findroot[d][u - lo] = tree.findroot(u);
+        }
+        if (findroot[d] != exp_findroot) {
+            if (ok_findroot) {
+                ok_findroot = false;
+                print("expect_findroot: {}\n", exp_findroot);
+            }
+            print("got_findroot[{}]: {}\n", d + 1, findroot[d]);
+            tree.debug();
+        }
+    }
 
-    return ok_subt && ok_rootpath && ok_path && ok_subt_size && ok_path_length;
+    bool ok = ok_subtree && ok_rootpath && ok_path && ok_subtree_size && ok_path_length &&
+              ok_findroot;
+    if (!ok) {
+        slow.dump_graphviz();
+        tree.dump_graphviz();
+    }
+    return ok;
 }
 
 void stress_test_link_cut_tree() {
-    constexpr int N = 15, minv = 1, maxv = 50, T = 1000;
+    constexpr int N = 99, minv = 1, maxv = 50, T = 3000;
     intd noded(1, N), vald(minv, maxv);
 
-    vector<int> initial_target(N + 1);
-    for (int u = 2; u <= N; u++) {
-        initial_target[u] = intd(1, u - 1)(mt);
-    }
     vector<int> initial_val(N + 1);
     for (int u = 1; u <= N; u++) {
         initial_val[u] = vald(mt);
@@ -299,18 +336,18 @@ void stress_test_link_cut_tree() {
         slow.update_node(u, initial_val[u]);
     }
 
-    for (int u = 2; u <= N; u++) {
-        int v = initial_target[u];
+    enum Actions {
+        LINK,
+        CUT,
+        LINK_CUT,
+        REROOT,
+        UPDATE_NODE,
+        UPDATE_SUBTREE,
+        UPDATE_PATH
+    };
+    action_selector as({800, 300, 1000, 300, 1000, 0, 0});
 
-        print("LINK {} -> {}\n", u, v);
-        tree.link(u, v);
-        slow.link(u, v);
-        bool ok = show_query_all(1, u, slow, tree);
-        assert(ok);
-    }
-
-    enum Actions { LINK, CUT, LINK_CUT, UPDATE_NODE, UPDATE_SUBTREE, UPDATE_PATH };
-    action_selector as({300, 300, 1000, 1000, 0, 0});
+    int S = N; // connected components
 
     for (int t = 0; t < T; t++) {
         Actions action = Actions(as.select());
@@ -320,7 +357,7 @@ void stress_test_link_cut_tree() {
             if (!slow.orphans.empty()) {
                 int u = slow.random_root();
                 if (int v = slow.random_not_in_subtree(u); v != -1) {
-                    print("LINK {} -> {}\n", u, v);
+                    print("[{}] LINK {} -> {}\n", --S, u, v);
                     slow.link(u, v);
                     tree.link(u, v);
                 }
@@ -330,7 +367,7 @@ void stress_test_link_cut_tree() {
             if (!slow.non_orphans.empty()) {
                 int u = slow.random_child();
                 int v = slow.parent[u];
-                print("CUT {} -> {}\n", u, v);
+                print("[{}] CUT {} -> {}\n", ++S, u, v);
                 slow.cut(u, v);
                 tree.cut(u, v);
             }
@@ -338,19 +375,27 @@ void stress_test_link_cut_tree() {
         case LINK_CUT: {
             int u = noded(mt);
             if (int v = slow.parent[u]; v) {
-                print("CUT {} -> {}\n", u, v);
+                print("[{}] CUT {} -> {}\n", ++S, u, v);
                 slow.cut(u, v);
                 tree.cut(u, v);
             } else if (v = slow.random_not_in_subtree(u); v != -1) {
-                print("LINK {} -> {}\n", u, v);
+                print("[{}] LINK {} -> {}\n", --S, u, v);
                 slow.link(u, v);
                 tree.link(u, v);
+            }
+        } break;
+        case REROOT: {
+            int u = noded(mt), v = slow.findroot(u);
+            if (u != v) {
+                print("[{}] REROOT {} -> {}\n", S, v, u);
+                slow.reroot(u);
+                tree.reroot(u);
             }
         } break;
         case UPDATE_NODE: {
             int u = noded(mt);
             int value = vald(mt);
-            print("UPDATE {}: {} -> {}\n", u, slow.query_node(u), value);
+            print("[{}] UPDATE {}: {} -> {}\n", S, u, slow.query_node(u), value);
             slow.update_node(u, value);
             tree.update_node(u, value);
         } break;

@@ -74,19 +74,24 @@ string compact_simple(const edges_t& g, int V, char sep = ',') {
     return s + (i ? "\n" : "");
 }
 
-string compact_dot(const edges_t& g, int V, bool directed = false) {
+template <typename NodeFn, typename EdgeFn>
+string full_dot(const edges_t& g, int lo, int hi, bool directed, NodeFn&& node_annotator,
+                EdgeFn&& edge_annotator) {
     static const char* header[] = {"strict graph", "strict digraph"};
     static const char* arrow[] = {" -- ", " -> "};
-    int i = 0, w = int(log10(V)) + 1, n = 96 / (2 * w + 5);
-    string s = header[directed] + " {\n"s;
-    for (auto [u, v] : g) {
-        if (directed || u <= v) {
-            s += format("{:>{}} {} {:>{}} ;", u, w + 2, arrow[directed], v, w);
-            if (++i == n)
-                s += '\n', i = 0;
-        }
+    int V = hi, w = int(log10(V + 1)) + 1;
+    string a = arrow[directed], s = header[directed] + " {\n"s;
+    for (int u = lo; u <= hi; u++) {
+        auto label = node_annotator(u);
+        s += !label.empty() ? format(" {0:>{2}} [{1}];\n", u, label, w)
+                            : format(" {0:>{1}};\n", u, w);
     }
-    return s + (i ? "\n" : "") + "}\n";
+    for (auto [u, v] : g) {
+        auto label = edge_annotator(u, v);
+        s += !label.empty() ? format(" {0:>{4}}{2}{1:>{4}} [{3}];\n", u, v, a, label, w)
+                            : format(" {0:>{3}}{2}{1:>{3}};\n", u, v, a, w);
+    }
+    return s + "}\n";
 }
 
 string to_human_undirected(const edges_t& g, int V) {

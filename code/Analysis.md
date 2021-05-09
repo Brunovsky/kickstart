@@ -394,7 +394,7 @@ is going down in the represented tree (by default).
 Nodes are numbered 1 to N. Node 0 is the head sentinel and should be filled with neutral
 values (often not the default value for other nodes).
 
-### Lazy propagation - Implementation notes
+### Lazy propagation and rerooting - Implementation notes
 
 To support tree rerooting we maintain a lazy flip boolean on each node. Notice that when
 we reroot a tree previously rooted at $r$ on a node $u$, we flip exactly those edges on
