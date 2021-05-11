@@ -1,6 +1,5 @@
 #include "../generators/graph_formats.hpp"
 #include "../struct/unrooted_link_cut_tree.hpp"
-#include "../random.hpp"
 #include "test_utils.hpp"
 #include "slow_tree.hpp"
 
@@ -67,14 +66,14 @@ auto make_actions(int N, int T, const int arr[END]) {
     slow_tree slow(N, true);
     vector<int> ratio(arr, arr + END);
     vector<int> occurrences(END);
-    action_selector selector(ratio);
+    action_selector<UnrootedActionType> selector(ratio);
 
     vector<UnrootedAction> history;
     size_t Ssum = 0, iterations = 0;
 
     while (int(history.size()) < T) {
         print_progress(history.size(), T, format("preparing history (S={})...", slow.S));
-        auto action = UnrootedActionType(selector.select());
+        auto action = selector.select();
         occurrences[action]++, iterations++;
 
         switch (action) {

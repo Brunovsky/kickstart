@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "../formatting.hpp"
+#include "../random.hpp"
 
 using namespace std::chrono;
 using us = microseconds;
@@ -19,23 +20,28 @@ bool cout_is_terminal() {
 void clear_line() { cout_is_terminal() ? print("\r\033[2K") : (void)fflush(stdout); }
 
 void print_progress(long i, long N) {
-    if (!cout_is_terminal())
-        return;
-    double percent = 100.0 * (i + 1) / N;
-    int digits = to_string(N).size();
-    print("\033[K\033[s{:5.1f}% {:>{}}/{}\033[u", percent, i + 1, digits, N);
-    fflush(stdout);
+    if (cout_is_terminal()) {
+        double percent = 100.0 * (i + 1) / N;
+        int digits = to_string(N).size();
+        print("\033[K\033[s{:5.1f}% {:>{}}/{}\033[u", percent, i + 1, digits, N);
+        fflush(stdout);
+    }
 }
 
 template <typename T>
 void print_progress(long i, long N, T&& content) {
-    if (!cout_is_terminal())
-        return;
-    double percent = 100.0 * (i + 1) / N;
-    int digits = to_string(N).size();
-    string txt = format("{}", forward<T>(content));
-    print("\033[K\033[s{:5.1f}% {:>{}}/{} {}\033[u", percent, i + 1, digits, N, txt);
-    fflush(stdout);
+    if (cout_is_terminal()) {
+        double percent = 100.0 * (i + 1) / N;
+        int digits = to_string(N).size();
+        string txt = format("{}", forward<T>(content));
+        print("\033[K\033[s{:5.1f}% {:>{}}/{} {}\033[u", percent, i + 1, digits, N, txt);
+        fflush(stdout);
+    }
+}
+
+template <typename... Ts>
+void print_progress(long i, long N, string_view fmt, Ts&&... args) {
+    return print_progress(i, N, format(fmt, forward<Ts...>(args)...));
 }
 
 template <typename... Ts>
@@ -68,7 +74,6 @@ bool all_eq(const vector<T>& v) {
  *     PRINT_TIME($var);
  * Either way, in the end the result is in time_$var
  */
-
 #define START_ACC(var)     size_t time_##var = 0
 #define START(var)         auto now_##var = steady_clock::now()
 #define CUR_TIME(var)      duration_cast<us>(steady_clock::now() - now_##var)
@@ -106,6 +111,7 @@ bool all_eq(const vector<T>& v) {
  * Action selector
  * Each action is given a probability out of an integer total
  */
+template <typename Enum = int>
 struct action_selector {
     vector<int> steps;
 
@@ -115,9 +121,9 @@ struct action_selector {
 
     int total() const { return steps.back(); }
     int options() const { return steps.size(); }
-    int select() const {
+    Enum select() const {
         int k = intd(1, steps.back())(mt);
-        return lower_bound(begin(steps), end(steps), k) - begin(steps);
+        return Enum(lower_bound(begin(steps), end(steps), k) - begin(steps));
     }
 };
 

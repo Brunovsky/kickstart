@@ -103,15 +103,6 @@ void unit_test_modnum() {
     assert(n == 731);
     n -= 31;
     assert(n == 0);
-    dmodnum m(20, 100);
-    m += 31;
-    assert(m == 51);
-    m /= 3;
-    assert(m == 17);
-    m /= 7;
-    assert(m == 31);
-    m -= 31;
-    assert(m == 0);
 }
 
 int main() {
