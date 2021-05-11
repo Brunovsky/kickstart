@@ -1,0 +1,35 @@
+17
+4 2
+abcd
+3 1
+abc
+4 3
+aaaa
+9 3
+abaabaaaa
+12 4
+zaazzbqweqax
+12 3
+zazasqzqsasq
+1 1
+z
+1 1
+a
+15 4
+abccbaabccbazaa
+16 8
+cadjfdsljfdkljds
+6 2
+baazaa
+6 3
+bosszb
+6 1
+qwerty
+7 7
+daaaaaa
+14 2
+acabcbdeffewzd
+18 6
+zzzzzzzzzzzzyyyyyz
+9 4
+aabaabbbc
