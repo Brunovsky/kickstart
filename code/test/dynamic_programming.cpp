@@ -8,6 +8,8 @@
 
 // *****
 
+using vi = vector<int>;
+
 // String distance algorithms
 
 struct distance_test_t {
@@ -120,8 +122,8 @@ void unit_test_knapsack() {
     auto [v1, qt1] = repeated_knapsack(50, {10, 20, 30}, {60, 100, 120});
     auto [v2, qt2] = unit_knapsack(15, {1, 4, 1, 2, 12}, {2, 10, 1, 2, 4});
     auto [v3, qt3] = unit_knapsack(50, {10, 20, 30}, {60, 100, 120});
-    assert(v0 == 36 && qt0 == (vector<int>{3, 3, 0, 0, 0}));
-    assert(v1 == 300 && qt1 == (vector<int>{5, 0, 0}));
+    assert(v0 == 36 && qt0 == (vi{3, 3, 0, 0, 0}));
+    assert(v1 == 300 && qt1 == (vi{5, 0, 0}));
     assert(v2 == 15 && qt2 == (vector<bool>{1, 1, 1, 1, 0}));
     assert(v3 == 220 && qt3 == (vector<bool>{0, 1, 1}));
 }
@@ -137,14 +139,14 @@ void unit_test_longest_common_subsequence() {
 
 void unit_test_longest_increasing_subsequence() {
     auto sub0 = longest_increasing_subsequence(
-        {0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15});
-    auto sub1 = longest_increasing_subsequence({0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
-    auto sub2 = longest_increasing_subsequence({9, 8, 7, 6, 5, 4, 3, 2, 1, 0});
-    auto sub3 = longest_increasing_subsequence({0, 1, 0, 1, 0, 1, 0, 1, 0, 1});
-    assert(sub0 == (vector<int>{0, 2, 6, 9, 11, 15}));
-    assert(sub1 == (vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
+        vi{0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15});
+    auto sub1 = longest_increasing_subsequence(vi{0, 1, 2, 3, 4, 5, 6, 7, 8, 9});
+    auto sub2 = longest_increasing_subsequence(vi{9, 8, 7, 6, 5, 4, 3, 2, 1, 0});
+    auto sub3 = longest_increasing_subsequence(vi{0, 1, 0, 1, 0, 1, 0, 1, 0, 1});
+    assert(sub0 == (vi{0, 2, 6, 9, 11, 15}));
+    assert(sub1 == (vi{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
     assert(sub2.size() == 1);
-    assert(sub3 == (vector<int>{0, 1}));
+    assert(sub3 == (vi{0, 1}));
 }
 
 int main() {
