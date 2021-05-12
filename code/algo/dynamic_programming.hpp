@@ -10,6 +10,7 @@ using namespace std;
 /**
  * Longest increasing subsequence of one list
  * O(n log n) time, O(n) space
+ * For non-decreasing, change nums[M[mid]] < nums[i] to <=.
  */
 vector<int> longest_increasing_subsequence(const vector<int>& nums) {
     int N = nums.size();

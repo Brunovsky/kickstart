@@ -59,37 +59,34 @@ auto generate_nums(int n, int min, int max) {
     return nums;
 }
 
-auto minmax_sums(const vector<int>& nums) {
-    int minsum = 0, maxsum = 0;
-    for (int n : nums) {
-        n >= 0 ? maxsum += n : minsum += n;
-    }
-    return array<int, 2>{minsum, maxsum};
-}
-
 auto all_sums(const vector<int>& nums) {
     vector<int> sums;
     int N = nums.size();
-    for (int i = 0; i < N; i++) {
-        int x = nums[i], S = sums.size();
-        sums.resize(2 * S + 1);
-        for (int j = 0; j < S; j++)
-            sums[j + S] = sums[j] + x;
-        sums[2 * S] = x;
-        sort(begin(sums), end(sums));
-        sums.erase(unique(begin(sums), end(sums)), end(sums));
+    for (int i = 0; i < (1 << N); i++) {
+        int sum = 0;
+        for (int b = 0; b < N; b++) {
+            if (i & (1 << b)) {
+                sum += nums[b];
+            }
+        }
+        sums.push_back(sum);
     }
+    sort(begin(sums), end(sums));
+    sums.erase(unique(begin(sums), end(sums)), end(sums));
     return sums;
 }
 
 void stress_test_subset_sum_run(const vector<int>& nums) {
-    auto [min, max] = minmax_sums(nums);
     auto sums = all_sums(nums);
+    int min = sums.front(), max = sums.back();
     for (int i = 0, t = min, S = sums.size(); t <= max; t++) {
         if (i < S && t == sums[i]) {
-            assert(subset_sum(nums, t)), i++;
+            assert(sparse_subset_sum(nums, t));
+            assert(dense_subset_sum(nums, t));
+            i++;
         } else {
-            assert(!subset_sum(nums, t));
+            assert(!sparse_subset_sum(nums, t));
+            assert(!dense_subset_sum(nums, t));
         }
     }
 }
@@ -103,8 +100,8 @@ void stress_test_subset_sum(int T = 50) {
     static const vector<array<int, 3>> subset_sum_stress_tests = {
         {5, -250, 250},
         {10, -100, 100},
-        {25, -60, 60},
-        {40, -30, 30},
+        {15, -60, 60},
+        {20, -30, 30},
     };
     for (auto [n, min, max] : subset_sum_stress_tests) {
         auto label = format("stress test {} {} {}", n, min, max);

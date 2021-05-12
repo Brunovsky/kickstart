@@ -8,37 +8,92 @@ using namespace std;
 // *****
 
 /**
- * Determine whether there exists a subset of nums with the given sum
- * O(ns) time, where s is the total range of sums.
+ * Determine whether there exists a subset of nums with the given sum.
+ * O(ns) time, where s is the number of unique sums.
+ * Returns the lexicographically smallest assignment
  */
-bool subset_sum(const vector<int>& nums, int target_sum) {
+template <typename T>
+optional<vector<int>> sparse_subset_sum(const vector<T>& nums, T target) {
     int N = nums.size();
-    int neg = 0, pos = 0;
-    for (int i = 0; i < N; i++)
-        nums[i] > 0 ? pos += nums[i] : neg += nums[i];
+    map<T, int> seen;
+    seen[T(0)] = -1;
 
-    if (target_sum < neg || pos < target_sum)
-        return false;
-
-    // note: if you have a dynamic bitset class, use it instead and shift by x
-    int S = pos - neg + 1;
-    vector<bool> dp(S, false);
-
-    for (int i = 0; i < N && !dp[target_sum - neg]; i++) {
-        int x = nums[i];
-        if (x >= 0) {
-            for (int s = pos; s >= x + neg; s--) {
-                dp[s - neg] = dp[s - neg] | dp[s - x - neg];
+    for (int i = 0; i < N && !seen.count(target); i++) {
+        auto x = nums[i];
+        if (x > 0) {
+            for (auto it = seen.rbegin(); it != seen.rend(); ++it) {
+                seen.emplace(it->first + x, i);
             }
-        } else {
-            for (int s = neg; s <= x + pos; s++) {
-                dp[s - neg] = dp[s - neg] | dp[s - x - neg];
+        } else if (x < 0) {
+            for (auto it = seen.begin(); it != seen.end(); ++it) {
+                seen.emplace(it->first + x, i);
             }
         }
-        dp[x - neg] = true;
     }
 
-    return dp[target_sum - neg];
+    if (seen.count(target)) {
+        vector<int> indices;
+        while (target != 0) {
+            int i = seen.at(target);
+            indices.push_back(i);
+            target -= nums[i];
+        }
+        reverse(begin(indices), end(indices));
+        return indices;
+    } else {
+        return std::nullopt;
+    }
+}
+
+optional<vector<int>> dense_subset_sum(const vector<int>& nums, int target) {
+    int N = nums.size();
+    int neg = 0, pos = 0;
+    for (int i = 0; i < N; i++) {
+        if (nums[i] > 0) {
+            pos += nums[i];
+        } else {
+            neg += nums[i];
+        }
+    }
+    if (target < neg || pos < target) {
+        return std::nullopt;
+    }
+
+    int S = pos - neg + 1;
+    assert(S <= 75'000'000); // sanity check
+
+    vector<int> seen(S, 0); // seen[x + neg] for x
+    seen[0 - neg] = -1;
+
+    for (int i = 0; i < N && !seen[target - neg]; i++) {
+        auto x = nums[i];
+        if (x > 0) {
+            for (int s = pos; s >= x + neg; s--) {
+                if (!seen[s - neg] && seen[s - x - neg]) {
+                    seen[s - neg] = i + 1;
+                }
+            }
+        } else if (x < 0) {
+            for (int s = neg; s <= x + pos; s++) {
+                if (!seen[s - neg] && seen[s - x - neg]) {
+                    seen[s - neg] = i + 1;
+                }
+            }
+        }
+    }
+
+    if (seen[target - neg]) {
+        vector<int> indices;
+        while (target != 0) {
+            int i = seen[target - neg] - 1;
+            indices.push_back(i);
+            target -= nums[i];
+        }
+        reverse(begin(indices), end(indices));
+        return indices;
+    } else {
+        return std::nullopt;
+    }
 }
 
 /**
