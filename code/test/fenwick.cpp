@@ -7,7 +7,7 @@
 // *****
 
 void unit_test_1d() {
-    fenwick fw(100);
+    fenwick<int> fw(100);
 
     fw.add(10, 10);
     fw.add(20, 20);
@@ -29,7 +29,7 @@ void unit_test_1d() {
 }
 
 void unit_test_2d() {
-    fenwick2d fw(100, 100);
+    fenwick2d<int> fw(100, 100);
 
     fw.add(10, 10, 10);
     fw.add(20, 20, 20);

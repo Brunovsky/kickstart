@@ -90,7 +90,7 @@ struct mat {
         return c;
     }
 
-    friend mat operator^(mat a, int e) {
+    friend mat operator^(mat a, long e) {
         assert(a.n == a.m && "Matrix exp operand is not square");
         mat c = identity(a.n);
         while (e > 0) {
