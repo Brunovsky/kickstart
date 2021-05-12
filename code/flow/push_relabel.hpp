@@ -12,28 +12,20 @@
  */
 template <typename Flow = long, typename FlowSum = Flow>
 struct push_relabel {
-    using edges_t = vector<array<int, 2>>;
+    struct Edge {
+        int node[2];
+        long cap, flow = 0;
+    };
     int V, E = 0;
     vector<vector<int>> res;
-    edges_t edge;
-    vector<Flow> flow, cap;
+    vector<Edge> edge;
 
-    push_relabel(int V, const edges_t& g = {}, const vector<Flow>& caps = {})
-        : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E) {
-        int e = 0, c = 0;
-        for (auto [u, v] : g) {
-            assert(0 <= u && u < V && 0 <= v && v < V && u != v);
-            res[u].push_back(e), edge[e] = {u, v}, cap[e++] = caps[c++];
-            res[v].push_back(e), edge[e] = {v, u}, cap[e++] = 0;
-        }
-    }
+    explicit push_relabel(int V) : V(V), res(V) {}
 
     void add(int u, int v, Flow c) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
-        int uv = 2 * E, vu = 2 * E + 1;
-        res[u].push_back(uv), edge.push_back({u, v}), cap.push_back(c);
-        res[v].push_back(vu), edge.push_back({v, u}), cap.push_back(0), E++;
-        flow.push_back(0), flow.push_back(0);
+        res[u].push_back(E++), edge.push_back({{u, v}, c, 0});
+        res[v].push_back(E++), edge.push_back({{v, u}, 0, 0});
     }
 
     vector<int> height, arc;
@@ -51,8 +43,8 @@ struct push_relabel {
         while (j < S) {
             int v = bfs[j++];
             for (int e : res[v]) {
-                int u = edge[e][1], r = e ^ 1;
-                if (flow[r] < cap[r] && new_height[u] == 2 * V) {
+                int u = edge[e].node[1], r = e ^ 1;
+                if (edge[r].flow < edge[r].cap && new_height[u] == 2 * V) {
                     new_height[u] = new_height[v] + 1;
                     bfs.push_back(u), S++;
                 }
@@ -102,14 +94,14 @@ struct push_relabel {
     }
 
     void push(int e) {
-        auto [u, v] = edge[e];
-        Flow df = min(excess[u], cap[e] - flow[e]);
+        auto [u, v] = edge[e].node;
+        Flow df = min(excess[u], edge[e].cap - edge[e].flow);
         assert(df > 0);
         if (excess[v] == 0) {
             active.push_back(height[v], v);
         }
-        flow[e] += df;
-        flow[e ^ 1] -= df;
+        edge[e].flow += df;
+        edge[e ^ 1].flow -= df;
         excess[u] -= df;
         excess[v] += df;
     }
@@ -117,12 +109,13 @@ struct push_relabel {
     template <bool sink> // 1=push phase (heights<V), 0=recover phase (heights>V)
     void relabel(int u) {
         relabel_count++;
-        if (sink)
+        if (sink) {
             labeled.erase(u);
+        }
         height[u] = 2 * V;
         for (int i = 0, vsize = res[u].size(); i < vsize; i++) {
-            int e = res[u][i], v = edge[e][1];
-            if (flow[e] < cap[e] && height[u] > height[v] + 1) {
+            int e = res[u][i], v = edge[e].node[1];
+            if (edge[e].flow < edge[e].cap && height[u] > height[v] + 1) {
                 height[u] = height[v] + 1;
                 arc[u] = i;
             }
@@ -146,8 +139,8 @@ struct push_relabel {
                     return;
                 }
             }
-            int e = res[u][i], v = edge[e][1];
-            if (flow[e] < cap[e] && height[u] > height[v]) {
+            int e = res[u][i], v = edge[e].node[1];
+            if (edge[e].flow < edge[e].cap && height[u] > height[v]) {
                 push(e);
             }
             i += excess[u] > 0;
@@ -165,7 +158,7 @@ struct push_relabel {
 
         excess[s] = inf;
         for (int e : res[s]) {
-            if (cap[e] > 0)
+            if (edge[e].cap > 0)
                 push(e);
         }
         const int threshold = global_relabel_threshold();
@@ -209,6 +202,7 @@ struct push_relabel {
         return excess[t];
     }
 
+    Flow get_flow(int e) const { return edge[2 * e].flow; }
     bool left_of_mincut(int u) const { return height[u] >= V; }
 };
 

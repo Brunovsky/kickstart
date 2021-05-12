@@ -13,44 +13,37 @@ using namespace std;
  */
 template <typename Flow = long, typename FlowSum = Flow>
 struct dinitz_flow {
-    using edges_t = vector<array<int, 2>>;
+    struct Edge {
+        int node[2];
+        long cap, flow = 0;
+    };
     int V, E = 0;
     vector<vector<int>> res;
-    edges_t edge;
-    vector<Flow> flow, cap;
+    vector<Edge> edge;
 
-    dinitz_flow(int V, const edges_t& g = {}, const vector<Flow>& caps = {})
-        : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E) {
-        int e = 0, c = 0;
-        for (auto [u, v] : g) {
-            res[u].push_back(e), edge[e] = {u, v}, cap[e++] = caps[c++];
-            res[v].push_back(e), edge[e] = {v, u}, cap[e++] = 0;
-        }
-    }
+    explicit dinitz_flow(int V) : V(V), res(V) {}
 
     void add(int u, int v, Flow c) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
-        int uv = 2 * E, vu = 2 * E + 1;
-        res[u].push_back(uv), edge.push_back({u, v}), cap.push_back(c);
-        res[v].push_back(vu), edge.push_back({v, u}), cap.push_back(0), E++;
-        flow.push_back(0), flow.push_back(0);
+        res[u].push_back(E++), edge.push_back({{u, v}, c, 0});
+        res[v].push_back(E++), edge.push_back({{v, u}, 0, 0});
     }
 
-    vector<int> level, arc;
-    static constexpr FlowSum inf = numeric_limits<FlowSum>::max() / 2;
+    vector<int> level, arc, Q;
+    static constexpr Flow inf = numeric_limits<Flow>::max() / 2;
 
     bool bfs(int s, int t) {
         fill(begin(level), end(level), -1);
         level[s] = 0;
-        vector<int> bfs{s};
+        Q[0] = s;
         int j = 0, S = 1;
         while (j < S) {
-            int u = bfs[j++];
+            int u = Q[j++];
             for (int e : res[u]) {
-                int v = edge[e][1];
-                if (level[v] == -1 && flow[e] < cap[e]) {
+                int v = edge[e].node[1];
+                if (level[v] == -1 && edge[e].flow < edge[e].cap) {
                     level[v] = level[u] + 1;
-                    bfs.push_back(v), S++;
+                    Q[S++] = v;
                     if (v == t)
                         return true;
                 }
@@ -65,12 +58,13 @@ struct dinitz_flow {
         }
         FlowSum preflow = 0;
         for (int &i = arc[u], vsize = res[u].size(); i < vsize; i++) {
-            int e = res[u][i], v = edge[e][1];
-            if (flow[e] < cap[e] && level[u] < level[v]) {
-                FlowSum df = dfs(v, t, min(mincap, cap[e] - flow[e]));
-                flow[e] += df;
-                flow[e ^ 1] -= df;
-                preflow += df, mincap -= df;
+            int e = res[u][i], v = edge[e].node[1];
+            if (edge[e].flow < edge[e].cap && level[u] < level[v]) {
+                FlowSum df = dfs(v, t, min(mincap, edge[e].cap - edge[e].flow));
+                edge[e].flow += df;
+                edge[e ^ 1].flow -= df;
+                preflow += df;
+                mincap -= df;
                 if (mincap == 0)
                     break;
             }
@@ -81,6 +75,7 @@ struct dinitz_flow {
     FlowSum maxflow(int s, int t) {
         level.assign(V, 0);
         arc.assign(V, 0);
+        Q.resize(V);
         FlowSum max_flow = 0;
         while (bfs(s, t)) {
             max_flow += dfs(s, t, inf);
@@ -89,6 +84,7 @@ struct dinitz_flow {
         return max_flow;
     }
 
+    Flow get_flow(int e) const { return edge[2 * e].flow; }
     bool left_of_mincut(int u) const { return level[u] >= 0; }
 };
 

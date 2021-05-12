@@ -15,30 +15,23 @@ using namespace std;
  */
 template <typename Flow = long, typename FlowSum = Flow>
 struct tidal_flow {
-    using edges_t = vector<array<int, 2>>;
+    struct Edge {
+        int node[2];
+        long cap, flow = 0;
+    };
     int V, E = 0;
     vector<vector<int>> res;
-    edges_t edge;
-    vector<Flow> flow, cap;
+    vector<Edge> edge;
 
-    tidal_flow(int V, const edges_t& g = {}, const vector<Flow>& caps = {})
-        : V(V), E(g.size()), res(V), edge(2 * E), flow(2 * E, 0), cap(2 * E) {
-        int e = 0, c = 0;
-        for (auto [u, v] : g) {
-            res[u].push_back(e), edge[e] = {u, v}, cap[e++] = caps[c++];
-            res[v].push_back(e), edge[e] = {v, u}, cap[e++] = 0;
-        }
-    }
+    explicit tidal_flow(int V) : V(V), res(V) {}
 
-    void add(int u, int v, int c) {
+    void add(int u, int v, Flow c) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
-        int uv = 2 * E, vu = 2 * E + 1;
-        res[u].push_back(uv), edge.push_back({u, v}), cap.push_back(c);
-        res[v].push_back(vu), edge.push_back({v, u}), cap.push_back(0), E++;
-        flow.push_back(0), flow.push_back(0);
+        res[u].push_back(E++), edge.push_back({{u, v}, c, 0});
+        res[v].push_back(E++), edge.push_back({{v, u}, 0, 0});
     }
 
-    vector<int> level, edges;
+    vector<int> level, edges, Q;
     vector<FlowSum> p, h, l;
     static constexpr FlowSum inf = numeric_limits<FlowSum>::max() / 2;
 
@@ -46,16 +39,16 @@ struct tidal_flow {
         fill(begin(level), end(level), -1);
         edges.clear();
         level[s] = 0;
-        vector<int> bfs{s};
+        Q[0] = s;
         int i = 0, S = 1;
-        while (i < S && level[bfs[i]] != level[t]) {
-            int u = bfs[i++];
+        while (i < S && level[Q[i]] != level[t]) {
+            int u = Q[i++];
             for (int e : res[u]) {
-                int v = edge[e][1];
-                if (flow[e] < cap[e]) {
+                int v = edge[e].node[1];
+                if (edge[e].flow < edge[e].cap) {
                     if (level[v] == -1) {
                         level[v] = level[u] + 1;
-                        bfs.push_back(v), S++;
+                        Q[S++] = v;
                     }
                     if (level[v] == level[u] + 1) {
                         edges.push_back(e);
@@ -70,8 +63,8 @@ struct tidal_flow {
         fill(begin(h), end(h), 0);
         h[s] = inf;
         for (int e : edges) {
-            auto [w, v] = edge[e];
-            p[e] = min(cap[e] - flow[e], h[w]);
+            auto [w, v] = edge[e].node;
+            p[e] = min(edge[e].cap - edge[e].flow, h[w]);
             h[v] = h[v] + p[e];
         }
         if (h[t] == 0) {
@@ -81,7 +74,7 @@ struct tidal_flow {
         l[t] = h[t];
         for (auto it = edges.rbegin(); it != edges.rend(); it++) {
             int e = *it;
-            auto [w, v] = edge[e];
+            auto [w, v] = edge[e].node;
             p[e] = min(p[e], min(h[w] - l[w], l[v]));
             l[v] -= p[e];
             l[w] += p[e];
@@ -89,12 +82,12 @@ struct tidal_flow {
         fill(begin(h), end(h), 0);
         h[s] = l[s];
         for (auto e : edges) {
-            auto [w, v] = edge[e];
+            auto [w, v] = edge[e].node;
             p[e] = min(p[e], h[w]);
             h[w] -= p[e];
             h[v] += p[e];
-            flow[e] += p[e];
-            flow[e ^ 1] -= p[e];
+            edge[e].flow += p[e];
+            edge[e ^ 1].flow -= p[e];
         }
         return h[t];
     }
@@ -103,8 +96,8 @@ struct tidal_flow {
         level.assign(V, 0);
         h.assign(V, 0);
         l.assign(V, 0);
-        p.assign(2 * E, 0);
-        flow.assign(2 * E, 0);
+        p.assign(E, 0);
+        Q.resize(V);
         FlowSum max_flow = 0, df;
         while (bfs(s, t)) {
             do {
@@ -115,6 +108,7 @@ struct tidal_flow {
         return max_flow;
     }
 
+    Flow get_flow(int e) const { return edge[2 * e].flow; }
     bool left_of_mincut(int u) const { return level[u] >= 0; }
 };
 
