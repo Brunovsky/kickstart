@@ -15,7 +15,7 @@ run: debug
 
 # Compile and run, optimized
 fast: perfm
-	@grep -svP $(TRACE) input.txt  ./solver | tee output.txt
+	@grep -svP $(TRACE) input.txt | ./solver | tee output.txt
 
 # Build and run under valgrind
 valgrind: debug
