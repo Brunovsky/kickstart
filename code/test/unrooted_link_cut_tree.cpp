@@ -1,7 +1,7 @@
 #include "../generators/graph_formats.hpp"
 #include "../struct/unrooted_link_cut_tree.hpp"
 #include "test_utils.hpp"
-#include "slow_tree.hpp"
+#include "lib/slow_tree.hpp"
 
 #pragma GCC diagnostic ignored "-Wpedantic"
 

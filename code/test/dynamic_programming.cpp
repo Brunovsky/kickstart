@@ -129,8 +129,8 @@ void unit_test_knapsack() {
 // Subsequences
 
 void unit_test_longest_common_subsequence() {
-    auto sub0 = longest_common_subsequence("AGCAT", "GAC");
-    auto sub1 = longest_common_subsequence("amputation", "spanking");
+    auto sub0 = longest_common_subsequence("AGCAT"s, "GAC"s);
+    auto sub1 = longest_common_subsequence("amputation"s, "spanking"s);
     assert(sub0.size() == 2); // GA, AC or GC
     assert(sub1 == "pain");
 }

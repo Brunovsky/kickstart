@@ -34,7 +34,7 @@ struct twosat_scc {
 
     void either(int u, int v) {
         u = u < 0 ? 2 * ~u : 2 * u + 1; // remove these lines if you want to input
-        v = v < 0 ? 2 * ~v : 2 * v + 1; // 2u and 2u+1 directly, with 2n being negated
+        v = v < 0 ? 2 * ~v : 2 * v + 1; // 2u and 2u+1 directly, with 2n+1 true, 2n false
         assert(0 <= u && u < 2 * N && 0 <= v && v < 2 * N);
         adj[u ^ 1].insert(v);
         adj[v ^ 1].insert(u);

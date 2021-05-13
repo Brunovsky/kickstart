@@ -6,37 +6,6 @@
 using namespace std;
 
 /**
- * Longest common subsequence of two strings a and b
- * O(ab) time, O(ab) memory to recover subsequence
- */
-string longest_common_subsequence(const string& a, const string& b) {
-    int A = a.size(), B = b.size();
-    vector<vector<int>> dp(A + 1, vector<int>(B + 1, 0));
-
-    for (int i = 0; i < A; i++) {
-        for (int j = 0; j < B; j++) {
-            if (a[i] == b[j])
-                dp[i + 1][j + 1] = 1 + dp[i][j];
-            else
-                dp[i + 1][j + 1] = max(dp[i + 1][j], dp[i][j + 1]);
-        }
-    }
-
-    string subsequence;
-    int i = A - 1, j = B - 1;
-    while (i >= 0 && j >= 0 && dp[i + 1][j + 1]) {
-        if (a[i] == b[j])
-            subsequence.push_back(a[i]), i--, j--;
-        else if (dp[i + 1][j + 1] == dp[i][j + 1])
-            i--;
-        else
-            j--;
-    }
-    reverse(begin(subsequence), end(subsequence));
-    return subsequence;
-}
-
-/**
  * Levenshtein (edit) distance from a to b
  * del: cost of deletion of one character (from a)
  * ins: cost of insertion of one character (from b into a)

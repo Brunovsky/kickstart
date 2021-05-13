@@ -39,4 +39,56 @@ vector<int> longest_increasing_subsequence(const vector<T>& nums, CmpFn&& cmp = 
     return subsequence;
 }
 
+/**
+ * Longest common subsequence of two strings a and b
+ * O(ab) time, O(ab) memory to recover subsequence
+ */
+template <typename Vec>
+int longest_common_subsequence_length(const Vec& a, const Vec& b) {
+    int A = a.size(), B = b.size();
+    vector<int> next(B + 1, 0), prev(B + 1, 0);
+
+    for (int i = 0; i < A; i++) {
+        for (int j = 0; j < B; j++) {
+            if (a[i] == b[j]) {
+                next[j + 1] = 1 + prev[j];
+            } else {
+                next[j + 1] = max(next[j], prev[j + 1]);
+            }
+        }
+        swap(next, prev);
+    }
+
+    return prev[B];
+}
+
+template <typename Vec>
+Vec longest_common_subsequence(const Vec& a, const Vec& b) {
+    int A = a.size(), B = b.size();
+    vector<vector<int>> dp(A + 1, vector<int>(B + 1, 0));
+
+    for (int i = 0; i < A; i++) {
+        for (int j = 0; j < B; j++) {
+            if (a[i] == b[j])
+                dp[i + 1][j + 1] = 1 + dp[i][j];
+            else
+                dp[i + 1][j + 1] = max(dp[i + 1][j], dp[i][j + 1]);
+        }
+    }
+
+    Vec subsequence;
+    int i = A - 1, j = B - 1;
+    while (i >= 0 && j >= 0 && dp[i + 1][j + 1]) {
+        if (a[i] == b[j]) {
+            subsequence.push_back(a[i]), i--, j--;
+        } else if (dp[i + 1][j + 1] == dp[i][j + 1]) {
+            i--;
+        } else {
+            j--;
+        }
+    }
+    reverse(begin(subsequence), end(subsequence));
+    return subsequence;
+}
+
 #endif // DYNAMIC_PROGRAMMING_HPP
