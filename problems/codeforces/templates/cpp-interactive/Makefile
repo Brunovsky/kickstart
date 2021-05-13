@@ -26,3 +26,6 @@ int: debug judge
 
 fastint: perfm judge
 	@run.sh --from-make
+
+plain: debug
+	@./solver | tee output.txt
