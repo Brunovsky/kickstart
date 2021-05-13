@@ -1,5 +1,5 @@
-#ifndef SIMPLEX_HPP
-#define SIMPLEX_HPP
+#ifndef REAL_SIMPLEX_HPP
+#define REAL_SIMPLEX_HPP
 
 #include <bits/stdc++.h>
 
@@ -11,19 +11,19 @@ enum LPState { LP_FEASIBLE = 0, LP_OPTIMAL = 1, LP_UNBOUNDED = 2, LP_IMPOSSIBLE 
 enum LPIneq { LP_LESS = 0, LP_EQUAL = 1, LP_GREATER = 2 };
 
 template <typename T>
-struct lp_constraint {
+struct real_lp_constraint {
     vector<T> v;
-    LPIneq ineq;
+    LPIneq ineq; // v·x [<= == >=] b
     T b;
 };
 
-template <typename T>
-struct simplex {
-    int N = 0, M = 0; // num variables / num constraints
-    vector<T> z;
-    vector<lp_constraint<T>> C;
+template <typename T = long double>
+struct real_simplex {
+    int N = 0, M = 0;                // num variables / num constraints
+    vector<T> z;                     // objetive function
+    vector<real_lp_constraint<T>> C; // list of constraints
 
-    explicit simplex(int N = 0) : N(N), z(N, 1) {}
+    explicit real_simplex(int N = 0) : N(N), z(N, 1) {}
 
     int add_var(T zcoef = 1) { return z.push_back(zcoef), N++; }
 
@@ -31,21 +31,21 @@ struct simplex {
         N = max(N, int(objective.size()));
         z = move(objective);
     }
-    void add_constraints(const vector<lp_constraint<T>>& constraints) {
+    void add_constraints(const vector<real_lp_constraint<T>>& constraints) {
         for (const auto& constraint : constraints) {
             add_constraint(constraint);
         }
     }
-    void add_constraint(lp_constraint<T> constraint) {
+    void add_constraint(real_lp_constraint<T> constraint) {
         N = max(N, int(constraint.v.size()));
         C.push_back(move(constraint)), M++;
     }
-
     void clear() {
         N = M = S = A = 0, z.clear(), C.clear();
         var_row.clear(), row_var.clear();
     }
 
+    static inline const T eps = 20 * numeric_limits<T>::epsilon();
     int S = 0, A = 0; // slack and artificial variable count
     vector<vector<T>> tab;
     vector<int> var_row, row_var;
@@ -94,15 +94,16 @@ struct simplex {
     LPState optimize() {
         int iterations = 0;
         do {
-            int r = 0, c = min_element(begin(tab[0]) + 1, end(tab[0])) - begin(tab[0]);
-            if (tab[0][c] >= 0) {
+            int r = 0;
+            int c = min_element(begin(tab[0]) + 1, end(tab[0])) - begin(tab[0]);
+            if (tab[0][c] >= -eps) {
                 return LP_OPTIMAL;
             }
             int bland = INT_MAX;
             T best;
             for (int i = 1; i <= M; i++) {
                 if (int j = row_var[i]; tab[i][c] > 0) {
-                    if (auto ratio = tab[i][0] / tab[i][c]; ratio >= 0) {
+                    if (auto ratio = tab[i][0] / tab[i][c]; ratio >= -eps) {
                         if (r == 0 || ratio < best || (ratio <= best && j < bland)) {
                             best = ratio, r = i, bland = j;
                         }
@@ -136,24 +137,26 @@ struct simplex {
             for (int j = 1, L = v.size(); j <= L; j++) {
                 tab[i][j] = v[j - 1];
             }
+            bool mul = false;
             if (int c = slackvar(i); c != 0) {
                 make_basic(i, s);
                 tab[i][s++] = T(c);
+                mul = c == -1;
             }
             if (int c = artifvar(i); c != 0) {
                 make_basic(i, a);
                 mul_add_row(0, i, -T(c));
                 tab[i][a++] = T(c);
+                mul = c == -1;
             }
-            if (int j = row_var[i]; j != 0 && tab[i][j] != 1) {
+            if (int j = row_var[i]; j != 0 && mul) {
                 mul_row(i, 1 / tab[i][j]);
             }
         }
 
         if (A > 0) {
             auto res = optimize();
-            if (res != LP_OPTIMAL || tab[0][0] != 0) {
-                assert(res == LP_OPTIMAL && tab[0][0] < 0); // internal bug or overflow
+            if (res != LP_OPTIMAL || tab[0][0] < -eps) {
                 return {LP_IMPOSSIBLE, tab[0][0]};
             }
 
@@ -167,9 +170,11 @@ struct simplex {
                 if (row_var[i])
                     continue;
                 for (int j = 1; j <= N + S; j++) {
-                    if (!var_row[j] && tab[i][j] != 0 && tab[i][0] / tab[i][j] >= 0) {
-                        pivot(i, j);
-                        break;
+                    if (!var_row[j] && abs(tab[i][j]) > eps) {
+                        if (auto ratio = tab[i][0] / tab[i][j]; ratio >= 0) {
+                            pivot(i, j);
+                            break;
+                        }
                     }
                 }
             }
@@ -202,9 +207,9 @@ struct simplex {
 
 template <typename T>
 tuple<LPState, T, vector<T>> solve_lp(const vector<T>& objective,
-                                      const vector<lp_constraint<T>>& A) {
+                                      const vector<real_lp_constraint<T>>& A) {
     int N = objective.size();
-    simplex<T> solver(N);
+    real_simplex<T> solver(N);
     solver.set_objective(objective);
     solver.set_constraints(A);
     auto [state, value] = solver.optimize();
@@ -215,4 +220,4 @@ tuple<LPState, T, vector<T>> solve_lp(const vector<T>& objective,
     }
 }
 
-#endif // SIMPLEX_HPP
+#endif // REAL_SIMPLEX_HPP

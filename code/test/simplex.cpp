@@ -1,8 +1,8 @@
 #include "../linear/simplex.hpp"
 
 #include "../formatting.hpp"
-#include "../linear/linear_system.hpp"
 #include "../linear/simplex_utils.hpp"
+#include "../linear/matrix.hpp"
 #include "../numeric/bfrac.hpp"
 #include "../numeric/frac.hpp"
 #include "../random.hpp"
@@ -49,11 +49,11 @@ auto generate_lp(int n, int le, int eq, int ge, LPState state = LP_OPTIMAL) {
     for (int i = 0; i < m; i++) {
         constraints[i].v = move(A.arr[i]);
         if (le > 0) {
-            le--, constraints[i].b = b[i] + d[i], constraints[i].type = LP_LESS;
-        } else if (eq > 0) {
-            eq--, constraints[i].b = b[i], constraints[i].type = LP_EQUAL;
+            le--, constraints[i].b = b[i] + d[i], constraints[i].ineq = LP_LESS;
         } else if (ge > 0) {
-            ge--, constraints[i].b = b[i] - d[i], constraints[i].type = LP_GREATER;
+            ge--, constraints[i].b = b[i] - d[i], constraints[i].ineq = LP_GREATER;
+        } else if (eq > 0) {
+            eq--, constraints[i].b = b[i], constraints[i].ineq = LP_EQUAL;
         } else {
             assert(false);
         }
@@ -80,7 +80,7 @@ auto compute_slack(const simplex<F>& smp, const vector<F>& x) {
             c += x[j] * smp.C[i].v[j];
         }
         slack[i] = smp.C[i].b - c;
-        assert(slack[i] >= 0 && smp.C[i].type == LP_LESS);
+        assert(slack[i] >= 0 && smp.C[i].ineq == LP_LESS);
     }
     return slack;
 }
@@ -108,9 +108,9 @@ void unit_test_simplex() {
     smp.clear();
     smp.set_objective({4, 3});
     smp.add_constraints({
-        {{6, 2}, 120, LP_LESS},
-        {{1, 4}, 100, LP_LESS},
-        {{5, 5}, 150, LP_LESS},
+        {{6, 2}, LP_LESS, 120},
+        {{1, 4}, LP_LESS, 100},
+        {{5, 5}, LP_LESS, 150},
     });
     auto [res, optimum] = smp.compute();
     print("optimum #1: {} {} | {}\n", res, optimum, to_string(smp.extract()));
@@ -119,9 +119,9 @@ void unit_test_simplex() {
     smp.clear();
     smp.set_objective({-1, 2, 1});
     smp.add_constraints({
-        {{2, 1, -1}, 2, LP_LESS},
-        {{2, -1, 5}, 6, LP_LESS},
-        {{4, 1, 1}, 6, LP_LESS},
+        {{2, 1, -1}, LP_LESS, 2},
+        {{2, -1, 5}, LP_LESS, 6},
+        {{4, 1, 1}, LP_LESS, 6},
     });
     tie(res, optimum) = smp.compute();
     print("optimum #2: {} {} | {}\n", res, optimum, to_string(smp.extract()));
@@ -130,9 +130,9 @@ void unit_test_simplex() {
     smp.clear();
     smp.set_objective({10, -32, 8, 5});
     smp.add_constraints({
-        {{4, 2, -5, 9}, 5, LP_LESS},
-        {{1, -1, 2, -1}, 3, LP_LESS},
-        {{F(5, 2), -5, -3, -2}, 0, LP_LESS},
+        {{4, 2, -5, 9}, LP_LESS, 5},
+        {{1, -1, 2, -1}, LP_LESS, 3},
+        {{F(5, 2), -5, -3, -2}, LP_LESS, 0},
     });
     tie(res, optimum) = smp.compute();
     print("optimum #3: {} {} | {}\n", res, optimum, to_string(smp.extract()));
@@ -141,17 +141,17 @@ void unit_test_simplex() {
     smp.clear();
     smp.set_objective({7, -19, 31, 11});
     smp.add_constraints({
-        {{4, 2, 8, -7}, 8, LP_LESS},
-        {{1, -1, 2, -1}, 3, LP_LESS},
-        {{3, 3, -1, 0}, 7, LP_LESS},
-        {{0, -4, 2, -3}, 8, LP_LESS},
-        {{-2, 7, -4, 9}, 13, LP_LESS},
+        {{4, 2, 8, -7}, LP_LESS, 8},
+        {{1, -1, 2, -1}, LP_LESS, 3},
+        {{3, 3, -1, 0}, LP_LESS, 7},
+        {{0, -4, 2, -3}, LP_LESS, 8},
+        {{-2, 7, -4, 9}, LP_LESS, 13},
     });
     tie(res, optimum) = smp.compute();
     print("optimum #4: {} {} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && optimum == F(829, 7));
 
-    smp.add_constraint({{4, 3, 2, 1}, 6, LP_LESS});
+    smp.add_constraint({{4, 3, 2, 1}, LP_LESS, 6});
     vector<F> x, sol = {0, 0, F(9, 4), F(3, 2), F(1, 2), 0, F(37, 4), 8, F(17, 2), 0};
 
     tie(res, optimum) = smp.compute();
@@ -161,10 +161,10 @@ void unit_test_simplex() {
     smp.clear();
     smp.set_objective({10, 8, 6, 4});
     smp.add_constraints({
-        {{-4, -7, -3, 2}, -10, LP_GREATER},
-        {{5, 4, 2, 1}, 25, LP_LESS},
-        {{-2, -3, 4, -7}, -15, LP_GREATER},
-        {{1, 3, 2, 4}, 6, LP_EQUAL},
+        {{-4, -7, -3, 2}, LP_GREATER, -10},
+        {{5, 4, 2, 1}, LP_LESS, 25},
+        {{-2, -3, 4, -7}, LP_GREATER, -15},
+        {{1, 3, 2, 4}, LP_EQUAL, 6},
     });
     tie(res, optimum) = smp.compute();
     print("optimum #6: {} {} | {}\n", res, optimum, to_string(smp.extract()));
@@ -173,10 +173,10 @@ void unit_test_simplex() {
     smp.clear();
     smp.set_objective({10, 8, 6, 4});
     smp.add_constraints({
-        {{-2, 6, -4, 2}, 3, LP_GREATER},
-        {{5, 4, 2, 1}, 25, LP_LESS},
-        {{-2, -3, 4, -7}, -15, LP_GREATER},
-        {{1, 3, 2, 4}, 6, LP_EQUAL},
+        {{-2, 6, -4, 2}, LP_GREATER, 3},
+        {{5, 4, 2, 1}, LP_LESS, 25},
+        {{-2, -3, 4, -7}, LP_GREATER, -15},
+        {{1, 3, 2, 4}, LP_EQUAL, 6},
     });
     tie(res, optimum) = smp.compute();
     print("optimum #7: {} {} | {}\n", res, optimum, to_string(smp.extract()));
@@ -185,12 +185,12 @@ void unit_test_simplex() {
     smp.clear();
     smp.set_objective({1, -2, 3, 4, -5, 6});
     smp.add_constraints({
-        {{1, 1, 1, 2, 2, 2}, 9, LP_LESS},
-        {{3, 3, -3, -1, 1, 1}, 13, LP_GREATER},
-        {{1, 2, 3, 4, 5, 6}, 17, LP_EQUAL},
-        {{2, -2, 3, -3, 4, -4}, 0, LP_EQUAL},
-        {{-7, 3, 2, 4, -1, -8}, -12, LP_LESS},
-        {{4, -2, -6, -11, 3, -2}, -4, LP_GREATER},
+        {{1, 1, 1, 2, 2, 2}, LP_LESS, 9},
+        {{3, 3, -3, -1, 1, 1}, LP_GREATER, 13},
+        {{1, 2, 3, 4, 5, 6}, LP_EQUAL, 17},
+        {{2, -2, 3, -3, 4, -4}, LP_EQUAL, 0},
+        {{-7, 3, 2, 4, -1, -8}, LP_LESS, -12},
+        {{4, -2, -6, -11, 3, -2}, LP_GREATER, -4},
     });
     tie(res, optimum) = smp.compute();
     print("optimum #8: {} {} | {}\n", res, optimum, to_string(smp.extract()));
@@ -199,9 +199,9 @@ void unit_test_simplex() {
     smp.clear();
     smp.set_objective({4, 3});
     smp.add_constraints({
-        {{6, 2}, 120, LP_LESS},
-        {{1, 4}, 100, LP_LESS},
-        {{5, 5}, 150, LP_LESS},
+        {{6, 2}, LP_LESS, 120},
+        {{1, 4}, LP_LESS, 100},
+        {{5, 5}, LP_LESS, 150},
     });
     smp = standardize(smp);
     tie(res, optimum) = smp.compute();
@@ -235,7 +235,8 @@ auto stress_test_standardize_run(int T, int n, int m) {
         auto x2 = std.extract();
         auto x3 = dual.extract();
 
-        bool ok = res == res2;
+        bool ok = true;
+        ok = ok && res == res2;
         ok = ok && is_feasible(smp, x1) && is_feasible(std, x1);
         ok = ok && is_feasible(smp, x2) && is_feasible(std, x2);
         if (res == LP_OPTIMAL) {
@@ -246,7 +247,6 @@ auto stress_test_standardize_run(int T, int n, int m) {
             ok = ok && res3 == LP_IMPOSSIBLE;
             unbounded++;
         }
-        good += ok;
 
         if (!ok) {
             print("optimums: {} {} / {} {} / {} {}\n", res, opt, res2, opt2, res3, opt3);
@@ -258,6 +258,8 @@ auto stress_test_standardize_run(int T, int n, int m) {
             print("{}\n", format_simplex(smp));
             print("{}\n", format_tableau(smp));
         }
+
+        good += ok;
     }
 
     clear_line();
@@ -318,9 +320,9 @@ void speed_test_simplex(int T = 2000, int lo = 2, int hi = 20, int max_sum = 30)
 int main() {
     RUN_SHORT(unit_test_simplex<frac>());
     RUN_SHORT(unit_test_simplex<bfrac>());
-    RUN_BLOCK(speed_test_simplex<frac>(2000, 2, 12, 15));
-    RUN_BLOCK(speed_test_simplex<bfrac>(100, 2, 25, 30));
     RUN_BLOCK(stress_test_standardize<frac>(200, 2, 12, 15));
     RUN_BLOCK(stress_test_standardize<bfrac>(10, 2, 25, 30));
+    RUN_BLOCK(speed_test_simplex<frac>(2000, 2, 12, 15));
+    RUN_BLOCK(speed_test_simplex<bfrac>(100, 2, 25, 30));
     return 0;
 }

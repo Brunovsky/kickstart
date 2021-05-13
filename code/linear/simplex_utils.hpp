@@ -8,7 +8,7 @@
 
 template <typename F>
 bool operator==(const lp_constraint<F>& a, const lp_constraint<F>& b) {
-    return a.b == b.b && a.v == b.v && a.type == b.type;
+    return a.b == b.b && a.v == b.v && a.ineq == b.ineq;
 }
 
 template <typename F>
@@ -21,9 +21,9 @@ string to_string(LPState state) {
     return ss[int(state)];
 }
 
-string to_string(LPConstraintType type) {
+string to_string(LPIneq ineq) {
     static const string ss[] = {"<=", "==", ">="};
-    return ss[int(type)];
+    return ss[int(ineq)];
 }
 
 template <typename F>
@@ -61,13 +61,13 @@ string format_simplex(const simplex<F>& smp) {
         }
         bwidth = max(bwidth, int(to_string(b).size()));
     }
-    static const vector<string> ineq{"<=", "==", ">="};
+    static const vector<string> ineq_names{"<=", "==", ">="};
     for (int i = 0; i < m; i++) {
-        const auto& [v, b, type] = smp.C[i];
+        const auto& [v, ineq, b] = smp.C[i];
         for (int j = 0; j < n; j++) {
             s += format(" {:>{}}·x{}", v[j], width[j], j + 1);
         }
-        s += format(" {} {:>{}}\n", ineq[int(type)], b, bwidth);
+        s += format(" {} {:>{}}\n", ineq_names[int(ineq)], b, bwidth);
     }
     return s;
 }
@@ -84,20 +84,20 @@ string export_simplex(const simplex<F>& smp) {
     vector<int> width(n, 0);
     int bwidth = 0;
     for (int i = 0; i < m; i++) {
-        const auto& [v, b, _] = smp.C[i];
+        const auto& [v, _, b] = smp.C[i];
         for (int j = 0; j < n; j++) {
             width[j] = max(width[j], 1 + int(to_string(abs(v[j])).size()));
         }
         bwidth = max(bwidth, int(to_string(b).size()));
     }
-    static const vector<string> ineq{"<=", "=", ">="};
+    static const vector<string> ineq_names{"<=", "=", ">="};
     for (int i = 0; i < m; i++) {
-        const auto& [v, b, type] = smp.C[i];
+        const auto& [v, ineq, b] = smp.C[i];
         for (int j = 0; j < n; j++) {
             auto cell = format("{}{}", plus(j, v[j]), v[j]);
             s += format(" {:>{}}x{}", cell, width[j], j + 1);
         }
-        s += format(" {} {:>{}}\n", ineq[int(type)], b, bwidth);
+        s += format(" {} {:>{}}\n", ineq_names[int(ineq)], b, bwidth);
     }
     return s;
 }
@@ -106,9 +106,10 @@ template <typename F>
 string format_tableau(const simplex<F>& smp) {
     int n = smp.N, m = smp.M, s = smp.S, a = smp.A;
     const auto& tab = smp.tab;
+    int L = tab[0].size();
     vector<string> labels(m + 1);
     vector<string> rows(m + 1);
-    vector<size_t> width(tab.m, 0);
+    vector<size_t> width(L, 0);
     size_t label_width = 0;
     string sep_row;
 
@@ -120,7 +121,7 @@ string format_tableau(const simplex<F>& smp) {
     };
 
     for (int i = 1; i <= m; i++) {
-        int v = smp.row_to_var[i];
+        int v = smp.row_var[i];
         if (1 <= v && v <= n)
             labels[i] = format("x{}", v);
         else if (n < v && v <= n + s)
@@ -131,7 +132,7 @@ string format_tableau(const simplex<F>& smp) {
     }
 
     for (int i = 0; i <= m; i++) {
-        for (int j = 0; j < tab.m; j++) {
+        for (int j = 0; j < L; j++) {
             width[j] = max(width[j], to_string(tab[i][j]).size());
         }
         rows[i] = format("{:>{}}", labels[i], label_width);
@@ -148,7 +149,7 @@ string format_tableau(const simplex<F>& smp) {
             rows[i] += format("  {:>{}}", tab[i][j], width[j]);
         }
         rows[i] += " │";
-        for (int j = n + s + 1; j < tab.m; j++) {
+        for (int j = n + s + 1; j < L; j++) {
             rows[i] += format("  {:>{}}", tab[i][j], width[j]);
         }
     }
@@ -161,7 +162,7 @@ string format_tableau(const simplex<F>& smp) {
         sep_row += repeat(width[j] + 2, "─");
     }
     sep_row += "─┼";
-    for (int j = n + s + 1; j < tab.m; j++) {
+    for (int j = n + s + 1; j < L; j++) {
         sep_row += repeat(width[j] + 2, "─");
     }
 
@@ -176,14 +177,14 @@ auto standardize(const simplex<F>& lp) {
     smp.set_objective(lp.z);
     for (int i = 0; i < lp.M; i++) {
         auto c = lp.C[i];
-        if (c.type == LP_LESS) {
+        if (c.ineq == LP_LESS) {
             smp.add_constraint(c);
         }
-        if (c.type == LP_EQUAL) {
-            c.type = LP_LESS, smp.add_constraint(c), c.type = LP_GREATER;
+        if (c.ineq == LP_EQUAL) {
+            c.ineq = LP_LESS, smp.add_constraint(c), c.ineq = LP_GREATER;
         }
-        if (c.type == LP_GREATER) {
-            c.type = LP_LESS;
+        if (c.ineq == LP_GREATER) {
+            c.ineq = LP_LESS;
             c.b = -c.b;
             for (auto& f : c.v)
                 f = -f;
@@ -203,7 +204,7 @@ auto make_dual(const simplex<F>& primal) {
 
     for (int i = 0; i < m; i++) {
         z[i] = -primal.C[i].b;
-        assert(primal.C[i].type == LP_LESS);
+        assert(primal.C[i].ineq == LP_LESS);
     }
     for (int j = 0; j < n; j++) {
         C[j].v.resize(m);
@@ -211,7 +212,7 @@ auto make_dual(const simplex<F>& primal) {
             C[j].v[i] = -primal.C[i].v[j];
         }
         C[j].b = -primal.z[j];
-        C[j].type = LP_LESS;
+        C[j].ineq = LP_LESS;
     }
     dual.set_objective(z);
     dual.add_constraints(C);
@@ -225,8 +226,8 @@ bool is_feasible(const lp_constraint<F>& c, const vector<F>& x) {
     for (int i = 0; i < int(x.size()); i++) {
         a += c.v[i] * x[i];
     }
-    return (c.type == LP_LESS && a <= c.b) || (c.type == LP_EQUAL && a == c.b) ||
-           (c.type == LP_GREATER && a >= c.b);
+    return (c.ineq == LP_LESS && a <= c.b) || (c.ineq == LP_EQUAL && a == c.b) ||
+           (c.ineq == LP_GREATER && a >= c.b);
 }
 
 template <typename F>

@@ -126,4 +126,18 @@ struct hash<frac> {
 
 } // namespace std
 
+namespace std {
+
+template <>
+struct numeric_limits<frac> : numeric_limits<long> {
+    static constexpr bool is_specialized = true, is_integer = false, has_infinity = true;
+    static constexpr frac min() { return frac(1, LONG_MAX); }
+    static constexpr frac max() { return frac(LONG_MAX, 1); }
+    static constexpr frac lowest() { return frac(LONG_MIN, 1); }
+    static constexpr frac epsilon() { return 0; }
+    static constexpr frac infinity() { return frac(1, 0); }
+};
+
+} // namespace std
+
 #endif // FRAC_HPP
