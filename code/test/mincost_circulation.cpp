@@ -7,6 +7,14 @@
 
 const string DATASET_FILE = "datasets/mincost_circulation.txt";
 
+template <typename MCF, typename Caps, typename Costs>
+void add_edges(MCF& mcc, const edges_t& g, const Caps& caps, const Costs& costs) {
+    int E = g.size();
+    for (int i = 0; i < E; i++) {
+        mcc.add(g[i][0], g[i][1], caps[i], costs[i]);
+    }
+}
+
 struct mincost_circulation_dataset_test_t {
     string name, comment;
     int V, E;
@@ -37,7 +45,8 @@ struct mincost_circulation_dataset_test_t {
     }
 
     void run() const {
-        mincost_push_relabel mcc(V, g, cap, cost, supply);
+        mincost_push_relabel mcc(V, supply);
+        add_edges(mcc, g, cap, cost);
         bool ok = mcc.feasible();
         if (ok) {
             auto mincost = mcc.mincost_circulation();

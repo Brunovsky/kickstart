@@ -1,7 +1,7 @@
 #ifndef HULL3D_UTILS_HPP
 #define HULL3D_UTILS_HPP
 
-#include "hash.hpp"
+#include "../hash.hpp"
 #include "point3d.hpp" // Point3d, Plane
 
 // *****

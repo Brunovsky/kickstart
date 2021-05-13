@@ -23,9 +23,9 @@ struct dinitz_flow {
 
     explicit dinitz_flow(int V) : V(V), res(V) {}
 
-    void add(int u, int v, Flow c) {
-        assert(0 <= u && u < V && 0 <= v && v < V && u != v && c > 0);
-        res[u].push_back(E++), edge.push_back({{u, v}, c, 0});
+    void add(int u, int v, Flow capacity) {
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0);
+        res[u].push_back(E++), edge.push_back({{u, v}, capacity, 0});
         res[v].push_back(E++), edge.push_back({{v, u}, 0, 0});
     }
 

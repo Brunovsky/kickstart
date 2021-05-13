@@ -1,11 +1,9 @@
 #ifndef MINCOST_PUSH_RELABEL_HPP
 #define MINCOST_PUSH_RELABEL_HPP
 
-#include "dinitz_flow.hpp"
+#include "push_relabel.hpp"
 
 // *****
-
-using edges_t = vector<array<int, 2>>;
 
 /**
  * Cost scaling push relabel for general mincost single-commodity flow
@@ -16,112 +14,119 @@ using edges_t = vector<array<int, 2>>;
  * Uses push_relabel from maximum_flow.hpp for feasibility checking.
  * The initial maxflow computation is not required.
  */
+template <typename Flow = long, typename Cost = long, typename FlowSum = Flow,
+          typename CostSum = Cost>
 struct mincost_push_relabel {
-    int V, E;
-    edges_t g;
-    vector<vector<int>> adj, rev, res;
-    vector<int> source, target;
-    vector<long> supply, flow, cap, cost;
+    struct Edge {
+        int node[2];
+        Flow cap, flow = 0;
+        Cost cost;
+    };
+    int V, E = 0;
+    vector<vector<int>> res;
+    vector<Edge> edge;
+    vector<FlowSum> supply;
 
-    explicit mincost_push_relabel(int V = 0) : V(V), adj(V), rev(V), res(V), supply(V) {}
+    explicit mincost_push_relabel(int V = 0) : V(V), res(V) {}
+    mincost_push_relabel(int V, vector<FlowSum> sup) : V(V), res(V), supply(move(sup)) {}
 
-    mincost_push_relabel(int V, const edges_t& g, const vector<long>& caps,
-                         const vector<long>& costs, const vector<long>& supplies)
-        : V(V), E(g.size()), g(g), adj(V), rev(V), res(V), source(2 * E), target(2 * E),
-          supply(supplies), flow(2 * E, 0), cap(2 * E), cost(2 * E) {
-        for (int e = 0; e < E; e++) {
-            auto [u, v] = g[e];
-            auto c = caps[e];
-            auto w = costs[e];
-            int uv = 2 * e, vu = 2 * e + 1;
-            assert(w < inf / (V + 1));
-            adj[u].push_back(uv), adj[v].push_back(vu);
-            res[u].push_back(uv), res[v].push_back(vu);
-            source[uv] = u, source[vu] = v;
-            target[uv] = v, target[vu] = u;
-            cap[uv] = c, cap[vu] = 0;
-            cost[uv] = w, cost[vu] = -w;
-        }
+    void add(int u, int v, Flow capacity, Cost cost) {
+        assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0 && cost >= 0);
+        res[u].push_back(E++), edge.push_back({{u, v}, capacity, 0, cost});
+        res[v].push_back(E++), edge.push_back({{v, u}, 0, 0, -cost});
     }
 
-    int other(int e, int u) const { return u == target[e] ? source[e] : target[e]; }
-
-    bool balanced() const { return accumulate(begin(supply), end(supply), 0L) == 0; }
+    bool balanced() const {
+        auto total = accumulate(begin(supply), end(supply), FlowSum(0));
+        return total == 0;
+    }
 
     /**
      * Reduce to unweighed max flow to verify feasibility.
      * The core algorithm asserts feasibility for simplicity,
-     * so call this first if in doubt.
+     * so call this first if in doubt. Otherwise just delete it.
      */
     bool feasible() {
-        long total_supply = 0, total_demand = 0;
-        for (int u = 0; u < V; u++)
-            if (supply[u] > 0)
+        FlowSum total_supply = 0, total_demand = 0;
+        for (int u = 0; u < V; u++) {
+            if (supply[u] > 0) {
                 total_supply += supply[u];
-            else if (supply[u] < 0)
+            } else if (supply[u] < 0) {
                 total_demand += -supply[u];
-
-        if (total_supply != total_demand)
+            }
+        }
+        if (total_supply != total_demand) {
             return false;
+        }
 
-        edges_t g;
-        vector<long> caps;
-        for (int e = 0; e < 2 * E; e += 2)
-            g.push_back({source[e], target[e]}), caps.push_back(cap[e]);
-
+        push_relabel<Flow, FlowSum> mf(V + 2);
         int s = V, t = V + 1;
-        for (int u = 0; u < V; u++)
-            if (supply[u] > 0)
-                g.push_back({s, u}), caps.push_back(supply[u]);
-            else if (supply[u] < 0)
-                g.push_back({u, t}), caps.push_back(-supply[u]);
 
-        dinitz_flow mf(V + 2, g, caps);
-        long maxflow = mf.maxflow(s, t);
+        for (int e = 0; e < E; e += 2) {
+            auto [u, v] = edge[e].node;
+            mf.add(u, v, edge[e].cap);
+        }
+        for (int u = 0; u < V; u++) {
+            if (supply[u] > 0) {
+                mf.add(s, u, supply[u]);
+            } else if (supply[u] < 0) {
+                mf.add(u, t, -supply[u]);
+            }
+        }
+
+        auto maxflow = mf.maxflow(s, t);
         return maxflow == total_supply;
     }
 
-    vector<long> pi, excess;
+    vector<CostSum> pi;
+    vector<FlowSum> excess;
     vector<int> arc;
     queue<int> active;
-    long epsilon = 0;
-    static inline constexpr long inf = LONG_MAX / 3;
+    Cost epsilon = 0; // scaling
+    static inline constexpr CostSum cninf = numeric_limits<CostSum>::min() / 3;
 
-    long reduced_cost(int e) const { return cost[e] + pi[source[e]] - pi[target[e]]; }
-    bool admissible(int e) const { return flow[e] < cap[e] && reduced_cost(e) < 0; }
-
+    CostSum reduced_cost(int e) const {
+        auto [u, v] = edge[e].node;
+        return edge[e].cost + pi[u] - pi[v];
+    }
+    bool admissible(int e) const {
+        return edge[e].flow < edge[e].cap && reduced_cost(e) < 0;
+    }
     void scale() {
-        for (int e = 0; e < 2 * E; e++)
-            cost[e] *= V + 1;
+        for (int e = 0; e < E; e++) {
+            edge[e].cost *= V + 1;
+        }
     }
-
     void unscale() {
-        for (int e = 0; e < 2 * E; e++)
-            cost[e] /= V + 1;
+        for (int e = 0; e < E; e++) {
+            edge[e].cost /= V + 1;
+        }
     }
 
-    void push(int e) { push(e, min(excess[source[e]], cap[e] - flow[e])); }
-    void push(int e, long send) {
-        int u = source[e], v = target[e];
+    void push(int e) {
+        push(e, min(excess[edge[e].node[0]], edge[e].cap - edge[e].flow));
+    }
+    void push(int e, Flow send) {
+        auto [u, v] = edge[e].node;
         assert(send > 0);
         if (excess[v] <= 0 && excess[v] + send > 0) {
             active.push(v);
         }
-        flow[e] += send;
-        flow[e ^ 1] -= send;
+        edge[e].flow += send;
+        edge[e ^ 1].flow -= send;
         excess[u] -= send;
         excess[v] += send;
     }
 
     void relabel(int u) {
-        long good = pi[u] - epsilon;
-        long pmax = LONG_MIN;
+        auto good = pi[u] - epsilon;
+        auto pmax = cninf;
         int vsize = res[u].size();
         for (int i = 0; i < vsize; i++) {
-            int e = res[u][i], v = target[e];
-            if (flow[e] < cap[e]) {
-                if (pmax < pi[v] - cost[e]) {
-                    pmax = pi[v] - cost[e];
+            int e = res[u][i], v = edge[e].node[1];
+            if (edge[e].flow < edge[e].cap) {
+                if (pmax < pi[v] - edge[e].cost) {
+                    pmax = pi[v] - edge[e].cost;
                     if (good < pmax) {
                         pi[u] = good;
                         arc[u] = i;
@@ -130,7 +135,7 @@ struct mincost_push_relabel {
                 }
             }
         }
-        assert(pmax > LONG_MIN); // oops, infeasible!
+        assert(pmax > cninf); // oops, infeasible!
         pi[u] = pmax - epsilon;
         arc[u] = 0;
     }
@@ -152,20 +157,25 @@ struct mincost_push_relabel {
 
     void init_excess() {
         excess = supply;
-        for (int u = 0; u < V; u++)
-            if (excess[u] > 0)
+        for (int u = 0; u < V; u++) {
+            if (excess[u] > 0) {
                 active.push(u);
+            }
+        }
     }
 
     void refine() {
         // saturate admissible edges and init active nodes
-        for (int e = 0; e < 2 * E; e++)
-            if (admissible(e))
-                push(e, cap[e] - flow[e]);
+        for (int e = 0; e < E; e++) {
+            if (admissible(e)) {
+                push(e, edge[e].cap - edge[e].flow);
+            }
+        }
 
         // there are no admissible arcs, every active node must be relabeled
-        for (int u = 0; u < V; u++)
+        for (int u = 0; u < V; u++) {
             arc[u] = res[u].size();
+        }
 
         while (!active.empty()) {
             int u = active.front();
@@ -176,7 +186,10 @@ struct mincost_push_relabel {
 
     void optimize() {
         constexpr long alpha = 5;
-        long C = *max_element(begin(cost), end(cost));
+        Cost C = 0;
+        for (int e = 0; e < E; e++) {
+            C = max(C, edge[e].cost);
+        }
         epsilon = (V + 1) * C;
         do {
             epsilon = max(epsilon / alpha, 1L);
@@ -184,20 +197,22 @@ struct mincost_push_relabel {
         } while (epsilon != 1);
     }
 
-    long mincost_circulation() {
+    CostSum mincost_circulation() {
         pi.assign(V, 0);
         arc.assign(V, 0);
-        flow.assign(2 * E, 0);
         init_excess();
         scale();
         optimize();
         unscale();
 
-        long total_cost = 0;
-        for (int e = 0; e < 2 * E; e += 2)
-            total_cost += flow[e] * cost[e];
+        CostSum total_cost = 0;
+        for (int e = 0; e < E; e += 2) {
+            total_cost += FlowSum(edge[e].flow) * CostSum(edge[e].cost);
+        }
         return total_cost;
     }
+
+    Flow get_flow(int e) const { return edge[2 * e].flow; }
 };
 
 #endif // MINCOST_PUSH_RELABEL_HPP

@@ -1,7 +1,7 @@
 #ifndef BIGINT_HPP
 #define BIGINT_HPP
 
-#include "hash.hpp" // if necessary
+#include "../hash.hpp" // if necessary
 
 static_assert(0xffffffff == UINT_MAX);
 static_assert(sizeof(uint) == 4 && sizeof(ulong) == 8, "Unexpected integer sizes");

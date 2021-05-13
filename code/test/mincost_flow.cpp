@@ -7,6 +7,14 @@
 
 const string DATASET_FILE = "datasets/mincost_flow.txt";
 
+template <typename MCF, typename Caps, typename Costs>
+void add_edges(MCF& mcf, const edges_t& g, const Caps& caps, const Costs& costs) {
+    int E = g.size();
+    for (int i = 0; i < E; i++) {
+        mcf.add(g[i][0], g[i][1], caps[i], costs[i]);
+    }
+}
+
 /**
  * # Comment
  * # Comment
@@ -56,11 +64,12 @@ struct flow_dataset_test_t {
     }
 
     void run() const {
-        mincost_edmonds_karp mek(V, g, cap, cost);
+        mincost_edmonds_karp mek(V);
+        add_edges(mek, g, cap, cost);
         for (int i = 0; i < T; i++) {
             auto F = thresholds[i];
             auto [f0, c0] = mek.mincost_flow(s, t, F);
-            mek.flow.assign(2 * E, 0);
+            mek.clear_flow();
             if (c0 != ans[i]) {
                 print(" {} -- V={} E={} -- threshold {} (F={})\n", name, V, E, i, F);
                 print("   expected: {:>12} flow | {:>12} cost\n", F, ans[i]);
@@ -95,11 +104,12 @@ void speed_test_mincost_flow_run(flow_network_kind i, int S, int T) {
     for (int t = 0; t < T; t++) {
         print_progress(t, T, flow_kind_name[i]);
         auto network = generate_flow_network(i, S);
-        add_cap_flow_network(network, 100'000'000'000);
-        add_cost_flow_network(network, 100'000'000);
+        add_cap_flow_network(network, 1, 100'000'000'000);
+        add_cost_flow_network(network, 1, 100'000'000);
 
         START(edmonds_karp);
-        mincost_edmonds_karp g0(network.V, network.g, network.cap, network.cost);
+        mincost_edmonds_karp g0(network.V);
+        add_edges(g0, network.g, network.cap, network.cost);
         g0.mincost_flow(network.s, network.t);
         ADD_TIME(edmonds_karp);
     }
