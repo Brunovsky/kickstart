@@ -22,18 +22,18 @@ using edges_t = vector<array<int, 2>>;
 // *****
 
 int different(int u, int v1, int v2) {
-    assert(v1 <= v2 && (v1 != u || v2 != u));
-    if (v1 == v2)
+    assert(v1 < v2 && (v1 != u || v1 + 1 < v2));
+    if (v1 + 1 == v2)
         return v1;
-    intd dist(v1, v2 - 1);
+    intd dist(v1, v2 - 2);
     int v = dist(mt);
     return v + (v >= u);
 }
 
 auto different(int v1, int v2) {
-    assert(v1 < v2);
-    int u = intd(v1, v2)(mt);
-    int v = intd(v1, v2 - 1)(mt);
+    assert(v1 + 1 < v2);
+    int u = intd(v1, v2 - 1)(mt);
+    int v = intd(v1, v2 - 2)(mt);
     return array<int, 2>{u, v + (v >= u)};
 }
 
@@ -355,7 +355,7 @@ auto supply_sample(int n, int positives, int negatives, I sum, I m = 1) {
     vector<I> vec(n, 0);
     auto pos = partition_sample(sum, positives, m);
     auto neg = partition_sample(sum, negatives, m);
-    auto idx = int_sample(positives + negatives, 0, n - 1);
+    auto idx = int_sample(positives + negatives, 0, n);
     shuffle(begin(idx), end(idx), mt);
     for (int i = 0; i < positives; i++)
         vec[idx[i]] = pos[i];

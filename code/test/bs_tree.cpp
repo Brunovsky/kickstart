@@ -7,8 +7,6 @@
 
 using namespace std;
 
-// *****
-
 #define ALL(set)  begin(set), end(set)
 #define RALL(set) rbegin(set), rend(set)
 

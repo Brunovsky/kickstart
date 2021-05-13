@@ -5,8 +5,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 constexpr uint U = UINT_MAX;         // 0xffffffff
 constexpr uint M = UINT_MAX / 2 + 1; // 0x80000000
 

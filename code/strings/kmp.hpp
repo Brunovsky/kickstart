@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Knuth-Morris-Pratt
  * https://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm

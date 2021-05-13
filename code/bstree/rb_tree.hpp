@@ -5,8 +5,6 @@
 #include <functional>
 #include <limits>
 
-// *****
-
 /**
  * RB rotation notes
  *

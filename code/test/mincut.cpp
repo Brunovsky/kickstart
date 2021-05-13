@@ -3,8 +3,6 @@
 #include "../formatting.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 // clang-format off
 
 void unit_test_stoer_wagner() {

@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 struct disjoint_set {
     int N, S;
     vector<int> next, size;

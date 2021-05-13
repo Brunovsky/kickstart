@@ -4,8 +4,6 @@
 #include "../hash.hpp"
 #include "../linear/matrix.hpp"
 
-// *****
-
 using edges_t = vector<array<int, 2>>;
 
 /**

@@ -4,8 +4,6 @@
 #include "../hash.hpp"
 #include "../random.hpp"
 
-// *****
-
 using edges_t = vector<array<int, 2>>;
 
 edges_t degree_sample(int n, const vector<int>& k) {

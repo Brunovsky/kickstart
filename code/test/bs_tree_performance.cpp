@@ -7,8 +7,6 @@
 
 using namespace std;
 
-// *****
-
 template struct bs_set<int>;
 template struct bs_set<int, greater<int>>;
 template struct bs_multiset<int>;

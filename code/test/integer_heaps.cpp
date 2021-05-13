@@ -5,8 +5,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 template <typename Compare>
 ostream& operator<<(ostream& out, pairing_int_heap<Compare> heap) {
     vector<int> nums;

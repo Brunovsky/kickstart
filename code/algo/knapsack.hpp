@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Determine whether there exists a subset of nums with the given sum.
  * O(ns) time, where s is the number of unique sums.

@@ -1,23 +1,17 @@
 #include "../../code/hacking.hpp"
 
-// *****
-
 int T = 100;
+vector<long> input;
 
 int main(int argc, char** argv) {
-    if (argc >= 2) // seed mt
-        mt.seed(stoull(argv[1])), argc--, argv++;
-    if (argc >= 2) // read batch size
-        T = stoi(argv[1]), argc--, argv++;
+    // if (argc >= 2) mt.seed(stoull(argv[1])), argc--, argv++; // seed mt
+    // if (argc >= 2) T = stoi(argv[1]), argc--, argv++; // read a batch size
+    // while (argc >= 2) input.push_back(stoll(argv[1])), argc--, argv++; // read numbers
 
-    vector<long long> v;
-    while (argc >= 2)
-        v.push_back(stoll(argv[1])), argc--, argv++;
-
-    ofstream ans("answer.txt");
+    // ofstream ans("answer.txt");
     putln(T);
     for (int t = 1; t <= T; t++) {
-        putln("::hack", t);
+        // putln("::hack", t);
         int N = randint(1, 5);
         putln(N);
         for (int i = 0; i < N; i++) {

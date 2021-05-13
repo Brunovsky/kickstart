@@ -8,8 +8,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 template <typename F>
 string f_name;
 template <>

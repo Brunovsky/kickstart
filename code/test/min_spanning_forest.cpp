@@ -2,8 +2,6 @@
 
 #include "test_utils.hpp"
 
-// *****
-
 void unit_test_min_spanning_forest() {
     edges_t g;
     vector<long> weight;

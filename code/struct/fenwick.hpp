@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * 1-indexed fenwick tree
  */

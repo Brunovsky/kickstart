@@ -8,9 +8,6 @@
 #include "test_utils.hpp"
 
 namespace fs = std::filesystem;
-
-// *****
-
 const string DATASET_FOLDER = "datasets/hull3d";
 
 inline namespace {

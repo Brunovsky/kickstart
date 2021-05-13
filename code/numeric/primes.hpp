@@ -3,8 +3,6 @@
 
 #include "math.hpp"
 
-// *****
-
 /**
  * Compute the jacobi (a/b) = ±1 (from quadratic reciprocity)
  * Complexity: O(log ab)

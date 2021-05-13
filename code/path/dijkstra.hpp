@@ -3,8 +3,6 @@
 
 #include "../struct/integer_heaps.hpp" // pairing_int_heap
 
-// *****
-
 /**
  * Implementation for directed graphs
  * For undirected graphs insert edges both ways

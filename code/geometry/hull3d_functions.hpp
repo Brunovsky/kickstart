@@ -3,8 +3,6 @@
 
 #include "hull3d.hpp"
 
-// *****
-
 /**
  * Rotate the faces in the hull so that the lowest index vertex is at the beginning.
  * Then sort all of the faces lexicographically.

@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Thread pool that can be used by multiple threads; jobs processed in FIFO order.
  */

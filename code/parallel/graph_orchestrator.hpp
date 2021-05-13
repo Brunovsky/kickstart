@@ -4,8 +4,6 @@
 #include "priority_thread_pool.hpp" // priority_thread_pool
 #include "spinlock.hpp"             // concurrent_queue
 
-// *****
-
 /**
  * Check fn_orchestrator.hpp for an explanation of what an orchestrator does
  *

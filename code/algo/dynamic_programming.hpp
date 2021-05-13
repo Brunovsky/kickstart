@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Longest increasing subsequence of one list
  * O(n log n) time, O(n) space

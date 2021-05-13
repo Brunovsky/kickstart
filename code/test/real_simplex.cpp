@@ -5,8 +5,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 /**
  * A common implementation for both simplex turned out to be way too annoying to
  * implement and put a considerable burden on copy-pasters, so we duplicate the code.

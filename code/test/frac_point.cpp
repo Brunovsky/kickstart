@@ -2,8 +2,6 @@
 #include "../geometry/frac/frac_point3d.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 template struct Point2d<frac>;
 template struct Point2d<bfrac>;
 template struct Point2d<int64_t>;

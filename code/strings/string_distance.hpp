@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Longest common subsequence of two strings a and b
  * O(ab) time, O(ab) memory to recover subsequence
@@ -36,34 +34,6 @@ string longest_common_subsequence(const string& a, const string& b) {
     }
     reverse(begin(subsequence), end(subsequence));
     return subsequence;
-}
-
-/**
- * Longest common substring of two strings a and b
- * O(ab) time, O(b) memory
- */
-string longest_common_substring(const string& a, const string& b) {
-    int A = a.size(), B = b.size();
-    vector<int> prev(B + 1, 0);
-    vector<int> next(B + 1, 0);
-
-    int L = 0;
-    string substring;
-
-    for (int i = 0; i < A; i++) {
-        for (int j = 0; j < B; j++) {
-            if (a[i] == b[j]) {
-                next[j + 1] = 1 + prev[j];
-                if (L < next[j + 1]) {
-                    L = next[j + 1];
-                    substring = a.substr(i - L, L);
-                }
-            }
-        }
-        swap(prev, next);
-    }
-
-    return substring;
 }
 
 /**
@@ -128,9 +98,6 @@ int simple_damerau_distance(const string& a, const string& b, int del, int ins, 
             }
         }
 
-        auto prev_next = next;
-        auto prev_prev = prev;
-        auto prev_tran = tran;
         swap(tran, next);
         swap(prev, tran);
     }
@@ -154,9 +121,11 @@ int damerau_distance(const string& a, const string& b, int del, int ins, int sub
 
     const int inf = (A + B) * max(max(del, ins), max(sub, tra));
     fill(begin(dp[0]), end(dp[0]), inf);
+
     dp[1][0] = inf;
-    for (int j = 0; j < B; j++)
+    for (int j = 0; j < B; j++) {
         dp[1][j + 2] = (j + 1) * ins;
+    }
 
     for (int i = 0; i < A; i++) {
         dp[i + 2][0] = inf;

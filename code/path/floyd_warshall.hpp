@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Implementation for directed graphs
  * For undirected graphs insert edges both ways

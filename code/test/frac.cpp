@@ -6,8 +6,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 void unit_test_gcd() {
     assert(frac(93, 31) == frac(3, 1));
     assert(frac(7, -19) == frac(-7, 19));

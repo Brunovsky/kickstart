@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 long intpow(long b, long e) {
     long power = 1;
     while (e > 0) {

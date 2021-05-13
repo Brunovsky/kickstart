@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 enum LPState { LP_FEASIBLE = 0, LP_OPTIMAL = 1, LP_UNBOUNDED = 2, LP_IMPOSSIBLE = 3 };
 enum LPIneq { LP_LESS = 0, LP_EQUAL = 1, LP_GREATER = 2 };
 

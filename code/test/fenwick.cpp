@@ -4,8 +4,6 @@
 
 #include "test_utils.hpp"
 
-// *****
-
 void unit_test_1d() {
     fenwick<int> fw(100);
 

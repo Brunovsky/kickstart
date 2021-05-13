@@ -4,10 +4,11 @@
 
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
-using namespace __gnu_pbds;
+namespace gnu = __gnu_pbds;
 
-using ordered_set =
-    tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update>;
+template <typename T, typename CompareFn = less<T>>
+using ordered_set = gnu::tree<T, gnu::null_type, CompareFn, gnu::rb_tree_tag,
+                              gnu::tree_order_statistics_node_update>;
 
 /**
  * An implementation of common link-cut tree mechanics using trivial data structures,
@@ -18,7 +19,7 @@ struct slow_tree {
     bool unrooted = false;
     vector<long> val;
     vector<int> parent;
-    ordered_set roots, non_roots;
+    ordered_set<int> roots, non_roots;
     vector<unordered_set<int>> children;
 
     slow_tree(int N, bool unrooted = false)
@@ -60,13 +61,13 @@ struct slow_tree {
         int r = findroot(random_non_root());
         auto subtree = get_subtree(r);
         int S = subtree.size();
-        auto [a, b] = different(0, S - 1);
+        auto [a, b] = different(0, S);
         return {*next(begin(subtree), a), *next(begin(subtree), b)};
     }
 
     array<int, 2> random_unconnected() {
         assert(S > 1);
-        auto [i, j] = different(0, S - 1);
+        auto [i, j] = different(0, S);
         int u = *roots.find_by_order(i), v = *roots.find_by_order(j);
         return {random_in_subtree(u), random_in_subtree(v)};
     }

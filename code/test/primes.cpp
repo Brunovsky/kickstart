@@ -4,8 +4,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 void speed_test_sieves() {
     for (int N : {31'600, 100'000, 316'000, 1'000'000, 3'160'000, 10'000'000, 31'600'000,
                   100'000'000}) {

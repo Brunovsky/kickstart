@@ -6,8 +6,6 @@
 #include "../generators/flow.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 template <typename MF, typename Caps>
 void add_edges(MF& mf, const edges_t& g, const Caps& caps) {
     int E = g.size();

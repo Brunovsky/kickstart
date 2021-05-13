@@ -6,8 +6,6 @@
 #include "../numeric/partitions.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 using vi = vector<int>;
 unordered_map<vi, vector<vi>> partitions_memo;
 

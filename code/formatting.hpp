@@ -9,8 +9,6 @@ using namespace std;
 using fmt::print;
 using fmt::format;
 
-// *****
-
 // cerr << DV(a) << DV(b) << DV(c) << endl;
 #define DV(a) (" [" #a "=" + to_string(a) + "]")
 
@@ -32,14 +30,6 @@ string to_string(const array<T, 2>& uv) {
 template <typename T, size_t N>
 ostream& operator<<(ostream& out, const array<T, N>& v) {
     return out << to_string(v);
-}
-
-template <typename T, size_t N>
-string to_string(const array<T, N>& v) {
-    string s;
-    for (const auto& el : v)
-        s += to_string(el) + " ";
-    return s.empty() ? s : (s.pop_back(), s);
 }
 
 template <typename T, typename... Rs>
@@ -64,6 +54,30 @@ string to_string(const vector<vector<T, Rs...>>& v) {
 template <typename T, typename... Rs>
 ostream& operator<<(ostream& out, const vector<vector<T, Rs...>>& v) {
     return out << to_string(v);
+}
+
+template <typename K, typename V, typename... Rs>
+string to_string(const map<K, V, Rs...>& v) {
+    string s;
+    for (const auto& el : v)
+        s += to_string(el) + " ";
+    return s.empty() ? s : (s.pop_back(), s);
+}
+template <typename K, typename V, typename... Rs>
+ostream& operator<<(ostream& out, const map<K, V, Rs...>& v) {
+    return out << to_string(v);
+}
+
+} // namespace std
+
+namespace std {
+
+template <typename T, size_t N>
+string to_string(const array<T, N>& v) {
+    string s;
+    for (const auto& el : v)
+        s += to_string(el) + " ";
+    return s.empty() ? s : (s.pop_back(), s);
 }
 
 template <typename T, typename... Rs>
@@ -123,18 +137,6 @@ string to_string(const unordered_multiset<T, Rs...>& v) {
 }
 template <typename T, typename... Rs>
 ostream& operator<<(ostream& out, const unordered_multiset<T, Rs...>& v) {
-    return out << to_string(v);
-}
-
-template <typename K, typename V, typename... Rs>
-string to_string(const map<K, V, Rs...>& v) {
-    string s;
-    for (const auto& el : v)
-        s += to_string(el) + " ";
-    return s.empty() ? s : (s.pop_back(), s);
-}
-template <typename K, typename V, typename... Rs>
-ostream& operator<<(ostream& out, const map<K, V, Rs...>& v) {
     return out << to_string(v);
 }
 

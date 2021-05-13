@@ -3,8 +3,6 @@
 
 #include "frac_point3d.hpp" // Point3d, Plane
 
-// *****
-
 /**
  * 3D Quickhull for rational points.
  *

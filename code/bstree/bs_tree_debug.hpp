@@ -10,8 +10,6 @@
 
 using fmt::print, fmt::format;
 
-// *****
-
 template <typename Tree>
 struct tree_debugger {
     const Tree& t;

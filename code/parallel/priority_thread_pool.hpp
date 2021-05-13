@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Thread pool designed for a unique owner, jobs processed by priority order.
  * Pretty much identical to the basic thread pool.

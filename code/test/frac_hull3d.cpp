@@ -10,8 +10,6 @@
 
 namespace fs = std::filesystem;
 
-// *****
-
 /**
  * We test using verify_hull and debug with visualization from the generated OBJ files
  * on e.g. blender. You can change face indexing on qh.extract_faces(s = 0|1).

@@ -2,8 +2,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 void unit_test_convex_hull() {
     vector<P> a = {P(4, 1), P(6, 4), P(12, 5), P(9, 7), P(2, 6)};
     auto hull = graham_scan(a);

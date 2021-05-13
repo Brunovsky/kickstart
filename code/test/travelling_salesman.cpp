@@ -2,8 +2,6 @@
 
 #include "test_utils.hpp"
 
-// *****
-
 // Datasets: https://people.sc.fsu.edu/~jburkardt/datasets/tsp/tsp.html (2020-08)
 
 const string DATASET_FILE = "datasets/exact_tsp.txt";

@@ -2,8 +2,6 @@
 
 #include "test_utils.hpp"
 
-// *****
-
 // https://www.geeksforgeeks.org/depth-n-ary-tree/
 void setup() {
     children[1] = {2, 3, 4, 5};

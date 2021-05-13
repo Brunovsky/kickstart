@@ -3,8 +3,6 @@
 
 #include "graph_generator.hpp"
 
-// *****
-
 enum distance_graph_kind : int {
     DG_UNIFORM_SPARSE = 0,
     DG_UNIFORM_MODERATE = 1,

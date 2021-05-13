@@ -5,8 +5,6 @@
 #include "../../numeric/bfrac.hpp"
 #include "../../numeric/frac.hpp"
 
-// *****
-
 /**
  * Class to represent points, lines, axis, circles etc in 2d using frac, bfrac or long.
  * Primary source: kth (https://github.com/kth-competitive-programming/kactl)

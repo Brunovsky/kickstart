@@ -5,8 +5,6 @@
 #include "priority_thread_pool.hpp"    // priority_thread_pool
 #include "spinlock.hpp"                // concurrent_queue
 
-// *****
-
 /**
  * An orchestrator is like classic unix make.
  *

@@ -11,8 +11,6 @@
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;
 
-// *****
-
 const string DATASET_FILE = "datasets/micali_vazirani.txt";
 const string ERROR_FILE = "datasets/latest_error.txt";
 

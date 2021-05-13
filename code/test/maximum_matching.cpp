@@ -5,8 +5,6 @@
 #include "../matching/hopcroft_karp.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 void speed_test_maximum_matching_run(bipartite_graph_kind i, int S, int T) {
     START_ACC(gen);
     START_ACC(mm);

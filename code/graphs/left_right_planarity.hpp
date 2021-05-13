@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 using edges_t = vector<array<int, 2>>;
 
 /**

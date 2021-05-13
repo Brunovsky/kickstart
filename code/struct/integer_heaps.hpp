@@ -5,7 +5,23 @@
 
 using namespace std;
 
-// *****
+template <typename Container>
+struct less_container {
+    const Container& cont;
+    less_container(const Container& cont) : cont(cont) {}
+    inline bool operator()(int u, int v) const {
+        return tie(cont[u], u) < tie(cont[v], v);
+    }
+};
+
+template <typename Container>
+struct greater_container {
+    const Container& cont;
+    greater_container(const Container& cont) : cont(cont) {}
+    inline bool operator()(int u, int v) const {
+        return tie(cont[u], u) > tie(cont[v], v);
+    }
+};
 
 /**
  * Binary heap over the integers [0...N) with decrease-key.
@@ -350,24 +366,6 @@ struct pairing_int_heaps {
             clear_rec(v);
         }
         node[u] = node_t();
-    }
-};
-
-template <typename Container>
-struct less_container {
-    const Container& cont;
-    less_container(const Container& cont) : cont(cont) {}
-    inline bool operator()(int u, int v) const {
-        return tie(cont[u], u) < tie(cont[v], v);
-    }
-};
-
-template <typename Container>
-struct greater_container {
-    const Container& cont;
-    greater_container(const Container& cont) : cont(cont) {}
-    inline bool operator()(int u, int v) const {
-        return tie(cont[u], u) > tie(cont[v], v);
     }
 };
 

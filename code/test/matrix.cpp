@@ -6,8 +6,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 #define F frac
 
 double min_diff(const vecd& u, const vecd& v) {

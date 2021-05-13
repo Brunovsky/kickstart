@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Radix sort for distance vectors
  * Useful for shortest path problems and the like

@@ -3,8 +3,6 @@
 
 #include "../struct/disjoint_set.hpp" // disjoint_set
 
-// *****
-
 using edges_t = vector<array<int, 2>>;
 
 long min_spanning_forest_kruskal(int V, const edges_t& g, const vector<long>& weight) {

@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 #define MAXN 100'000
 
 vector<int> children[MAXN];

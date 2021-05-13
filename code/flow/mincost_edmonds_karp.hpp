@@ -3,8 +3,6 @@
 
 #include "../struct/integer_heaps.hpp"
 
-// *****
-
 /**
  * Edmonds-Karp augmenting paths for simple mincost flow.
  * Complexity: O(V E^2 log V)

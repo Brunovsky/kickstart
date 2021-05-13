@@ -3,8 +3,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 bool verify(const vector<int>& idx, const vector<long>& dist) {
     int N = dist.size();
     if (int(idx.size()) != N)

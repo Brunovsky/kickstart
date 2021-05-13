@@ -6,8 +6,6 @@
 #include <iostream>
 #include <limits>
 
-// *****
-
 /**
  * AVL rotation notes
  *

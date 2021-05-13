@@ -3,8 +3,6 @@
 
 #include "graph_generator.hpp"
 
-// *****
-
 enum circulation_network_kind : int {
     CN_UNIFORM_SPARSE = 0,
     CN_UNIFORM_MODERATE = 1,

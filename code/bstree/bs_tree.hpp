@@ -20,7 +20,7 @@
  *   - Support equal_range(), lower_bound() and upper_bound()
  *   - Support emplace(), emplace_hint(), and insert_hint()
  *   - Support merge() and extract()
- *   - Support inserters (avl_inserter_*)
+ *   - Support inserters
  *   - Copying and moving
  *   - Define set, multiset wrappers
  *   - Define map, multimap wrappers

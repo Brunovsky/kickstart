@@ -2,8 +2,6 @@
 #include "../matching/mincost_hungarian.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 void unit_test_mincost_matching() {
     edges_t g;
     vector<long> cost;

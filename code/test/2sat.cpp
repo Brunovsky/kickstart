@@ -4,8 +4,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 edges_t generate_twosat(int N, int E, double p = 0.5) {
     boold distp(p), bothd(0.1), coin(0.5);
     intd distv(0, N - 1);

@@ -5,8 +5,6 @@
 #include "../numeric/modnum.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 void unit_test_gcd() {
     assert(gcd(135, 54) == 27);
     assert(gcd(135, -54) == 27);

@@ -3,8 +3,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 void unit_test_dancing_links() {
     dancing_links_matrix dl(6, 6);
     using int2 = array<int, 2>;

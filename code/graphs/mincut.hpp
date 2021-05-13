@@ -3,8 +3,6 @@
 
 #include "../hash.hpp"
 
-// *****
-
 using edges_t = vector<array<int, 2>>;
 using cut_t = vector<int>;
 

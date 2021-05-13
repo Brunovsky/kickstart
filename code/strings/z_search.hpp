@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Z algorithm (prefix length array)
  * https://www.hackerearth.com/practice/algorithms/string-algorithm/z-algorithm/tutorial

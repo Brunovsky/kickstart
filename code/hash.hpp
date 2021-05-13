@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 struct Hasher {
     template <typename Container>
     size_t operator()(const Container& vec) const noexcept {

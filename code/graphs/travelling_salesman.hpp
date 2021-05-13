@@ -3,8 +3,6 @@
 
 #include "../numeric/bits.hpp" // FOR_EACH_MASK, FOR_EACH_BIT
 
-// *****
-
 /**
  * Held-Karp dynamic programming exact algorithm
  * Complexity: O(V^2 2^V) (~1s for V=22)

@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * A spinlock class that yields after N attempts to lock the spinlock.
  */

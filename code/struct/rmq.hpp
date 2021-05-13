@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Range Minimum Query
  * Source: kth (https://github.com/kth-competitive-programming/kactl)

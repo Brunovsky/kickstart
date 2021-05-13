@@ -5,8 +5,6 @@
 #include <functional>
 #include <limits>
 
-// *****
-
 /**
  * Splay node
  * This same class is used to represent the head node. The node is the tree's head

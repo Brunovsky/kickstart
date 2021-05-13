@@ -8,8 +8,6 @@
 
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 
-// *****
-
 bgraph make_boost(int V, const edges_t& g) {
     bgraph bg(V);
     for (auto [u, v] : g)

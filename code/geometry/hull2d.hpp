@@ -4,8 +4,6 @@
 #include "point2d.hpp" // Point2d
 // #include "frac_point2d.hpp" // or this
 
-// *****
-
 using P = Point2d;
 
 vector<P> graham_scan(vector<P> points) {

@@ -3,8 +3,6 @@
 
 #include "graph_generator.hpp"
 
-// *****
-
 /**
  * Generate a random Erdos bipartite graph with maximum matching M.
  * This algorithm is not perfect; not all topologies can be generated, I think, and some

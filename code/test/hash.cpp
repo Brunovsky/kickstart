@@ -2,8 +2,6 @@
 
 #include "test_utils.hpp"
 
-// *****
-
 void unit_test_rolling_hasher() {
     rolling_hasher hasher(10);
     string s1 = "aababbcacc";

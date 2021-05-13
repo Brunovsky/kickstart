@@ -157,27 +157,6 @@ auto build_lyndon_factorization(const Vec& s) {
 }
 
 /**
- * Compute minimum cyclic rotation of string s.
- *
- * Complexity: O(N)
- */
-template <typename Vec>
-int min_cyclic_string(Vec s) {
-    s.reserve(2 * s.size());
-    s.insert(end(s), begin(s), end(s));
-    int N = s.size(), i = 0, ans = 0;
-    while (i < N / 2) {
-        ans = i;
-        int j = i + 1, k = i;
-        while (j < N && s[k] <= s[j])
-            s[k] < s[j] ? k = i : k++, j++;
-        while (i <= k)
-            i += j - k;
-    }
-    return ans;
-}
-
-/**
  * Compute the longest palindrome lp[i] around position i for string s.
  * lp[0][i]: number of palindromes around s[i-1|i]; lp[0][0]=0, lp[0][i]>=0.
  *           biggest starts at s[i-lp[0][i]], ends at s[i-1+lp[0][i]].
@@ -205,6 +184,27 @@ auto build_manachers(const Vec& s) {
         }
     }
     return lp;
+}
+
+/**
+ * Compute minimum cyclic rotation of string s.
+ *
+ * Complexity: O(N)
+ */
+template <typename Vec>
+int min_cyclic_string(Vec s) {
+    s.reserve(2 * s.size());
+    s.insert(end(s), begin(s), end(s));
+    int N = s.size(), i = 0, ans = 0;
+    while (i < N / 2) {
+        ans = i;
+        int j = i + 1, k = i;
+        while (j < N && s[k] <= s[j])
+            s[k] < s[j] ? k = i : k++, j++;
+        while (i <= k)
+            i += j - k;
+    }
+    return ans;
 }
 
 #endif // STRINGS_HPP

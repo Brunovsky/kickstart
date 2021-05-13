@@ -10,8 +10,6 @@ using namespace std::chrono;
 using us = microseconds;
 using ms = milliseconds;
 
-// *****
-
 bool cout_is_terminal() {
     static int ans = -1;
     return ans < 0 ? (ans = isatty(STDOUT_FILENO)) : ans;

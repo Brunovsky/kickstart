@@ -4,8 +4,6 @@
 #include "../hash.hpp"
 #include "../random.hpp"
 
-// *****
-
 /**
  * Number of partitions of n into k parts each of size between m and M.
  * Complexity: Potentially O(n^2)

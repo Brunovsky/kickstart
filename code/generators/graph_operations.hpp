@@ -4,8 +4,6 @@
 #include "../hash.hpp"
 #include "../random.hpp"
 
-// *****
-
 /**
  * Generate a permutation pi of [0...V) and replace u with pi(u) for all u.
  */

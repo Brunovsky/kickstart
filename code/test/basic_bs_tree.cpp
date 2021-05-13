@@ -7,8 +7,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Simplified version of bs_tree.cpp test suite with just the basic insert and erase
  * operations, to test new or buggy cores (splay)

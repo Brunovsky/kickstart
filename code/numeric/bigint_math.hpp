@@ -3,8 +3,6 @@
 
 #include "bigint.hpp"
 
-// *****
-
 // Compute b^e
 bigint intpow(bigint b, long e) {
     bigint power = 1;

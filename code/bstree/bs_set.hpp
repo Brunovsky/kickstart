@@ -3,8 +3,6 @@
 
 #include "bs_tree.hpp"
 
-// *****
-
 template <typename Key, typename Compare = std::less<Key>>
 struct bs_set : bs_tree<Key, Compare, set_tag> {
   private:

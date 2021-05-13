@@ -3,8 +3,6 @@
 
 #include <bits/stdc++.h>
 
-#include "../formatting.hpp"
-
 using namespace std;
 
 struct unrooted_link_cut_tree {
@@ -133,11 +131,11 @@ struct unrooted_link_cut_tree {
 
     int access(int u) {
         int last = 0, v = u;
-        while (v) {
+        do {
             splay(v);
             t[v].child[1] = last;
             last = v, v = t[v].parent;
-        }
+        } while (v);
         splay(u);
         assert(!t[u].child[1] && !t[u].flip);
         return last;

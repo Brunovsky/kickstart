@@ -7,8 +7,6 @@
 #include "../generators/graph_generator.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 static int si = 1;
 
 void showu(string msg, const edges_t& g, int V) {

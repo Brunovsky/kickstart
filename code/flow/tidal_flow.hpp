@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Simple tidal flow algorithm
  * Complexity: O(V E^2)

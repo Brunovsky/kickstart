@@ -5,11 +5,9 @@
 
 using namespace std;
 
-// *****
-
 inline void next_lexicographical_mask(uint& v) {
     uint c = v & -v, r = v + c;
-    v = (((r ^ v) >> 2) / c) | r;
+    v = c ? (((r ^ v) >> 2) / c) | r : 0;
 }
 
 inline bool is_power_of_two(uint v) { return v && !(v & (v - 1)); }
@@ -56,6 +54,25 @@ inline void reverse_bits(uint& v) {
 #define FOR_EACH_SUBSET(subset, mask)                                           \
     for (uint s##subset = (mask), subset = s##subset & (s##subset - 1); subset; \
          subset = s##subset & (subset - 1))
+
+string dlsbits(uint v) {
+    string s;
+    while (v > 0) {
+        s.push_back('0' + (v & 1));
+        v >>= 1;
+    }
+    return s;
+}
+
+string dmsbits(uint v) {
+    string s;
+    while (v > 0) {
+        s.push_back('0' + (v & 1));
+        v >>= 1;
+    }
+    reverse(begin(s), end(s));
+    return s;
+}
 
 string lsbits(uint v, uint bits = 32) {
     string s(bits, '0');

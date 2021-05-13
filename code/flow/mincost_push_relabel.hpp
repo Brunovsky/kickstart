@@ -3,8 +3,6 @@
 
 #include "push_relabel.hpp"
 
-// *****
-
 /**
  * Cost scaling push relabel for general mincost single-commodity flow
  * Complexity: O(V^2 E log(VC))

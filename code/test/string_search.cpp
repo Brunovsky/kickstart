@@ -5,8 +5,6 @@
 #include "../strings/z_search.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 /**
  * all strings, with length [minlen,maxlen] with characters [a,b]
  */

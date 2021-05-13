@@ -3,8 +3,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 #define Z(x) +format(" " #x "={:6.2f}%", perc(x))
 using P = Point3d;
 using vecP = vector<P>;

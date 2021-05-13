@@ -3,8 +3,6 @@
 #include "../generators/circulation.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 const string DATASET_FILE = "datasets/mincost_circulation.txt";
 
 template <typename MCF, typename Caps, typename Costs>

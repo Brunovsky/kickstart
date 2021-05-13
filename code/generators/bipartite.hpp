@@ -3,8 +3,6 @@
 
 #include "graph_generator.hpp"
 
-// *****
-
 struct bipartite_graph {
     edges_t g;
     int U, V, E, S;

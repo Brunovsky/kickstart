@@ -3,8 +3,6 @@
 
 #include "point3d.hpp" // Point3d, Plane
 
-// *****
-
 /**
  * 3D Quickhull for double points.
  * All degenerate cases (2+ incident, 3+ collinear, 4+ coplanar) are handled.

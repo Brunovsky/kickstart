@@ -3,8 +3,6 @@
 
 #include "../struct/integer_heaps.hpp" // pairing_int_heap
 
-// *****
-
 using edges_t = vector<array<int, 2>>;
 
 /**

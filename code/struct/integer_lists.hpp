@@ -5,12 +5,6 @@
 
 using namespace std;
 
-// *****
-
-/**
- * Ideas from: https://github.com/indy256/codelibrary
- */
-
 /**
  * 2d dancing links, non-circular
  */

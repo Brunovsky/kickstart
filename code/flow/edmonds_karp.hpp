@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Edmonds-Karp augmenting paths
  * Complexity: O(VE^2), not good

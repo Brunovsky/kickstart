@@ -3,8 +3,6 @@
 #include "../generators/graph_operations.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 void unit_test_scc() {
     // vertex 0 is completely disconnected
     edges_t g = {{1, 2}, {2, 3}, {3, 1}, {4, 2}, {4, 3}, {4, 6}, {5, 3},

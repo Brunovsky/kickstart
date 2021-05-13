@@ -4,8 +4,6 @@
 #include "../formatting.hpp"
 #include "graph_operations.hpp"
 
-// *****
-
 string adj_matrix_undirected(const edges_t& g, int V) {
     string head = format("V={}, E={} (undirected)", V, g.size());
     string line(V + 2, '.');

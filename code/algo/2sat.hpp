@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Based on
  * https://github.com/kth-competitive-programming/kactl/blob/master/content/graph/2sat.h
@@ -30,7 +28,7 @@ struct twosat_scc {
     vector<unordered_set<int>> adj;
     vector<int> assignment, cmap;
 
-    twosat_scc(int N = 0) : N(N), adj(2 * N) {}
+    explicit twosat_scc(int N = 0) : N(N), adj(2 * N) {}
 
     int add_var() { return adj.resize(2 * N + 2), N++; }
 

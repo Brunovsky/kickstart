@@ -8,6 +8,7 @@ using namespace std;
 /**
  * Frac for rational arithmetic, nothing surprising going on here.
  * Positive infinity is frac(1, 0) and negative infinity is frac(-1, 0).
+ * Weird stuff like ++ is not defined.
  */
 struct frac {
     long n, d;
@@ -130,10 +131,11 @@ namespace std {
 
 template <>
 struct numeric_limits<frac> : numeric_limits<long> {
+    using base_t = numeric_limits<long>;
     static constexpr bool is_specialized = true, is_integer = false, has_infinity = true;
-    static constexpr frac min() { return frac(1, LONG_MAX); }
-    static constexpr frac max() { return frac(LONG_MAX, 1); }
-    static constexpr frac lowest() { return frac(LONG_MIN, 1); }
+    static constexpr frac min() { return frac(1, base_t::max()); }
+    static constexpr frac max() { return frac(base_t::max(), 1); }
+    static constexpr frac lowest() { return frac(base_t::min(), 1); }
     static constexpr frac epsilon() { return 0; }
     static constexpr frac infinity() { return frac(1, 0); }
 };

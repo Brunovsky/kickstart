@@ -5,6 +5,8 @@
 
 using namespace std;
 
+// Order statistics tree/map
+
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
 
@@ -17,6 +19,8 @@ using ordered_set = gnu::tree<T, gnu::null_type, CompareFn, gnu::rb_tree_tag,
 template <typename Key, typename Value, typename CompareFn = less<Key>>
 using ordered_map = gnu::tree<Key, Value, CompareFn, gnu::rb_tree_tag,
                               gnu::tree_order_statistics_node_update>;
+
+// Fast min priority queue
 
 #include <ext/pb_ds/priority_queue.hpp>
 

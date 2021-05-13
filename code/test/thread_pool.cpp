@@ -11,8 +11,6 @@
 #include "../random.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 using mat_t = mat<long>;
 
 mat_t makemat(int n, default_random_engine& rnd) {

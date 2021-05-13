@@ -3,8 +3,6 @@
 
 #include "frac_point3d.hpp" // Point3d, Plane
 
-// *****
-
 inline namespace hull3d_utils {
 
 /**

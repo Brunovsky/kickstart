@@ -6,8 +6,6 @@
 #include "../strings/string_distance.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 using vi = vector<int>;
 
 // String distance algorithms

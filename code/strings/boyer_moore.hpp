@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Boyer Moore
  * https://en.wikipedia.org/wiki/Boyer-Moore_string-search_algorithm

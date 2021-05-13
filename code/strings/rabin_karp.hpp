@@ -3,8 +3,6 @@
 
 #include "../hash.hpp"
 
-// *****
-
 /**
  * Rabin Karp
  * https://en.wikipedia.org/wiki/Rabin-Karp_algorithm

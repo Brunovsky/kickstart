@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 template <typename T>
 struct mat {
     using vec = vector<T>;

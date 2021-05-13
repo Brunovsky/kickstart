@@ -3,8 +3,6 @@
 
 #include "../struct/integer_lists.hpp" // forward_lists, linked_lists
 
-// *****
-
 using edges_t = vector<array<int, 2>>;
 
 struct micali_vazirani {

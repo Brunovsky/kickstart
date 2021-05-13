@@ -3,8 +3,6 @@
 #include "../formatting.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 void unit_test_range_segtree() {
     range_segtree tree({0, 4, 7, 12, 17, 25, 30, 40});
     tree.update(1, {7, 17}, 8);

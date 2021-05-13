@@ -3,8 +3,6 @@
 
 #include "frac.hpp"
 
-// *****
-
 frac inv(frac f) { return frac(f.d, f.n); }
 
 // fraction closest to f with denominator at most maxd

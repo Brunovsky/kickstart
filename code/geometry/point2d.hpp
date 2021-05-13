@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Class to represent points, lines, axis, circles etc in 2d using doubles.
  * Primary source: kth (https://github.com/kth-competitive-programming/kactl)

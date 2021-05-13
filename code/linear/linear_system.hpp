@@ -5,8 +5,6 @@
 #include "../numeric/frac.hpp"
 #include "matrix.hpp"
 
-// *****
-
 inline namespace system_double {
 
 using matd = mat<double>;

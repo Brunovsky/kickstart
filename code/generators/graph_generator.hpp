@@ -8,8 +8,6 @@
 #include "graph_operations.hpp"
 #include "regular.hpp"
 
-// *****
-
 // ***** Auxiliary methods
 
 bool verify_edges_undirected(const edges_t& g, int V, int E = -1) {

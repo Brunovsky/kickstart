@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Hopcroft-Karp maximum bipartite matching
  * Complexity: O(V^1/2 E)

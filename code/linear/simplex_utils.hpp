@@ -4,8 +4,6 @@
 #include "../formatting.hpp"
 #include "simplex.hpp"
 
-// *****
-
 template <typename F>
 bool operator==(const lp_constraint<F>& a, const lp_constraint<F>& b) {
     return a.b == b.b && a.v == b.v && a.ineq == b.ineq;

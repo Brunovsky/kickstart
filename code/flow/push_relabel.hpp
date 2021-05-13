@@ -3,8 +3,6 @@
 
 #include "../struct/integer_lists.hpp" // linked_lists
 
-// *****
-
 /**
  * Push relabel with highest label selection rule, gap and global relabeling heuristics
  * Also known as Preflow-Push (GAP)

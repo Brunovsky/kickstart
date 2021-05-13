@@ -6,8 +6,6 @@
 #include "../path/johnsons.hpp"
 #include "test_utils.hpp"
 
-// *****
-
 template <typename SP>
 bool compute_all_pairs(const distance_graph& dg, vector<vector<long>>& dist) {
     SP g(dg.V, dg.g, dg.weight);

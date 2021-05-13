@@ -3,8 +3,6 @@
 
 #include "graph_generator.hpp"
 
-// *****
-
 enum flow_network_kind : int {
     FN_UNIFORM_SPARSE = 0,
     FN_UNIFORM_MODERATE = 1,

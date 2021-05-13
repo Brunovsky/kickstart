@@ -5,8 +5,6 @@
 
 using namespace std;
 
-// *****
-
 /**
  * Dinitz's blocking flows
  * Complexity: O(V^2 E), close to push relabel in practice

@@ -3,8 +3,6 @@
 
 #include "matrix.hpp"
 
-// *****
-
 struct transportation {
     int N, M;
     array<vector<int>, 2> flow;

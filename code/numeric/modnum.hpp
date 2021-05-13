@@ -1,9 +1,9 @@
 #ifndef MODNUM_HPP
 #define MODNUM_HPP
 
-#include "math.hpp"
+#include <bits/stdc++.h>
 
-// *****
+using namespace std;
 
 template <int mod>
 struct modnum {

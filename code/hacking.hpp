@@ -5,8 +5,6 @@
 #include "hash.hpp"
 #include "random.hpp"
 
-// *****
-
 template <typename T = int>
 auto randint(T a, T b) {
     return uniform_int_distribution<T>(a, b)(mt);
