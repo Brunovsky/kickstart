@@ -33,7 +33,7 @@ void print_progress(long i, long N, T&& content) {
 
 template <typename... Ts>
 void print_progress(long i, long N, string_view fmt, Ts&&... args) {
-    return print_progress(i, N, format(fmt, forward<Ts...>(args)...));
+    return print_progress(i, N, format(fmt, forward<Ts>(args)...));
 }
 
 template <typename... Ts>

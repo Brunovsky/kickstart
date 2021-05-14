@@ -43,10 +43,8 @@ struct suffix_automaton {
     suffix_automaton() : V(2), node(2) {}
     explicit suffix_automaton(const Vec& text) : suffix_automaton() {
         extend(text);
-        toposort();
+        preprocess();
     }
-
-    int num_nodes() const { return V; }
 
     void extend(const Vec& s) {
         for (char c : s) {
@@ -79,10 +77,9 @@ struct suffix_automaton {
             }
         }
         last = v;
-        preprocess_extend();
     }
 
-    void toposort() {
+    void preprocess() {
         vector<int> cnt(node[last].len + 1), pos(V);
         pi.resize(V);
 
@@ -96,19 +93,13 @@ struct suffix_automaton {
             pi[pos[v]] = v;
 
         // topological order: pi[0], pi[1], pi[2], ...
-        preprocess_toposort();
-    }
-
-    void preprocess_toposort() {
         // numpos: number of positions where state v can be found.
         for (int i = V - 1, v = pi[i]; i >= 1; i--, v = pi[i]) {
             node[v].numpos++;
             node[node[v].link].numpos += node[v].numpos;
         }
         node[0].numpos = 0;
-    }
 
-    void preprocess_extend() {
         // terminal: whether a state is terminal (corresponds to a suffix)
         int u = last;
         do {

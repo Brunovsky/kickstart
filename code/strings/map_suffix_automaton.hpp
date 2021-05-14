@@ -18,11 +18,6 @@ struct map_suffix_automaton {
         Node() = default;
         Node(int len, int ch) : len(len), ch(ch) {}
     };
-    struct Edge {
-        int ch = -1, node = 0;
-        Edge() = default;
-        Edge(int ch, int node) : ch(ch), node(node) {}
-    };
 
     int V, E, last = 1; // node[0] is empty; last is id of node with entire string
     vector<Node> node;
@@ -32,11 +27,9 @@ struct map_suffix_automaton {
     map_suffix_automaton() : V(2), E(0), node(2), edge(2) {}
     explicit map_suffix_automaton(const Vec& text) : map_suffix_automaton() {
         extend(text);
-        toposort();
+        preprocess();
     }
 
-    int num_nodes() const { return V; }
-    int num_edges() const { return E; }
     int get_link(int u, int c) const {
         auto it = edge[u].find(c);
         return it != edge[u].end() ? it->second : 0;
@@ -80,10 +73,9 @@ struct map_suffix_automaton {
             }
         }
         last = v;
-        preprocess_extend();
     }
 
-    void toposort() {
+    void preprocess() {
         vector<int> cnt(node[last].len + 1), pos(V);
         pi.resize(V);
 
@@ -97,24 +89,18 @@ struct map_suffix_automaton {
             pi[pos[v]] = v;
 
         // topological order: pi[0], pi[1], pi[2], ...
-        preprocess_toposort();
-    }
-
-    void preprocess_toposort() {
         // numpos: number of positions where state v can be found.
         for (int i = V - 1, v = pi[i]; i >= 1; i--, v = pi[i]) {
             node[v].numpos++;
             node[node[v].link].numpos += node[v].numpos;
         }
         node[0].numpos = 0;
-    }
 
-    void preprocess_extend() {
         // terminal: whether a state is terminal (corresponds to a suffix)
         int u = last;
         do {
             node[u].terminal = true, u = node[u].link;
-        } while (u > 1 && !node[u].terminal);
+        } while (u > 1);
     }
 
     int get_state(const Vec& word) const {

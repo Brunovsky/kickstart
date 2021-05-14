@@ -1,10 +1,116 @@
-#include "../strings/suffix_automaton.hpp"
+#include "../linear/matrix.hpp"
 
 #include "../random.hpp"
+#include "test_utils.hpp"
+#include "../strings/suffix_automaton.hpp"
 #include "../strings/map_suffix_automaton.hpp"
 #include "../strings/sparse_suffix_automaton.hpp"
 #include "../strings/vector_suffix_automaton.hpp"
-#include "test_utils.hpp"
+
+void speed_test_build(int T = 1000, int min_scale = 10, int max_scale = 15) {
+    int num_scales = max_scale - min_scale + 1;
+    mat<double> times(4, num_scales);
+
+    for (int scale = min_scale; scale <= max_scale; scale++) {
+        START_ACC(gsa);
+        START_ACC(ssa);
+        START_ACC(msa);
+        START_ACC(vsa);
+        int len = 1 << scale, id = scale - min_scale;
+
+        for (int t = 0; t < T; t++) {
+            print_progress(t, T, "speed test build {}/{} {}", scale, max_scale, len);
+            string s = generate_any_string(len, 'a', 'z');
+
+            START(gsa);
+            suffix_automaton gsa(s);
+            ADD_TIME(gsa);
+
+            START(ssa);
+            sparse_suffix_automaton ssa(s);
+            ADD_TIME(ssa);
+
+            START(msa);
+            map_suffix_automaton msa(s);
+            ADD_TIME(msa);
+
+            START(vsa);
+            vector_suffix_automaton vsa(s);
+            ADD_TIME(vsa);
+        }
+
+        times[0][id] = 1.0 * TIME_US(gsa) / T;
+        times[1][id] = 1.0 * TIME_US(ssa) / T;
+        times[2][id] = 1.0 * TIME_US(msa) / T;
+        times[3][id] = 1.0 * TIME_US(vsa) / T;
+
+        clear_line();
+        print(" -- speed test SA build len={}\n", len);
+        PRINT_TIME(gsa);
+        PRINT_TIME(ssa);
+        PRINT_TIME(msa);
+        PRINT_TIME(vsa);
+    }
+
+    print("speed test suffix_automaton build:\n{}\n", times);
+}
+
+void speed_test_contains(int T = 1000, int min_scale = 10, int max_scale = 18) {
+    int num_scales = max_scale - min_scale + 1;
+    mat<double> times(4, num_scales);
+
+    for (int scale = min_scale; scale <= max_scale; scale++) {
+        int len = 1 << scale, id = scale - min_scale;
+        string s = generate_any_string(len, 'a', 'z');
+
+        START_ACC(gsa);
+        START_ACC(ssa);
+        START_ACC(msa);
+        START_ACC(vsa);
+
+        suffix_automaton gsa(s);
+        sparse_suffix_automaton ssa(s);
+        map_suffix_automaton msa(s);
+        vector_suffix_automaton vsa(s);
+
+        for (int t = 0; t < T; t++) {
+            print_progress(t, T, "speed test search {}/{} {}", scale, max_scale, len);
+            string pat = generate_any_string(len / 64, 'a', 'z');
+
+            START(gsa);
+            auto c0 = gsa.count_matches(pat);
+            ADD_TIME(gsa);
+
+            START(ssa);
+            auto c1 = ssa.count_matches(pat);
+            ADD_TIME(ssa);
+
+            START(msa);
+            auto c2 = msa.count_matches(pat);
+            ADD_TIME(msa);
+
+            START(vsa);
+            auto c3 = vsa.count_matches(pat);
+            ADD_TIME(vsa);
+
+            assert(c0 == c1 && c0 == c2 && c0 == c3);
+        }
+
+        times[0][id] = 1.0 * TIME_US(gsa) / T;
+        times[1][id] = 1.0 * TIME_US(ssa) / T;
+        times[2][id] = 1.0 * TIME_US(msa) / T;
+        times[3][id] = 1.0 * TIME_US(vsa) / T;
+
+        clear_line();
+        print(" -- speed test SA build len={}\n", len);
+        PRINT_TIME(gsa);
+        PRINT_TIME(ssa);
+        PRINT_TIME(msa);
+        PRINT_TIME(vsa);
+    }
+
+    print("speed test suffix_automaton contains:\n{}\n", times);
+}
 
 template <typename SA = suffix_automaton<>>
 void stress_test_suffix_automaton() {
@@ -16,8 +122,6 @@ void stress_test_suffix_automaton() {
             errors += !sa.contains(s.substr(intd(0, 2000)(mt), intd(100, 500)(mt)));
         }
     }
-    print("errors: {}\n", errors);
-    return;
     for (int n = 1; n < 20; n++) {
         string s(n, 'a');
         SA sa(s);
@@ -55,6 +159,9 @@ void stress_test_suffix_automaton() {
         int got = sa.count_distinct_substrings();
         errors += got != 1 + n * (n + 1) / 2;
     }
+    if (errors > 0) {
+        print("ERRORS: {}\n", errors);
+    }
 }
 
 void unit_test_suffix_automaton() {
@@ -79,5 +186,7 @@ int main() {
     RUN_SHORT(stress_test_suffix_automaton<sparse_suffix_automaton<>>());
     RUN_SHORT(stress_test_suffix_automaton<map_suffix_automaton<>>());
     RUN_SHORT(stress_test_suffix_automaton<vector_suffix_automaton<>>());
+    RUN_BLOCK(speed_test_build());
+    RUN_BLOCK(speed_test_contains());
     return 0;
 }

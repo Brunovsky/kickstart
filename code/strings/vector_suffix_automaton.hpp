@@ -5,6 +5,10 @@
 
 using namespace std;
 
+/**
+ * Memory footprint quite large but it no longer depends on alphabet size
+ * Requires about (60+c)N bytes, where N is the length of the text.
+ */
 template <typename Vec = string, typename T = typename Vec::value_type>
 struct vector_suffix_automaton {
     // We do not need alphabet size :)
@@ -18,40 +22,38 @@ struct vector_suffix_automaton {
         Node() = default;
         Node(int len, int ch) : len(len), ch(ch) {}
     };
-    struct Edge {
-        int ch = -1, node = 0;
-        Edge() = default;
-        Edge(int ch, int node) : ch(ch), node(node) {}
-    };
+    using Edge = pair<int, int>; // c, dest
 
     int V, E, last = 1; // node[0] is empty; last is id of node with entire string
     vector<Node> node;
-    vector<vector<pair<int, int>>> edge;
+    vector<vector<Edge>> edge;
     vector<int> pi;
 
     vector_suffix_automaton() : V(2), E(0), node(2), edge(2) {}
     explicit vector_suffix_automaton(const Vec& text) : vector_suffix_automaton() {
         extend(text);
-        toposort();
+        preprocess();
     }
 
-    int num_nodes() const { return V; }
-    int num_edges() const { return E; }
+    auto get_it(int u, int c) const {
+        return lower_bound(begin(edge[u]), end(edge[u]), Edge{c, INT_MIN});
+    }
+    auto get_it(int u, int c) {
+        return lower_bound(begin(edge[u]), end(edge[u]), Edge{c, INT_MIN});
+    }
     int get_link(int u, int c) const {
-        for (int i = 0, n = edge[u].size(); i < n; i++)
-            if (edge[u][i].first == c)
-                return edge[u][i].second;
-        return 0;
+        auto it = get_it(u, c);
+        return it != end(edge[u]) && it->first == c ? it->second : 0;
     }
     void set_link(int u, int c, int v) {
-        for (int i = 0, n = edge[u].size(); i < n; i++) {
-            if (edge[u][i].first == c) {
-                edge[u][i].second = v;
-                break;
-            }
-        }
+        auto it = get_it(u, c);
+        assert(it != end(edge[u]) && it->first == c);
+        it->second = v;
     }
-    void add_link(int u, int c, int v) { edge[u].emplace_back(c, v), E++; }
+    void add_link(int u, int c, int v) {
+        auto it = get_it(u, c);
+        assert(it == end(edge[u]) || it->first > c), edge[u].insert(it, Edge{c, v}), E++;
+    }
     int add_node(int len, int ch) {
         return node.emplace_back(len, ch), edge.push_back({}), V++;
     }
@@ -77,6 +79,7 @@ struct vector_suffix_automaton {
             node[v].link = 1;
         else {
             int q = get_link(p, c);
+            assert(q != 0);
             if (node[p].len + 1 == node[q].len)
                 node[v].link = q;
             else {
@@ -89,10 +92,9 @@ struct vector_suffix_automaton {
             }
         }
         last = v;
-        preprocess_extend();
     }
 
-    void toposort() {
+    void preprocess() {
         vector<int> cnt(node[last].len + 1), pos(V);
         pi.resize(V);
 
@@ -106,24 +108,18 @@ struct vector_suffix_automaton {
             pi[pos[v]] = v;
 
         // topological order: pi[0], pi[1], pi[2], ...
-        preprocess_toposort();
-    }
-
-    void preprocess_toposort() {
         // numpos: number of positions where state v can be found.
         for (int i = V - 1, v = pi[i]; i >= 1; i--, v = pi[i]) {
             node[v].numpos++;
             node[node[v].link].numpos += node[v].numpos;
         }
         node[0].numpos = 0;
-    }
 
-    void preprocess_extend() {
         // terminal: whether a state is terminal (corresponds to a suffix)
         int u = last;
         do {
             node[u].terminal = true, u = node[u].link;
-        } while (u > 1 && !node[u].terminal);
+        } while (u > 1);
     }
 
     int get_state(const Vec& word) const {
