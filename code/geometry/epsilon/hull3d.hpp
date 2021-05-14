@@ -1,7 +1,7 @@
-#ifndef QUICKHULL3D_HPP
-#define QUICKHULL3D_HPP
+#ifndef EPSILON_QUICKHULL3D_HPP
+#define EPSILON_QUICKHULL3D_HPP
 
-#include "general_point3d.hpp" // Point3d, Plane
+#include "point3d.hpp" // Point3d, Plane
 
 /**
  * 3D Quickhull for double points.
@@ -21,7 +21,6 @@
  *         }
  *     }
  */
-template <typename P>
 struct quickhull3d {
     struct Face;
     static constexpr int VISIBLE = 0, DELETED = 1;
@@ -37,7 +36,7 @@ struct quickhull3d {
 
     struct Face {
         Plane plane;
-        P centroid;
+        Point3d centroid;
         Edge* edge; // an arbitrary edge in the face; a particular one initially
         int mark = VISIBLE, outside = 0, id, npoints = 3;
         explicit Face(int id) : id(id) {}
@@ -52,14 +51,14 @@ struct quickhull3d {
     };
 
     int N;
-    vector<P> points;               // points[1..N] from input
+    vector<Point3d> points;         // points[1..N] from input
     vector<unique_ptr<Face>> faces; // active faces list
     vector<int> eye_prev, eye_next, open;
     vector<Face*> eye_face, new_faces, old_faces;
     vector<Edge*> horizon;
-    double eps = P::deps;
+    double eps = Point3d::deps;
 
-    quickhull3d(const vector<P>& input, int skip_0 = 0)
+    quickhull3d(const vector<Point3d>& input, int skip_0 = 0)
         : N(input.size() - skip_0), points(N + 1), eye_prev(N + 1, 0), eye_next(N + 1, 0),
           open(N + 1, 0), eye_face(N + 1) {
         copy(begin(input) + skip_0, end(input), begin(points) + 1);
@@ -234,7 +233,7 @@ struct quickhull3d {
         Edge::link(a, d), Edge::link(c, b);
 
         // Recompute centroid
-        P centroid;
+        Point3d centroid;
         face->npoints = 0, edge = face->edge;
         do {
             centroid += points[edge->vertex];
@@ -243,7 +242,7 @@ struct quickhull3d {
         face->centroid = centroid /= face->npoints;
 
         // Recompute normal
-        P normal;
+        Point3d normal;
         do {
             normal += centroid.cross(points[edge->vertex], points[edge->next->vertex]);
             edge = edge->next;
@@ -321,7 +320,7 @@ struct quickhull3d {
         }
 
         int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
-        double maxdist = P::deps;
+        double maxdist = Point3d::deps;
 
         // select v0, v1 such that dist2(v0, v1) is maximal (furthest pair along an axis)
         for (int d = 0; d < 3; d++) {
@@ -334,7 +333,7 @@ struct quickhull3d {
             return false;
         }
 
-        eps = 5 * P::deps * (1 + log10(max(maxdist, 1.0)));
+        eps = 5 * Point3d::deps * (1 + log10(max(maxdist, 1.0)));
 
         // select v2 such that linedist2(v2, v0, v1) is maximum (furthest from line)
         maxdist = eps;
@@ -470,9 +469,7 @@ struct quickhull3d {
     }
 };
 
-using hull_t = vector<vector<int>>;
-
-void simplify_hull(hull_t& hull, const vector<P>& points, double eps) {
+void simplify_hull(vector<vector<int>>& hull, const vector<Point3d>& points, double eps) {
     // Remove collinear points from faces.
     for (auto& face : hull) {
         vector<int> filtered_face;
@@ -486,7 +483,7 @@ void simplify_hull(hull_t& hull, const vector<P>& points, double eps) {
     }
 }
 
-auto compute_hull(const vector<P>& points, int skip_0 = 0) {
+auto compute_hull(const vector<Point3d>& points, int skip_0 = 0) {
     quickhull3d qh(points, skip_0);
     qh.compute();
     auto hull = qh.extract_hull(skip_0);
@@ -494,4 +491,4 @@ auto compute_hull(const vector<P>& points, int skip_0 = 0) {
     return hull;
 }
 
-#endif // QUICKHULL3D_HPP
+#endif // EPSILON_QUICKHULL3D_HPP

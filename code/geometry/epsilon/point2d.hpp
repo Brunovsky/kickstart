@@ -1,5 +1,5 @@
-#ifndef POINT2D_HPP
-#define POINT2D_HPP
+#ifndef EPSILON_POINT2D_HPP
+#define EPSILON_POINT2D_HPP
 
 #include <bits/stdc++.h>
 
@@ -168,4 +168,4 @@ struct Point2d {
     friend istream& operator>>(istream& in, P& a) { return in >> a.x >> a.y; }
 };
 
-#endif // POINT2D_HPP
+#endif // EPSILON_POINT2D_HPP

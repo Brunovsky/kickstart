@@ -1,11 +1,8 @@
-#include "../geometry/hull3d.hpp"
-
-#include "../formatting.hpp"
+#include "test_utils.hpp"
+#include "../geometry/general_hull3d.hpp"
+#include "../geometry/general_point3d.hpp"
 #include "../geometry/hull3d_functions.hpp"
 #include "../geometry/hull3d_utils.hpp"
-#include "../geometry/point3d.hpp"
-#include "../random.hpp"
-#include "test_utils.hpp"
 
 namespace fs = std::filesystem;
 const string DATASET_FOLDER = "datasets/hull3d";
