@@ -1,12 +1,25 @@
 #include "../linear/matrix.hpp"
 
 #include "../formatting.hpp"
-#include "../generators/frac.hpp"
 #include "../linear/linear_system.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 
 #define F frac
+
+inline namespace {
+
+auto gen_frac(long minv, long maxv, long maxd) {
+    long d = longd(1, maxd)(mt);
+    longd dist(minv * d, maxv * d);
+    return frac(dist(mt), d);
+}
+
+auto gen_bfrac(int minv, int maxv, int maxd) {
+    int d = intd(1, maxd)(mt);
+    intd dist(minv * d, maxv * d);
+    return bfrac(dist(mt), d);
+}
 
 double min_diff(const vecd& u, const vecd& v) {
     double x = numeric_limits<double>::max();
@@ -50,6 +63,8 @@ auto generate_gauss_double(int n, double minv, double maxv) {
             a[i][j] = dista(mt);
     return tuple<matd, vecd>{move(a), move(x)};
 }
+
+} // namespace
 
 void unit_test_gauss_frac() {
     matf m;

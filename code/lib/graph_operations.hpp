@@ -75,6 +75,9 @@ auto& join(edges_t& g, const edges_t& h) {
     return g;
 }
 
+/**
+ * Construct adjacency lists
+ */
 auto make_adjacency_lists_undirected(const edges_t& g, int V) {
     vector<vector<int>> adj(V);
     for (auto [u, v] : g)

@@ -1,4 +1,5 @@
 #include "../linear/simplex.hpp"
+#include "../lib/anynum.hpp"
 
 #include "../formatting.hpp"
 #include "../linear/simplex_utils.hpp"
@@ -7,6 +8,8 @@
 #include "../numeric/frac.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
+
+inline namespace {
 
 template <typename F>
 string f_name;
@@ -18,15 +21,43 @@ string f_name<bfrac> = "bfrac";
 ostream& operator<<(ostream& out, LPState type) { return out << to_string(type); }
 
 template <typename F>
+auto compute_slack(const simplex<F>& smp, const vector<F>& x) {
+    vector<F> slack(smp.M, 0);
+    for (int i = 0; i < smp.M; i++) {
+        F c = 0;
+        for (int j = 0; j < smp.N; j++) {
+            c += x[j] * smp.C[i].v[j];
+        }
+        slack[i] = smp.C[i].b - c;
+        assert(slack[i] >= 0 && smp.C[i].ineq == LP_LESS);
+    }
+    return slack;
+}
+
+template <typename F>
+bool complementary_slackness(const simplex<F>& primal, const simplex<F>& dual) {
+    auto x = primal.extract(), y = dual.extract();
+    assert(is_feasible(primal, x) && is_feasible(dual, y));
+    auto slack_x = compute_slack(primal, x);
+    auto slack_y = compute_slack(dual, y);
+    bool ok = true;
+    for (int i = 0; i < primal.N && ok; i++) {
+        ok = x[i] == 0 || slack_y[i] == 0;
+    }
+    for (int i = 0; i < dual.N && ok; i++) {
+        ok = y[i] == 0 || slack_x[i] == 0;
+    }
+    return ok;
+}
+
+template <typename F>
 auto generate_lp(int n, int le, int eq, int ge, LPState state = LP_OPTIMAL) {
     int m = le + eq + ge;
     (void)state;
 
     auto fill = [](vector<F>& v, int minv, int maxv, int maxd) {
-        int d = intd(1, maxd)(mt);
-        intd dist(minv * d, maxv * d);
         for (auto& f : v)
-            f = F(dist(mt), maxd);
+            f = uniform_gen<F>(minv, maxv, maxd);
     };
 
     // First generate a feasible solution
@@ -68,36 +99,7 @@ auto generate_lp(int n, int le, int eq, int ge, LPState state = LP_OPTIMAL) {
     smp.add_constraints(constraints);
     return smp;
 }
-
-template <typename F>
-auto compute_slack(const simplex<F>& smp, const vector<F>& x) {
-    vector<F> slack(smp.M, 0);
-    for (int i = 0; i < smp.M; i++) {
-        F c = 0;
-        for (int j = 0; j < smp.N; j++) {
-            c += x[j] * smp.C[i].v[j];
-        }
-        slack[i] = smp.C[i].b - c;
-        assert(slack[i] >= 0 && smp.C[i].ineq == LP_LESS);
-    }
-    return slack;
-}
-
-template <typename F>
-bool complementary_slackness(const simplex<F>& primal, const simplex<F>& dual) {
-    auto x = primal.extract(), y = dual.extract();
-    assert(is_feasible(primal, x) && is_feasible(dual, y));
-    auto slack_x = compute_slack(primal, x);
-    auto slack_y = compute_slack(dual, y);
-    bool ok = true;
-    for (int i = 0; i < primal.N && ok; i++) {
-        ok = x[i] == 0 || slack_y[i] == 0;
-    }
-    for (int i = 0; i < dual.N && ok; i++) {
-        ok = y[i] == 0 || slack_x[i] == 0;
-    }
-    return ok;
-}
+} // namespace
 
 template <typename F>
 void unit_test_simplex() {

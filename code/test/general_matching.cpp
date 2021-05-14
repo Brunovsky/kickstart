@@ -1,10 +1,10 @@
-#include "../generators/general_matching.hpp"
+#include "../lib/general_matching.hpp"
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
 #include "../formatting.hpp"
-#include "../generators/graph_formats.hpp"
+#include "../lib/graph_formats.hpp"
 #include "../matching/micali_vazirani.hpp"
 #include "test_utils.hpp"
 

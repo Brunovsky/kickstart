@@ -1,7 +1,7 @@
 #include "../matching/maximum_matching.hpp"
 
-#include "../generators/bipartite.hpp"
-#include "../generators/bipartite_matching.hpp"
+#include "../lib/bipartite.hpp"
+#include "../lib/bipartite_matching.hpp"
 #include "../matching/hopcroft_karp.hpp"
 #include "test_utils.hpp"
 

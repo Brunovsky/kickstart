@@ -3,8 +3,8 @@
 #include <filesystem>
 
 #include "../formatting.hpp"
-#include "../generators/frac.hpp"
 #include "../geometry/frac/frac_hull3d_functions.hpp"
+#include "../lib/anynum.hpp"
 #include "../geometry/frac/frac_hull3d_utils.hpp"
 #include "test_utils.hpp"
 
@@ -31,9 +31,9 @@ inline double compute_ratio(double time, int N) { return 1e4 * time / (N * log2(
 auto random_points(int N, long R = 100, long maxd = 4, bool cube = false) {
     unordered_set<P> pointset;
     while (N) {
-        auto x = gen_bfrac(-R, R, maxd);
-        auto y = gen_bfrac(-R, R, maxd);
-        auto z = gen_bfrac(-R, R, maxd);
+        auto x = uniform_gen<F>(-R, R, maxd);
+        auto y = uniform_gen<F>(-R, R, maxd);
+        auto z = uniform_gen<F>(-R, R, maxd);
         P p(x, y, z);
         if (!pointset.count(p)) {
             if (cube || p.norm2() <= R * R) {
@@ -55,7 +55,7 @@ void add_collinear_points(int N, vector<P>& points, long R = 100, long maxd = 4,
     assert(S >= 1);
     while (M < N) {
         int i = intd(0, S)(mt), j = intd(0, S)(mt);
-        auto f = gen_bfrac(-2, 3, maxd);
+        auto f = uniform_gen<F>(-2, 3, maxd);
         if (i == j || f == 0 || f == 1)
             continue;
 
@@ -83,8 +83,8 @@ void add_coplanar_points(int N, vector<P>& points, long R = 100, long maxd = 4,
         if (i == j || j == k || k == i || collinear(points[i], points[j], points[k]))
             continue;
 
-        auto f1 = gen_bfrac(-2, 3, maxd);
-        auto f2 = gen_bfrac(-2, 3, maxd);
+        auto f1 = uniform_gen<F>(-2, 3, maxd);
+        auto f2 = uniform_gen<F>(-2, 3, maxd);
         P p = f1 * points[i] + f2 * points[j] + (1 - f1 - f2) * points[k];
 
         if (!pointset.count(p)) {

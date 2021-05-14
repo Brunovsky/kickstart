@@ -3,7 +3,7 @@
 #include "../flow/mpm_flow.hpp"
 #include "../flow/push_relabel.hpp"
 #include "../flow/tidal_flow.hpp"
-#include "../generators/flow.hpp"
+#include "../lib/flow.hpp"
 #include "test_utils.hpp"
 
 template <typename MF, typename Caps>

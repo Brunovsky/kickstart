@@ -1,10 +1,11 @@
 #include "../graphs/isomorphism.hpp"
+#include "../lib/graph_generator.hpp"
+#include "test_utils.hpp"
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/isomorphism.hpp>
 
-#include "../generators/graph_generator.hpp"
-#include "test_utils.hpp"
+inline namespace {
 
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 
@@ -21,6 +22,13 @@ bool boost_test(int V, const edges_t& g1, const edges_t& g2) {
     return boost::isomorphism(bg1, bg2);
 }
 
+auto show(int negatives, int positives, int false_positives) {
+    return format("{:5}n {:5}p {:5}fp ({:.1f}%)", negatives, positives, false_positives,
+                  100.0 * false_positives / max(positives, 1));
+}
+
+} // namespace
+
 void stress_test_isomorphic_positives(int T = 3000) {
     intd distV(10, 50);
     reald distp(0.1, 0.9);
@@ -32,11 +40,6 @@ void stress_test_isomorphic_positives(int T = 3000) {
         auto g2 = relabel(V, g1);
         assert(isomorphic(V, g1, g2));
     }
-}
-
-auto show(int negatives, int positives, int false_positives) {
-    return format("{:5}n {:5}p {:5}fp ({:.1f}%)", negatives, positives, false_positives,
-                  100.0 * false_positives / max(positives, 1));
 }
 
 template <typename Gn>

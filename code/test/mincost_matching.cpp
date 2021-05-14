@@ -1,4 +1,4 @@
-#include "../generators/bipartite.hpp"
+#include "../lib/bipartite.hpp"
 #include "../matching/mincost_hungarian.hpp"
 #include "test_utils.hpp"
 

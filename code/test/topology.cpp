@@ -1,6 +1,6 @@
 #include "../graphs/topology.hpp"
 
-#include "../generators/graph_operations.hpp"
+#include "../lib/graph_operations.hpp"
 #include "test_utils.hpp"
 
 void unit_test_scc() {

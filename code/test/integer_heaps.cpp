@@ -1,7 +1,7 @@
 #include "../struct/integer_heaps.hpp"
 
 #include "../formatting.hpp"
-#include "../generators/graph_generator.hpp"
+#include "../lib/graph_generator.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"
 

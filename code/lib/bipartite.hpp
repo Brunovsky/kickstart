@@ -3,12 +3,6 @@
 
 #include "graph_generator.hpp"
 
-struct bipartite_graph {
-    edges_t g;
-    int U, V, E, S;
-    vector<long> cost;
-};
-
 enum bipartite_graph_kind : int {
     BG_UNIFORM_SPARSE = 0,
     BG_UNIFORM_MODERATE = 1,
@@ -33,61 +27,64 @@ string bipartite_kind_name[] = {
     "regular",
 };
 
+struct bipartite_graph {
+    edges_t g;
+    int U, V, E, S;
+    double p;
+    vector<long> cost;
+};
+
 // S arbitrates network size/complexity.
 auto generate_bipartite_graph(bipartite_graph_kind i, int S) {
-    assert(10 <= S && S <= 50000);
+    assert(50 <= S && S <= 100'000);
 
-    reald sparsed(5.0, 12.0);
-    reald moderated(4.0, 9.0);
-    reald densed(0.6, 0.9);
-    boold swapd(0.5);
-
-    auto dV = [&](double e) {
-        int n = max(1, int(ceil(pow(S, e)))), s = int(sqrt(n));
+    static auto rs = [](int x, double e) -> int { return ceil(pow(x, e)); };
+    static auto dV = [](int x, double e) -> int {
+        int n = max(3, rs(x, e)), s = sqrt(n);
         return intd(n, n + s)(mt);
+    };
+    static auto roughly = [](int x, double lo, double hi, int min, int max) -> int {
+        return clamp(intd(rs(x, lo), rs(x, hi))(mt), min, max);
     };
 
     edges_t g;
     int U = -1, V = -1;
-    double p;
+    double p = 0.0;
     vector<int> ints;
 
-    auto swapUV = [&]() { swapd(mt) ? swap(U, V) : (void)0; };
-    auto sparse = [&]() { return min(1.0, sparsed(mt) / sqrt(U * V)); };
-    auto moderate = [&]() { return min(1.0, moderated(mt) / sqrt(sqrt(U * V))); };
-    auto dense = [&]() { return densed(mt); };
+    auto swapUV = [&]() { boold(0.5)(mt) ? swap(U, V) : (void)0; };
 
     switch (i) {
     case BG_UNIFORM_SPARSE:
-        U = dV(0.82), V = dV(0.82), p = sparse();
+        U = dV(S, 0.82), V = dV(S, 0.82), p = reald(2.5, 3.5)(mt) / V;
         g = random_uniform_bipartite(U, V, p);
         break;
     case BG_UNIFORM_MODERATE:
-        U = dV(0.75), V = dV(0.75), p = moderate();
+        U = dV(S, 0.75), V = dV(S, 0.75), p = reald(5.0, 6.0)(mt) / sqrt(V);
         g = random_uniform_bipartite(U, V, p);
         break;
     case BG_UNIFORM_DENSE:
-        U = dV(0.68), V = dV(0.68), p = dense();
+        U = dV(S, 0.68), V = dV(S, 0.68), p = reald(0.50, 0.95)(mt);
         g = random_uniform_bipartite(U, V, p);
         break;
     case BG_UNIFORM_SPARSE_IMBALANCED:
-        U = dV(0.66), V = dV(0.84), p = sparse(), swapUV();
+        U = dV(S, 0.66), V = dV(S, 0.84), p = reald(2.5, 3.5)(mt) / V, swapUV();
         g = random_uniform_bipartite(U, V, p);
         break;
     case BG_UNIFORM_MODERATE_IMBALANCED:
-        U = dV(0.52), V = dV(0.75), p = moderate(), swapUV();
+        U = dV(S, 0.52), V = dV(S, 0.75), p = reald(5.0, 6.0)(mt) / sqrt(V), swapUV();
         g = random_uniform_bipartite(U, V, p);
         break;
     case BG_UNIFORM_DENSE_IMBALANCED:
-        U = dV(0.43), V = dV(0.68), p = dense(), swapUV();
+        U = dV(S, 0.43), V = dV(S, 0.68), p = reald(0.50, 0.95)(mt), swapUV();
         g = random_uniform_bipartite(U, V, p);
         break;
     case BG_COMPLETE:
-        U = dV(0.68), V = dV(0.68);
+        U = dV(S, 0.68), V = dV(S, 0.68);
         g = complete_bipartite(U, V);
         break;
     case BG_COMPLETE_IMBALANCED:
-        U = dV(0.50), V = dV(0.76);
+        U = dV(S, 0.50), V = dV(S, 0.76);
         g = complete_bipartite(U, V);
         break;
     default:
@@ -98,6 +95,7 @@ auto generate_bipartite_graph(bipartite_graph_kind i, int S) {
     bipartite_graph bg;
     bg.g = move(g);
     bg.U = U, bg.V = V, bg.E = E, bg.S = S;
+    bg.p = p;
     return bg;
 }
 

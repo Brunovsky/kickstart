@@ -1,6 +1,8 @@
-#include "../../generators/graph_formats.hpp"
-#include "../../random.hpp"
-#include "../test_utils.hpp"
+#ifndef SLOW_TREE_HPP
+#define SLOW_TREE_HPP
+
+#include "graph_formats.hpp"
+#include "../random.hpp"
 
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/tree_policy.hpp>
@@ -234,3 +236,5 @@ struct slow_tree {
         }
     }
 };
+
+#endif // SLOW_TREE_HPP

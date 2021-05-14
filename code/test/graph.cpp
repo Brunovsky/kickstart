@@ -1,10 +1,10 @@
 #include "../formatting.hpp"
-#include "../generators/bipartite.hpp"
-#include "../generators/circulation.hpp"
-#include "../generators/distance.hpp"
-#include "../generators/flow.hpp"
-#include "../generators/graph_formats.hpp"
-#include "../generators/graph_generator.hpp"
+#include "../lib/bipartite.hpp"
+#include "../lib/circulation.hpp"
+#include "../lib/distance.hpp"
+#include "../lib/flow.hpp"
+#include "../lib/graph_formats.hpp"
+#include "../lib/graph_generator.hpp"
 #include "test_utils.hpp"
 
 static int si = 1;

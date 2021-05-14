@@ -1,7 +1,7 @@
 #include "../parallel/thread_pool.hpp"
 
 #include "../formatting.hpp"
-#include "../generators/graph_generator.hpp"
+#include "../lib/graph_generator.hpp"
 #include "../linear/matrix.hpp"
 #include "../numeric/bits.hpp"
 #include "../parallel/fn_orchestrator.hpp"
