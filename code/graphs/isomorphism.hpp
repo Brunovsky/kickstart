@@ -7,11 +7,13 @@
 using edges_t = vector<array<int, 2>>;
 
 /**
+ * Compute topological hash of a general graph, based on number of paths of length V
+ * between every pair of vertices.
  * Complexity: O(V^3 log(V)) time
  *             O(V^2) memory
  */
 auto hash_graph_vertices(int V, const edges_t& g) {
-    static Hasher hasher;
+    static hash<vector<size_t>> hasher;
     mat<size_t> m(V, V);
     for (auto [u, v] : g)
         m[u][v] = m[v][u] = 1;
@@ -29,7 +31,7 @@ auto hash_graph_vertices(int V, const edges_t& g) {
  * Compute the topological hash of a graph, irrespective of its labels (0-indexed)
  */
 size_t hash_graph(int V, const edges_t& g) {
-    static Hasher hasher;
+    static hash<vector<size_t>> hasher;
     auto hashtable = hash_graph_vertices(V, g);
     sort(begin(hashtable), end(hashtable));
     hashtable.push_back(V), hashtable.push_back(g.size());
