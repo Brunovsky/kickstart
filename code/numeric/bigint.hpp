@@ -3,37 +3,29 @@
 
 #include "../hash.hpp" // if necessary
 
-static_assert(0xffffffff == UINT_MAX);
-static_assert(sizeof(uint) == 4 && sizeof(ulong) == 8, "Unexpected integer sizes");
-
 /**
  * Bigint number over base 2^32
  * No Karatsuba multiplication yet unfortunately
  */
 struct bigint {
+    static_assert(0xffffffff == UINT_MAX);
+    static_assert(sizeof(uint) == 4 && sizeof(ulong) == 8, "Unexpected integer sizes");
+
     vector<uint> nums;
     bool sign = 0; // 0=positive, 1=negative
 
     bigint() = default;
     bigint(int n) : nums(n != 0, abs(n)), sign(n < 0) {}
-    bigint(uint n, bool s = 0) : nums(n > 0, n), sign(s) {}
+    bigint(uint n, bool s = 0) : nums(n > 0, n), sign(s && n) {}
     bigint(const string& s, uint b = 10) {
         assert(2 <= b && b <= 10);
         int i = 0, S = s.size();
-        while (i < S && isspace(s[i])) {
-            i++;
-        }
-        if (i == S) {
-            return;
-        }
-        if (s[i] == '-') {
-            sign = 1;
-        }
-        if (!('0' <= s[i] && s[i] <= '9')) {
-            i++;
-        }
+        while (i < S && isspace(s[i]))
+            i++; // skip whitespace
+        bool neg = i < S && s[i] == '-', pos = i < S && s[i] == '+';
+        i += neg || pos, sign = neg;
         uint n = 0, tens = 1, threshold = UINT_MAX / (b + 1);
-        while (i < S && ('0' <= s[i] && s[i] <= '9')) {
+        while (i < S && ('0' <= s[i] && s[i] < char('0' + b))) {
             n = b * n + uint(s[i++] - '0');
             tens *= b;
             if (tens >= threshold) {
@@ -498,6 +490,17 @@ struct bigint {
     friend bigint operator%(bigint u, const bigint& v) { return u %= v; }
     friend bigint operator%(bigint u, uint n) { return u %= n; }
     friend bigint operator%(bigint u, int n) { return u %= n; }
+
+    bigint operator++() { return *this += 1u; }
+    bigint operator--() { return *this -= 1u; }
+    bigint operator++(int) {
+        auto b = *this;
+        return ++*this, b;
+    }
+    bigint operator--(int) {
+        auto b = *this;
+        return --*this, b;
+    }
 
     friend bigint operator-(bigint u) { return u.flip(), u; }
     friend bool operator!(const bigint& u) { return u.zero(); }

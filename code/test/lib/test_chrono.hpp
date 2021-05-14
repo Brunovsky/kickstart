@@ -31,8 +31,8 @@ using ms = milliseconds;
 #define CUR_TIME(var)      duration_cast<us>(steady_clock::now() - now_##var)
 #define TIME(var)          auto time_##var = CUR_TIME(var).count()
 #define ADD_TIME(var)      time_##var += CUR_TIME(var).count()
-#define TIME_S(var)        time_##var / 1e6
-#define TIME_MS(var)       time_##var / 1'000
+#define TIME_S(var)        (time_##var / 1e6)
+#define TIME_MS(var)       (time_##var / 1'000)
 #define TIME_US(var)       time_##var
 #define PRINT_TIME(var)    clear_line(), print(" {:>8}ms -- {}\n", TIME_MS(var), #var)
 #define PRINT_TIME_US(var) clear_line(), print(" {:>9}us -- {}\n", TIME_US(var), #var)
