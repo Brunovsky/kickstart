@@ -5,6 +5,13 @@
 #include "test_utils.hpp"
 
 void speed_test_sieves() {
+    for (int N : {1'000, 2'200, 5'000, 10'000, 22'000}) {
+        print(" speed test sieves N={}\n", N);
+        START(pascal);
+        pascal_sieve(N, 1'000'000'007);
+        TIME(pascal);
+        PRINT_TIME(pascal);
+    }
     for (int N : {31'600, 100'000, 316'000, 1'000'000, 3'160'000, 10'000'000, 31'600'000,
                   100'000'000}) {
         print(" speed test sieves N={}\n", N);
@@ -43,6 +50,11 @@ void speed_test_sieves() {
         modinv_sieve(N, 1'000'000'007);
         TIME(modinv);
         PRINT_TIME(modinv);
+
+        START(logfac);
+        logfac_sieve(N);
+        TIME(logfac);
+        PRINT_TIME(logfac);
     }
 }
 
@@ -59,15 +71,8 @@ void unit_test_classic_sieve() {
     assert(count_primes(179424674, 188943803, primes) == 500'000);
 }
 
-#define PRINT(vec)                   \
-    cout << setw(15) << #vec << " "; \
-    for (int n = 0; n < M; n++)      \
-        cout << setw(3) << vec[n];   \
-    cout << endl
-
 void unit_test_sieves() {
-    const int N = 100, M = 21;
-
+    constexpr int N = 100, M = 21;
     auto primes = classic_sieve(N);
     auto least = least_prime_sieve(N);
     auto tau_primes = num_prime_divisors_sieve(N);
@@ -85,14 +90,6 @@ void unit_test_sieves() {
         {0, 1, 1, 2, 2, 4, 2, 6, 4, 6, 4, 10, 4, 12, 6, 8, 8, 16, 6, 18, 8},
         {0, 1, 12, 8, 6, 14, 4, 10, 3, 18, 7, 21, 2, 16, 5, 20, 13, 19, 9, 17, 15},
     };
-
-    PRINT(primes), PRINT(ans[0]);
-    PRINT(least), PRINT(ans[1]);
-    PRINT(tau_primes), PRINT(ans[2]);
-    PRINT(tau), PRINT(ans[3]);
-    PRINT(sigma), PRINT(ans[4]);
-    PRINT(phi), PRINT(ans[5]);
-    PRINT(modinv1e9), PRINT(ans[6]);
 
     for (int n = 0; n < M; n++) {
         assert(primes[n] == ans[0][n]);
@@ -177,12 +174,51 @@ void stress_test_jacobi() {
     }
 }
 
+void stress_test_miller_rabin() {
+    const char* what[2] = {"composite", "prime"};
+    constexpr long N = 4'000'000;
+    auto primes = classic_sieve(N);
+
+    vector<bool> small_prime(N + 1, false);
+    for (int p : primes) {
+        small_prime[p] = true;
+    }
+    for (long n = 1; n <= N; n++) {
+        if (small_prime[n] != miller_rabin(n)) {
+            print("miller_rabin failed for n={}\n", n);
+            print("expected: {}\n", what[small_prime[n]]);
+            print("     got: {}\n", what[miller_rabin(n)]);
+        }
+        assert(small_prime[n] == miller_rabin(n));
+    }
+    print("small miller_rabin OK\n");
+
+    for (int v : {5, 20, 300, 1000}) {
+        long L = N * (N - v), R = N * (N - v + 5);
+        auto large_primes = get_primes(L, R, primes);
+        vector<bool> large_prime(R - L + 1, false);
+        for (long n : large_primes) {
+            large_prime[n - L] = true;
+        }
+        for (long n = L; n <= N; n++) {
+            if (large_primes[n - L] != miller_rabin(n)) {
+                print("miller_rabin failed for n={}\n", n);
+                print("expected: {}\n", what[small_prime[n - L]]);
+                print("     got: {}\n", what[miller_rabin(n)]);
+            }
+            assert(large_prime[n - L] == miller_rabin(n));
+        }
+        print("large miller_rabin {}..{} OK\n", L, R);
+    }
+}
+
 int main() {
     RUN_SHORT(unit_test_sieves());
     RUN_SHORT(unit_test_factor());
     RUN_SHORT(unit_test_num_divisors_sieve());
     RUN_BLOCK(stress_test_factor());
     RUN_BLOCK(stress_test_jacobi());
+    RUN_BLOCK(stress_test_miller_rabin());
     RUN_BLOCK(speed_test_sieves());
     return 0;
 }

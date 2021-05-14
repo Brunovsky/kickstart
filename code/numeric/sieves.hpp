@@ -9,6 +9,10 @@ using namespace std;
  * Compute all primes p<=N.
  * This allows querying primes or number of primes in a range [L,R] at most N*N.
  * Complexity: O(N log log N)
+ *    time       N
+ *     30ms      10'000'000
+ *    100ms      32'000'000
+ *    500ms      100'000'000
  */
 auto classic_sieve(int N) {
     vector<int> primes;
@@ -36,11 +40,15 @@ auto classic_sieve(int N) {
  * Complexity: O(N)
  * Source: https://github.com/indy256/codelibrary
  *         https://cp-algorithms.com/algebra/prime-sieve-linear.html
+ *    time       N
+ *     90ms      10'000'000
+ *    300ms      32'000'000
+ *   1100ms      100'000'000
  */
 auto least_prime_sieve(int N) {
     vector<int> primes, lp, nxt;
     lp.assign(N + 1, 0), nxt.assign(N + 1, 0);
-    lp[1] = nxt[1] = 1;
+    nxt[1] = 1;
 
     for (int P = 0, n = 2; n <= N; n++) {
         if (lp[n] == 0) {
@@ -57,6 +65,10 @@ auto least_prime_sieve(int N) {
 /**
  * Compute the number of unique prime divisors of all n<=N.
  * Complexity: O(N log log N)
+ *    time       N
+ *     60ms      3'200'000
+ *    250ms      10'000'000
+ *    850ms      32'000'000
  */
 auto num_prime_divisors_sieve(int N) {
     vector<int> num_prime_divisors;
@@ -76,6 +88,10 @@ auto num_prime_divisors_sieve(int N) {
 /**
  * Compute the number of divisors of all n<=N, including trivial divisors.
  * Complexity: O(N log log N)
+ *    time       N
+ *     80ms      3'200'000
+ *    300ms      10'000'000
+ *    950ms      32'000'000
  */
 auto num_divisors_sieve(int N) {
     vector<int> num_divisors;
@@ -100,6 +116,10 @@ auto num_divisors_sieve(int N) {
 /**
  * Compute the sum of divisors of all n<=N, including trivial divisors.
  * Complexity: O(N log log N)
+ *    time       N
+ *    100ms      3'200'000
+ *    350ms      10'000'000
+ *   1250ms      32'000'000
  */
 auto sum_divisors_sieve(int N) {
     vector<long> sum_divisors;
@@ -124,6 +144,10 @@ auto sum_divisors_sieve(int N) {
 /**
  * Compute phi(n) of all n<=N.
  * Complexity: O(N log log N)
+ *    time       N
+ *    100ms      3'200'000
+ *    350ms      10'000'000
+ *   1200ms      32'000'000
  */
 auto phi_sieve(int N) {
     vector<int> phi;
@@ -144,6 +168,10 @@ auto phi_sieve(int N) {
 /**
  * Compute modinv(n, m) of all n<=N where m is a prime.
  * Complexity: O(N)
+ *    time       N (mod=1e9+7)
+ *    150ms      10'000'000
+ *    400ms      32'000'000
+ *   1000ms      100'000'000
  */
 auto modinv_sieve(int N, int mod) {
     vector<int> inv;
@@ -159,8 +187,33 @@ auto modinv_sieve(int N, int mod) {
 }
 
 /**
+ * Compute log(n!) of all n<=N.
+ * Complexity: O(N)
+ *    time       N (long doubles)
+ *    140ms      3'200'000
+ *    380ms      10'000'000
+ *   1240ms      32'000'000
+ */
+template <typename D = double>
+auto logfac_sieve(int N) {
+    vector<D> logfac;
+    logfac.resize(N + 1);
+    logfac[0] = logfac[1] = 1;
+
+    for (int n = 2; n <= N; n++) {
+        logfac[n] = logfac[n - 1] + log(D(n));
+    }
+
+    return logfac;
+}
+
+/**
  * Compute (n choose m) for all 0<=m<=n and all n<=N, along with fac and inv.
  * Complexity: O(N^2)
+ *    time       N (mod=1e9+7)
+ *     40ms      5'000
+ *    150ms      10'000
+ *    800ms      22'000
  */
 auto pascal_sieve(int N, int mod) {
     vector<int> fac, inv;
@@ -171,7 +224,7 @@ auto pascal_sieve(int N, int mod) {
     choose[0] = {1};
 
     for (int n = 1; n <= N; n++) {
-        choose.emplace_back(n + 1);
+        choose[n].resize(n + 1);
         choose[n][0] = choose[n][n] = 1;
         for (int m = 1; m < n; m++) {
             choose[n][m] = (choose[n - 1][m - 1] + choose[n - 1][m]) % mod;
@@ -237,6 +290,14 @@ auto factor_primes(int n, const vector<int>& lp, const vector<int>& nxt) {
         primes[lp[n]]++, n = nxt[n];
     }
     return primes;
+}
+
+/**
+ * Probability of k successes in a binomial(n,p)
+ */
+template <typename D = double>
+D binom_success(int n, int k, D p, const vector<D>& logfac) {
+    return exp(logfac[n] - logfac[k] - logfac[n - k] + k * log(p) + (n - k) * log1p(-p));
 }
 
 #endif // SIEVES_HPP

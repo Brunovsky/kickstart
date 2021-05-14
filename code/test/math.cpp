@@ -1,9 +1,7 @@
 #undef NDEBUG
-
-#include "../numeric/math.hpp"
-
-#include "../numeric/modnum.hpp"
 #include "test_utils.hpp"
+#include "../numeric/math.hpp"
+#include "../numeric/modnum.hpp"
 
 void unit_test_gcd() {
     assert(gcd(135, 54) == 27);

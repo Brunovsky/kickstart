@@ -34,14 +34,52 @@ bool is_quadratic_residue(long a, long p) {
     return a != 0 && modpow(a, (p - 1) / 2, p) == 1;
 }
 
+long huge_modpow(long base, long e, long mod) {
+    long x = 1;
+    base = base % mod;
+    while (e > 0) {
+        if (e & 1)
+            x = __int128_t(x) * __int128_t(base) % mod;
+        if (e >>= 1)
+            base = __int128_t(base) * __int128_t(base) % mod;
+    }
+    return x;
+}
+
+/**
+ * Fast miller-rabin test for compositeness of n
+ * Returns true if n is a prime.
+ * Complexity: O(log n)
+ */
+bool miller_rabin(long n) {
+    if (n < 5)
+        return n == 2 || n == 3;
+    if (n % 2 == 0)
+        return false;
+    int r = __builtin_ctzll(n - 1);
+    long d = n >> r;
+
+    for (int witness : {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}) {
+        if (witness > n)
+            break;
+        if (witness == n)
+            return true;
+        auto x = huge_modpow(witness, d, n);
+        if (x == 1 || x == n - 1)
+            continue;
+        for (int i = 0; i < r - 1 && x != n - 1; i++) {
+            x = __int128_t(x) * __int128_t(x) % n;
+        }
+        if (x != n - 1)
+            return false;
+    }
+    return true;
+}
+
 auto factor_simple(long n) {
     vector<long> primes;
-    while (n && (n & 1) == 0) {
-        primes.push_back(2);
-        n >>= 1;
-    }
-    for (long p = 3; p * p <= n; p += 2) {
-        while ((n % p) == 0) {
+    for (long p = 2; p * p <= n; p++) {
+        while (n % p == 0) {
             primes.push_back(p);
             n = n / p;
         }

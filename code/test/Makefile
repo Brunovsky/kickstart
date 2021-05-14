@@ -1,6 +1,6 @@
 # Compiler, gcc or clang
-COMPILER := gcc
-CC := g++
+COMPILER := clang
+CC := clang++
 CPP_STANDARD := c++17
 EXTRA_CXXFLAGS := -lfmt
 
