@@ -4,6 +4,7 @@
 #include "../lib/slow_tree.hpp"
 
 #pragma GCC diagnostic ignored "-Wpedantic"
+#pragma clang diagnostic ignored "-Wc99-designator"
 
 enum UnrootedActionType {
     LINK,        // pick two nodes in distinct trees and link them

@@ -43,9 +43,6 @@ auto generate_bipartite_graph(bipartite_graph_kind i, int S) {
         int n = max(3, rs(x, e)), s = sqrt(n);
         return intd(n, n + s)(mt);
     };
-    static auto roughly = [](int x, double lo, double hi, int min, int max) -> int {
-        return clamp(intd(rs(x, lo), rs(x, hi))(mt), min, max);
-    };
 
     edges_t g;
     int U = -1, V = -1;

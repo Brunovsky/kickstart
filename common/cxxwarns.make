@@ -6,7 +6,7 @@ WARNS += -Wno-unused-function
 
 # Type casting
 WARNS += -Wcast-align -Wcast-qual -Wold-style-cast
-WARNS += -Wsign-compare -Wfloat-equal -Wdouble-promotion
+WARNS += -Wsign-compare -Wfloat-equal -Wno-double-promotion
 
 WARNS += -Wformat
 WARNS += -Woverloaded-virtual -Wnon-virtual-dtor

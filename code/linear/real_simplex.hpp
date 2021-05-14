@@ -98,7 +98,7 @@ struct real_simplex {
                 return LP_OPTIMAL;
             }
             int bland = INT_MAX;
-            T best;
+            T best = 0;
             for (int i = 1; i <= M; i++) {
                 if (int j = row_var[i]; tab[i][c] > 0) {
                     if (auto ratio = tab[i][0] / tab[i][c]; ratio >= -eps) {

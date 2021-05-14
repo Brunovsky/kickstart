@@ -19,7 +19,7 @@ auto uniform_gen(long minv, long maxv, long maxd) {
     } else if constexpr (is_integral_v<T>) {
         return longd(minv, maxv)(mt);
     } else if constexpr (is_arithmetic_v<T>) {
-        long n = longd(minv * maxd, maxv * maxd);
+        long n = longd(minv * maxd, maxv * maxd)(mt);
         return T(n) / T(maxd);
     }
 }
