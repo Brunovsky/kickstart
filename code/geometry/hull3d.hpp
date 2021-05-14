@@ -1,7 +1,7 @@
 #ifndef QUICKHULL3D_HPP
 #define QUICKHULL3D_HPP
 
-#include "point3d.hpp" // Point3d, Plane
+#include "general_point3d.hpp" // Point3d, Plane
 
 /**
  * 3D Quickhull for double points.
@@ -21,7 +21,7 @@
  *         }
  *     }
  */
-using P = Point3d;
+template <typename P>
 struct quickhull3d {
     struct Face;
     static constexpr int VISIBLE = 0, DELETED = 1;
@@ -37,7 +37,7 @@ struct quickhull3d {
 
     struct Face {
         Plane plane;
-        Point3d centroid;
+        P centroid;
         Edge* edge; // an arbitrary edge in the face; a particular one initially
         int mark = VISIBLE, outside = 0, id, npoints = 3;
         explicit Face(int id) : id(id) {}
@@ -57,7 +57,7 @@ struct quickhull3d {
     vector<int> eye_prev, eye_next, open;
     vector<Face*> eye_face, new_faces, old_faces;
     vector<Edge*> horizon;
-    double eps = Point3d::deps;
+    double eps = P::deps;
 
     quickhull3d(const vector<P>& input, int skip_0 = 0)
         : N(input.size() - skip_0), points(N + 1), eye_prev(N + 1, 0), eye_next(N + 1, 0),
@@ -234,7 +234,7 @@ struct quickhull3d {
         Edge::link(a, d), Edge::link(c, b);
 
         // Recompute centroid
-        Point3d centroid;
+        P centroid;
         face->npoints = 0, edge = face->edge;
         do {
             centroid += points[edge->vertex];
@@ -243,7 +243,7 @@ struct quickhull3d {
         face->centroid = centroid /= face->npoints;
 
         // Recompute normal
-        Point3d normal;
+        P normal;
         do {
             normal += centroid.cross(points[edge->vertex], points[edge->next->vertex]);
             edge = edge->next;

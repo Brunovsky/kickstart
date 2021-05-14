@@ -1,5 +1,5 @@
-#ifndef POINT2D_HPP
-#define POINT2D_HPP
+#ifndef GENERAL_POINT2D_HPP
+#define GENERAL_POINT2D_HPP
 
 #include <bits/stdc++.h>
 
@@ -9,9 +9,9 @@ using namespace std;
  * Class to represent points exactly in 2d space.
  * Set T to long, __int128_t, frac, double, long double, ... (avoid int due to overflow)
  * Set D to double or long double.
- * Don't untemplate it or you will get compile errors.
- * Careful with exact comparisons like u==v if T is not exact
+ * Careful with exact comparisons like u==v if T is not exact.
  * Points: a,b,c,p   Points/vectors: u,v,w
+ * Primary sources: kactl, cp-alg, ecnerwala
  */
 template <typename T, typename D = double>
 struct Point2d {
@@ -26,6 +26,7 @@ struct Point2d {
     using P = Point2d<T, D>;
     using dP = Point2d<D, D>;
     static P zero() { return P(0, 0); }
+    static T my_abs(T v) { return v >= 0 ? v : -v; /* __int128_t has no abs() */ }
 
     friend bool operator==(P a, P b) { return a.x == b.x && a.y == b.y; }
     friend bool operator!=(P a, P b) { return !(a == b); }
@@ -65,9 +66,9 @@ struct Point2d {
     friend auto norm(P u) { return u.norm(); }
     friend auto unit(P u) { return u.unit(); }
 
-    auto manh() const { return abs(x) + abs(y); }
+    auto manh() const { return my_abs(x) + my_abs(y); }
     friend auto manh(P a, P b) { return (a - b).manh(); }
-    friend auto abs(P u) { return P(abs(u.x), abs(u.y)); }
+    friend auto abs(P u) { return P(my_abs(u.x), my_abs(u.y)); }
 
     friend auto dot(P u, P v) { return u.x * v.x + u.y * v.y; }
     friend auto doted(P p, P a, P b) { return dot(a - p, b - p); }
@@ -148,4 +149,4 @@ struct Point2d {
     friend istream& operator>>(istream& in, P& p) { return in >> p.x >> p.y; }
 };
 
-#endif // POINT2D_HPP
+#endif // GENERAL_POINT2D_HPP

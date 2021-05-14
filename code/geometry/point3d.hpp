@@ -7,8 +7,7 @@ using namespace std;
 
 /**
  * Class to represent points, lines, axis, circles etc in 3d using doubles.
- * Primary source: kth (https://github.com/kth-competitive-programming/kactl)
- *                 https://cp-algorithms.com/geometry/basic-geometry.html
+ * Primary sources: kactl, cp-alg, ecnerwala
  */
 struct Point3d {
     double x, y, z;

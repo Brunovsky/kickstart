@@ -1,5 +1,5 @@
-#ifndef POINT3D_HPP
-#define POINT3D_HPP
+#ifndef GENERAL_POINT3D_HPP
+#define GENERAL_POINT3D_HPP
 
 #include <bits/stdc++.h>
 
@@ -7,11 +7,13 @@ using namespace std;
 
 /**
  * Class to represent points exactly in 2d space.
- * Set T to long, frac, double, long double, ... (avoid int due to overflow)
+ * Set T to long, frac, __int128_t, double, long double, ... (avoid int due to overflow)
  * Set D to double or long double.
- * Don't untemplate it or you might get compile errors.
- * Careful with exact comparisons like u==v if T is not exact
+ * Careful with exact comparisons like u==v if T is not exact.
+ * The implementation in epsilon_point3d.hpp handles doubles properly with epsilons etc.
+ *
  * Points: a,b,c,p   Points/vectors: u,v,w
+ * Primary sources: kactl, cp-alg, ecnerwala
  */
 template <typename T, typename D = double>
 struct Point3d {
@@ -25,6 +27,7 @@ struct Point3d {
     using P = Point3d<T, D>;
     using dP = Point3d<D, D>;
     static P zero() { return P(0, 0, 0); }
+    static T my_abs(T v) { return v >= 0 ? v : -v; /* __int128_t has no abs() */ }
 
     friend bool operator==(P a, P b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
     friend bool operator!=(P a, P b) { return !(a == b); }
@@ -62,9 +65,9 @@ struct Point3d {
     friend auto norm(P u) { return u.norm(); }
     friend auto unit(P u) { return u.unit(); }
 
-    auto manh() const { return abs(x) + abs(y) + abs(z); }
+    auto manh() const { return my_abs(x) + my_abs(y) + my_abs(z); }
     friend auto manh(P a, P b) { return (a - b).manh(); }
-    friend auto abs(P u) { return P(abs(u.x), abs(u.y)); }
+    friend auto abs(P u) { return P(my_abs(u.x), my_abs(u.y), my_abs(u.z)); }
 
     friend auto dot(P u, P v) { return u.x * v.x + u.y * v.y + u.z * v.z; }
     friend auto doted(P p, P a, P b) { return dot(a - p, b - p); }
@@ -101,7 +104,7 @@ struct Point3d {
         return c * c / dist2(u, v);
     }
     friend auto signed_linedist(P a, P u, P v) { return D(a.cross(u, v)) / dist(u, v); }
-    friend auto linedist(P a, P u, P v) { return abs(signed_linedist(a, u, v)); }
+    friend auto linedist(P a, P u, P v) { return my_abs(signed_linedist(a, u, v)); }
 
   public: // Planes
     friend bool coplanar(P a, P b, P c, P d) {
@@ -131,4 +134,4 @@ struct Point3d {
     friend istream& operator>>(istream& in, P& p) { return in >> p.x >> p.y >> p.z; }
 };
 
-#endif // POINT3D_HPP
+#endif // GENERAL_POINT3D_HPP
