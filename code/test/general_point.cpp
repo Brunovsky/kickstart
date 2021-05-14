@@ -21,4 +21,12 @@ template struct Point3d<__int128_t, long double>;
 template struct Point3d<double, double>;
 template struct Point3d<long double, long double>;
 
+template struct Plane<frac, double>;
+template struct Plane<long, double>;
+template struct Plane<long, long double>;
+template struct Plane<__int128_t, double>;
+template struct Plane<__int128_t, long double>;
+template struct Plane<double, double>;
+template struct Plane<long double, long double>;
+
 int main() { return 0; }

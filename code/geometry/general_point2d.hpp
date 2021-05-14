@@ -71,13 +71,13 @@ struct Point2d {
     friend auto abs(P u) { return P(my_abs(u.x), my_abs(u.y)); }
 
     friend auto dot(P u, P v) { return u.x * v.x + u.y * v.y; }
-    friend auto doted(P p, P a, P b) { return dot(a - p, b - p); }
+    auto doted(P a, P b) const { return dot(a - *this, b - *this); }
 
     friend auto cross(P u, P v) { return u.x * v.y - u.y * v.x; }
-    friend auto crossed(P p, P a, P b) { return cross(a - p, b - p); }
+    auto crossed(P a, P b) const { return cross(a - *this, b - *this); }
 
     friend auto dot_cross(P u, P v) { return P(dot(u, v), cross(u, v)); }
-    friend auto dot_crossed(P p, P a, P b) { return dot_cross(a - p, b - p); }
+    auto dot_crossed(P a, P b) const { return dot_cross(a - *this, b - *this); }
 
     friend auto dist2(P a, P b) { return (a - b).norm2(); }
     friend auto dist(P a, P b) { return std::sqrt(D(dist2(a, b))); }
@@ -130,7 +130,7 @@ struct Point2d {
         return (c >= 0) - (c <= 0);
     }
     friend optional<P> intersect(P a, P b, P u, P v) {
-        auto d = cross(v - u, b - a), p = a.cross(v, b), q = a.cross(b, u);
+        auto d = cross(v - u, b - a), p = a.crossed(v, b), q = a.crossed(b, u);
         return d == 0 ? std::nullopt : (u * p + v * q) / d;
     }
 

@@ -70,12 +70,12 @@ struct Point3d {
     friend auto abs(P u) { return P(my_abs(u.x), my_abs(u.y), my_abs(u.z)); }
 
     friend auto dot(P u, P v) { return u.x * v.x + u.y * v.y + u.z * v.z; }
-    friend auto doted(P p, P a, P b) { return dot(a - p, b - p); }
+    auto doted(P a, P b) const { return dot(a - *this, b - *this); }
 
     friend auto cross(P u, P v) {
         return P(u.y * v.z - u.z * v.y, u.z * v.x - u.x * v.z, u.x * v.y - u.y * v.x);
     }
-    friend auto crossed(P p, P a, P b) { return cross(a - p, b - p); }
+    auto crossed(P a, P b) const { return cross(a - *this, b - *this); }
 
     friend auto dist2(P a, P b) { return (a - b).norm2(); }
     friend auto dist(P a, P b) { return std::sqrt(D(dist2(a, b))); }
@@ -96,26 +96,23 @@ struct Point3d {
     friend bool samedir(P u, P v) { return cross(u, v) == zero() && dot(u, v) >= 0; }
     friend bool collinear(P a, P b, P c) { return a.crossed(b, c) == zero(); }
     friend bool onsegment(P a, P b, P c) {
-        return a.crossed(b, c) == zero() && doted(b, a, c) <= 0;
+        return a.crossed(b, c) == zero() && b.doted(a, c) <= 0;
     }
 
     friend T linedist2(P a, P u, P v) {
         auto c = a.crossed(u, v);
         return c * c / dist2(u, v);
     }
-    friend auto signed_linedist(P a, P u, P v) { return D(a.cross(u, v)) / dist(u, v); }
+    friend auto signed_linedist(P a, P u, P v) { return D(a.crossed(u, v)) / dist(u, v); }
     friend auto linedist(P a, P u, P v) { return my_abs(signed_linedist(a, u, v)); }
 
   public: // Planes
     friend bool coplanar(P a, P b, P c, P d) {
-        return parallel(a.cross(c, d), b.cross(c, d));
+        return parallel(a.crossed(c, d), b.crossed(c, d));
     }
-    // where is p relative to plane abc in ccw? 1=above, 0=in, -1=below
-    friend int planeside(P p, P a, P b, P c) {
-        return planeside(p, a, a.crossed(b, c)); //
-    }
+    friend int planeside(P p, P a, P b, P c) { return planeside(p, a, a.crossed(b, c)); }
     friend int planeside(P p, P c, P n) {
-        T s = dot(n, p - c);
+        auto s = dot(n, p - c);
         return (s >= 0) - (s <= 0);
     }
 
@@ -132,6 +129,36 @@ struct Point3d {
     }
     friend ostream& operator<<(ostream& out, P p) { return out << to_string(p); }
     friend istream& operator>>(istream& in, P& p) { return in >> p.x >> p.y >> p.z; }
+};
+
+template <typename T, typename D = double>
+struct Plane {
+    using P = Point3d<T, D>;
+    P a, b, c;
+
+    Plane() = default;
+    Plane(P a, P b, P c) : a(a), b(b), c(c) {}
+
+    P normal() const { return a.crossed(b, c); }
+    bool is_degenerate() const { return collinear(a, b, c); }
+    friend bool same_oriented(Plane f, Plane g) {
+        return samedir(f.normal(), g.normal());
+    }
+    friend bool operator==(Plane f, Plane g) { return same_oriented(f, g); }
+    friend bool operator!=(Plane f, Plane g) { return !(f == g); }
+
+    Plane operator-() const { return Plane(a, c, b); }
+
+    int planeside(P p) const {
+        auto s = dot(normal(), p - c);
+        return (s >= 0) - (s <= 0);
+    }
+    T planedist2(P p) {
+        auto k = dot(normal(), p - c);
+        return k * k / normal().norm2();
+    }
+    auto signed_planedist(P p) { return D(dot(normal(), p - c)) / normal().norm(); }
+    auto planedist(P p) { return abs(signed_planedist(p)); }
 };
 
 #endif // GENERAL_POINT3D_HPP
