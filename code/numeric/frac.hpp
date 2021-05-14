@@ -29,11 +29,7 @@ struct frac {
     friend long floor(frac f) { return f.n >= 0 ? f.n / f.d : (f.n - f.d + 1) / f.d; }
     friend long ceil(frac f) { return f.n >= 0 ? (f.n + f.d - 1) / f.d : f.n / f.d; }
     friend frac gcd(frac a, frac b) {
-        while (a != 0) {
-            b = b % a;
-            swap(a, b);
-        }
-        return abs(b);
+        return frac(gcd(a.n, b.n), a.d * (b.d / gcd(a.d, b.d)));
     }
 
     friend bool operator==(frac a, frac b) { return a.n == b.n && a.d == b.d; }

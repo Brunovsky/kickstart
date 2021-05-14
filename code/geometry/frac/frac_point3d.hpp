@@ -122,7 +122,7 @@ struct Point3d {
     friend string to_string(const P& a) {
         return '(' + to_string(a.x) + ',' + to_string(a.y) + ',' + to_string(a.z) + ')';
     }
-    friend ostream& operator<<(ostream& out, const P& a) { return out << to_string(a); }
+    friend ostream& operator<<(ostream& out, P a) { return out << to_string(a); }
 };
 
 template <typename T>
