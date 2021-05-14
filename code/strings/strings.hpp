@@ -65,7 +65,7 @@ auto build_cyclic_shifts(const Vec& s, int A, T first) {
 
 /**
  * Compute the LCP array for string s and its suffix/cyclic shifts array.
- * LCP[i] = longest common prefix(sa[i], sa[i+1]) for i=0,...,N.
+ * LCP[i] = longest common prefix(sa[i], sa[i+1]) for i=0,...,N-1.
  *
  * Complexity: O(N)
  */
@@ -115,6 +115,7 @@ auto build_z_function(const Vec& s) {
 /**
  * Compute the prefix function of string s (KMP function)
  * pf[i] := longest proper prefix of s[0..i] that is also a suffix of it; pf[0]=0.
+ *          in other words: longest border of s[0..i].
  *
  * Complexity: O(N)
  * Reference: https://cp-algorithms.com/string/prefix-function.html
@@ -184,6 +185,64 @@ auto build_manachers(const Vec& s) {
         }
     }
     return lp;
+}
+
+/**
+ * Compute Boyer-Moore's border table
+ * A border of s is a proper substring of s that is both a prefix and a suffix of s.
+ * border[i]: smallest j>i such that s[i..?] = s[j..]; border[len(s)]=len(s)+1.
+ *            in other words: start index of longest border of s[i..]
+ *            basically reverse prefix function
+ */
+template <typename Vec>
+auto build_border_function(const Vec& s) {
+    int P = s.size(), b = P + 1;
+    vector<int> border(P + 1);
+    border[P] = b;
+
+    for (int i = P; i > 0; i--) {
+        while (b <= P && s[i - 1] != s[b - 1]) {
+            b = border[b];
+        }
+        border[i - 1] = --b;
+    }
+
+    return border;
+}
+
+/**
+ * Compute Boyer-Moore's strong good suffix rule table and border table, simultaneously.
+ * good[i]: shift distance if mismatch at i-1: s[i..] = t[j..] but s[i-1]!=t[j-1]
+ */
+template <typename Vec>
+auto build_good_suffix_border_table(const Vec& s, bool extend_zeros = true) {
+    int P = s.size();
+    vector<int> border(P + 1), good(P + 1, 0);
+    int b = P + 1;
+    border[P] = b;
+
+    for (int i = P; i > 0; i--) {
+        while (b <= P && s[i - 1] != s[b - 1]) {
+            if (good[b] == 0) {
+                good[b] = b - i;
+            }
+            b = border[b];
+        }
+        border[i - 1] = --b;
+    }
+
+    if (extend_zeros) {
+        for (int i = 0; i <= P; i++) {
+            if (good[i] == 0) {
+                good[i] = b;
+            }
+            if (i == b) {
+                b = border[b];
+            }
+        }
+    }
+
+    return pair<vector<int>, vector<int>>{move(good), move(border)};
 }
 
 /**
