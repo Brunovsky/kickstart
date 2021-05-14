@@ -1,8 +1,5 @@
-#include "../algo/2sat.hpp"
-
-#include "../formatting.hpp"
-#include "../random.hpp"
 #include "test_utils.hpp"
+#include "../algo/2sat.hpp"
 
 edges_t generate_twosat(int N, int E, double p = 0.5) {
     boold distp(p), bothd(0.1), coin(0.5);

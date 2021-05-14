@@ -1,10 +1,10 @@
+#include "test_utils.hpp"
 #include "../flow/dinitz_flow.hpp"
 #include "../flow/edmonds_karp.hpp"
 #include "../flow/mpm_flow.hpp"
 #include "../flow/push_relabel.hpp"
 #include "../flow/tidal_flow.hpp"
 #include "../lib/flow.hpp"
-#include "test_utils.hpp"
 
 template <typename MF, typename Caps>
 void add_edges(MF& mf, const edges_t& g, const Caps& caps) {

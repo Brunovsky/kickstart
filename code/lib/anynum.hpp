@@ -6,7 +6,7 @@
 #include "../random.hpp"
 
 template <typename T>
-auto uniform_gen(long minv, long maxv, long maxd) {
+auto uniform_gen(long minv, long maxv, long maxd = 2) {
     assert(max(abs(minv), abs(maxv)) <= LONG_MAX / maxd);
     if constexpr (is_same_v<T, frac>) {
         long d = longd(1, maxd)(mt);

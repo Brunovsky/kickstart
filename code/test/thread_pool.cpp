@@ -1,6 +1,5 @@
+#include "test_utils.hpp"
 #include "../parallel/thread_pool.hpp"
-
-#include "../formatting.hpp"
 #include "../lib/graph_generator.hpp"
 #include "../linear/matrix.hpp"
 #include "../numeric/bits.hpp"
@@ -8,8 +7,6 @@
 #include "../parallel/graph_orchestrator.hpp"
 #include "../parallel/priority_thread_pool.hpp"
 #include "../parallel/spinlock.hpp"
-#include "../random.hpp"
-#include "test_utils.hpp"
 
 using mat_t = mat<long>;
 

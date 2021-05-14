@@ -1,6 +1,5 @@
-#include "../strings/aho_corasick.hpp"
-
 #include "test_utils.hpp"
+#include "../strings/aho_corasick.hpp"
 
 struct visitor {
     int cnt = 0;

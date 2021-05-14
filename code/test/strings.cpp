@@ -1,7 +1,5 @@
-#include "../strings/strings.hpp"
-
-#include "../formatting.hpp"
 #include "test_utils.hpp"
+#include "../strings/strings.hpp"
 
 void unit_test_good_suffix() {
     string ss[] = {

@@ -1,9 +1,8 @@
+#include "test_utils.hpp"
 #include "../matching/maximum_matching.hpp"
-
 #include "../lib/bipartite.hpp"
 #include "../lib/bipartite_matching.hpp"
 #include "../matching/hopcroft_karp.hpp"
-#include "test_utils.hpp"
 
 void speed_test_maximum_matching_run(bipartite_graph_kind i, int S, int T) {
     START_ACC(gen);

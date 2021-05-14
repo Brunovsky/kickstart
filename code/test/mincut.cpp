@@ -1,7 +1,5 @@
-#include "../graphs/mincut.hpp"
-
-#include "../formatting.hpp"
 #include "test_utils.hpp"
+#include "../graphs/mincut.hpp"
 
 // clang-format off
 

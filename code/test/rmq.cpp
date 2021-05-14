@@ -1,6 +1,5 @@
-#include "../struct/rmq.hpp"
-
 #include "test_utils.hpp"
+#include "../struct/rmq.hpp"
 
 void unit_test_rmq() {
     RMQ<int> rmq({3, 9, 2, 7, 8, 4, 7, 3, 1, 6, 8, 2});

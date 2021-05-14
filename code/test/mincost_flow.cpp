@@ -1,7 +1,6 @@
-#include "../flow/mincost_edmonds_karp.hpp"
-#include "../formatting.hpp"
-#include "../lib/flow.hpp"
 #include "test_utils.hpp"
+#include "../flow/mincost_edmonds_karp.hpp"
+#include "../lib/flow.hpp"
 
 const string DATASET_FILE = "datasets/mincost_flow.txt";
 

@@ -1,9 +1,6 @@
-#include "../struct/integer_heaps.hpp"
-
-#include "../formatting.hpp"
-#include "../lib/graph_generator.hpp"
-#include "../random.hpp"
 #include "test_utils.hpp"
+#include "../struct/integer_heaps.hpp"
+#include "../lib/graph_generator.hpp"
 
 template <typename Compare>
 ostream& operator<<(ostream& out, pairing_int_heap<Compare> heap) {

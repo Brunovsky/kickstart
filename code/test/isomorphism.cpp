@@ -1,7 +1,6 @@
+#include "test_utils.hpp"
 #include "../graphs/isomorphism.hpp"
 #include "../lib/graph_generator.hpp"
-#include "test_utils.hpp"
-
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/isomorphism.hpp>
 

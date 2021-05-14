@@ -1,9 +1,6 @@
 #undef NDEBUG
-
-#include "../numeric/bfrac.hpp"
-
-#include "../random.hpp"
 #include "test_utils.hpp"
+#include "../numeric/bfrac.hpp"
 
 void unit_test_gcd() {
     assert(bfrac(93, 31) == bfrac(3, 1));

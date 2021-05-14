@@ -1,11 +1,15 @@
 #include "test_utils.hpp"
-#include "../geometry/general_hull3d.hpp"
-#include "../geometry/general_point3d.hpp"
+#include "../hash.hpp"
+#include "../geometry/hull3d.hpp"
+#include "../geometry/point3d.hpp"
 #include "../geometry/hull3d_functions.hpp"
 #include "../geometry/hull3d_utils.hpp"
 
 namespace fs = std::filesystem;
 const string DATASET_FOLDER = "datasets/hull3d";
+using hull_t = vector<vector<int>>;
+using NumT = long;
+using P = Point3d<NumT>;
 
 inline namespace {
 
@@ -14,12 +18,12 @@ inline double compute_ratio(double time, int N) { return 1e7 * time / (N * log2(
 /**
  * Generate N random points inside the sphere of radius R or cube of side 2R
  */
-auto random_points(int N, long R = 100, bool cube = false) {
+auto random_points(int N, long R = 50, bool cube = false) {
     vector<P> points;
     while (N) {
-        auto x = reald(-R, R)(mt);
-        auto y = reald(-R, R)(mt);
-        auto z = reald(-R, R)(mt);
+        long x = longd(-R, R)(mt);
+        long y = longd(-R, R)(mt);
+        long z = longd(-R, R)(mt);
         P p(x, y, z);
         if (cube || p.norm() <= R) {
             points.push_back(move(p)), N--;
@@ -40,18 +44,19 @@ void add_incident_points(int N, vector<P>& points) {
 /**
  * Generate N more points collinear with those given or each other.
  */
-void add_collinear_points(int N, vector<P>& points, long R = 100, bool cube = false) {
+void add_collinear_points(int N, vector<P>& points, long R = 50, bool cube = false) {
     int M = 0, S = points.size() - 1;
     assert(S >= 1);
+    P box = P(R, R, R);
     while (M < N) {
         int i = intd(0, S)(mt), j = intd(0, S)(mt);
-        double f = reald(-2, 3)(mt);
-        if (i == j || abs(f) <= 1e-6 || abs(f - 1) <= 1e-6)
+        long f = longd(-5, 5)(mt);
+        if (i == j || f == 0 || f == 1)
             continue;
 
-        P p = f * points[i] + (1 - f) * points[j];
+        P p = interpolate(points[i], points[j], f);
 
-        if (cube ? p.boxed(P(-R, -R, -R), P(R, R, R)) : p.norm() <= R) {
+        if (cube ? p.boxed(-box, box) : p.norm() <= R) {
             points.push_back(p), M++, S++;
         }
     }
@@ -60,19 +65,23 @@ void add_collinear_points(int N, vector<P>& points, long R = 100, bool cube = fa
 /**
  * Generate N more points coplanar with those given or each other.
  */
-void add_coplanar_points(int N, vector<P>& points, long R = 100, bool cube = false) {
+void add_coplanar_points(int N, vector<P>& points, long R = 50, bool cube = false) {
     int M = 0, S = points.size() - 1;
     assert(S >= 2);
+    P box = P(R, R, R);
     while (M < N) {
         int i = intd(0, S)(mt), j = intd(0, S)(mt), k = intd(0, S)(mt);
         if (i == j || j == k || k == i || collinear(points[i], points[j], points[k]))
             continue;
 
-        double f1 = reald(-2, 3)(mt);
-        double f2 = reald(-2, 3)(mt);
-        P p = f1 * points[i] + f2 * points[j] + (1 - f1 - f2) * points[k];
+        long f1 = longd(-5, 5)(mt);
+        long f2 = longd(-5, 5)(mt);
+        long f3 = 1 - f1 - f2;
+        P p = f1 * points[i] + f2 * points[j] + f3 * points[k];
+        if ((f1 == 0) + (f2 == 0) + (f3 == 0) >= 2)
+            continue;
 
-        if (cube ? p.boxed(P(-R, -R, -R), P(R, R, R)) : p.norm() <= R) {
+        if (cube ? p.boxed(-box, box) : p.norm() <= R) {
             points.push_back(p), M++, S++;
         }
     }
@@ -131,9 +140,9 @@ struct quickhull3d_dataset_test_t {
             if (s == "#") {
                 comment += line + '\n';
             } else if (s == "v") {
-                double x, y, z;
+                string x, y, z;
                 ss >> ws >> x >> ws >> y >> ws >> z;
-                points.emplace_back(x, y, z);
+                points.emplace_back(stoll(x), stoll(y), stoll(z));
             } else if (s == "f") {
                 vector<int> face;
                 int v;
@@ -143,7 +152,7 @@ struct quickhull3d_dataset_test_t {
                 ans.emplace_back(move(face));
             }
         }
-        simplify_hull(ans, points, 1e-12);
+        simplify_hull(ans, points);
         canonicalize_hull(ans);
     }
 
@@ -161,7 +170,7 @@ struct quickhull3d_dataset_test_t {
             print("expected: {}\n", ans);
         }
 
-        auto counterexample = verify_hull(hull, points, P::deps, 1);
+        auto counterexample = verify_hull(hull, points, 1);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
             clear_line(), print("Incorrect convex hull\n");
@@ -187,61 +196,36 @@ void dataset_test_quickhull3d() {
     }
 }
 
-fs::path tmpdir;
-int fileid = 0;
-
-void stress_test_quickhull3d_run(int T, int N, int L, int C, int I, long R = 50) {
-    int errors = 10;
+void stress_test_quickhull3d(int T = 300, int N = 10, long R = 50) {
+    auto dir = fs::temp_directory_path();
+    print("Temp directory: {}\n", dir);
 
     for (int t = 0; t < T; t++) {
         print_progress(t, T, "stress test quickhull3d");
+        auto file = dir / fs::path(format("hull3d-stress-{}.obj", t));
+        ofstream out(file.string());
 
         auto points = random_points(N, R);
         points.insert(begin(points), P::zero());
-        add_coplanar_points(L, points, 2 * R);
-        add_collinear_points(C, points, 2 * R);
-        add_incident_points(I, points);
-
-        auto file = tmpdir / fs::path(format("hull3d-{}.obj", fileid++));
-        ofstream out(file.string());
+        add_coplanar_points(2 * N, points, 2 * R);
+        add_collinear_points(N, points, 2 * R);
         out << format_header(points) << format_points(points);
 
         auto hull = compute_hull(points, 1);
         out << format_hull(hull);
 
-        auto counterexample = verify_hull(hull, points, 10 * P::deps, 1);
+        auto counterexample = verify_hull(hull, points, 1);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
             clear_line();
-            print("incorrect convex hull: {}\n", file.string());
+            print("Incorrect convex hull, check file {}\n", file.string());
             if (kind == 0) {
-                print("ce: point {} does not lie on plane of face {} ({})\n", v, f,
-                      hull[f]);
+                print("ce: point {} does not lie on plane of face {}\n", v, f);
             } else if (kind == 1) {
-                print("ce: point {} can see plane of face {} ({})\n", v, f, hull[f]);
+                print("ce: point {} can see plane of face {}\n", v, f);
             }
-            if (--errors == 0)
-                break;
         }
     }
-
-    print("stress x{:<4} N={:<3} L={:<3} C={:<3} I={:<3} (files {}...{})\n", T, N, L, C,
-          I, fileid - T, fileid - 1);
-}
-
-void stress_test_quickhull3d(double F = 1.0) {
-    tmpdir = fs::temp_directory_path() / fs::path("hull3d");
-    fs::create_directory(tmpdir);
-    print("Temp directory: {}\n", tmpdir);
-
-    stress_test_quickhull3d_run(int(F * 500), 8, 20, 0, 0);
-    stress_test_quickhull3d_run(int(F * 500), 10, 50, 0, 0);
-    stress_test_quickhull3d_run(int(F * 500), 25, 0, 0, 0);
-    stress_test_quickhull3d_run(int(F * 500), 200, 0, 0, 0);
-    stress_test_quickhull3d_run(int(F * 500), 170, 0, 0, 30);
-    stress_test_quickhull3d_run(int(F * 500), 90, 100, 10, 0);
-    stress_test_quickhull3d_run(int(F * 400), 50, 900, 10, 40);
-    stress_test_quickhull3d_run(int(F * 100), 9900, 0, 0, 100);
 }
 
 void scaling_test_quickhull3d_run(int T, int N, int L, int C, int I = 0, long R = 50) {
@@ -270,23 +254,17 @@ void scaling_test_quickhull3d_run(int T, int N, int L, int C, int I = 0, long R 
 }
 
 void scaling_test_quickhull3d(double F = 1.0) {
-    scaling_test_quickhull3d_run(int(F * 3000), 400, 50, 50);
-    scaling_test_quickhull3d_run(int(F * 3000), 300, 100, 100);
-    scaling_test_quickhull3d_run(int(F * 2000), 800, 100, 100);
-    scaling_test_quickhull3d_run(int(F * 2000), 600, 200, 200);
-    scaling_test_quickhull3d_run(int(F * 1500), 400, 300, 300);
-    scaling_test_quickhull3d_run(int(F * 1000), 1500, 2500, 2500);
-    scaling_test_quickhull3d_run(int(F * 1000), 1200, 4000, 4000);
-    scaling_test_quickhull3d_run(int(F * 400), 4500, 2500, 2500);
-    scaling_test_quickhull3d_run(int(F * 400), 3500, 7500, 7500);
-    scaling_test_quickhull3d_run(int(F * 150), 9400, 3000, 3000);
-    scaling_test_quickhull3d_run(int(F * 150), 5000, 2500, 2500);
-    scaling_test_quickhull3d_run(int(F * 100), 15000, 2500, 2500);
-    scaling_test_quickhull3d_run(int(F * 100), 15000, 2500, 2500);
-    scaling_test_quickhull3d_run(int(F * 20), 100000, 0, 0);
-    scaling_test_quickhull3d_run(int(F * 20), 10000, 90000, 0);
-    scaling_test_quickhull3d_run(int(F * 5), 1'000'000, 0, 0);
-    scaling_test_quickhull3d_run(int(F * 5), 10'000, 900'000, 90'000);
+    scaling_test_quickhull3d_run(int(F * 200), 40, 5, 5);
+    scaling_test_quickhull3d_run(int(F * 200), 30, 10, 10);
+    scaling_test_quickhull3d_run(int(F * 50), 80, 10, 10);
+    scaling_test_quickhull3d_run(int(F * 50), 60, 20, 20);
+    scaling_test_quickhull3d_run(int(F * 50), 40, 30, 30);
+    scaling_test_quickhull3d_run(int(F * 25), 150, 25, 25);
+    scaling_test_quickhull3d_run(int(F * 25), 120, 40, 40);
+    scaling_test_quickhull3d_run(int(F * 10), 450, 25, 25);
+    scaling_test_quickhull3d_run(int(F * 10), 350, 75, 75);
+    scaling_test_quickhull3d_run(int(F * 4), 940, 30, 30);
+    scaling_test_quickhull3d_run(int(F * 4), 500, 250, 250);
 }
 
 int main() {

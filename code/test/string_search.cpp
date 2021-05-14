@@ -1,9 +1,8 @@
-#include "../random.hpp"
+#include "test_utils.hpp"
 #include "../strings/boyer_moore.hpp"
 #include "../strings/kmp.hpp"
 #include "../strings/rabin_karp.hpp"
 #include "../strings/z_search.hpp"
-#include "test_utils.hpp"
 
 /**
  * all strings, with length [minlen,maxlen] with characters [a,b]

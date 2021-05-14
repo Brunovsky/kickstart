@@ -1,7 +1,5 @@
-#include "../algo/sort.hpp"
-
-#include "../random.hpp"
 #include "test_utils.hpp"
+#include "../algo/sort.hpp"
 
 bool verify(const vector<int>& idx, const vector<long>& dist) {
     int N = dist.size();

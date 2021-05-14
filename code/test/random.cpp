@@ -1,10 +1,7 @@
-#include "../random.hpp"
-
-#include "../formatting.hpp"
+#include "test_utils.hpp"
 #include "../hash.hpp"
 #include "../numeric/math.hpp"
 #include "../numeric/partitions.hpp"
-#include "test_utils.hpp"
 
 using vi = vector<int>;
 unordered_map<vi, vector<vi>> partitions_memo;

@@ -1,10 +1,7 @@
-#include "../algo/dynamic_programming.hpp"
-
-#include "../algo/knapsack.hpp"
-#include "../formatting.hpp"
-#include "../random.hpp"
-#include "../strings/string_distance.hpp"
 #include "test_utils.hpp"
+#include "../algo/dynamic_programming.hpp"
+#include "../algo/knapsack.hpp"
+#include "../strings/string_distance.hpp"
 
 using vi = vector<int>;
 

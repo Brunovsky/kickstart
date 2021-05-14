@@ -1,10 +1,10 @@
+#include "test_utils.hpp"
 #include "../lib/distance.hpp"
 #include "../path/astar.hpp"
 #include "../path/bellman_ford.hpp"
 #include "../path/dijkstra.hpp"
 #include "../path/floyd_warshall.hpp"
 #include "../path/johnsons.hpp"
-#include "test_utils.hpp"
 
 template <typename SP>
 bool compute_all_pairs(const distance_graph& dg, vector<vector<long>>& dist) {

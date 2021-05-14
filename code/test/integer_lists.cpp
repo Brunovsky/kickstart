@@ -1,7 +1,5 @@
-#include "../struct/integer_lists.hpp"
-
-#include "../random.hpp"
 #include "test_utils.hpp"
+#include "../struct/integer_lists.hpp"
 
 void unit_test_dancing_links() {
     dancing_links_matrix dl(6, 6);

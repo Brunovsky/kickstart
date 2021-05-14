@@ -1,9 +1,6 @@
-#include "../numeric/bigint.hpp"
-
-#include "../formatting.hpp"
-#include "../numeric/bigint_math.hpp"
-#include "../random.hpp"
 #include "test_utils.hpp"
+#include "../numeric/bigint.hpp"
+#include "../numeric/bigint_math.hpp"
 
 constexpr uint U = UINT_MAX;         // 0xffffffff
 constexpr uint M = UINT_MAX / 2 + 1; // 0x80000000

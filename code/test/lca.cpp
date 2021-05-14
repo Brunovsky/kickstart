@@ -1,6 +1,5 @@
-#include "../struct/lca.hpp"
-
 #include "test_utils.hpp"
+#include "../struct/lca.hpp"
 
 // https://www.geeksforgeeks.org/depth-n-ary-tree/
 void setup() {

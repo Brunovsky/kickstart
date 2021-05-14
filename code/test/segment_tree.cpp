@@ -1,7 +1,5 @@
-#include "../struct/segment_tree.hpp"
-
-#include "../formatting.hpp"
 #include "test_utils.hpp"
+#include "../struct/segment_tree.hpp"
 
 void unit_test_range_segtree() {
     range_segtree tree({0, 4, 7, 12, 17, 25, 30, 40});

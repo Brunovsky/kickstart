@@ -1,13 +1,10 @@
+#include "test_utils.hpp"
 #include "../linear/simplex.hpp"
 #include "../lib/anynum.hpp"
-
-#include "../formatting.hpp"
 #include "../linear/simplex_utils.hpp"
 #include "../linear/matrix.hpp"
 #include "../numeric/bfrac.hpp"
 #include "../numeric/frac.hpp"
-#include "../random.hpp"
-#include "test_utils.hpp"
 
 inline namespace {
 

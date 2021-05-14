@@ -11,11 +11,12 @@ inline namespace hull3d_utils {
  * kind=0 ==> v is assigned to face f but isn't in its plane.
  * kind=1 ==> v can see face f (from outside).
  */
-optional<tuple<int, int, int>> verify_hull(const hull_t& hull,
-                                           const vector<Point3d>& points, double eps,
+template <typename T, typename D = double>
+optional<tuple<int, int, int>> verify_hull(const vector<vector<int>>& hull,
+                                           const vector<Point3d<T, D>>& points,
                                            int skip_0 = 0) {
     int H = hull.size(), N = points.size();
-    vector<Plane> planes;
+    vector<Plane<T, D>> planes;
     vector<unordered_set<int>> vfaces(N);
     for (int f = 0; f < H; f++) {
         const auto& face = hull[f];
@@ -27,14 +28,14 @@ optional<tuple<int, int, int>> verify_hull(const hull_t& hull,
     }
     for (int v = skip_0; v < N; v++) {
         for (int f : vfaces[v]) {
-            if (planes[f].planeside(points[v], eps) != 0) {
+            if (planes[f].planeside(points[v]) != 0) {
                 return {{v, f, 0}};
             }
         }
     }
     for (int v = skip_0; v < N; v++) {
         for (int f = 0; f < H; f++) {
-            if (!vfaces[v].count(f) && planes[f].planeside(points[v], eps) == 1) {
+            if (!vfaces[v].count(f) && planes[f].planeside(points[v]) == 1) {
                 return {{v, f, 1}};
             }
         }
@@ -42,7 +43,8 @@ optional<tuple<int, int, int>> verify_hull(const hull_t& hull,
     return nullopt;
 }
 
-optional<array<int, 3>> find_collinear(const vector<Point3d>& points) {
+template <typename T, typename D = double>
+optional<array<int, 3>> find_collinear(const vector<Point3d<T, D>>& points) {
     for (int u = 0, N = points.size(); u < N; u++) {
         for (int v = u + 1; v < N; v++) {
             for (int w = v + 1; w < N; w++) {
@@ -54,13 +56,13 @@ optional<array<int, 3>> find_collinear(const vector<Point3d>& points) {
     return nullopt;
 }
 
-optional<array<int, 2>> find_incident(const vector<Point3d>& points) {
-    unordered_map<array<long, 3>, int> pointmap;
+template <typename T, typename D = double>
+optional<array<int, 2>> find_incident(const vector<Point3d<T, D>>& points) {
+    unordered_map<Point3d<T, D>, int> pointmap;
     for (int u = 0, N = points.size(); u < N; u++) {
-        auto lattice = (1'000'000'000 * points[u]).round_lattice_point();
-        if (pointmap.count(lattice))
-            return {{u, pointmap[lattice]}};
-        pointmap.emplace(lattice, u);
+        if (pointmap.count(points[u]))
+            return {{u, pointmap[points[u]]}};
+        pointmap.emplace(points[u], u);
     }
     return nullopt;
 }

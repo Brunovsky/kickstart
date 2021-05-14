@@ -1,5 +1,5 @@
-#include "../strings/strings.hpp"
 #include "test_utils.hpp"
+#include "../strings/strings.hpp"
 
 void unit_test_suffix_array() {
     using vi = vector<int>;

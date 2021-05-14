@@ -1,6 +1,5 @@
-#include "../graphs/min_spanning_forest.hpp"
-
 #include "test_utils.hpp"
+#include "../graphs/min_spanning_forest.hpp"
 
 void unit_test_min_spanning_forest() {
     edges_t g;

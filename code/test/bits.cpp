@@ -1,6 +1,5 @@
-#include "../numeric/bits.hpp"
-
 #include "test_utils.hpp"
+#include "../numeric/bits.hpp"
 
 // clang-format off
 

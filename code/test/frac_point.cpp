@@ -1,5 +1,7 @@
-#include "../geometry/frac/frac_point2d.hpp"
-#include "../geometry/frac/frac_point3d.hpp"
+#include "../geometry/point2d.hpp"
+#include "../geometry/point3d.hpp"
+#include "../numeric/frac.hpp"
+#include "../numeric/bfrac.hpp"
 #include "test_utils.hpp"
 
 template struct Point2d<frac>;
@@ -17,6 +19,10 @@ template struct Plane<int>;
 using F = frac;
 using P = Point2d<F>;
 using P3 = Point3d<F>;
+
+frac area(P a, P b, P c) { return a.crossed(b, c) / 2; }
+frac area2(P3 a, P3 b, P3 c) { return a.crossed(b, c).norm2() / 4; }
+double area(P3 a, P3 b, P3 c) { return a.crossed(b, c).norm() / 2; }
 
 void unit_test_point2d() {
     P A(1, 4), B(7, 0), C(6, 8);
@@ -47,7 +53,6 @@ void unit_test_point3d_2d() {
 
     assert(a2 == 65 && b2 == 41 && c2 == 52);
     assert(ha2 == F(1936, 65) && hb2 == F(1936, 41) && hc2 == F(484, 13));
-    assert(area2(A, B, C) == 22 * 22);
 }
 
 void unit_test_point3d_3d() {
@@ -63,12 +68,11 @@ void unit_test_point3d_3d() {
 
     assert(a2 == 9 * 9 && b2 == 42 && c2 == 77);
     assert(ha2 == F(2873, 81) && hb2 == F(2873, 42) && hc2 == F(2873, 77));
-    assert(area2(A, B, C) == F(2873, 4));
 }
 
 int main() {
-    RUN_SHORT(unit_test_point2d());
-    RUN_SHORT(unit_test_point3d_2d());
-    RUN_SHORT(unit_test_point3d_3d());
+    RUN_BLOCK(unit_test_point2d());
+    RUN_BLOCK(unit_test_point3d_2d());
+    RUN_BLOCK(unit_test_point3d_3d());
     return 0;
 }

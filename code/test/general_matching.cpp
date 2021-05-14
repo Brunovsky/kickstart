@@ -1,12 +1,9 @@
+#include "test_utils.hpp"
 #include "../lib/general_matching.hpp"
-
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/max_cardinality_matching.hpp>
-
-#include "../formatting.hpp"
 #include "../lib/graph_formats.hpp"
 #include "../matching/micali_vazirani.hpp"
-#include "test_utils.hpp"
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/max_cardinality_matching.hpp>
 
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;

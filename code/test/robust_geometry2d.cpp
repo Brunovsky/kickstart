@@ -1,7 +1,6 @@
-#include "../geometry/point2d.hpp"
-#include "../hash.hpp"
-#include "../random.hpp"
 #include "test_utils.hpp"
+#include "../geometry/epsilon/point2d.hpp"
+#include "../hash.hpp"
 
 #define Z(x) +format(" " #x "={:6.2f}%", perc(x))
 using P = Point2d;

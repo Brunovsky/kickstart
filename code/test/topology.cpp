@@ -1,7 +1,6 @@
-#include "../graphs/topology.hpp"
-
-#include "../lib/graph_operations.hpp"
 #include "test_utils.hpp"
+#include "../graphs/topology.hpp"
+#include "../lib/graph_operations.hpp"
 
 void unit_test_scc() {
     // vertex 0 is completely disconnected

@@ -1,7 +1,6 @@
-#include "../flow/mincost_push_relabel.hpp"
-#include "../formatting.hpp"
-#include "../lib/circulation.hpp"
 #include "test_utils.hpp"
+#include "../flow/mincost_push_relabel.hpp"
+#include "../lib/circulation.hpp"
 
 const string DATASET_FILE = "datasets/mincost_circulation.txt";
 

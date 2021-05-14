@@ -1,8 +1,7 @@
+#include "test_utils.hpp"
 #include "../numeric/primes.hpp"
-
 #include "../numeric/sieves.hpp"
 #include "../random.hpp"
-#include "test_utils.hpp"
 
 void speed_test_sieves() {
     for (int N : {1'000, 2'200, 5'000, 10'000, 22'000}) {

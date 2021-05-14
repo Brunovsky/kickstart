@@ -1,6 +1,5 @@
-#include "../graphs/travelling_salesman.hpp"
-
 #include "test_utils.hpp"
+#include "../graphs/travelling_salesman.hpp"
 
 // Datasets: https://people.sc.fsu.edu/~jburkardt/datasets/tsp/tsp.html (2020-08)
 

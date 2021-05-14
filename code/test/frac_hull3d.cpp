@@ -1,20 +1,10 @@
-#include "../geometry/frac/frac_hull3d.hpp"
-
-#include <filesystem>
-
-#include "../formatting.hpp"
-#include "../geometry/frac/frac_hull3d_functions.hpp"
-#include "../lib/anynum.hpp"
-#include "../geometry/frac/frac_hull3d_utils.hpp"
 #include "test_utils.hpp"
+#include "../geometry/frac/frac_hull3d.hpp"
+#include "../geometry/frac/frac_hull3d_functions.hpp"
+#include "../geometry/frac/frac_hull3d_utils.hpp"
+#include "../lib/anynum.hpp"
 
 namespace fs = std::filesystem;
-
-/**
- * We test using verify_hull and debug with visualization from the generated OBJ files
- * on e.g. blender. You can change face indexing on qh.extract_faces(s = 0|1).
- */
-
 const string DATASET_FOLDER = "datasets/hull3d";
 
 using F = bfrac;

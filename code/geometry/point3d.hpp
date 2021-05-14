@@ -1,9 +1,7 @@
-#ifndef GENERAL_POINT3D_HPP
-#define GENERAL_POINT3D_HPP
+#ifndef POINT3D_HPP
+#define POINT3D_HPP
 
-#include <bits/stdc++.h>
-
-using namespace std;
+#include "../hash.hpp"
 
 /**
  * Class to represent points exactly in 2d space.
@@ -19,7 +17,7 @@ template <typename T, typename D = double>
 struct Point3d {
     T x, y, z;
     Point3d() : x(0), y(0), z(0) {}
-    Point3d(const T& x, const T& y, const T& z) : x(x), y(y), z(z) {}
+    Point3d(T x, T y, T z) : x(x), y(y), z(z) {}
     Point3d(const array<T, 3>& arr) : x(arr[0]), y(arr[1]), z(arr[2]) {}
     template <typename K>
     explicit Point3d(Point3d<K, D> other) : x(other.x), y(other.y), z(other.z) {}
@@ -45,7 +43,7 @@ struct Point3d {
     T operator[](int i) const { return assert(i >= 0 && i <= 2), *(&x + i); }
     P operator-() const { return P(-x, -y, -z); }
     friend P operator+(P u, P v) { return P(u.x + v.x, u.y + v.y, u.z + v.z); }
-    friend P operator-(P u, P v) { return P(u.x - v.x, u.y - v.y, u.z + v.z); }
+    friend P operator-(P u, P v) { return P(u.x - v.x, u.y - v.y, u.z - v.z); }
     friend P operator*(T k, P u) { return P(u.x * k, u.y * k, u.z * k); }
     friend P operator*(P u, T k) { return P(u.x * k, u.y * k, u.z * k); }
     friend P operator/(P u, T k) { return P(u.x / k, u.y / k, u.z / k); }
@@ -99,11 +97,10 @@ struct Point3d {
         return a.crossed(b, c) == zero() && b.doted(a, c) <= 0;
     }
 
-    friend T linedist2(P a, P u, P v) {
-        auto c = a.crossed(u, v);
-        return c * c / dist2(u, v);
+    friend T linedist2(P a, P u, P v) { return a.crossed(u, v).norm2() / dist2(u, v); }
+    friend auto signed_linedist(P a, P u, P v) {
+        return a.crossed(u, v).norm() / dist(u, v);
     }
-    friend auto signed_linedist(P a, P u, P v) { return D(a.crossed(u, v)) / dist(u, v); }
     friend auto linedist(P a, P u, P v) { return my_abs(signed_linedist(a, u, v)); }
 
   public: // Planes
@@ -161,4 +158,29 @@ struct Plane {
     auto planedist(P p) { return abs(signed_planedist(p)); }
 };
 
-#endif // GENERAL_POINT3D_HPP
+struct Hasher3d {
+    template <typename T, typename D>
+    size_t operator()(const Point3d<T, D>& p) const noexcept {
+        array<T, 3> arr{p[0], p[1], p[2]};
+        return std::hash<array<T, 3>>{}(arr);
+    }
+};
+
+struct PlaneHasher {
+    template <typename T, typename D>
+    size_t operator()(const Plane<T, D>& plane) const noexcept {
+        array<Point3d<T, D>, 3> arr{plane.a, plane.b, plane.c};
+        return std::hash<array<Point3d<T, D>, 3>>(arr);
+    }
+};
+
+namespace std {
+
+template <typename T, typename D>
+struct hash<Point3d<T, D>> : Hasher3d {};
+template <typename T, typename D>
+struct hash<Plane<T, D>> : PlaneHasher {};
+
+} // namespace std
+
+#endif // POINT3D_HPP

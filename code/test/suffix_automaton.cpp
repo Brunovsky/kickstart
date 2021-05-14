@@ -1,7 +1,5 @@
-#include "../linear/matrix.hpp"
-
-#include "../random.hpp"
 #include "test_utils.hpp"
+#include "../linear/matrix.hpp"
 #include "../strings/suffix_automaton.hpp"
 #include "../strings/map_suffix_automaton.hpp"
 #include "../strings/sparse_suffix_automaton.hpp"

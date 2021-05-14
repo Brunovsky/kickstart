@@ -1,6 +1,6 @@
+#include "test_utils.hpp"
 #include "../lib/bipartite.hpp"
 #include "../matching/mincost_hungarian.hpp"
-#include "test_utils.hpp"
 
 void unit_test_mincost_matching() {
     edges_t g;

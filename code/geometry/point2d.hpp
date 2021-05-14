@@ -1,5 +1,5 @@
-#ifndef GENERAL_POINT2D_HPP
-#define GENERAL_POINT2D_HPP
+#ifndef POINT2D_HPP
+#define POINT2D_HPP
 
 #include <bits/stdc++.h>
 
@@ -7,9 +7,11 @@ using namespace std;
 
 /**
  * Class to represent points exactly in 2d space.
- * Set T to long, __int128_t, frac, double, long double, ... (avoid int due to overflow)
+ * Set T to long, frac, __int128_t, double, long double, ... (avoid int due to overflow)
  * Set D to double or long double.
  * Careful with exact comparisons like u==v if T is not exact.
+ * The implementation in epsilon_point3d.hpp handles doubles properly with epsilons etc.
+ *
  * Points: a,b,c,p   Points/vectors: u,v,w
  * Primary sources: kactl, cp-alg, ecnerwala
  */
@@ -18,8 +20,8 @@ struct Point2d {
     T x, y;
     Point2d() : x(0), y(0) {}
     Point2d(T x, T y) : x(x), y(y) {}
-    Point2d(const pair<T, T>& p) : x(p.first), y(p.second) {}
     Point2d(const array<T, 2>& arr) : x(arr[0]), y(arr[1]) {}
+    Point2d(const pair<T, T>& p) : x(p.first), y(p.second) {}
     template <typename K>
     explicit Point2d(Point2d<K, D> other) : x(other.x), y(other.y) {}
 
@@ -149,4 +151,4 @@ struct Point2d {
     friend istream& operator>>(istream& in, P& p) { return in >> p.x >> p.y; }
 };
 
-#endif // GENERAL_POINT2D_HPP
+#endif // POINT2D_HPP

@@ -1,6 +1,5 @@
-#include "../hash.hpp"
-
 #include "test_utils.hpp"
+#include "../hash.hpp"
 
 void unit_test_rolling_hasher() {
     rolling_hasher hasher(10);

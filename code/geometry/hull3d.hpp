@@ -1,7 +1,7 @@
-#ifndef GENERAL_QUICKHULL3D_HPP
-#define GENERAL_QUICKHULL3D_HPP
+#ifndef QUICKHULL3D_HPP
+#define QUICKHULL3D_HPP
 
-#include "general_point3d.hpp" // Point3d, Plane
+#include "point3d.hpp" // Point3d, QPlane
 
 /**
  * 3D Quickhull for exact points.
@@ -19,8 +19,10 @@
  *         }
  *     }
  */
-template <typename P>
+template <typename T, typename D = double>
 struct quickhull3d {
+    using P = Point3d<T, D>;
+    using QPlane = Plane<T, D>;
     struct Face;
     static constexpr int VISIBLE = 0, DELETED = 1;
 
@@ -34,7 +36,7 @@ struct quickhull3d {
     };
 
     struct Face {
-        Plane plane;
+        QPlane plane;
         Edge* edge; // an arbitrary edge in the face; a particular one initially
         int mark = VISIBLE, outside = 0, id, npoints = 3;
         explicit Face(int id) : id(id) {}
@@ -127,7 +129,7 @@ struct quickhull3d {
         Edge::link(e0, e1), Edge::link(e1, e2), Edge::link(e2, e0);
         face->edge = e0;
 
-        face->plane = Plane(points[v0], points[v1], points[v2]);
+        face->plane = QPlane(points[v0], points[v1], points[v2]);
         return face;
     }
 
@@ -270,8 +272,7 @@ struct quickhull3d {
     // Main routines
 
     /**
-     * Compute min/max points along each axis and set epsilon based on the minimum
-     * enveloping box's dimensions.
+     * Compute min/max points along each axis.
      * Create initial (maximal tetrahedral) simplex with four non-coplanar points and
      * create the four faces supporting it.
      * Set eye_face[v] for each v as the hull face seen from v that is furthest from it
@@ -296,7 +297,7 @@ struct quickhull3d {
         }
 
         int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
-        decltype(P::x) maxdist = 0;
+        T maxdist = 0;
 
         // select v0, v1 such that dist2(v0, v1) is maximal (furthest pair along an axis)
         for (int d = 0; d < 3; d++) {
@@ -324,7 +325,7 @@ struct quickhull3d {
         }
 
         // select v3 such that base.planedist2(v3) is maximum (furthest from plane)
-        Plane base(points[v0], points[v1], points[v2]);
+        QPlane base(points[v0], points[v1], points[v2]);
         maxdist = 0;
         for (int v = 1; v <= N; v++) {
             if (v != v0 && v != v1 && v != v2) {
@@ -373,7 +374,7 @@ struct quickhull3d {
         do {
             Edge* opposite = edge->opposite;
             if (opposite->face->mark == VISIBLE) {
-                if (opposite->face->plane.planeside(points[eye], eps) == 1) {
+                if (opposite->face->plane.planeside(points[eye]) == 1) {
                     compute_horizon(eye, opposite, opposite->face);
                 } else {
                     horizon.push_back(edge);
@@ -385,7 +386,7 @@ struct quickhull3d {
 
     void resolve_open_points() {
         for (int v = open[0]; v; v = open[v]) {
-            auto maxdist = eps;
+            auto maxdist = 0;
             Face* maxface = nullptr;
             for (Face* face : new_faces) {
                 auto dist = face->plane.signed_planedist(points[v]);
@@ -458,7 +459,8 @@ void simplify_hull(vector<vector<int>>& hull, const vector<Point3d<T, D>>& point
     }
 }
 
-auto compute_hull(const vector<P>& points, int skip_0 = 0) {
+template <typename T, typename D = double>
+auto compute_hull(const vector<Point3d<T, D>>& points, int skip_0 = 0) {
     quickhull3d qh(points, skip_0);
     qh.compute();
     auto hull = qh.extract_hull(skip_0);
@@ -466,4 +468,4 @@ auto compute_hull(const vector<P>& points, int skip_0 = 0) {
     return hull;
 }
 
-#endif // GENERAL_QUICKHULL3D_HPP
+#endif // QUICKHULL3D_HPP

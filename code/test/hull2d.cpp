@@ -1,6 +1,5 @@
-#include "../geometry/hull2d.hpp"
-#include "../random.hpp"
 #include "test_utils.hpp"
+#include "../geometry/hull2d.hpp"
 
 void unit_test_convex_hull() {
     vector<P> a = {P(4, 1), P(6, 4), P(12, 5), P(9, 7), P(2, 6)};

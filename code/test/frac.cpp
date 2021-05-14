@@ -1,10 +1,7 @@
 #undef NDEBUG
-
-#include "../numeric/frac.hpp"
-
-#include "../numeric/frac_extra.hpp"
-#include "../random.hpp"
 #include "test_utils.hpp"
+#include "../numeric/frac.hpp"
+#include "../numeric/frac_extra.hpp"
 
 void unit_test_gcd() {
     assert(frac(93, 31) == frac(3, 1));

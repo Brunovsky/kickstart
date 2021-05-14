@@ -1,9 +1,6 @@
-#include "../linear/real_simplex.hpp"
-
-#include "../formatting.hpp"
-#include "../linear/matrix.hpp"
-#include "../random.hpp"
 #include "test_utils.hpp"
+#include "../linear/real_simplex.hpp"
+#include "../linear/matrix.hpp"
 
 /**
  * A common implementation for both simplex turned out to be way too annoying to

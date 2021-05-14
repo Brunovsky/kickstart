@@ -1,8 +1,6 @@
 #undef NDEBUG
-
-#include "../struct/fenwick.hpp"
-
 #include "test_utils.hpp"
+#include "../struct/fenwick.hpp"
 
 void unit_test_1d() {
     fenwick<int> fw(100);

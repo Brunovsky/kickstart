@@ -2,8 +2,8 @@
 #include "../numeric/frac.hpp"
 
 #pragma GCC diagnostic ignored "-Wfloat-equal"
-#include "../geometry/general_point2d.hpp"
-#include "../geometry/general_point3d.hpp"
+#include "../geometry/point2d.hpp"
+#include "../geometry/point3d.hpp"
 
 template struct Point2d<frac, double>;
 template struct Point2d<long, double>;

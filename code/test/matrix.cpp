@@ -1,9 +1,6 @@
-#include "../linear/matrix.hpp"
-
-#include "../formatting.hpp"
-#include "../linear/linear_system.hpp"
-#include "../random.hpp"
 #include "test_utils.hpp"
+#include "../linear/matrix.hpp"
+#include "../linear/linear_system.hpp"
 
 #define F frac
 

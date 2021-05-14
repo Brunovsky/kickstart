@@ -1,5 +1,5 @@
-#include "../graphs/left_right_planarity.hpp"
 #include "test_utils.hpp"
+#include "../graphs/left_right_planarity.hpp"
 
 const string DATASET_FILE = "datasets/planar.txt";
 
