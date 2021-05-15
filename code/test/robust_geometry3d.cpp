@@ -1,4 +1,4 @@
-#include "../geometry/point3d.hpp"
+#include "../geometry/epsilon/point3d.hpp"
 #include "../hash.hpp"
 #include "../random.hpp"
 #include "test_utils.hpp"

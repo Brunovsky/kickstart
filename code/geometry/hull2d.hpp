@@ -2,10 +2,8 @@
 #define HULL2D_HPP
 
 #include "point2d.hpp" // Point2d
-// #include "frac_point2d.hpp" // or this
 
-using P = Point2d;
-
+template <typename P>
 vector<P> graham_scan(vector<P> points) {
     int N = points.size();
     if (N <= 2) {
@@ -20,14 +18,14 @@ vector<P> graham_scan(vector<P> points) {
     }
 
     sort(begin(points), end(points), [&](const P& lhs, const P& rhs) {
-        auto cross = lo.cross(lhs, rhs);
+        auto cross = lo.crossed(lhs, rhs);
         return make_pair(cross, rhs[1]) > make_pair(decltype(cross)(0), lhs[1]);
     });
 
     int s = 0;
     vector<P> hull{points[0], points[1]};
     for (int i = 2; i < N; i++) {
-        while (hull[s].cross(hull[s + 1], points[i]) < 0) {
+        while (hull[s].crossed(hull[s + 1], points[i]) < 0) {
             hull.pop_back(), s--;
             assert(s >= 0);
         }
