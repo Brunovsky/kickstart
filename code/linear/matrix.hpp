@@ -120,7 +120,11 @@ struct mat {
         vector<size_t> w(a.m);
         for (int i = 0; i < a.n; i++) {
             for (int j = 0; j < a.m; j++) {
-                cell[i][j] = to_string(a[i][j]);
+                if constexpr (std::is_same_v<T, string>) {
+                    cell[i][j] = a[i][j];
+                } else {
+                    cell[i][j] = to_string(a[i][j]);
+                }
                 w[j] = max(w[j], cell[i][j].size());
             }
         }

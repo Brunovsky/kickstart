@@ -1,23 +1,26 @@
-#ifndef UNROOTED_LINK_CUT_TREE_HPP
-#define UNROOTED_LINK_CUT_TREE_HPP
+#ifndef LINK_CUT_TREE_SUBTREE_HPP
+#define LINK_CUT_TREE_SUBTREE_HPP
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
-struct unrooted_link_cut_tree {
+/**
+ * Unrooted link cut tree: subtree queries + point updates.
+ */
+struct link_cut_tree_subtree {
     struct Node {
         int parent = 0, child[2] = {};
         int8_t flip = 0;   // splay tree is flipped due to reroot
-        int path_size = 1; // size of splay tree below u
+        int subt_size = 1; // size of splay tree below u
+        int virt_size = 0; // size of subtree below u
         long self = 0;     // this node's value
-        long path = 0;     // path aggregate ~= aggregate of splay tree below u
-        long lazy = 0;     // path lazy; will apply to all children
+        long subt = 0;     // subtree aggregate ~= aggregate of splay + virtuals
+        long virt = 0;     // virtual aggregate ~= aggregate of virtuals
     };
 
     vector<Node> t;
 
-    explicit unrooted_link_cut_tree(int N = 0) : t(N + 1) { t[0].path_size = 0; }
+    explicit link_cut_tree_subtree(int N = 0) : t(N + 1) { t[0].subt_size = 0; }
 
     // ***** Node updates
 
@@ -30,34 +33,38 @@ struct unrooted_link_cut_tree {
             t[r].flip ^= 1;
             t[u].flip = 0;
         }
-        if (t[u].lazy) {
-            t[l].lazy += t[u].lazy;
-            t[r].lazy += t[u].lazy;
-            t[u].self += t[u].lazy;
-            t[u].path += t[u].lazy * t[u].path_size;
-            t[u].lazy = t[0].lazy = 0;
-        }
     }
 
     // Update node from splay children and virtual updates
     void pushup(int u) {
+        assert(u != 0);
         auto [l, r] = t[u].child;
         pushdown(l), pushdown(r);
-        t[u].path_size = 1 + t[l].path_size + t[r].path_size;
-        t[u].path = t[u].self + t[l].path + t[r].path;
+        t[u].subt_size = 1 + t[l].subt_size + t[r].subt_size + t[u].virt_size;
+        t[u].subt = t[u].self + t[l].subt + t[r].subt + t[u].virt;
+    }
+
+    void add_virtual_subtree(int u, int child) {
+        t[u].virt += t[child].subt;
+        t[u].virt_size += t[child].subt_size;
+    }
+
+    void rem_virtual_subtree(int u, int child) {
+        t[u].virt -= t[child].subt;
+        t[u].virt_size -= t[child].subt_size;
     }
 
     // ***** Interface
 
     void link(int u, int v) {
-        reroot(u); // no way to detect cycles without doing extra work
-        t[u].parent = v;
+        reroot(u), access(v);
+        t[u].parent = v, add_virtual_subtree(v, u), pushup(v);
     }
 
     void cut(int u, int v) {
         reroot(u), access(v);
-        assert(t[u].parent == v && !t[u].child[1] && u == t[v].child[0]); // no edge!
-        t[u].parent = t[v].child[0] = 0;
+        assert(t[u].parent == v && !t[u].child[1] && u == t[v].child[0]);
+        t[u].parent = t[v].child[0] = 0, pushup(v);
     }
 
     void reroot(int u) {
@@ -65,7 +72,13 @@ struct unrooted_link_cut_tree {
         t[u].flip ^= 1;
     }
 
-    // root the tree first with reroot(r) to get a meaningful answer.
+    int findroot(int u) {
+        access(u);
+        while (t[u].child[0])
+            u = t[u].child[0], pushdown(u);
+        return u;
+    }
+
     int lca(int u, int v) {
         if (u == v)
             return u;
@@ -78,19 +91,16 @@ struct unrooted_link_cut_tree {
         t[u].self = value;
     }
 
-    void update_path(int u, int v, long value) {
-        reroot(u), access(v);
-        t[v].lazy += value;
+    auto query_subtree(int u, int v) {
+        reroot(v), access(u);
+        return t[u].self + t[u].virt; // equivalent
+        // return t[u].subt - t[t[u].child[0]].subt;
     }
 
-    auto query_path(int u, int v) {
-        reroot(u), access(v);
-        return t[v].path;
-    }
-
-    int path_length(int u, int v) {
-        reroot(u), access(v);
-        return t[v].path_size;
+    int subtree_size(int u, int v) {
+        reroot(v), access(u);
+        return 1 + t[u].virt_size; // equivalent
+        // return t[u].subt_size - t[t[u].child[0]].subt_size;
     }
 
   private:
@@ -133,7 +143,10 @@ struct unrooted_link_cut_tree {
         int last = 0, v = u;
         do {
             splay(v);
+            add_virtual_subtree(v, t[v].child[1]);
+            rem_virtual_subtree(v, last);
             t[v].child[1] = last;
+            pushup(v);
             last = v, v = t[v].parent;
         } while (v);
         splay(u);
@@ -142,4 +155,4 @@ struct unrooted_link_cut_tree {
     }
 };
 
-#endif // UNROOTED_LINK_CUT_TREE_HPP
+#endif // LINK_CUT_TREE_SUBTREE_HPP

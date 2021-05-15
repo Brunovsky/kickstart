@@ -91,8 +91,8 @@ void unit_test_modsqrt() {
 }
 
 void unit_test_modnum() {
-    using MN = modnum<100>;
-    MN n = 20;
+    using num = modnum<100>;
+    num n = 20;
     n += 31;
     assert(n == 51);
     n /= 3;
@@ -103,6 +103,19 @@ void unit_test_modnum() {
     assert(n == 0);
 }
 
+template <int mod = 1'000'000'007>
+void stress_test_modnum() {
+    using num = modnum<mod>;
+
+    for (int n = 1; n < mod; n++) {
+        if (n % 100'000 == 0) {
+            print_progress(n, mod, "stress test modnum");
+        }
+        auto k = num::modinv(n);
+        assert(0 < k && k < mod && num(n) * num(k) == 1);
+    }
+}
+
 } // namespace unit_testing_math
 
 int main() {
@@ -111,5 +124,7 @@ int main() {
     RUN_SHORT(unit_test_modsqrt());
     RUN_SHORT(unit_test_modlog());
     RUN_SHORT(unit_test_modnum());
+    RUN_SHORT(stress_test_modnum<998'244'353>());
+    RUN_SHORT(stress_test_modnum<1'000'000'007>());
     return 0;
 }
