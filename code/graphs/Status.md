@@ -8,3 +8,4 @@
 |`min_spanning_forest        `| Stable       | Stable (U)     | |
 |`topology                   `| Stable       | -              | |
 |`travelling_salesman        `| Stable       | Stable (D)     | |
+|`tree_isomorphism           `| Stable       | Stable (S)     | |
