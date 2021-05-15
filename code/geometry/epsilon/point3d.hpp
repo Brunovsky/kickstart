@@ -27,7 +27,7 @@ struct Point3d {
         return dist(a, b) <= max(a.manhattan(), b.manhattan()) * eps;
     }
     bool operator==(const P& b) const { return same(*this, b); }
-    bool operator!=(const P& b) const { return same(*this, b); }
+    bool operator!=(const P& b) const { return !same(*this, b); }
     explicit operator bool() const noexcept { return *this != zero(); }
 
     double& operator[](int i) { return assert(0 <= i && i < 3), *(&x + i); }

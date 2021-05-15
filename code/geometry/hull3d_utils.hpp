@@ -13,8 +13,7 @@ inline namespace hull3d_utils {
  */
 template <typename T, typename D = double>
 optional<tuple<int, int, int>> verify_hull(const vector<vector<int>>& hull,
-                                           const vector<Point3d<T, D>>& points,
-                                           int skip_0 = 0) {
+                                           const vector<Point3d<T, D>>& points) {
     int H = hull.size(), N = points.size();
     vector<Plane<T, D>> planes;
     vector<unordered_set<int>> vfaces(N);
@@ -26,14 +25,14 @@ optional<tuple<int, int, int>> verify_hull(const vector<vector<int>>& hull,
             vfaces[n].insert(f);
         }
     }
-    for (int v = skip_0; v < N; v++) {
+    for (int v = 0; v < N; v++) {
         for (int f : vfaces[v]) {
             if (planes[f].planeside(points[v]) != 0) {
                 return {{v, f, 0}};
             }
         }
     }
-    for (int v = skip_0; v < N; v++) {
+    for (int v = 0; v < N; v++) {
         for (int f = 0; f < H; f++) {
             if (!vfaces[v].count(f) && planes[f].planeside(points[v]) == 1) {
                 return {{v, f, 1}};
@@ -60,9 +59,9 @@ template <typename T, typename D = double>
 optional<array<int, 2>> find_incident(const vector<Point3d<T, D>>& points) {
     unordered_map<Point3d<T, D>, int> pointmap;
     for (int u = 0, N = points.size(); u < N; u++) {
-        if (pointmap.count(points[u]))
-            return {{u, pointmap[points[u]]}};
-        pointmap.emplace(points[u], u);
+        auto [it, inserted] = pointmap.emplace(points[u], u);
+        if (!inserted)
+            return {{u, it->second}};
     }
     return nullopt;
 }

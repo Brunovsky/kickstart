@@ -91,17 +91,17 @@ struct Point3d {
     friend P interpolate(P a, P b, T k) { return a + (b - a) * k; }
 
     friend bool parallel(P u, P v) { return cross(u, v) == zero(); }
-    friend bool samedir(P u, P v) { return cross(u, v) == zero() && dot(u, v) >= 0; }
+    friend bool samedir(P u, P v) { return cross(u, v) == zero() && dot(u, v) > 0; }
     friend bool collinear(P a, P b, P c) { return a.crossed(b, c) == zero(); }
     friend bool onsegment(P a, P b, P c) {
-        return a.crossed(b, c) == zero() && b.doted(a, c) <= 0;
+        return a.crossed(b, c) == zero() && b.doted(a, c) < 0;
     }
 
     friend T linedist2(P a, P u, P v) { return a.crossed(u, v).norm2() / dist2(u, v); }
     friend auto signed_linedist(P a, P u, P v) {
         return a.crossed(u, v).norm() / dist(u, v);
     }
-    friend auto linedist(P a, P u, P v) { return my_abs(signed_linedist(a, u, v)); }
+    friend auto linedist(P a, P u, P v) { return abs(signed_linedist(a, u, v)); }
 
   public: // Planes
     friend bool coplanar(P a, P b, P c, P d) {
@@ -139,7 +139,7 @@ struct Plane {
     P normal() const { return a.crossed(b, c); }
     bool is_degenerate() const { return collinear(a, b, c); }
     friend bool same_oriented(Plane f, Plane g) {
-        return samedir(f.normal(), g.normal());
+        return samedir(f.normal(), g.normal()) && coplanar(f.a, f.b, f.c, g.a);
     }
     friend bool operator==(Plane f, Plane g) { return same_oriented(f, g); }
     friend bool operator!=(Plane f, Plane g) { return !(f == g); }

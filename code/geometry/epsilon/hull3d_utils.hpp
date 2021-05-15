@@ -12,8 +12,7 @@ inline namespace hull3d_utils {
  * kind=1 ==> v can see face f (from outside).
  */
 optional<tuple<int, int, int>> verify_hull(const vector<vector<int>>& hull,
-                                           const vector<Point3d>& points, double eps,
-                                           int skip_0 = 0) {
+                                           const vector<Point3d>& points, double eps) {
     int H = hull.size(), N = points.size();
     vector<Plane> planes;
     vector<unordered_set<int>> vfaces(N);
@@ -25,14 +24,14 @@ optional<tuple<int, int, int>> verify_hull(const vector<vector<int>>& hull,
             vfaces[n].insert(f);
         }
     }
-    for (int v = skip_0; v < N; v++) {
+    for (int v = 0; v < N; v++) {
         for (int f : vfaces[v]) {
             if (planes[f].planeside(points[v], eps) != 0) {
                 return {{v, f, 0}};
             }
         }
     }
-    for (int v = skip_0; v < N; v++) {
+    for (int v = 0; v < N; v++) {
         for (int f = 0; f < H; f++) {
             if (!vfaces[v].count(f) && planes[f].planeside(points[v], eps) == 1) {
                 return {{v, f, 1}};

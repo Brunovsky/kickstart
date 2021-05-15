@@ -32,7 +32,7 @@ D volume_hull(const vector<vector<int>>& hull, const vector<Point3d<T, D>>& poin
     for (const auto& face : hull) {
         for (int i = 1, F = face.size(); i + 1 < F; i++) {
             const auto &a = points[face[0]], b = points[face[i]], c = points[face[i + 1]];
-            hull_volume += dot(a, cross(b, c));
+            hull_volume += D(dot(a, cross(b, c)));
         }
     }
     return hull_volume / 6.0;

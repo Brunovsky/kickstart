@@ -45,6 +45,14 @@ struct Hasher {
     size_t operator()(const tuple<Ts...>& t) const noexcept {
         return tuple_compute<0, tuple<Ts...>>(t);
     }
+    size_t operator()(__uint128_t x) const noexcept {
+        array<uint64_t, 2>* arr = reinterpret_cast<array<uint64_t, 2>*>(&x);
+        return this->operator()(*arr);
+    }
+    size_t operator()(__int128_t x) const noexcept {
+        array<uint64_t, 2>* arr = reinterpret_cast<array<uint64_t, 2>*>(&x);
+        return this->operator()(*arr);
+    }
 };
 
 namespace std {
@@ -57,6 +65,10 @@ template <typename U, typename V>
 struct hash<pair<U, V>> : Hasher {};
 template <typename... Ts>
 struct hash<tuple<Ts...>> : Hasher {};
+template <>
+struct hash<__int128_t> : Hasher {};
+template <>
+struct hash<__uint128_t> : Hasher {};
 
 } // namespace std
 

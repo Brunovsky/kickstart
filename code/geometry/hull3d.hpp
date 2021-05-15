@@ -5,7 +5,8 @@
 
 /**
  * 3D Quickhull for exact points.
- * All degenerate cases (2+ incident, 3+ collinear, 4+ coplanar) are handled.
+ * Degenerate cases with 3+ collinear, 4+ coplanar are handled.
+ * Incident points are not handled.
  *
  * Complexity: O(N log N) expected, O(N^2) worst-case
  *
@@ -38,7 +39,7 @@ struct quickhull3d {
     struct Face {
         QPlane plane;
         Edge* edge; // an arbitrary edge in the face; a particular one initially
-        int mark = VISIBLE, outside = 0, id, npoints = 3;
+        int mark = VISIBLE, outside = 0, id;
         explicit Face(int id) : id(id) {}
         ~Face() noexcept {
             Edge* u = edge;
@@ -57,10 +58,10 @@ struct quickhull3d {
     vector<Face*> eye_face, new_faces, old_faces;
     vector<Edge*> horizon;
 
-    quickhull3d(const vector<P>& input, int skip_0 = 0)
-        : N(input.size() - skip_0), points(N + 1), eye_prev(N + 1, 0), eye_next(N + 1, 0),
+    explicit quickhull3d(const vector<P>& input)
+        : N(input.size()), points(N + 1), eye_prev(N + 1, 0), eye_next(N + 1, 0),
           open(N + 1, 0), eye_face(N + 1) {
-        copy(begin(input) + skip_0, end(input), begin(points) + 1);
+        copy(begin(input), end(input), begin(points) + 1);
     }
 
     // Eye tables subroutines
@@ -99,10 +100,10 @@ struct quickhull3d {
     int find_furthest_eye() {
         Face* face = eye_face[eye_next[0]];
         assert(face->mark == VISIBLE && face->outside != 0);
-        auto maxdist = face->plane.planedist(points[face->outside]);
+        D maxdist = face->plane.planedist(points[face->outside]);
         int furthest = face->outside, v = eye_next[face->outside];
         while (v && eye_face[v] == face) {
-            auto dist = face->plane.planedist(points[v]);
+            D dist = face->plane.planedist(points[v]);
             if (maxdist < dist) {
                 maxdist = dist, furthest = v;
             }
@@ -120,7 +121,7 @@ struct quickhull3d {
      *        2={v2 to v0}.          v0 -> 0 -> v1
      */
     auto add_face(int v0, int v1, int v2) {
-        faces.emplace_back(make_unique<Face>(faces.size()));
+        faces.push_back(make_unique<Face>(faces.size()));
         Face* face = faces.back().get();
 
         auto e0 = new Edge(v0, face);
@@ -130,6 +131,7 @@ struct quickhull3d {
         face->edge = e0;
 
         face->plane = QPlane(points[v0], points[v1], points[v2]);
+        assert(!face->plane.is_degenerate());
         return face;
     }
 
@@ -162,6 +164,7 @@ struct quickhull3d {
 
     void add_horizon_faces(int eye) {
         int H = horizon.size();
+        assert(H >= 3);
         for (Edge* edge : horizon) {
             new_faces.emplace_back(add_adjoining_face(eye, edge));
         }
@@ -178,9 +181,10 @@ struct quickhull3d {
     }
 
     void delete_face(Face* face) {
-        assert(face->mark == DELETED && face->edge != nullptr);
+        assert(face->mark == DELETED && face->edge && face->edge->face == face);
         int id = face->id;
-        swap(faces[id], faces.back());
+        if (id != int(faces.size() - 1))
+            swap(faces[id], faces.back());
         faces[id]->id = id;
         faces.pop_back();
     }
@@ -195,8 +199,9 @@ struct quickhull3d {
     // Edge subroutines (merging)
 
     bool should_merge(Edge* edge) const {
+        assert(edge && edge->face->mark == VISIBLE);
         Face *face = edge->face, *oface = edge->opposite->face;
-        return same_oriented(face->plane, oface->plane);
+        return oface->mark == VISIBLE && face->plane == oface->plane;
     }
 
     void merge_faces(Edge* edge, bool recurse = true) {
@@ -216,15 +221,18 @@ struct quickhull3d {
         while (b->opposite->face == oface)
             b = b->next, c = c->prev;
 
+        assert(a != b); // but c==d is possible, although weird
         face->edge = b;
 
         // Transfer edges from oface into face
         for (Edge* other = d; other != c->next; other = other->next)
             other->face = face;
 
+        assert(a->next != b && b->prev != a);
+        assert(c->next != d && d->prev != c);
         // Fix edges and mark face for deletion
         mark_face_for_deletion(oface);
-        oface->edge = c->next;
+        oface->edge = c->next, assert(c->next->face == oface);
         Edge::link(d->prev, a->next), Edge::link(b->prev, c->next); // cycle old edges
         Edge::link(a, d), Edge::link(c, b);
 
@@ -259,13 +267,14 @@ struct quickhull3d {
                 Edge* edge = face->edge;
                 do {
                     if (should_merge(edge)) {
-                        merge_faces(edge->opposite);
+                        merge_faces(edge->opposite, false);
                         break;
                     }
                     edge = edge->next;
                 } while (edge != face->edge);
             }
         }
+        assert(old_faces.empty()); // surprise surprise
         delete_old_faces();
     }
 
@@ -297,13 +306,13 @@ struct quickhull3d {
         }
 
         int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
-        T maxdist = 0;
+        T maxdist_int = 0;
 
         // select v0, v1 such that dist2(v0, v1) is maximal (furthest pair along an axis)
         for (int d = 0; d < 3; d++) {
             auto dist = points[maxvert[d]][d] - points[minvert[d]][d];
-            if (maxdist < dist) {
-                maxdist = dist, v0 = minvert[d], v1 = maxvert[d];
+            if (maxdist_int < dist) {
+                maxdist_int = dist, v0 = minvert[d], v1 = maxvert[d];
             }
         }
         if (!v0 || !v1) {
@@ -311,7 +320,7 @@ struct quickhull3d {
         }
 
         // select v2 such that linedist2(v2, v0, v1) is maximum (furthest from line)
-        maxdist = 0;
+        D maxdist = 0;
         for (int v = 1; v <= N; v++) {
             if (v != v0 && v != v1) {
                 auto dist = linedist(points[v], points[v0], points[v1]);
@@ -371,8 +380,10 @@ struct quickhull3d {
 
         Edge* edge = cross ? cross->next : face->edge;
         cross = cross ? cross : face->edge;
+        assert(edge && cross);
         do {
             Edge* opposite = edge->opposite;
+            assert(opposite && opposite->face != face);
             if (opposite->face->mark == VISIBLE) {
                 if (opposite->face->plane.planeside(points[eye]) == 1) {
                     compute_horizon(eye, opposite, opposite->face);
@@ -386,7 +397,7 @@ struct quickhull3d {
 
     void resolve_open_points() {
         for (int v = open[0]; v; v = open[v]) {
-            auto maxdist = 0;
+            D maxdist = 0;
             Face* maxface = nullptr;
             for (Face* face : new_faces) {
                 auto dist = face->plane.signed_planedist(points[v]);
@@ -430,12 +441,12 @@ struct quickhull3d {
         return ok;
     }
 
-    auto extract_hull(int skip_0 = 0) const {
+    auto extract_hull() const {
         vector<vector<int>> hull(faces.size());
         for (auto&& face : faces) {
             Edge* edge = face->edge;
             do {
-                int v = edge->vertex - 1 + skip_0;
+                int v = edge->vertex - 1;
                 hull[face->id].push_back(v);
                 edge = edge->next;
             } while (edge != face->edge);
@@ -460,10 +471,10 @@ void simplify_hull(vector<vector<int>>& hull, const vector<Point3d<T, D>>& point
 }
 
 template <typename T, typename D = double>
-auto compute_hull(const vector<Point3d<T, D>>& points, int skip_0 = 0) {
-    quickhull3d qh(points, skip_0);
+auto compute_hull(const vector<Point3d<T, D>>& points) {
+    quickhull3d qh(points);
     qh.compute();
-    auto hull = qh.extract_hull(skip_0);
+    auto hull = qh.extract_hull();
     simplify_hull(hull, points);
     return hull;
 }

@@ -58,10 +58,10 @@ struct quickhull3d {
     vector<Edge*> horizon;
     double eps = Point3d::deps;
 
-    quickhull3d(const vector<Point3d>& input, int skip_0 = 0)
-        : N(input.size() - skip_0), points(N + 1), eye_prev(N + 1, 0), eye_next(N + 1, 0),
+    explicit quickhull3d(const vector<Point3d>& input)
+        : N(input.size()), points(N + 1), eye_prev(N + 1, 0), eye_next(N + 1, 0),
           open(N + 1, 0), eye_face(N + 1) {
-        copy(begin(input) + skip_0, end(input), begin(points) + 1);
+        copy(begin(input), end(input), begin(points) + 1);
     }
 
     // Eye tables subroutines
@@ -281,7 +281,7 @@ struct quickhull3d {
                 Edge* edge = face->edge;
                 do {
                     if (should_merge(edge)) {
-                        merge_faces(edge->opposite);
+                        merge_faces(edge->opposite, false);
                         break;
                     }
                     edge = edge->next;
@@ -455,12 +455,12 @@ struct quickhull3d {
         return ok;
     }
 
-    auto extract_hull(int skip_0 = 0) const {
+    auto extract_hull() const {
         vector<vector<int>> hull(faces.size());
         for (auto&& face : faces) {
             Edge* edge = face->edge;
             do {
-                int v = edge->vertex - 1 + skip_0;
+                int v = edge->vertex - 1;
                 hull[face->id].push_back(v);
                 edge = edge->next;
             } while (edge != face->edge);
@@ -483,10 +483,10 @@ void simplify_hull(vector<vector<int>>& hull, const vector<Point3d>& points, dou
     }
 }
 
-auto compute_hull(const vector<Point3d>& points, int skip_0 = 0) {
-    quickhull3d qh(points, skip_0);
+auto compute_hull(const vector<Point3d>& points) {
+    quickhull3d qh(points);
     qh.compute();
-    auto hull = qh.extract_hull(skip_0);
+    auto hull = qh.extract_hull();
     simplify_hull(hull, points, qh.eps);
     return hull;
 }

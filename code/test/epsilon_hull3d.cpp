@@ -11,6 +11,8 @@ using hull_t = vector<vector<int>>;
 
 inline namespace {
 
+inline double parse(string s) { return stod(s); }
+
 inline double compute_ratio(double time, int N) { return 1e7 * time / (N * log2(N)); }
 
 /**
@@ -106,13 +108,17 @@ string format_points(const vector<P>& points) {
 
 string format_hull(const hull_t& hull) {
     string s = format("# {} faces\n", hull.size());
-    for (const auto& face : hull) {
+    for (auto face : hull) {
+        for (int& v : face)
+            v++;
         s += format("f {}\n", face);
     }
     return s;
 }
 
 } // namespace
+
+inline namespace dataset_testing {
 
 struct quickhull3d_dataset_test_t {
     string name, comment;
@@ -122,7 +128,6 @@ struct quickhull3d_dataset_test_t {
     void read(string name, istream& in) {
         this->name = name;
         string s, line;
-        points = {P::zero()};
         while (getline(in, line)) {
             if (line.empty())
                 continue;
@@ -133,14 +138,14 @@ struct quickhull3d_dataset_test_t {
             if (s == "#") {
                 comment += line + '\n';
             } else if (s == "v") {
-                double x, y, z;
+                string x, y, z;
                 ss >> ws >> x >> ws >> y >> ws >> z;
-                points.emplace_back(x, y, z);
+                points.emplace_back(parse(x), parse(y), parse(z));
             } else if (s == "f") {
                 vector<int> face;
                 int v;
                 while (ss >> v) {
-                    face.push_back(v);
+                    v--, face.push_back(v);
                 }
                 ans.emplace_back(move(face));
             }
@@ -152,7 +157,7 @@ struct quickhull3d_dataset_test_t {
     void write() { print("== {}\n{}", name, comment); }
 
     void run() {
-        auto hull = compute_hull(points, 1);
+        auto hull = compute_hull(points);
         canonicalize_hull(hull);
 
         print("hull area: {}\n", area_hull(hull, points));
@@ -163,7 +168,7 @@ struct quickhull3d_dataset_test_t {
             print("expected: {}\n", ans);
         }
 
-        auto counterexample = verify_hull(hull, points, P::deps, 1);
+        auto counterexample = verify_hull(hull, points, P::deps);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
             clear_line(), print("Incorrect convex hull\n");
@@ -189,52 +194,49 @@ void dataset_test_quickhull3d() {
     }
 }
 
-fs::path tmpdir;
-int fileid = 0;
+} // namespace dataset_testing
+
+inline namespace stress_testing {
+
+fs::path tmpfile;
 
 void stress_test_quickhull3d_run(int T, int N, int L, int C, int I, long R = 50) {
-    int errors = 10;
-
     for (int t = 0; t < T; t++) {
         print_progress(t, T, "stress test quickhull3d");
 
         auto points = random_points(N, R);
-        points.insert(begin(points), P::zero());
         add_coplanar_points(L, points, 2 * R);
         add_collinear_points(C, points, 2 * R);
         add_incident_points(I, points);
 
-        auto file = tmpdir / fs::path(format("hull3d-{}.obj", fileid++));
-        ofstream out(file.string());
+        ofstream out(tmpfile.string());
         out << format_header(points) << format_points(points);
 
-        auto hull = compute_hull(points, 1);
+        auto hull = compute_hull(points);
         out << format_hull(hull);
 
-        auto counterexample = verify_hull(hull, points, 10 * P::deps, 1);
+        auto counterexample = verify_hull(hull, points, 10 * P::deps);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
             clear_line();
-            print("incorrect convex hull: {}\n", file.string());
+            print("Incorrect convex hull, check file {}\n", tmpfile.string());
             if (kind == 0) {
-                print("ce: point {} does not lie on plane of face {} ({})\n", v, f,
-                      hull[f]);
+                print("ce: point {} does not lie on plane of face {}\n", v, f);
             } else if (kind == 1) {
-                print("ce: point {} can see plane of face {} ({})\n", v, f, hull[f]);
+                print("ce: point {} can see plane of face {}\n", v, f);
             }
-            if (--errors == 0)
-                break;
+            exit(1);
         }
     }
 
-    print("stress x{:<4} N={:<3} L={:<3} C={:<3} I={:<3} (files {}...{})\n", T, N, L, C,
-          I, fileid - T, fileid - 1);
+    print("stress x{:<4} N={:<3} L={:<3} C={:<3} I={:<3}\n", T, N, L, C, I);
 }
 
 void stress_test_quickhull3d(double F = 1.0) {
-    tmpdir = fs::temp_directory_path() / fs::path("hull3d");
+    auto tmpdir = fs::temp_directory_path() / fs::path("hull3d");
     fs::create_directory(tmpdir);
     print("Temp directory: {}\n", tmpdir);
+    tmpfile = tmpdir / fs::path("hull3d-stress.obj");
 
     stress_test_quickhull3d_run(int(F * 500), 8, 20, 0, 0);
     stress_test_quickhull3d_run(int(F * 500), 10, 50, 0, 0);
@@ -245,6 +247,10 @@ void stress_test_quickhull3d(double F = 1.0) {
     stress_test_quickhull3d_run(int(F * 400), 50, 900, 10, 40);
     stress_test_quickhull3d_run(int(F * 100), 9900, 0, 0, 100);
 }
+
+} // namespace stress_testing
+
+inline namespace scaling_testing {
 
 void scaling_test_quickhull3d_run(int T, int N, int L, int C, int I = 0, long R = 50) {
     // N points + L collinear + C coplanar + I incident
@@ -260,7 +266,7 @@ void scaling_test_quickhull3d_run(int T, int N, int L, int C, int I = 0, long R 
         assert(points.size() == uint(N + L + C + I));
 
         START(quickhull3d);
-        auto hull = compute_hull(points, 0);
+        auto hull = compute_hull(points);
         ADD_TIME(quickhull3d);
     }
 
@@ -290,6 +296,8 @@ void scaling_test_quickhull3d(double F = 1.0) {
     scaling_test_quickhull3d_run(int(F * 5), 1'000'000, 0, 0);
     scaling_test_quickhull3d_run(int(F * 5), 10'000, 900'000, 90'000);
 }
+
+} // namespace scaling_testing
 
 int main() {
     RUN_BLOCK(dataset_test_quickhull3d());
