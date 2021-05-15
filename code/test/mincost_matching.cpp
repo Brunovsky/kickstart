@@ -2,6 +2,8 @@
 #include "../lib/bipartite.hpp"
 #include "../matching/mincost_hungarian.hpp"
 
+inline namespace unit_testing_mincost_matching {
+
 void unit_test_mincost_matching() {
     edges_t g;
     vector<long> cost;
@@ -25,6 +27,10 @@ void unit_test_mincost_matching() {
     c = mm.mincost_max_matching();
     assert(c == 407);
 }
+
+} // namespace unit_testing_mincost_matching
+
+inline namespace speed_testing_mincost_matching {
 
 void speed_test_mincost_matching_run(bipartite_graph_kind i, int S, int T) {
     START_ACC(hungarian);
@@ -60,6 +66,8 @@ void speed_test_mincost_matching() {
         }
     }
 }
+
+} // namespace speed_testing_mincost_matching
 
 int main() {
     RUN_SHORT(unit_test_mincost_matching());

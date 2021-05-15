@@ -4,13 +4,14 @@
 #include "../geometry/hull3d_functions.hpp"
 #include "../geometry/hull3d_utils.hpp"
 
-namespace fs = std::filesystem;
-const string DATASET_FOLDER = "datasets/hull3d";
-using hull_t = vector<vector<int>>;
 using NumT = long;
 using P = Point3d<NumT>;
+const string DATASET_FOLDER = "datasets/hull3d";
 
-inline namespace {
+inline namespace detail {
+
+namespace fs = std::filesystem;
+using hull_t = vector<vector<int>>;
 
 inline NumT parse(string s) { return stoll(s); }
 // inline string convert(NumT n) { to_string(n >= 0 ? long(n) : -long(-n)); }
@@ -132,9 +133,9 @@ string format_hull(const hull_t& hull) {
     return s;
 }
 
-} // namespace
+} // namespace detail
 
-inline namespace dataset_testing {
+inline namespace dataset_testing_hull3d {
 
 struct quickhull3d_dataset_test_t {
     string name, comment;
@@ -210,9 +211,9 @@ void dataset_test_quickhull3d() {
     }
 }
 
-} // namespace dataset_testing
+} // namespace dataset_testing_hull3d
 
-inline namespace stress_testing {
+inline namespace stress_testing_hull3d {
 
 fs::path tmpfile;
 
@@ -262,9 +263,9 @@ void stress_test_quickhull3d(double F = 1.0) {
     stress_test_quickhull3d_run(int(F * 100), 9900, 0, 0, 100);
 }
 
-} // namespace stress_testing
+} // namespace stress_testing_hull3d
 
-inline namespace scaling_testing {
+inline namespace scaling_testing_hull3d {
 
 void scaling_test_quickhull3d_run(int T, int N, int L, int C, int I = 0, long R = 200) {
     // N points + L collinear + C coplanar + I incident
@@ -311,7 +312,7 @@ void scaling_test_quickhull3d(double F = 1.0) {
     scaling_test_quickhull3d_run(int(F * 5), 10'000, 300'000, 90'000);
 }
 
-} // namespace scaling_testing
+} // namespace scaling_testing_hull3d
 
 int main() {
     mt.seed(37);

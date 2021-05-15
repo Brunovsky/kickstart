@@ -4,6 +4,8 @@
 #include "../lib/bipartite_matching.hpp"
 #include "../matching/hopcroft_karp.hpp"
 
+inline namespace speed_testing_maximum_matching {
+
 void speed_test_maximum_matching_run(bipartite_graph_kind i, int S, int T) {
     START_ACC(gen);
     START_ACC(mm);
@@ -49,6 +51,10 @@ void speed_test_maximum_matching() {
     }
 }
 
+} // namespace speed_testing_maximum_matching
+
+inline namespace stress_testing_maximum_matching {
+
 void stress_test_maximum_matching(int T = 2000) {
     intd distV(90, 600);
     reald distMp(0.1, 1.0);
@@ -72,6 +78,10 @@ void stress_test_maximum_matching(int T = 2000) {
     }
 }
 
+} // namespace stress_testing_maximum_matching
+
+inline namespace unit_testing_maximum_matching {
+
 void unit_test_maximum_matching() {
     edges_t g;
 
@@ -86,6 +96,8 @@ void unit_test_maximum_matching() {
     mm1 = hopcroft_karp(8, 8, g).compute();
     assert(mm0 == 7 && mm1 == 7);
 }
+
+} // namespace unit_testing_maximum_matching
 
 int main() {
     RUN_SHORT(unit_test_maximum_matching());

@@ -3,6 +3,8 @@
 #include "../numeric/sieves.hpp"
 #include "../random.hpp"
 
+inline namespace speed_testing_sieves {
+
 void speed_test_sieves() {
     for (int N : {1'000, 2'200, 5'000, 10'000, 22'000}) {
         print(" speed test sieves N={}\n", N);
@@ -56,6 +58,10 @@ void speed_test_sieves() {
         PRINT_TIME(logfac);
     }
 }
+
+} // namespace speed_testing_sieves
+
+inline namespace unit_testing_sieves {
 
 void unit_test_classic_sieve() {
     auto primes = classic_sieve(100'000);
@@ -120,21 +126,9 @@ void unit_test_num_divisors_sieve() {
     }
 }
 
-void unit_test_factor() {
-    static const map<long, vector<long>> factorizations = {
-        {73, {73}},
-        {107972737, {97, 101, 103, 107}},
-        {8 * 9 * 23 * 31 * 37 * 41, {2, 2, 2, 3, 3, 23, 31, 37, 41}},
-        {717, {3, 239}},
-        {919, {919}},
-    };
+} // namespace unit_testing_sieves
 
-    for (auto [n, factors] : factorizations) {
-        auto simple = factor_simple(n);
-        sort(begin(simple), end(simple));
-        assert(simple == factors);
-    }
-}
+inline namespace stress_testing_primes {
 
 void stress_test_factor(int T = 500) {
     intd numfactorsd(1, 30);
@@ -211,9 +205,10 @@ void stress_test_miller_rabin() {
     }
 }
 
+} // namespace stress_testing_primes
+
 int main() {
     RUN_SHORT(unit_test_sieves());
-    RUN_SHORT(unit_test_factor());
     RUN_SHORT(unit_test_num_divisors_sieve());
     RUN_BLOCK(stress_test_factor());
     RUN_BLOCK(stress_test_jacobi());

@@ -5,6 +5,8 @@
 #include "../strings/sparse_suffix_automaton.hpp"
 #include "../strings/vector_suffix_automaton.hpp"
 
+inline namespace speed_testing_suffix_automaton {
+
 void speed_test_build(int T = 1000, int min_scale = 10, int max_scale = 15) {
     int num_scales = max_scale - min_scale + 1;
     mat<double> times(4, num_scales);
@@ -110,6 +112,10 @@ void speed_test_contains(int T = 1000, int min_scale = 10, int max_scale = 18) {
     print("speed test suffix_automaton contains:\n{}\n", times);
 }
 
+} // namespace speed_testing_suffix_automaton
+
+inline namespace stress_testing_suffix_automaton {
+
 template <typename SA = suffix_automaton<>>
 void stress_test_suffix_automaton() {
     int errors = 0;
@@ -162,6 +168,10 @@ void stress_test_suffix_automaton() {
     }
 }
 
+} // namespace stress_testing_suffix_automaton
+
+inline namespace unit_testing_suffix_automaton {
+
 void unit_test_suffix_automaton() {
     int errors = 0;
     vector_suffix_automaton sa("aabaababaabab"s);
@@ -177,6 +187,8 @@ void unit_test_suffix_automaton() {
     print("count: {}\n", sa.count_distinct_substrings());
     print("errors: {}\n", errors);
 }
+
+} // namespace unit_testing_suffix_automaton
 
 int main() {
     RUN_SHORT(unit_test_suffix_automaton());

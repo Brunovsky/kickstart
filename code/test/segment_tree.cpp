@@ -1,6 +1,8 @@
 #include "test_utils.hpp"
 #include "../struct/segment_tree.hpp"
 
+inline namespace unit_testing_segtree {
+
 void unit_test_range_segtree() {
     range_segtree tree({0, 4, 7, 12, 17, 25, 30, 40});
     tree.update(1, {7, 17}, 8);
@@ -33,6 +35,8 @@ void unit_test_dyn_segtree() {
     assert(tree.query(13, 19) == 9);
     assert(tree.query(10, 30) == 28);
 }
+
+} // namespace unit_testing_segtree
 
 int main() {
     RUN_SHORT(unit_test_range_segtree());

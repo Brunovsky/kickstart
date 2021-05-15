@@ -1,8 +1,9 @@
 #include "test_utils.hpp"
 #include "../graphs/mincut.hpp"
 
-// clang-format off
+inline namespace unit_testing_mincut {
 
+// clang-format off
 void unit_test_stoer_wagner() {
     edges_t g;
     vector<long> cost;
@@ -26,6 +27,9 @@ void unit_test_stoer_wagner() {
     print("stoer_wagner 2 -- mincut: {}, ({})\n", ans, cut);
     assert(ans == 382);
 }
+// clang-format on
+
+} // namespace unit_testing_mincut
 
 int main() {
     RUN_SHORT(unit_test_stoer_wagner());

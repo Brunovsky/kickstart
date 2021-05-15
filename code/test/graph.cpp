@@ -6,6 +6,8 @@
 #include "../lib/graph_formats.hpp"
 #include "../lib/graph_generator.hpp"
 
+inline namespace detail {
+
 static int si = 1;
 
 void showu(string msg, const edges_t& g, int V) {
@@ -41,6 +43,10 @@ void showb(string msg, const edges_t& g) {
         U = max(U, u + 1), V = max(V, 1 + v);
     showb(msg, g, U, V);
 }
+
+} // namespace detail
+
+inline namespace scaling_testing_regular {
 
 void scaling_test_random_regular_run(int T, int n, int k) {
     if (T == 0)
@@ -80,6 +86,10 @@ void scaling_test_random_regular(double M = 1) {
     scaling_test_random_regular_run(int(M * 1), 50000, 60);
     scaling_test_random_regular_run(int(M * 1), 50000, 120);
 }
+
+} // namespace scaling_testing_regular
+
+inline namespace visual_testing_generators {
 
 void visual_test_generators() {
     showu("Path undirected 10", path_undirected(10));
@@ -166,6 +176,10 @@ void visual_test_generators() {
     showu("Grid3 circular undirected 3x4x3", circular_grid3_undirected(3, 4, 3));
     showd("Grid3 circular directed 3x4x3", circular_grid3_directed(3, 4, 3));
 }
+
+} // namespace visual_testing_generators
+
+inline namespace balance_testing_problem_generators {
 
 void balance_test_generate_flow() {
     // ¹²³⁴⁵⁶⁷⁸⁹⁰ √
@@ -290,6 +304,8 @@ void balance_test_generate_bipartite() {
         print("{1:<{0}} --- {2:5.1f}\n", 105, "", sum_W / int(BG_END));
     }
 }
+
+} // namespace balance_testing_problem_generators
 
 int main() {
     RUN_BLOCK(visual_test_generators());

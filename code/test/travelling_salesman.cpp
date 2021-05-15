@@ -2,8 +2,9 @@
 #include "../graphs/travelling_salesman.hpp"
 
 // Datasets: https://people.sc.fsu.edu/~jburkardt/datasets/tsp/tsp.html (2020-08)
-
 const string DATASET_FILE = "datasets/exact_tsp.txt";
+
+inline namespace detail {
 
 bool trips_match(const vector<int>& a, vector<int> b) {
     if (a.size() != b.size() || a.empty() || a[0] != b[0])
@@ -13,6 +14,10 @@ bool trips_match(const vector<int>& a, vector<int> b) {
     reverse(begin(b) + 1, end(b));
     return a == b;
 }
+
+} // namespace detail
+
+inline namespace dataset_testing {
 
 struct exact_tsp_dataset_t {
     int V;
@@ -58,6 +63,8 @@ void dataset_test_exact_tsp() {
         file >> ws;
     }
 }
+
+} // namespace dataset_testing
 
 int main() {
     RUN_BLOCK(dataset_test_exact_tsp());

@@ -1,8 +1,9 @@
 #include "test_utils.hpp"
 #include "../numeric/bits.hpp"
 
-// clang-format off
+inline namespace unit_testing_bits {
 
+// clang-format off
 void unit_test_bits() {
     assert(is_power_of_two(2));
     assert(is_power_of_two(32));
@@ -26,6 +27,7 @@ void unit_test_bits() {
     assert(v == 0b11111010010001000010000010000001);
 }
 
+// clang-format off
 void unit_test_foreach_mask() {
     vector<uint> masks = {
         0b001111,
@@ -77,6 +79,9 @@ void unit_test_foreach_subset() {
     sort(begin(masks), end(masks));
     assert(loop == masks);
 }
+// clang-format on
+
+} // namespace unit_testing_bits
 
 int main() {
     RUN_SHORT(unit_test_bits());

@@ -1,8 +1,9 @@
 #include "test_utils.hpp"
 #include "../linear/transportation.hpp"
 
-// clang-format off
+inline namespace unit_testing {
 
+// clang-format off
 void unit_test_transportation() {
     mat<int> solution, tp;
     long ans;
@@ -77,6 +78,9 @@ void unit_test_transportation() {
                 {67, 0, 0, 0, 0, 9}}};
     assert(tp == solution && ans == 4682);
 }
+// clang-format on
+
+} // namespace unit_testing
 
 int main() {
     RUN_SHORT(unit_test_transportation());

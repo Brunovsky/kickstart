@@ -2,6 +2,8 @@
 #include "../linear/real_simplex.hpp"
 #include "../linear/matrix.hpp"
 
+inline namespace detail {
+
 /**
  * A common implementation for both simplex turned out to be way too annoying to
  * implement and put a considerable burden on copy-pasters, so we duplicate the code.
@@ -66,6 +68,10 @@ auto generate_lp(int n, int le, int eq, int ge, LPState state = LP_OPTIMAL) {
 bool close(ld x, ld y = 0, ld eps = 1e6 * numeric_limits<ld>::epsilon()) {
     return abs(x - y) <= eps;
 }
+
+} // namespace detail
+
+inline namespace unit_testing_simplex {
 
 template <typename F>
 void unit_test_simplex() {
@@ -173,6 +179,8 @@ void unit_test_simplex() {
     print("optimum #9.1: {} {:.6f} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && close(optimum, 105));
 }
+
+} // namespace unit_testing_simplex
 
 int main() {
     RUN_SHORT(unit_test_simplex<ld>());

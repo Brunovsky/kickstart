@@ -4,6 +4,8 @@
 
 const string DATASET_FILE = "datasets/mincost_circulation.txt";
 
+inline namespace detail {
+
 template <typename MCF, typename Caps, typename Costs>
 void add_edges(MCF& mcc, const edges_t& g, const Caps& caps, const Costs& costs) {
     int E = g.size();
@@ -11,6 +13,10 @@ void add_edges(MCF& mcc, const edges_t& g, const Caps& caps, const Costs& costs)
         mcc.add(g[i][0], g[i][1], caps[i], costs[i]);
     }
 }
+
+} // namespace detail
+
+inline namespace dataset_testing_mincost_circulation {
 
 struct mincost_circulation_dataset_test_t {
     string name, comment;
@@ -72,6 +78,8 @@ void dataset_test_mincost_circulation() {
         file >> ws;
     }
 }
+
+} // namespace dataset_testing_mincost_circulation
 
 int main() {
     RUN_BLOCK(dataset_test_mincost_circulation());

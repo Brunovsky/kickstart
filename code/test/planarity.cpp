@@ -3,6 +3,8 @@
 
 const string DATASET_FILE = "datasets/planar.txt";
 
+inline namespace dataset_testing_planarity {
+
 /**
  * Name
  * V E answer                   | answer := planar|nonplanar
@@ -48,6 +50,8 @@ void dataset_test_planarity() {
         file >> ws;
     }
 }
+
+} // namespace dataset_testing_planarity
 
 int main() {
     RUN_BLOCK(dataset_test_planarity());

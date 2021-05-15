@@ -1,6 +1,8 @@
 #include "test_utils.hpp"
 #include "../strings/strings.hpp"
 
+inline namespace unit_testing_string_builders {
+
 void unit_test_good_suffix() {
     string ss[] = {
         "addbddcdd",      // 1 2 3 4 5 6 7 8 9 10
@@ -66,6 +68,8 @@ void unit_test_lyndon() {
         cout << build_lyndon_factorization(s) << endl;
     }
 }
+
+} // namespace unit_testing_string_builders
 
 int main() {
     RUN_SHORT(unit_test_manachers());

@@ -8,6 +8,8 @@
 #include "../parallel/priority_thread_pool.hpp"
 #include "../parallel/spinlock.hpp"
 
+inline namespace detail {
+
 using mat_t = mat<long>;
 
 mat_t makemat(int n, default_random_engine& rnd) {
@@ -47,6 +49,10 @@ struct action_t {
     int b1, b2;
     T value;
 };
+
+} // namespace detail
+
+inline namespace stress_testing_pool {
 
 void stress_test_pool_submit(int N = 200, int rate = 47, int nthreads = 5) {
     thread_pool pool(nthreads);
@@ -89,6 +95,10 @@ void stress_test_priority_pool_submit(int N = 200, int rate = 47, int nthreads =
         }
     }
 }
+
+} // namespace stress_testing_pool
+
+inline namespace stress_testing_fn_orchestrator {
 
 void fn_orchestrator_stress_run(int V, int buckets, int nthreads) {
     vector<vector<int>> vis(buckets), vis2(buckets);
@@ -186,6 +196,10 @@ void speed_test_fn_orchestrator(int T = 25) {
     }
 }
 
+} // namespace stress_testing_fn_orchestrator
+
+inline namespace stress_testing_graph_orchestrator {
+
 void graph_orchestrator_stress_run(int V, int E, int nthreads) {
     vector<unsigned long> vis(V, 1), vis2(V, 1);
 
@@ -259,6 +273,8 @@ void speed_test_graph_orchestrator(int T = 25) {
         graph_orchestrator_speed_run(V, E, 50, 16);
     }
 }
+
+} // namespace stress_testing_graph_orchestrator
 
 int main() {
     setbuf(stdout, nullptr), setbuf(stderr, nullptr);

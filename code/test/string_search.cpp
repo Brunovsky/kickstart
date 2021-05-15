@@ -4,6 +4,8 @@
 #include "../strings/rabin_karp.hpp"
 #include "../strings/z_search.hpp"
 
+inline namespace detail {
+
 /**
  * all strings, with length [minlen,maxlen] with characters [a,b]
  */
@@ -41,6 +43,10 @@ auto naive_search_all(const string& haystack, const string& needle) {
 inline void add(vector<string>& strs, const vector<string>& more) {
     strs.insert(strs.end(), begin(more), end(more));
 }
+
+} // namespace detail
+
+inline namespace stress_testing_string_searchers {
 
 void stress_test_string_searchers() {
     vector<string> needles, haystacks;
@@ -83,6 +89,8 @@ void stress_test_string_searchers() {
         }
     }
 }
+
+} // namespace stress_testing_string_searchers
 
 int main() {
     RUN_BLOCK(stress_test_string_searchers());

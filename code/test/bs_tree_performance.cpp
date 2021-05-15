@@ -14,6 +14,8 @@ template struct std::set<int, greater<int>>;
 template struct std::multiset<int>;
 template struct std::multiset<int, greater<int>>;
 
+inline namespace bstree_performance_testers {
+
 struct unordered_insert_test {
     template <typename Set>
     static void run(const string& name, int M, int T, int f) {
@@ -199,6 +201,8 @@ struct minmax_test {
         print(" {:>12} {:6}ms  (count/sum: {}, {})\n", name, TIME_MS(test), count, sum);
     }
 };
+
+} // namespace bstree_performance_testers
 
 template <typename Fn, typename... Args>
 void run(Args&&... args) {

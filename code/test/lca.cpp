@@ -1,6 +1,8 @@
 #include "test_utils.hpp"
 #include "../struct/lca.hpp"
 
+inline namespace unit_testing_lca {
+
 // https://www.geeksforgeeks.org/depth-n-ary-tree/
 void setup() {
     children[1] = {2, 3, 4, 5};
@@ -38,6 +40,8 @@ void unit_test_lca() {
     assert(lca.dist(3, 3) == 0);
     assert(lca.dist(3, 15) == 2);
 }
+
+} // namespace unit_testing_lca
 
 int main() {
     setup();

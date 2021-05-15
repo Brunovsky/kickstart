@@ -2,6 +2,8 @@
 #include "../struct/integer_heaps.hpp"
 #include "../lib/graph_generator.hpp"
 
+inline namespace detail {
+
 template <typename Compare>
 ostream& operator<<(ostream& out, pairing_int_heap<Compare> heap) {
     vector<int> nums;
@@ -17,6 +19,68 @@ ostream& operator<<(ostream& out, binary_int_heap<Compare> heap) {
         nums.push_back(heap.pop());
     return out << nums;
 }
+
+struct cost_graph {
+    int V, E;
+    vector<vector<int>> adj;
+    edges_t edge;
+    vector<long> cost;
+};
+
+void run_normal(const cost_graph& g, int s, vector<long>& dist) {
+    static constexpr long inf = LONG_MAX / 2;
+    int V = g.V;
+    dist.assign(V, inf);
+    dist[s] = 0;
+
+    using int2 = pair<long, int>;
+    priority_queue<int2, vector<int2>, greater<int2>> Q;
+    Q.push({0, s});
+
+    while (!Q.empty()) {
+        auto [ucost, u] = Q.top();
+        Q.pop();
+        if (dist[u] < ucost) {
+            continue;
+        }
+        for (auto e : g.adj[u]) {
+            int v = g.edge[e][1];
+            long cost = dist[u] + g.cost[e];
+            if (cost < dist[v]) {
+                dist[v] = cost;
+                Q.push({cost, v});
+            }
+        }
+    }
+}
+
+template <typename Heap>
+void run_dijkstra(const cost_graph& g, int s, vector<long>& dist, Heap& Q) {
+    static constexpr long inf = LONG_MAX / 2;
+    int V = g.V;
+    dist.assign(V, inf);
+    dist[s] = 0;
+
+    vector<bool> vis(V, false);
+    assert(Q.empty());
+    Q.push(s);
+
+    while (!Q.empty()) {
+        int u = Q.pop();
+        for (auto e : g.adj[u]) {
+            int v = g.edge[e][1];
+            long cost = dist[u] + g.cost[e];
+            if (cost < dist[v]) {
+                dist[v] = cost;
+                Q.push_or_improve(v);
+            }
+        }
+    }
+}
+
+} // namespace detail
+
+inline namespace stress_testing_int_heap {
 
 template <template <typename> typename Heap, bool adjust = true>
 void stress_test_int_heap(int N = 60, int T = 300'000) {
@@ -112,6 +176,10 @@ void stress_test_int_heap(int N = 60, int T = 300'000) {
     print("average size: {:.2f} ({:.2f}%)\n", avg, 100.0 * avg / N);
 }
 
+} // namespace stress_testing_int_heap
+
+inline namespace unit_testing_pairing_heaps {
+
 void unit_test_pairing_heaps() {
     constexpr int R = 5, N = 15;
 
@@ -163,63 +231,9 @@ void unit_test_pairing_heaps() {
     assert(heaps.top(0) == 3);
 }
 
-struct cost_graph {
-    int V, E;
-    vector<vector<int>> adj;
-    edges_t edge;
-    vector<long> cost;
-};
+} // namespace unit_testing_pairing_heaps
 
-void run_normal(const cost_graph& g, int s, vector<long>& dist) {
-    static constexpr long inf = LONG_MAX / 2;
-    int V = g.V;
-    dist.assign(V, inf);
-    dist[s] = 0;
-
-    using int2 = pair<long, int>;
-    priority_queue<int2, vector<int2>, greater<int2>> Q;
-    Q.push({0, s});
-
-    while (!Q.empty()) {
-        auto [ucost, u] = Q.top();
-        Q.pop();
-        if (dist[u] < ucost) {
-            continue;
-        }
-        for (auto e : g.adj[u]) {
-            int v = g.edge[e][1];
-            long cost = dist[u] + g.cost[e];
-            if (cost < dist[v]) {
-                dist[v] = cost;
-                Q.push({cost, v});
-            }
-        }
-    }
-}
-
-template <typename Heap>
-void run_dijkstra(const cost_graph& g, int s, vector<long>& dist, Heap& Q) {
-    static constexpr long inf = LONG_MAX / 2;
-    int V = g.V;
-    dist.assign(V, inf);
-    dist[s] = 0;
-
-    vector<bool> vis(V, false);
-    assert(Q.empty());
-    Q.push(s);
-
-    while (!Q.empty()) {
-        int u = Q.pop();
-        for (auto e : g.adj[u]) {
-            int v = g.edge[e][1];
-            long cost = dist[u] + g.cost[e];
-            if (cost < dist[v]) {
-                dist[v] = cost;
-                Q.push_or_improve(v);
-            }
-        }
-    }
-}
+inline namespace speed_testing_int_heaps {
 
 void speed_test_int_heaps(int T = 10000) {
     intd distV(50, 60);
@@ -271,6 +285,8 @@ void speed_test_int_heaps(int T = 10000) {
     PRINT_TIME(pairing);
     PRINT_TIME(binary);
 }
+
+} // namespace speed_testing_int_heaps
 
 int main() {
     RUN_BLOCK((stress_test_int_heap<binary_int_heap, false>()));

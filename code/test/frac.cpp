@@ -3,6 +3,8 @@
 #include "../numeric/frac.hpp"
 #include "../numeric/frac_extra.hpp"
 
+inline namespace unit_testing_frac {
+
 void unit_test_gcd() {
     assert(frac(93, 31) == frac(3, 1));
     assert(frac(7, -19) == frac(-7, 19));
@@ -84,6 +86,8 @@ void unit_test_read() {
     assert(stofrac(" -712412.71231") == -frac(71241271231, 100000));
     assert(stofrac(" -712412/71231") == -frac(712412, 71231));
 }
+
+} // namespace unit_testing_frac
 
 // frac is stress tested by simplex
 

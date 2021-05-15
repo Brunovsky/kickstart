@@ -6,6 +6,8 @@
 #pragma GCC diagnostic ignored "-Wpedantic"
 #pragma clang diagnostic ignored "-Wc99-designator"
 
+inline namespace detail {
+
 enum UnrootedActionType {
     LINK,        // pick two nodes in distinct trees and link them
     CUT,         // pick two connected nodes and unlink them
@@ -161,6 +163,10 @@ auto make_actions(int N, int T, const int arr[END]) {
     return history;
 }
 
+} // namespace detail
+
+inline namespace stress_testing {
+
 bool stress_verify_unrooted_link_cut(slow_tree& slow, unrooted_link_cut_tree& tree,
                                      int D = 2) {
     assert(1 <= D && D <= 9);
@@ -280,6 +286,10 @@ void stress_test_unrooted_link_cut_tree(int N = 100, int T = 25'000) {
     assert(ok);
 }
 
+} // namespace stress_testing
+
+inline namespace speed_testing {
+
 void speed_test_unrooted_link_cut_tree(int N, int T, const int arr[END]) {
     unrooted_link_cut_tree tree(N);
     auto actions = make_actions(N, T, arr);
@@ -321,8 +331,9 @@ void speed_test_unrooted_link_cut_tree(int N, int T, const int arr[END]) {
     PRINT_TIME(linkcut);
 }
 
+} // namespace speed_testing
+
 int main() {
-    setbuf(stdout, nullptr);
     RUN_SHORT(stress_test_unrooted_link_cut_tree());
     RUN_SHORT(speed_test_unrooted_link_cut_tree(1'000, 70'000, speed_query_heavy));
     RUN_SHORT(speed_test_unrooted_link_cut_tree(1'000, 70'000, speed_update_heavy));

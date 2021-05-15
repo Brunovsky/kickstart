@@ -6,6 +6,8 @@
 #include "../flow/tidal_flow.hpp"
 #include "../lib/flow.hpp"
 
+inline namespace detail {
+
 template <typename MF, typename Caps>
 void add_edges(MF& mf, const edges_t& g, const Caps& caps) {
     int E = g.size();
@@ -13,6 +15,10 @@ void add_edges(MF& mf, const edges_t& g, const Caps& caps) {
         mf.add(g[i][0], g[i][1], caps[i]);
     }
 }
+
+} // namespace detail
+
+inline namespace speed_testing_maxflow {
 
 void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
     START_ACC(generation);
@@ -73,6 +79,10 @@ void speed_test_max_flow() {
     }
 }
 
+} // namespace speed_testing_maxflow
+
+inline namespace stress_testing_maxflow {
+
 void stress_test_max_flow(int T = 10000) {
     intd kindd(0, int(FN_END) - 1);
     for (int t = 0; t < T; t++) {
@@ -103,6 +113,8 @@ void stress_test_max_flow(int T = 10000) {
         }
     }
 }
+
+} // namespace stress_testing_maxflow
 
 int main() {
     RUN_BLOCK(stress_test_max_flow());

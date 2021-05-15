@@ -2,6 +2,8 @@
 #include "../numeric/bigint.hpp"
 #include "../numeric/bigint_math.hpp"
 
+inline namespace detail {
+
 constexpr uint U = UINT_MAX;         // 0xffffffff
 constexpr uint M = UINT_MAX / 2 + 1; // 0x80000000
 
@@ -78,6 +80,10 @@ array<bigint, m> random_bigints(array<int, m> ns) {
         arr[i] = random_bigint(ns[i]);
     return arr;
 }
+
+} // namespace detail
+
+inline namespace unit_testing_bigint {
 
 /**
  * It should be easy and correct to mix up ints and bigints
@@ -259,6 +265,10 @@ void unit_test_sqrt() {
     assert(sqrt(w) == bpow10(6));
 }
 
+} // namespace unit_testing_bigint
+
+inline namespace stress_testing_bigint {
+
 void stress_test_sqrt(int T = 2000) {
     intd digitsd(10, 500);
     for (int t = 0; t < T; t++) {
@@ -395,6 +405,10 @@ void stress_test_div_imperfect(int T = 2000) {
     }
 }
 
+} // namespace stress_testing_bigint
+
+inline namespace speed_testing_bigint {
+
 void speed_test_pairwise_mul(int T = 2000) {
     vector<size_t> times;
     for (int scale = 1; scale <= 12; scale++) {
@@ -419,6 +433,8 @@ void speed_test_pairwise_mul(int T = 2000) {
         times.push_back(1 + TIME_US(mul));
     }
 }
+
+} // namespace speed_testing_bigint
 
 int main() {
     RUN_SHORT(minimum_usability_test());

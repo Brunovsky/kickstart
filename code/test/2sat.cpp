@@ -1,6 +1,8 @@
 #include "test_utils.hpp"
 #include "../algo/2sat.hpp"
 
+inline namespace detail {
+
 edges_t generate_twosat(int N, int E, double p = 0.5) {
     boold distp(p), bothd(0.1), coin(0.5);
     intd distv(0, N - 1);
@@ -30,6 +32,8 @@ bool verify(const edges_t& g, const vector<int>& assignment) {
     }
     return true;
 }
+
+} // namespace detail
 
 void unit_test_twosat() {
     // vertex 0 is completely disconnected

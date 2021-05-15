@@ -6,6 +6,8 @@
 #include "../path/floyd_warshall.hpp"
 #include "../path/johnsons.hpp"
 
+inline namespace detail {
+
 template <typename SP>
 bool compute_all_pairs(const distance_graph& dg, vector<vector<long>>& dist) {
     SP g(dg.V, dg.g, dg.weight);
@@ -28,6 +30,10 @@ void compute_positives(const distance_graph& dg, int s, vector<long>& dist) {
     g.compute(s);
     dist = move(g.dist);
 }
+
+} // namespace detail
+
+inline namespace speed_testing_all_pairs {
 
 void speed_test_all_pairs_shortest_path_run(distance_graph_kind i, int S, int T) {
     START_ACC(floyd_warshall);
@@ -96,6 +102,10 @@ void speed_test_all_pairs_shortest_paths() {
     }
 }
 
+} // namespace speed_testing_all_pairs
+
+inline namespace speed_testing_negative_paths {
+
 void speed_test_negative_shortest_path_run(distance_graph_kind i, int S, int T) {
     START_ACC(bellman_ford);
 
@@ -133,6 +143,10 @@ void speed_test_negative_shortest_paths() {
     }
 }
 
+} // namespace speed_testing_negative_paths
+
+inline namespace stress_testing_positive_paths {
+
 void stress_test_positive_shortest_paths(int T = 2000) {
     intd kindd(0, int(DG_END) - 1);
     for (int i = 0; i < T; i++) {
@@ -151,6 +165,8 @@ void stress_test_positive_shortest_paths(int T = 2000) {
         }
     }
 }
+
+} // namespace stress_testing_positive_paths
 
 int main() {
     RUN_BLOCK(stress_test_positive_shortest_paths());

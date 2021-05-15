@@ -2,6 +2,8 @@
 #include "../graphs/topology.hpp"
 #include "../lib/graph_operations.hpp"
 
+inline namespace unit_testing {
+
 void unit_test_scc() {
     // vertex 0 is completely disconnected
     edges_t g = {{1, 2}, {2, 3}, {3, 1}, {4, 2}, {4, 3}, {4, 6}, {5, 3},
@@ -72,6 +74,8 @@ void unit_test_dominator_tree() {
     };
     run();
 }
+
+} // namespace unit_testing
 
 int main() {
     RUN_SHORT(unit_test_scc());

@@ -4,6 +4,8 @@
 
 const string DATASET_FILE = "datasets/mincost_flow.txt";
 
+inline namespace detail {
+
 template <typename MCF, typename Caps, typename Costs>
 void add_edges(MCF& mcf, const edges_t& g, const Caps& caps, const Costs& costs) {
     int E = g.size();
@@ -11,6 +13,10 @@ void add_edges(MCF& mcf, const edges_t& g, const Caps& caps, const Costs& costs)
         mcf.add(g[i][0], g[i][1], caps[i], costs[i]);
     }
 }
+
+} // namespace detail
+
+inline namespace dataset_testing_mincost_flow {
 
 /**
  * # Comment
@@ -95,6 +101,10 @@ void dataset_test_mincost_flow() {
     }
 }
 
+} // namespace dataset_testing_mincost_flow
+
+inline namespace speed_testing_mincost_flow {
+
 void speed_test_mincost_flow_run(flow_network_kind i, int S, int T) {
     START_ACC(edmonds_karp);
 
@@ -126,6 +136,8 @@ void speed_test_mincost_flow() {
         }
     }
 }
+
+} // namespace speed_testing_mincost_flow
 
 int main() {
     RUN_BLOCK(dataset_test_mincost_flow());

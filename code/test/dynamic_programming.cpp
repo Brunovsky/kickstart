@@ -3,10 +3,9 @@
 #include "../algo/knapsack.hpp"
 #include "../strings/string_distance.hpp"
 
+inline namespace testing_string_distance {
+
 using vi = vector<int>;
-
-// String distance algorithms
-
 struct distance_test_t {
     string a, b;
     int ans_levenshtein, ans_simple_damerau, ans_damerau;
@@ -46,7 +45,9 @@ void unit_test_string_distance() {
     }
 }
 
-// Subset sum
+} // namespace testing_string_distance
+
+inline namespace testing_subset_sum {
 
 auto generate_nums(int n, int min, int max) {
     intd numd(min, max);
@@ -110,7 +111,9 @@ void stress_test_subset_sum(int T = 50) {
     }
 }
 
-// Knapsack
+} // namespace testing_subset_sum
+
+inline namespace testing_knapsack {
 
 void unit_test_knapsack() {
     auto [v0, qt0] = repeated_knapsack(15, {1, 4, 1, 2, 12}, {2, 10, 1, 2, 4});
@@ -123,7 +126,9 @@ void unit_test_knapsack() {
     assert(v3 == 220 && qt3 == (vector<bool>{0, 1, 1}));
 }
 
-// Subsequences
+} // namespace testing_knapsack
+
+inline namespace testing_longest_subsequences {
 
 void unit_test_longest_common_subsequence() {
     auto sub0 = longest_common_subsequence("AGCAT"s, "GAC"s);
@@ -143,6 +148,8 @@ void unit_test_longest_increasing_subsequence() {
     assert(sub2.size() == 1);
     assert(sub3 == (vi{0, 1}));
 }
+
+} // namespace testing_longest_subsequences
 
 int main() {
     RUN_SHORT(unit_test_string_distance());

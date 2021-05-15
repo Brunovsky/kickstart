@@ -5,11 +5,13 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
-using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
-using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;
-
 const string DATASET_FILE = "datasets/micali_vazirani.txt";
 const string ERROR_FILE = "datasets/latest_error.txt";
+
+inline namespace detail {
+
+using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
+using matemap_t = std::vector<boost::graph_traits<bgraph>::vertex_descriptor>;
 
 bgraph to_boost(int V, const edges_t& g) {
     bgraph bg(V);
@@ -31,6 +33,10 @@ int boost_matching_size(const bgraph& bg) {
 inline double compute_ratio(int64_t time, int T, int V, int E) {
     return 1e9 * time / (1.0 * T * E * sqrt(V));
 }
+
+} // namespace detail
+
+inline namespace dataset_testing_general_matching {
 
 struct general_matching_dataset_test_t {
     string name, comment;
@@ -83,6 +89,10 @@ void dataset_test_general_matching() {
     }
 }
 
+} // namespace dataset_testing_general_matching
+
+inline namespace stress_testing_general_matching {
+
 void stress_test_general_matching(int T = 10000) {
     intd distV(30, 100);
     reald distMp(0.1, 0.5);
@@ -109,6 +119,10 @@ void stress_test_general_matching(int T = 10000) {
         }
     }
 }
+
+} // namespace stress_testing_general_matching
+
+inline namespace scaling_testing_general_matching {
 
 void scaling_test_general_matching_run(int T, int V, int E) {
     if (T == 0)
@@ -162,6 +176,10 @@ void scaling_test_general_matching(double F = 1.0) {
     scaling_test_general_matching_run(int(F * 2), 250'000, 300'000);
 }
 
+} // namespace scaling_testing_general_matching
+
+inline namespace speed_testing_general_matching {
+
 void speed_test_general_matching_run(int T, int V, int E) {
     print("  speed test x{:<6}  V={:<6}  E={}\n", T, V, E);
     START_ACC(boost);
@@ -213,6 +231,8 @@ void speed_test_general_matching(double F = 1.0) {
     speed_test_general_matching_run(int(F * 2), 50'000, 100'000);
     speed_test_general_matching_run(int(F * 1), 100'000, 150'000);
 }
+
+} // namespace speed_testing_general_matching
 
 int main() {
     RUN_BLOCK(dataset_test_general_matching());

@@ -4,12 +4,13 @@
 #include "../geometry/epsilon/hull3d_utils.hpp"
 #include "../geometry/epsilon/point3d.hpp"
 
-namespace fs = std::filesystem;
 const string DATASET_FOLDER = "datasets/hull3d";
 using P = Point3d;
-using hull_t = vector<vector<int>>;
 
-inline namespace {
+inline namespace detail {
+
+namespace fs = std::filesystem;
+using hull_t = vector<vector<int>>;
 
 inline double parse(string s) { return stod(s); }
 
@@ -116,9 +117,9 @@ string format_hull(const hull_t& hull) {
     return s;
 }
 
-} // namespace
+} // namespace detail
 
-inline namespace dataset_testing {
+inline namespace dataset_testing_epsilon_hull3d {
 
 struct quickhull3d_dataset_test_t {
     string name, comment;
@@ -194,9 +195,9 @@ void dataset_test_quickhull3d() {
     }
 }
 
-} // namespace dataset_testing
+} // namespace dataset_testing_epsilon_hull3d
 
-inline namespace stress_testing {
+inline namespace stress_testing_epsilon_hull3d {
 
 fs::path tmpfile;
 
@@ -248,9 +249,9 @@ void stress_test_quickhull3d(double F = 1.0) {
     stress_test_quickhull3d_run(int(F * 100), 9900, 0, 0, 100);
 }
 
-} // namespace stress_testing
+} // namespace stress_testing_epsilon_hull3d
 
-inline namespace scaling_testing {
+inline namespace scaling_testing_hull3d {
 
 void scaling_test_quickhull3d_run(int T, int N, int L, int C, int I = 0, long R = 50) {
     // N points + L collinear + C coplanar + I incident
@@ -297,7 +298,7 @@ void scaling_test_quickhull3d(double F = 1.0) {
     scaling_test_quickhull3d_run(int(F * 5), 10'000, 900'000, 90'000);
 }
 
-} // namespace scaling_testing
+} // namespace scaling_testing_hull3d
 
 int main() {
     RUN_BLOCK(dataset_test_quickhull3d());

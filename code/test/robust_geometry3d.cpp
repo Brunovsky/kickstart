@@ -1,13 +1,15 @@
+#include "test_utils.hpp"
 #include "../geometry/epsilon/point3d.hpp"
 #include "../hash.hpp"
-#include "../random.hpp"
-#include "test_utils.hpp"
 
-#define Z(x) +format(" " #x "={:6.2f}%", perc(x))
 using P = Point3d;
+
+inline namespace detail {
+
 using vecP = vector<P>;
 using truth_t = unordered_map<array<int, 2>, int>;
 
+#define Z(x) +format(" " #x "={:6.2f}%", perc(x))
 inline double rndp() { return reald(0, 1)(mt); }
 inline double rndreal(double R) { return reald(-R, R)(mt); }
 P random_point(double R) { return P(rndreal(R), rndreal(R), rndreal(R)); }
@@ -17,6 +19,10 @@ vecP random_points(int N, double R) {
     generate(begin(ps), end(ps), bind(random_point, R));
     return ps;
 }
+
+} // namespace detail
+
+inline namespace stress_testing_collinear {
 
 void stress_test_collinear_run(int N, double R) {
     int in = 0, around = 0, out = 0;
@@ -58,6 +64,10 @@ void stress_test_collinear(int me = 20) {
         stress_test_collinear_run(100, R);
     }
 }
+
+} // namespace stress_testing_collinear
+
+inline namespace stress_testing_coplanar {
 
 void stress_test_coplanar_run(int N, double R) {
     int in = 0, around = 0, out = 0;
@@ -101,6 +111,10 @@ void stress_test_coplanar(int me = 20) {
         stress_test_coplanar_run(30, R);
     }
 }
+
+} // namespace stress_testing_coplanar
+
+inline namespace stress_testing_epsilon_table {
 
 void print_table(const truth_t& expected, const truth_t& actual, int mx, int my) {
     static const char* cs[2][2] = {{"", "\033[31;1m"}, {"", "\033[0m"}};
@@ -244,9 +258,10 @@ void table_test_same_plane(int mx = 20, int my = 20) {
     }
 }
 
+} // namespace stress_testing_epsilon_table
+
 int main() {
     print("Epsilon Point3d: {}\n", P::deps);
-    mt.seed(73);
     RUN_SHORT(table_test_collinear());
     RUN_SHORT(table_test_same());
     RUN_SHORT(table_test_coplanar());

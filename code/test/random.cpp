@@ -3,6 +3,8 @@
 #include "../numeric/math.hpp"
 #include "../numeric/partitions.hpp"
 
+inline namespace detail {
+
 using vi = vector<int>;
 unordered_map<vi, vector<vi>> partitions_memo;
 
@@ -52,7 +54,9 @@ long count_permutations(const vi& pt) {
     return choose(N, k);
 }
 
-// *****
+} // namespace detail
+
+inline namespace stress_test_uniform {
 
 /**
  * Test normality of count distribution
@@ -154,6 +158,10 @@ void stress_test_vec_sample(int T = 70000, int n = 4096, int k = 37) {
     }
     verify_normality(cnt);
 }
+
+} // namespace stress_test_uniform
+
+inline namespace scaling_test_samplers {
 
 void scaling_test_int_sample(long F = 5'000'000) {
     intd dista(0, 25000);
@@ -308,6 +316,8 @@ void scaling_test_pair_sample(long F = 5'000'000) {
         }
     }
 }
+
+} // namespace scaling_test_samplers
 
 int main() {
     RUN_BLOCK(stress_test_partition_sample_uniform());

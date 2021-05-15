@@ -3,6 +3,8 @@
 #include "../lib/graph_operations.hpp"
 #include "../lib/graph_generator.hpp"
 
+inline namespace detail {
+
 auto relabel_nonroot_inplace(int V, edges_t& g) {
     vector<int> label(V);
     iota(begin(label), end(label), 0);
@@ -10,6 +12,10 @@ auto relabel_nonroot_inplace(int V, edges_t& g) {
     for (auto& [u, v] : g)
         u = label[u], v = label[v];
 }
+
+} // namespace detail
+
+inline namespace stress_testing {
 
 void stress_test_unrooted_tree_isomorphism(int T = 1000, int V = 10000, int K = 10) {
     T /= K;
@@ -70,6 +76,8 @@ void stress_test_rooted_tree_isomorphism(int T = 1000, int V = 10000, int K = 10
         clear_line(), print("ERRORS: {}\n", errors);
     }
 }
+
+} // namespace stress_testing
 
 int main() {
     RUN_BLOCK(stress_test_unrooted_tree_isomorphism());

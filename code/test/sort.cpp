@@ -1,6 +1,8 @@
 #include "test_utils.hpp"
 #include "../algo/sort.hpp"
 
+inline namespace detail {
+
 bool verify(const vector<int>& idx, const vector<long>& dist) {
     int N = dist.size();
     if (int(idx.size()) != N)
@@ -17,6 +19,10 @@ void std_sort(vector<int>& idx, vector<long>& dist) {
     iota(begin(idx), end(idx), 0);
     sort(begin(idx), end(idx), [&](int u, int v) { return dist[u] < dist[v]; });
 }
+
+} // namespace detail
+
+inline namespace speed_testing_radix_sort {
 
 void speed_test_radix_sort_idx(int T = 100) {
     START_ACC(lsb);
@@ -80,6 +86,8 @@ void speed_test_radix_sort(int T = 100) {
     PRINT_TIME(msb);
     PRINT_TIME(std);
 }
+
+} // namespace speed_testing_radix_sort
 
 int main() {
     RUN_BLOCK(speed_test_radix_sort());

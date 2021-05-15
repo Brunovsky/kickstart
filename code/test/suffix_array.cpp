@@ -1,6 +1,8 @@
 #include "test_utils.hpp"
 #include "../strings/strings.hpp"
 
+inline namespace unit_testing_suffix_array {
+
 void unit_test_suffix_array() {
     using vi = vector<int>;
     string s;
@@ -13,6 +15,8 @@ void unit_test_suffix_array() {
         cout << setw(2) << i << ": " << s.substr(sa[i]) + s.substr(0, sa[i]) << endl;
     cout << sa << endl << lcp << endl;
 }
+
+} // namespace unit_testing_suffix_array
 
 int main() {
     RUN_SHORT(unit_test_suffix_array());

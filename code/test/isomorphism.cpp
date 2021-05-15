@@ -4,7 +4,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/isomorphism.hpp>
 
-inline namespace {
+inline namespace detail {
 
 using bgraph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>;
 
@@ -26,7 +26,20 @@ auto show(int negatives, int positives, int false_positives) {
                   100.0 * false_positives / max(positives, 1));
 }
 
-} // namespace
+auto generator_regular(int V, int kmin, int kmax) {
+    return [=]() {
+        int m = V % 2 ? 2 : 1;
+        intd distk(kmin / m, kmax / m);
+        int k = m * distk(mt);
+        auto g1 = random_regular(V, k);
+        auto g2 = random_regular(V, k);
+        return tuple<int, edges_t, edges_t>{V, g1, g2};
+    };
+}
+
+} // namespace detail
+
+inline namespace stress_testing_isomorphism {
 
 void stress_test_isomorphic_positives(int T = 3000) {
     intd distV(10, 50);
@@ -62,17 +75,6 @@ void fp_test_run(const string& name, int T, Gn&& gn) {
     print("{:>25} -- x{}  {}\n", name, T, show(negatives, positives, false_positives));
 }
 
-auto generator_regular(int V, int kmin, int kmax) {
-    return [=]() {
-        int m = V % 2 ? 2 : 1;
-        intd distk(kmin / m, kmax / m);
-        int k = m * distk(mt);
-        auto g1 = random_regular(V, k);
-        auto g2 = random_regular(V, k);
-        return tuple<int, edges_t, edges_t>{V, g1, g2};
-    };
-}
-
 void stress_test_isomorphic_false_positives() {
     print("graph isomorphism false positives test\n");
     fp_test_run("regular 11V k=2,4", 500, generator_regular(11, 2, 4));
@@ -84,6 +86,8 @@ void stress_test_isomorphic_false_positives() {
                     generator_regular(14, k, k));
     }
 }
+
+} // namespace stress_testing_isomorphism
 
 int main() {
     RUN_BLOCK(stress_test_isomorphic_positives());

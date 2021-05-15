@@ -3,6 +3,8 @@
 #include "../numeric/math.hpp"
 #include "../numeric/modnum.hpp"
 
+inline namespace unit_testing_math {
+
 void unit_test_gcd() {
     assert(gcd(135, 54) == 27);
     assert(gcd(135, -54) == 27);
@@ -100,6 +102,8 @@ void unit_test_modnum() {
     n -= 31;
     assert(n == 0);
 }
+
+} // namespace unit_testing_math
 
 int main() {
     RUN_SHORT(unit_test_gcd());

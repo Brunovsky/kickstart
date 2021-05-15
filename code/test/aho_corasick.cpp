@@ -1,6 +1,8 @@
 #include "test_utils.hpp"
 #include "../strings/aho_corasick.hpp"
 
+inline namespace unit_testing_aho_cosarick {
+
 struct visitor {
     int cnt = 0;
     const vector<string>& words;
@@ -27,6 +29,8 @@ void unit_test_aho_corasick() {
     auto v = aho.longest_each_index(text);
     cout << v << endl;
 }
+
+} // namespace unit_testing_aho_cosarick
 
 int main() {
     RUN_SHORT(unit_test_aho_corasick());

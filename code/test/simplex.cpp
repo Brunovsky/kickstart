@@ -6,7 +6,7 @@
 #include "../numeric/bfrac.hpp"
 #include "../numeric/frac.hpp"
 
-inline namespace {
+inline namespace detail {
 
 template <typename F>
 string f_name;
@@ -96,7 +96,10 @@ auto generate_lp(int n, int le, int eq, int ge, LPState state = LP_OPTIMAL) {
     smp.add_constraints(constraints);
     return smp;
 }
-} // namespace
+
+} // namespace detail
+
+inline namespace unit_testing_simplex {
 
 template <typename F>
 void unit_test_simplex() {
@@ -211,6 +214,10 @@ void unit_test_simplex() {
     assert(res == LP_OPTIMAL && optimum == -105);
 }
 
+} // namespace unit_testing_simplex
+
+inline namespace stress_testing_simplex {
+
 template <typename F>
 auto stress_test_standardize_run(int T, int n, int m) {
     int good = 0, unbounded = 0;
@@ -279,6 +286,10 @@ void stress_test_standardize(int T = 400, int lo = 2, int hi = 20, int max_sum =
     print("Corrects:\n{}\n", to_string(corrects));
 }
 
+} // namespace stress_testing_simplex
+
+inline namespace speed_testing_simplex {
+
 template <typename F>
 auto speed_test_simplex_run(int T, int n, int m, LPState state) {
     START_ACC(simplex);
@@ -313,6 +324,8 @@ void speed_test_simplex(int T = 2000, int lo = 2, int hi = 20, int max_sum = 30)
 
     print("Times:\n{}\n", to_string(times));
 }
+
+} // namespace speed_testing_simplex
 
 int main() {
     RUN_SHORT(unit_test_simplex<frac>());

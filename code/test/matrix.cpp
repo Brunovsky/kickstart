@@ -1,22 +1,11 @@
 #include "test_utils.hpp"
 #include "../linear/matrix.hpp"
+#include "../lib/anynum.hpp"
 #include "../linear/linear_system.hpp"
 
 #define F frac
 
-inline namespace {
-
-auto gen_frac(long minv, long maxv, long maxd) {
-    long d = longd(1, maxd)(mt);
-    longd dist(minv * d, maxv * d);
-    return frac(dist(mt), d);
-}
-
-auto gen_bfrac(int minv, int maxv, int maxd) {
-    int d = intd(1, maxd)(mt);
-    intd dist(minv * d, maxv * d);
-    return bfrac(dist(mt), d);
-}
+inline namespace detail {
 
 double min_diff(const vecd& u, const vecd& v) {
     double x = numeric_limits<double>::max();
@@ -42,7 +31,7 @@ auto generate_gauss_frac(int n, long minv, long maxv, long maxd) {
     vecf x(n);
     longd dista(minv, maxv);
     for (int i = 0; i < n; i++)
-        x[i] = gen_frac(minv, maxv, maxd);
+        x[i] = uniform_gen<F>(minv, maxv, maxd);
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             a[i][j] = dista(mt);
@@ -61,7 +50,9 @@ auto generate_gauss_double(int n, double minv, double maxv) {
     return tuple<matd, vecd>{move(a), move(x)};
 }
 
-} // namespace
+} // namespace detail
+
+inline namespace unit_testing_gauss {
 
 void unit_test_gauss_frac() {
     matf m;
@@ -133,6 +124,10 @@ void unit_test_inverse_frac() {
     assert(a == m);
 }
 
+} // namespace unit_testing_gauss
+
+inline namespace stress_testing_gauss {
+
 void stress_test_gauss_frac(int T = 2000) {
     intd distn(3, 7);
     int degenerate = 0, infeasible = 0, different = 0;
@@ -202,6 +197,10 @@ void stress_test_inverse_double(int T = 1000) {
     print("  {:5.1f}% ({}) different inv\n", 100.0 * different_inv / T, different_inv);
 }
 
+} // namespace stress_testing_gauss
+
+inline namespace scaling_test_gauss {
+
 void scaling_test_gauss_double(int T = 100, int nmin = 5, int nmax = 300, int ninc = 5) {
     int total_degenerate = 0, total_infeasible = 0, total_different = 0;
 
@@ -240,6 +239,10 @@ void scaling_test_gauss_double(int T = 100, int nmin = 5, int nmax = 300, int ni
     print("  {:5.1f}% ({}) infeasible\n", 100.0 * total_infeasible / N, total_infeasible);
     print("  {:5.1f}% ({}) different\n", 100.0 * total_different / N, total_different);
 }
+
+} // namespace scaling_test_gauss
+
+inline namespace unit_testing_mat {
 
 void unit_test_det() {
     vector<vector<vector<int>>> quest = {{
@@ -288,6 +291,8 @@ void unit_test_det() {
         assert(c_ans == ans[t]);
     }
 }
+
+} // namespace unit_testing_mat
 
 int main() {
     RUN_SHORT(unit_test_gauss_frac());
