@@ -6,10 +6,11 @@ using namespace std;
 
 template <typename Container>
 struct less_container {
-    const Container& cont;
-    less_container(const Container& cont) : cont(cont) {}
+    const Container* cont = nullptr;
+    less_container() = default;
+    less_container(const Container& cont) : cont(&cont) {}
     inline bool operator()(int u, int v) const {
-        return tie(cont[u], u) < tie(cont[v], v);
+        return tie((*cont)[u], u) < tie((*cont)[v], v);
     }
 };
 
@@ -132,7 +133,7 @@ struct mincost_hungarian {
     mincost_hungarian() = default;
     mincost_hungarian(int U, int V) : U(U), V(V), W(max(U, V)), adj(W) {}
 
-    void add(int u, int v, long w) {
+    void add(int u, int v, Cost w) {
         assert(0 <= u && u < U && 0 <= v && v < V && w >= 0);
         adj[u].push_back({v, w});
     }
@@ -168,6 +169,7 @@ struct mincost_hungarian {
 
     vector<int> prev[2];
     vector<CostSum> pi[2], dist[2];
+    pairing_int_heap<less_container<vector<CostSum>>> Q;
     static inline constexpr Cost cinf = numeric_limits<Cost>::max() / 3;
     static inline constexpr CostSum inf = numeric_limits<CostSum>::max() / 3;
 
@@ -177,28 +179,24 @@ struct mincost_hungarian {
         prev[0].assign(W + 1, -1);
         prev[1].assign(W, -1);
 
-        vector<bool> vis(W, false);
-        pairing_int_heap<less_container<vector<CostSum>>> Q(W + 1, dist[0]);
-
         for (int u = 0; u < W; u++)
             if (m[0][u] == W)
                 dist[0][u] = 0, Q.push(u);
 
         while (!Q.empty()) {
             int u = Q.pop();
-            if (u == W || vis[u]) {
+            if (u == W) {
                 continue;
             }
-            vis[u] = true;
             for (auto [v, w] : adj[u]) {
                 int y = m[1][v];
-                w = min(dist[0][u] + w + pi[0][u] - pi[1][v], inf);
-                if (dist[0][y] > w) {
-                    dist[0][y] = w, prev[0][y] = v;
+                CostSum relaxed = min(dist[0][u] + w + pi[0][u] - pi[1][v], inf);
+                if (dist[0][y] > relaxed) {
+                    dist[0][y] = relaxed, prev[0][y] = v;
                     Q.push_or_improve(y);
                 }
-                if (dist[1][v] > w) {
-                    dist[1][v] = w, prev[1][v] = u;
+                if (dist[1][v] > relaxed) {
+                    dist[1][v] = relaxed, prev[1][v] = u;
                 }
             }
         }
@@ -230,6 +228,7 @@ struct mincost_hungarian {
         m[1].assign(W, W);
         pi[0].assign(W, 0);
         pi[1].assign(W, 0);
+        Q = pairing_int_heap<less_container<vector<CostSum>>>(W + 1, dist[0]);
 
         int matches = 0;
         while (matches < W && dijkstra()) {

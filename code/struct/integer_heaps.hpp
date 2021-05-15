@@ -7,19 +7,21 @@ using namespace std;
 
 template <typename Container>
 struct less_container {
-    const Container& cont;
-    less_container(const Container& cont) : cont(cont) {}
+    const Container* cont = nullptr;
+    less_container() = default;
+    less_container(const Container& cont) : cont(&cont) {}
     inline bool operator()(int u, int v) const {
-        return tie(cont[u], u) < tie(cont[v], v);
+        return tie((*cont)[u], u) < tie((*cont)[v], v);
     }
 };
 
 template <typename Container>
 struct greater_container {
-    const Container& cont;
-    greater_container(const Container& cont) : cont(cont) {}
+    const Container* cont = nullptr;
+    greater_container() = default;
+    greater_container(const Container& cont) : cont(&cont) {}
     inline bool operator()(int u, int v) const {
-        return tie(cont[u], u) > tie(cont[v], v);
+        return tie((*cont)[u], u) > tie((*cont)[v], v);
     }
 };
 

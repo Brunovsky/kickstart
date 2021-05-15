@@ -16,16 +16,15 @@ void add_edges(MCBM& mcbm, const edges_t& g, const Costs& costs) {
 
 inline namespace unit_testing_mincost_matching {
 
-void unit_test_mincost_matching() {
+void unit_test_mincost_hungarian() {
     edges_t g;
-    vector<long> cost;
-    long c;
+    vector<int> cost;
+    int c;
 
     g = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
     cost = {7, 6, 5, 2};
     mincost_hungarian<int, int> mm1(2, 2);
     add_edges(mm1, g, cost);
-    mm1.pad_complete(0);
     c = mm1.mincost_max_matching();
     assert(c == 9);
 
@@ -33,7 +32,6 @@ void unit_test_mincost_matching() {
     cost = {5, 4, 6, 3, 2, 1, 4};
     mincost_hungarian<int, int> mm2(3, 3);
     add_edges(mm2, g, cost);
-    mm2.pad_complete(0);
     c = mm2.mincost_max_matching();
     assert(c == 7);
 
@@ -41,8 +39,29 @@ void unit_test_mincost_matching() {
     cost = {108, 125, 150, 150, 135, 175, 122, 148, 250};
     mincost_hungarian<int, int> mm3(3, 3);
     add_edges(mm3, g, cost);
-    mm3.pad_complete(0);
     c = mm3.mincost_max_matching();
+    assert(c == 407);
+}
+
+void unit_test_dense_mincost_hungarian() {
+    int c;
+
+    dense_mincost_hungarian<int, int> mm1(2, 2);
+    mm1.cost = {{{7, 6}, {5, 2}}};
+    c = mm1.mincost_max_matching();
+    print("mincost 1: {}\n", c);
+    assert(c == 9);
+
+    dense_mincost_hungarian<int, int> mm2(3, 3);
+    mm2.cost = {{5, 4, 1000}, {6, 3, 2}, {1, 1000, 4}};
+    c = mm2.mincost_max_matching();
+    print("mincost 2: {}\n", c);
+    assert(c == 7);
+
+    dense_mincost_hungarian<int, int> mm3(3, 3);
+    mm3.cost = {{108, 125, 150}, {150, 135, 175}, {122, 148, 250}};
+    c = mm3.mincost_max_matching();
+    print("mincost 3: {}\n", c);
     assert(c == 407);
 }
 
@@ -93,7 +112,8 @@ void speed_test_mincost_matching() {
 } // namespace speed_testing_mincost_matching
 
 int main() {
-    RUN_SHORT(unit_test_mincost_matching());
+    RUN_SHORT(unit_test_mincost_hungarian());
+    RUN_SHORT(unit_test_dense_mincost_hungarian());
     RUN_BLOCK(speed_test_mincost_matching());
     return 0;
 }
