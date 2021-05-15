@@ -1,7 +1,7 @@
 #ifndef SHORTEST_PATHS_HPP
 #define SHORTEST_PATHS_HPP
 
-#include "../struct/integer_heaps.hpp"
+#include "../struct/integer_heaps.hpp" // pairing_int_heap
 
 template <typename Cost = long, typename CostSum = Cost>
 auto spfa(int s, const vector<vector<pair<int, Cost>>>& adj) {
