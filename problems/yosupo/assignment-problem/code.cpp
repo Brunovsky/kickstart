@@ -1,28 +1,127 @@
-#ifndef MINCOST_HUNGARIAN_HPP
-#define MINCOST_HUNGARIAN_HPP
+#include <bits/stdc++.h>
 
-#include "../struct/integer_heaps.hpp" // pairing_int_heap
+using namespace std;
 
-/**
- * Min-cost maximum bipartite matching (hungarian, dijkstra-based)
- * Based on: https://web.stanford.edu/class/cs261/min_cost_bipartite_matching.pdf
- * Complexity: O(EW log E), W=max(U,V).
- *
- * Need pairing_int_heap for the internal dijkstra.
- *
- * If the bipartite graph is not balanced (U != V) then it must be padded.
- * Usually the problem you're trying to solve will require a specific type of padding.
- *
- * If the graph is not too imbalanced, then pad_complete(w) will add |U-V|W extra edges
- * with cost w (usually w should be 0). There may be quadratically many such edges.
- *
- * Alternatively, pad_reverse() will set W=U+V and add a flipped copy of the graph to
- * itself plus max(U,V) linking edges. Details at:
- *     https://www.hpl.hp.com/techreports/2012/HPL-2012-40.pdf
- *
- * If padding was performed, you should specify if you want to minimum cost to include
- * padding or not in the call to the compute function.
- */
+// *****
+
+template <typename Container>
+struct less_container {
+    const Container& cont;
+    less_container(const Container& cont) : cont(cont) {}
+    inline bool operator()(int u, int v) const {
+        return tie(cont[u], u) < tie(cont[v], v);
+    }
+};
+
+template <typename Compare = less<>>
+struct pairing_int_heap {
+    struct node_t {
+        int parent = 0, child = 0, next = 0, prev = 0;
+    }; // elements are shifted by 1 to allow 0 to be used as a scratchpad
+    vector<node_t> node;
+    int root = 0;
+    Compare comp;
+
+    explicit pairing_int_heap(int N = 0, const Compare& comp = Compare())
+        : node(N + 1), comp(comp) {}
+
+    bool empty() const { return root == 0; }
+    bool contains(int u) const { return u++, node[u].parent != 0; }
+    int top() const { return root - 1; }
+
+    void push(int u) {
+        assert(!contains(u)), u++;
+        node[u].parent = -1;
+        root = empty() ? u : meld(root, u);
+    }
+    int pop() {
+        assert(!empty());
+        int u = root;
+        root = two_pass_pairing(u);
+        node[root].parent = -1, node[u] = node_t();
+        return u - 1;
+    }
+    void improve(int u) {
+        assert(!empty() && contains(u)), u++;
+        if (u != root && do_comp(u, node[u].parent)) {
+            take(u), root = meld(root, u);
+        }
+    }
+    void push_or_improve(int u) {
+        if (contains(u)) {
+            improve(u);
+        } else {
+            push(u);
+        }
+    }
+    void adjust(int u) {
+        erase(u);
+        push(u);
+    }
+    void erase(int u) {
+        assert(contains(u)), u++;
+        if (u == root) {
+            pop();
+        } else {
+            take(u);
+            int v = two_pass_pairing(u);
+            root = v ? meld(root, v) : root;
+            node[root].parent = -1, node[u] = node_t();
+        }
+    }
+    void clear() {
+        if (!empty()) {
+            clear_rec(root), root = 0;
+        }
+    }
+    void fill() {
+        for (int u = 1, N = node.size() - 1; u <= N; u++) {
+            if (!contains(u)) {
+                push(u);
+            }
+        }
+    }
+
+  private:
+    bool do_comp(int u, int v) const { return comp(u - 1, v - 1); }
+    int meld(int u, int v) { return do_comp(u, v) ? splice(u, v) : splice(v, u); }
+    int splice(int u, int v) {
+        node[node[u].child].prev = v;
+        node[v].next = node[u].child, node[u].child = v;
+        return node[v].prev = node[v].parent = u;
+    }
+    void take(int u) {
+        assert(node[u].parent > 0);
+        if (node[node[u].parent].child == u) {
+            node[node[u].parent].child = node[u].next;
+        } else {
+            node[node[u].prev].next = node[u].next;
+        }
+        node[node[u].next].prev = node[u].prev;
+    }
+    int two_pass_pairing(int n) {
+        if (node[n].child == 0)
+            return 0;
+        int u = node[n].child, v = node[u].next, w;
+        while (v && node[v].next) {
+            w = node[node[v].next].next;
+            u = node[u].next = v = meld(v, node[v].next);
+            v = node[v].next = w;
+        }
+        u = node[n].child, v = node[u].next;
+        while (v) {
+            w = node[v].next, u = meld(u, v), v = w;
+        }
+        return u;
+    }
+    void clear_rec(int u) {
+        for (int v = node[u].child, w = node[v].next; v; v = w, w = node[v].next) {
+            clear_rec(v);
+        }
+        node[u] = node_t();
+    }
+};
+
 template <typename Cost = long, typename CostSum = Cost>
 struct mincost_hungarian {
     int U = 0, V = 0, W = 0, E = 0;
@@ -160,4 +259,34 @@ struct mincost_hungarian {
     }
 };
 
-#endif // MINCOST_HUNGARIAN_HPP
+#define MAXA 1'000'000'000L
+
+auto solve() {
+    int N;
+    cin >> N;
+    mincost_hungarian<long, long> mch(N, N);
+    for (int u = 0; u < N; u++) {
+        for (int v = 0; v < N; v++) {
+            long a;
+            cin >> a;
+            a += MAXA;
+            mch.add(u, v, a);
+        }
+    }
+
+    long ans = mch.mincost_max_matching();
+    ans -= N * MAXA;
+    cout << ans << endl;
+
+    for (int u = 0; u < N; u++) {
+        cout << mch.m[0][u] << " \n"[u + 1 == N];
+    }
+}
+
+// *****
+
+int main() {
+    ios::sync_with_stdio(false);
+    solve();
+    return 0;
+}
