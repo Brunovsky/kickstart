@@ -30,6 +30,63 @@ auto is_bipartite(int V, const vector<vector<int>>& adj) {
     return make_pair(true, side);
 }
 
+auto find_tree_centroids(const vector<vector<int>>& tree) {
+    int V = tree.size();
+    vector<int> subsize(V), centroids;
+
+    auto dfs_centroid = y_combinator([&](auto self, int u, int p) -> void {
+        subsize[u] = 1;
+        bool is = true;
+        for (int v : tree[u]) {
+            if (v != p) {
+                self(v, u);
+                subsize[u] += subsize[v];
+                is &= subsize[v] <= V / 2;
+            }
+        }
+        if (is && V - subsize[u] <= V / 2)
+            centroids.push_back(u);
+    });
+
+    dfs_centroid(0, -1);
+    assert(1u <= centroids.size() && centroids.size() <= 2u);
+    return centroids;
+}
+
+auto find_tree_centers(const vector<vector<int>>& tree) {
+    int V = tree.size();
+    vector<int> degree(V), dist(V, 0), bfs(V);
+    int i = 0, S = 0;
+
+    for (int u = 0; u < V; u++) {
+        degree[u] = tree[u].size();
+        assert(degree[u] >= 1);
+        if (degree[u] == 1) {
+            bfs[S++] = u;
+        }
+    }
+
+    while (i < S) {
+        int u = bfs[i++];
+        for (int v : tree[u]) {
+            if (--degree[v] == 1) {
+                bfs[S++] = v;
+                dist[v] = dist[u] + 1;
+            }
+        }
+    }
+    assert(S == V && (V < 3 || dist[bfs[V - 3]] != dist[bfs[V - 1]])); // up to 2 centers
+
+    vector<int> centers;
+    if (V > 0) {
+        centers.push_back(bfs[V - 1]);
+    }
+    if (V > 1 && dist[bfs[V - 1]] == dist[bfs[V - 2]]) {
+        centers.push_back(bfs[V - 2]);
+    }
+    return centers;
+}
+
 template <typename Fn>
 auto visit_bridges(const vector<vector<int>>& adj, Fn&& visitor) {
     int V = adj.size();

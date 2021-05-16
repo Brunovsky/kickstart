@@ -4,7 +4,9 @@
 #include "../graphs/scc.hpp"
 #include "../lib/graph_operations.hpp"
 
-inline namespace unit_testing {
+using vi = vector<int>;
+
+inline namespace unit_testing_builders {
 
 void unit_test_scc() {
     // vertex 0 is completely disconnected
@@ -75,10 +77,40 @@ void unit_test_dominator_tree() {
     run();
 }
 
-} // namespace unit_testing
+} // namespace unit_testing_builders
+
+inline namespace unit_testing_finders {
+
+void unit_test_tree_centers() {
+    int V;
+    vector<array<int, 2>> g;
+    vector<vector<int>> tree;
+    vector<int> centers;
+
+    V = 14;
+    g = {
+        {0, 2},   {1, 2},  {2, 5}, {3, 4}, {4, 5}, {11, 10}, {12, 10},
+        {13, 10}, {10, 8}, {8, 9}, {6, 9}, {9, 7}, {5, 9},
+    };
+    tree = make_adjacency_lists_undirected(V, g);
+    centers = find_tree_centers(tree);
+    print("centers: {}\n", centers);
+    assert(centers.size() == 1 && centers[0] == 9);
+
+    V = 11;
+    g = {{0, 2}, {1, 2}, {2, 3}, {3, 4}, {3, 5}, {5, 6}, {5, 7}, {5, 8}, {8, 10}, {8, 9}};
+    tree = make_adjacency_lists_undirected(V, g);
+    centers = find_tree_centers(tree);
+    sort(begin(centers), end(centers));
+    print("centers: {}\n", centers);
+    assert(centers.size() == 2 && centers == vi({3, 5}));
+}
+
+} // namespace unit_testing_finders
 
 int main() {
     RUN_SHORT(unit_test_scc());
     RUN_SHORT(unit_test_dominator_tree());
+    RUN_SHORT(unit_test_tree_centers());
     return 0;
 }

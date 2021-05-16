@@ -13,6 +13,7 @@ struct modnum {
     modnum() : n(0) {}
     modnum(int v) : n(fit(v % mod)) {}
     explicit operator int() const { return n; }
+    explicit operator bool() const { return n != 0; }
 
     static int fit(int v) { return v >= mod ? v - mod : (v < 0 ? v + mod : v); }
     static int modinv(int v, int m = mod) {
@@ -23,6 +24,8 @@ struct modnum {
     modnum inv() const { return {modinv(n)}; }
     modnum operator-() const { return {fit(n)}; }
     modnum operator+() const { return {n}; }
+    modnum operator++(int) { return n = fit(n + 1), *this - 1; }
+    modnum operator--(int) { return n = fit(n - 1), *this + 1; }
     modnum& operator++() { return n = fit(n + 1), *this; }
     modnum& operator--() { return n = fit(n - 1), *this; }
     modnum& operator+=(modnum v) { return n = fit(n + v.n), *this; }
@@ -35,6 +38,7 @@ struct modnum {
     friend modnum operator*(modnum lhs, modnum rhs) { return lhs *= rhs; }
     friend modnum operator/(modnum lhs, modnum rhs) { return lhs /= rhs; }
 
+    friend string to_string(modnum v) { return to_string(v.n); }
     friend bool operator==(modnum lhs, modnum rhs) { return lhs.n == rhs.n; }
     friend bool operator!=(modnum lhs, modnum rhs) { return lhs.n != rhs.n; }
     friend ostream& operator<<(ostream& out, modnum v) { return out << v.n; }
