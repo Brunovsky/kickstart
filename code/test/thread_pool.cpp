@@ -204,7 +204,7 @@ void graph_orchestrator_stress_run(int V, int E, int nthreads) {
     vector<unsigned long> vis(V, 1), vis2(V, 1);
 
     auto g = random_exact_rooted_dag_connected(V, E);
-    auto rev = make_adjacency_lists_reverse(g, V);
+    auto rev = make_adjacency_lists_reverse(V, g);
 
     auto job = [&](int u) {
         for (int v : rev[u])
@@ -228,7 +228,7 @@ void graph_orchestrator_speed_run(int V, int E, int n, int nthreads) {
         vis[i] = vis2[i] = makemat(n, mt);
 
     auto g = random_exact_rooted_dag_connected(V, E);
-    auto rev = make_adjacency_lists_reverse(g, V);
+    auto rev = make_adjacency_lists_reverse(V, g);
 
     auto job = [&](int u) {
         for (int v : rev[u])

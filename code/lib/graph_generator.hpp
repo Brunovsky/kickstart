@@ -322,7 +322,7 @@ void remove_uniform(edges_t& g, double p) {
 
 // add edges to directed g deterministically such that g becomes strongly connected
 void add_tarjan_back_edges(edges_t& g, int V, int s = 0) {
-    auto adj = make_adjacency_lists_directed(g, V);
+    auto adj = make_adjacency_lists_directed(V, g);
     vector<int> start(V, -1), lowlink(V, -1), rev(V);
     int t = 0;
     function<void(int)> dfs = [&](int u) -> void {

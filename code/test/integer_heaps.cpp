@@ -20,64 +20,6 @@ ostream& operator<<(ostream& out, binary_int_heap<Compare> heap) {
     return out << nums;
 }
 
-struct cost_graph {
-    int V, E;
-    vector<vector<int>> adj;
-    edges_t edge;
-    vector<long> cost;
-};
-
-void run_normal(const cost_graph& g, int s, vector<long>& dist) {
-    static constexpr long inf = LONG_MAX / 2;
-    int V = g.V;
-    dist.assign(V, inf);
-    dist[s] = 0;
-
-    using int2 = pair<long, int>;
-    priority_queue<int2, vector<int2>, greater<int2>> Q;
-    Q.push({0, s});
-
-    while (!Q.empty()) {
-        auto [ucost, u] = Q.top();
-        Q.pop();
-        if (dist[u] < ucost) {
-            continue;
-        }
-        for (auto e : g.adj[u]) {
-            int v = g.edge[e][1];
-            long cost = dist[u] + g.cost[e];
-            if (cost < dist[v]) {
-                dist[v] = cost;
-                Q.push({cost, v});
-            }
-        }
-    }
-}
-
-template <typename Heap>
-void run_dijkstra(const cost_graph& g, int s, vector<long>& dist, Heap& Q) {
-    static constexpr long inf = LONG_MAX / 2;
-    int V = g.V;
-    dist.assign(V, inf);
-    dist[s] = 0;
-
-    vector<bool> vis(V, false);
-    assert(Q.empty());
-    Q.push(s);
-
-    while (!Q.empty()) {
-        int u = Q.pop();
-        for (auto e : g.adj[u]) {
-            int v = g.edge[e][1];
-            long cost = dist[u] + g.cost[e];
-            if (cost < dist[v]) {
-                dist[v] = cost;
-                Q.push_or_improve(v);
-            }
-        }
-    }
-}
-
 } // namespace detail
 
 inline namespace stress_testing_int_heap {
@@ -233,66 +175,10 @@ void unit_test_pairing_heaps() {
 
 } // namespace unit_testing_pairing_heaps
 
-inline namespace speed_testing_int_heaps {
-
-void speed_test_int_heaps(int T = 10000) {
-    intd distV(50, 60);
-    reald density(8.0, 12.0);
-    longd costd(1, 100'000);
-    int step = 10;
-
-    START_ACC(dijkstra);
-    START_ACC(pairing);
-    START_ACC(binary);
-
-    for (int i = 0; i < T; i++) {
-        print_progress(i, T, "speed test int heaps");
-
-        cost_graph g;
-        int V = g.V = distV(mt);
-        double p = density(mt) / V;
-        g.edge = random_uniform_rooted_dag_connected(V, p);
-        g.E = g.edge.size(), g.adj = make_adjacency_lists_directed(g.edge, V);
-        g.cost.resize(g.E);
-        for (int e = 0; e < g.E; e++)
-            g.cost[e] = costd(mt);
-
-        vector<long> dist[3];
-        pairing_int_heap<less_container<vector<long>>> pairing_heap(V, dist[1]);
-        binary_int_heap<less_container<vector<long>>> binary_heap(V, dist[2]);
-
-        START(dijkstra);
-        for (int s = 0; s < V; s += step)
-            run_normal(g, s, dist[0]);
-        ADD_TIME(dijkstra);
-
-        START(pairing);
-        for (int s = 0; s < V; s += step)
-            run_dijkstra(g, s, dist[1], pairing_heap);
-        ADD_TIME(pairing);
-
-        START(binary);
-        for (int s = 0; s < V; s += step)
-            run_dijkstra(g, s, dist[2], binary_heap);
-        ADD_TIME(binary);
-
-        if (dist[0] != dist[1] || dist[0] != dist[2]) {
-            fail("wrong dist vectors\n0: {}\n1: {}\n2: {}\n", dist[0], dist[1], dist[2]);
-        }
-    }
-
-    PRINT_TIME(dijkstra);
-    PRINT_TIME(pairing);
-    PRINT_TIME(binary);
-}
-
-} // namespace speed_testing_int_heaps
-
 int main() {
     RUN_BLOCK((stress_test_int_heap<binary_int_heap, false>()));
     RUN_BLOCK((stress_test_int_heap<pairing_int_heap, false>()));
     RUN_BLOCK((stress_test_int_heap<pairing_int_heap, true>()));
     RUN_SHORT(unit_test_pairing_heaps());
-    RUN_BLOCK(speed_test_int_heaps());
     return 0;
 }

@@ -1,7 +1,6 @@
 #include "test_utils.hpp"
 #include "../lib/bipartite.hpp"
 #include "../lib/circulation.hpp"
-#include "../lib/distance.hpp"
 #include "../lib/flow.hpp"
 #include "../lib/graph_formats.hpp"
 #include "../lib/graph_generator.hpp"
@@ -244,36 +243,6 @@ void balance_test_generate_circulation() {
     }
 }
 
-void balance_test_generate_distance() {
-    for (int S : {100, 200, 500, 1000, 2000, 5000, 15000, 30000}) {
-        auto header = format("Distance Graphs");
-        print("{1:<{0}} {2:5} --   EV     V³     ElnV  V²lnV  --\n", 58, header, S);
-
-        double sum_W = 0;
-
-        for (int i = 0; i < int(DG_END); i++) {
-            long V_sum = 0, E_sum = 0, runs = 0;
-
-            START(fn);
-            do {
-                auto fn = generate_distance_graph(distance_graph_kind(i), S);
-                V_sum += fn.V, E_sum += fn.E;
-            } while (++runs <= 50 && CUR_TIME(fn) < 500ms);
-            V_sum /= runs, E_sum /= runs;
-
-            double V = log2(V_sum), E = log2(E_sum), logV = log2(V);
-            double W = 10 * V + 3 * E + 2 * logV;
-            sum_W += W;
-
-            auto& name = distance_kind_name[i];
-            print("{:4} {:36} -- V:{:<6} E:{:<8} --", i, name, V_sum, E_sum);
-            print(" {:4.1f}    {:4.1f}    {:4.1f}    {:4.1f}  -- {:5.1f}\n", //
-                  V + E, 3 * V, E + logV, 2 * V + logV, W);
-        }
-        print("{1:<{0}} --- {2:5.1f}\n", 96, "", sum_W / int(DG_END));
-    }
-}
-
 void balance_test_generate_bipartite() {
     for (int S : {100, 200, 500, 1000, 2000, 5000, 15000, 30000}) {
         auto header = format("Bipartite Graphs");
@@ -309,7 +278,6 @@ void balance_test_generate_bipartite() {
 
 int main() {
     RUN_BLOCK(visual_test_generators());
-    RUN_BLOCK(balance_test_generate_distance());
     RUN_BLOCK(balance_test_generate_flow());
     RUN_BLOCK(balance_test_generate_circulation());
     RUN_BLOCK(balance_test_generate_bipartite());
