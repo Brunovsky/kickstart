@@ -156,7 +156,6 @@ auto visit_cut_points(const vector<vector<int>>& adj, Fn&& visitor) {
     }
 }
 
-template <typename Fn>
 auto find_cycle(const vector<vector<int>>& adj) {
     int V = adj.size();
 
@@ -168,11 +167,13 @@ auto find_cycle(const vector<vector<int>>& adj) {
         parent[u] = p;
         color[u] = 1;
         for (int v : adj[u]) {
-            if (color[v] == 0 && dfs(v, u)) {
-                return true;
-            } else if (color[v] == 1) {
-                endp = {u, v};
-                return true;
+            if (v != p) {
+                if (color[v] == 0 && self(v, u)) {
+                    return true;
+                } else if (color[v] == 1) {
+                    endp = {u, v};
+                    return true;
+                }
             }
         }
         color[u] = 2;
@@ -180,22 +181,22 @@ auto find_cycle(const vector<vector<int>>& adj) {
     });
 
     for (int u = 0; u < V; u++) {
-        if (color[u] == 0 && dfs(u)) {
+        if (color[u] == 0 && dfs(u, -1)) {
             break;
         }
     }
 
+    vector<int> nodes;
+
     if (endp[0] != -1) {
         int v = endp[1];
-        vector<int> nodes = {v};
+        nodes = {v};
         do {
             nodes.push_back(v = parent[v]);
         } while (v != endp[0]);
         reverse(begin(nodes), end(nodes));
-        return nodes;
-    } else {
-        return {};
     }
+    return nodes;
 }
 
 #endif // TOPOLOGY_HPP
