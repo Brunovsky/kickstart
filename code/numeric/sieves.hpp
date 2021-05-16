@@ -208,32 +208,28 @@ auto logfac_sieve(int N) {
 }
 
 /**
- * Compute (n choose m) for all 0<=m<=n and all n<=N, along with fac and inv.
- * Complexity: O(N^2)
+ * Compute n! and inv(n!) for all n<=N.
+ * Complexity: O(N log N)
  *    time       N (mod=1e9+7)
- *     40ms      5'000
- *    150ms      10'000
- *    800ms      22'000
+ *    120ms      10'000'000
+ *    430ms      32'000'000
+ *   1600ms      100'000'000
  */
-auto pascal_sieve(int N, int mod) {
-    vector<int> fac, inv;
-    vector<vector<int>> choose;
-    fac.resize(N + 1), inv.resize(N + 1);
-    choose.resize(N + 1);
-    fac[0] = 1;
-    choose[0] = {1};
+template <typename Num>
+auto pascal_sieve(int N) {
+    vector<Num> fac, ifac;
+    fac.resize(N + 1), ifac.resize(N + 1);
+    fac[0] = fac[1] = ifac[1] = 1;
 
     for (int n = 1; n <= N; n++) {
-        choose[n].resize(n + 1);
-        choose[n][0] = choose[n][n] = 1;
-        for (int m = 1; m < n; m++) {
-            choose[n][m] = (choose[n - 1][m - 1] + choose[n - 1][m]) % mod;
-        }
-        fac[n] = 1LL * n * fac[n - 1] % mod;
-        inv[n] = n > 1 ? mod - (mod / n) * inv[mod % n] % mod : 1;
+        fac[n] = 1LL * n * fac[n - 1];
+    }
+    ifac[N] = fac[N].inv();
+    for (int n = N; n >= 1; n--) {
+        ifac[n - 1] = n * ifac[n];
     }
 
-    return choose;
+    return make_pair(fac, ifac);
 }
 
 /**

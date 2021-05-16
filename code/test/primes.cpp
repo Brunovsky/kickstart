@@ -1,18 +1,12 @@
 #include "test_utils.hpp"
 #include "../numeric/primes.hpp"
 #include "../numeric/sieves.hpp"
+#include "../numeric/modnum.hpp"
 #include "../random.hpp"
 
 inline namespace speed_testing_sieves {
 
 void speed_test_sieves() {
-    for (int N : {1'000, 2'200, 5'000, 10'000, 22'000}) {
-        print(" speed test sieves N={}\n", N);
-        START(pascal);
-        pascal_sieve(N, 1'000'000'007);
-        TIME(pascal);
-        PRINT_TIME(pascal);
-    }
     for (int N : {31'600, 100'000, 316'000, 1'000'000, 3'160'000, 10'000'000, 31'600'000,
                   100'000'000}) {
         print(" speed test sieves N={}\n", N);
@@ -56,6 +50,16 @@ void speed_test_sieves() {
         logfac_sieve(N);
         TIME(logfac);
         PRINT_TIME(logfac);
+
+        START(modnum_1000000007);
+        pascal_sieve<modnum<1'000'000'007>>(N);
+        TIME(modnum_1000000007);
+        PRINT_TIME(modnum_1000000007);
+
+        START(modnum_998244353);
+        pascal_sieve<modnum<998'244'353>>(N);
+        TIME(modnum_998244353);
+        PRINT_TIME(modnum_998244353);
     }
 }
 
