@@ -6,6 +6,8 @@
 |`left_right_planarity       `| Stable       | Stable (D)     | |
 |`mincut                     `| Stable       | Stable (U)     | |
 |`min_spanning_forest        `| Stable       | Stable (U)     | |
+|`dominator_tree             `| Stable       | Stable (U)     | |
+|`scc                        `| Stable       | Stable (U)     | |
 |`topology                   `| Stable       | -              | |
 |`travelling_salesman        `| Stable       | Stable (D)     | |
 |`tree_isomorphism           `| Stable       | Stable (S)     | |

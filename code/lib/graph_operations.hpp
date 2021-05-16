@@ -78,21 +78,21 @@ auto& join(edges_t& g, const edges_t& h) {
 /**
  * Construct adjacency lists
  */
-auto make_adjacency_lists_undirected(const edges_t& g, int V) {
+auto make_adjacency_lists_undirected(int V, const edges_t& g) {
     vector<vector<int>> adj(V);
     for (auto [u, v] : g)
         adj[u].push_back(v), adj[v].push_back(u);
     return adj;
 }
 
-auto make_adjacency_lists_directed(const edges_t& g, int V) {
+auto make_adjacency_lists_directed(int V, const edges_t& g) {
     vector<vector<int>> adj(V);
     for (auto [u, v] : g)
         adj[u].push_back(v);
     return adj;
 }
 
-auto make_adjacency_lists_reverse(const edges_t& g, int V) {
+auto make_adjacency_lists_reverse(int V, const edges_t& g) {
     vector<vector<int>> adj(V);
     for (auto [u, v] : g)
         adj[v].push_back(u);
@@ -159,22 +159,22 @@ bool reachable(const vector<vector<int>>& adj, int s, int t) {
 
 bool is_connected_undirected(const edges_t& g, int V) {
     assert(V > 0);
-    auto adj = make_adjacency_lists_undirected(g, V);
+    auto adj = make_adjacency_lists_undirected(V, g);
     return count_reachable(adj) == V;
 }
 
 bool is_connected_directed(const edges_t& g, int V) {
     assert(V > 0);
-    auto adj = make_adjacency_lists_directed(g, V);
+    auto adj = make_adjacency_lists_directed(V, g);
     if (count_reachable(adj) != V)
         return false;
-    adj = make_adjacency_lists_reverse(g, V);
+    adj = make_adjacency_lists_reverse(V, g);
     return count_reachable(adj) == V;
 }
 
 bool is_rooted_directed(const edges_t& g, int V, int s = 0) {
     assert(V > 0);
-    auto adj = make_adjacency_lists_directed(g, V);
+    auto adj = make_adjacency_lists_directed(V, g);
     return count_reachable(adj, s) == V;
 }
 
