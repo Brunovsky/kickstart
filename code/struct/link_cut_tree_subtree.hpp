@@ -37,7 +37,6 @@ struct link_cut_tree_subtree {
 
     // Update node from splay children and virtual updates
     void pushup(int u) {
-        assert(u != 0);
         auto [l, r] = t[u].child;
         pushdown(l), pushdown(r);
         t[u].subt_size = 1 + t[l].subt_size + t[r].subt_size + t[u].virt_size;
@@ -58,13 +57,13 @@ struct link_cut_tree_subtree {
 
     void link(int u, int v) {
         reroot(u), access(v);
-        t[u].parent = v, add_virtual_subtree(v, u), pushup(v);
+        t[u].parent = v, add_virtual_subtree(v, u);
     }
 
     void cut(int u, int v) {
         reroot(u), access(v);
         assert(t[u].parent == v && !t[u].child[1] && u == t[v].child[0]);
-        t[u].parent = t[v].child[0] = 0, pushup(v);
+        t[u].parent = t[v].child[0] = 0;
     }
 
     void reroot(int u) {

@@ -1,11 +1,11 @@
-#ifndef UNROOTED_LINK_CUT_TREE_HPP
-#define UNROOTED_LINK_CUT_TREE_HPP
+#ifndef LINK_CUT_TREE_PATH_HPP
+#define LINK_CUT_TREE_PATH_HPP
 
 #include <bits/stdc++.h>
 using namespace std;
 
 /**
- * Unrooted link cut tree: lazy path queries + path/point queries.
+ * Unrooted link cut tree: lazy path queries + path/point updates.
  */
 struct link_cut_tree_path {
     struct Node {
@@ -150,4 +150,4 @@ struct link_cut_tree_path {
     }
 };
 
-#endif // UNROOTED_LINK_CUT_TREE_HPP
+#endif // LINK_CUT_TREE_PATH_HPP
