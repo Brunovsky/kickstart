@@ -25,7 +25,7 @@ struct disjoint_set {
         return i;
     }
 
-    void join(int i, int j) {
+    bool join(int i, int j) {
         i = find(i);
         j = find(j);
         if (i != j) {
@@ -35,7 +35,9 @@ struct disjoint_set {
             next[j] = i;
             size[i] += size[j];
             S--;
+            return true;
         }
+        return false;
     }
 };
 

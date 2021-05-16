@@ -330,6 +330,13 @@ struct pairing_int_heaps {
             }
         }
     }
+    void fill_each() {
+        assert(root.size() + 1 == node.size());
+        for (int u = 1, N = node.size() - 1; u <= N; u++) {
+            assert(!contains(u));
+            push(u - 1, u);
+        }
+    }
 
   private:
     bool do_comp(int u, int v) const { return comp(u - 1, v - 1); }
