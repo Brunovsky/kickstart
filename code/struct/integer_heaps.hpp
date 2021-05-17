@@ -2,7 +2,6 @@
 #define INTEGER_HEAPS_HPP
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 template <typename Container>
@@ -194,6 +193,11 @@ struct pairing_int_heap {
   private:
     bool do_comp(int u, int v) const { return comp(u - 1, v - 1); }
     int meld(int u, int v) { return do_comp(u, v) ? splice(u, v) : splice(v, u); }
+    int safe_meld(int u, int v) {
+        if (u == 0 || v == 0 || u == v)
+            return u ? u : v;
+        return meld(u, v);
+    }
     int splice(int u, int v) {
         node[node[u].child].prev = v;
         node[v].next = node[u].child, node[u].child = v;
@@ -260,7 +264,7 @@ template <typename Compare = less<>>
 struct pairing_int_heaps {
     struct node_t {
         int parent = 0, child = 0, next = 0, prev = 0;
-    };
+    }; // elements are shifted by 1 to allow 0 to be used as a scratchpad
     vector<int> root;
     vector<node_t> node;
     Compare comp;
@@ -275,13 +279,14 @@ struct pairing_int_heaps {
     void push(int h, int u) {
         assert(!contains(u)), u++;
         node[u].parent = -1;
-        root[h] = empty(h) ? u : meld(root[h], u);
+        root[h] = safe_meld(root[h], u);
     }
     int pop(int h) {
         assert(!empty(h));
         int u = root[h];
         root[h] = two_pass_pairing(u);
-        node[root[h]].parent = -1, node[u] = node_t();
+        node[root[h]].parent = -1;
+        node[u] = node_t();
         return u - 1;
     }
     void improve(int h, int u) {
@@ -308,15 +313,14 @@ struct pairing_int_heaps {
         } else {
             take(u);
             int v = two_pass_pairing(u);
-            root[h] = v ? meld(root[h], v) : root[h];
-            node[root[h]].parent = -1, node[u] = node_t();
+            root[h] = safe_meld(root[h], v);
+            node[root[h]].parent = -1;
+            node[u] = node_t();
         }
     }
     void merge(int h, int g) {
-        if (h != g && !empty(g)) {
-            root[h] = empty(h) ? root[g] : meld(root[h], root[g]);
-            root[g] = 0;
-        }
+        int r = safe_meld(root[h], root[g]);
+        root[g] = 0, root[h] = r;
     }
     void clear(int h) {
         if (!empty(h)) {
@@ -332,15 +336,21 @@ struct pairing_int_heaps {
     }
     void fill_each() {
         assert(root.size() + 1 == node.size());
-        for (int u = 1, N = node.size() - 1; u <= N; u++) {
-            assert(!contains(u));
-            push(u - 1, u);
+        for (int h = 0, u = 1, N = node.size() - 1; u <= N; h++, u++) {
+            if (!contains(u)) {
+                push(h, u);
+            }
         }
     }
 
   private:
     bool do_comp(int u, int v) const { return comp(u - 1, v - 1); }
     int meld(int u, int v) { return do_comp(u, v) ? splice(u, v) : splice(v, u); }
+    int safe_meld(int u, int v) {
+        if (u == 0 || v == 0 || u == v)
+            return u ? u : v;
+        return meld(u, v);
+    }
     int splice(int u, int v) {
         node[node[u].child].prev = v;
         node[v].next = node[u].child, node[u].child = v;
@@ -375,6 +385,82 @@ struct pairing_int_heaps {
             clear_rec(v);
         }
         node[u] = node_t();
+    }
+};
+
+/**
+ * A skew heap designed specifically for the minimum arborescence problem.
+ * Might also be applicable to other problems requiring connected component contraction.
+ *
+ * Context: you want to represent a group of connected components in a graph with V nodes
+ * and E edges, where edges contain values/costs and want to support the operation of
+ * merging connected components efficiently, adding new edges, popping min edges,
+ * and adding lazily a value to all edges in a subcomponent.
+ *
+ * Internally there are V "heaps" and E "nodes", which represent, respectively, the
+ * represented graph's nodes and edges. The heaps correspond to connected components.
+ */
+template <typename T, typename Compare = less<>>
+struct lazy_skew_int_heaps {
+    struct node_t {
+        int child[2] = {};
+        T cost = {}, lazy = {};
+    }; // elements are shifted by 1 to allow 0 to be used as a scratchpad
+    vector<int> root;
+    vector<node_t> node;
+    Compare comp;
+
+    explicit lazy_skew_int_heaps(int R = 0, int E = 0, const Compare& comp = Compare())
+        : root(R), node(E + 1), comp(comp) {}
+
+    bool empty(int h) const { return root[h] == 0; }
+    auto top(int h) {
+        pushdown(root[h]);
+        return make_pair(root[h] - 1, node[root[h]].cost);
+    }
+    void update(int h, T delta) {
+        assert(!empty(h));
+        node[root[h]].lazy += delta;
+        pushdown(root[h]);
+    }
+    void push(int h, int u, T cost) {
+        assert(u >= 0), u++;
+        node[u].cost = cost;
+        root[h] = safe_meld(root[h], u);
+    }
+    void pop(int h) {
+        assert(!empty(h));
+        pushdown(root[h]);
+        auto [l, r] = node[root[h]].child;
+        node[root[h]] = node_t();
+        root[h] = safe_meld(l, r);
+    }
+    void merge(int h, int a, int b) { // merge heaps a and b into position h
+        assert(h == a || h == b || root[h] == 0);
+        int r = safe_meld(root[a], root[b]);
+        root[a] = root[b] = 0, root[h] = r;
+    }
+
+  private:
+    void pushdown(int a) {
+        auto [l, r] = node[a].child;
+        node[a].cost += node[a].lazy;
+        node[l].lazy += node[a].lazy;
+        node[r].lazy += node[a].lazy;
+        node[a].lazy = node[0].lazy = 0;
+    }
+    int safe_meld(int u, int v) {
+        if (u == 0 || v == 0 || u == v)
+            return u ? u : v;
+        return meld(u, v);
+    }
+    int meld(int a, int b) {
+        pushdown(a), pushdown(b);
+        if (comp(node[b].cost, node[a].cost)) {
+            swap(a, b);
+        }
+        swap(node[a].child[0], node[a].child[1] = safe_meld(b, node[a].child[1]));
+        return a;
     }
 };
 

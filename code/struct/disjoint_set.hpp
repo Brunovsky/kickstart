@@ -2,7 +2,6 @@
 #define DISJOINT_SET_HPP
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 struct disjoint_set {

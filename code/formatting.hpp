@@ -72,6 +72,57 @@ ostream& operator<<(ostream& out, const map<K, V, Rs...>& v) {
 
 namespace std {
 
+inline namespace tuple_to_string {
+
+template <typename T, T...>
+struct integer_sequence {};
+
+template <std::size_t N, std::size_t... I>
+struct gen_indices : gen_indices<(N - 1), (N - 1), I...> {};
+template <std::size_t... I>
+struct gen_indices<0, I...> : integer_sequence<std::size_t, I...> {};
+
+template <typename H>
+std::string& to_string_impl(std::string& s, H&& h) {
+    using std::to_string;
+    s += to_string(std::forward<H>(h));
+    return s;
+}
+
+template <typename H, typename... T>
+std::string& to_string_impl(std::string& s, H&& h, T&&... t) {
+    using std::to_string;
+    s += to_string(std::forward<H>(h));
+    return to_string_impl(s, std::forward<T>(t)...);
+}
+
+template <typename... T, std::size_t... I>
+std::string to_string(const std::tuple<T...>& tup, integer_sequence<std::size_t, I...>) {
+    std::string result;
+    int ctx[] = {(to_string_impl(result, std::get<I>(tup)...), 0), 0};
+    (void)ctx;
+    return result;
+}
+
+template <typename... T>
+std::string to_string(const std::tuple<T...>& tup) {
+    return to_string(tup, gen_indices<sizeof...(T)>{});
+}
+
+} // namespace tuple_to_string
+
+template <typename T, typename... Rs>
+string to_string(const deque<T, Rs...>& v) {
+    string s;
+    for (const auto& el : v)
+        s += to_string(el) + " ";
+    return s.empty() ? s : (s.pop_back(), s);
+}
+template <typename T, typename... Rs>
+ostream& operator<<(ostream& out, const deque<T, Rs...>& v) {
+    return out << to_string(v);
+}
+
 template <typename T, size_t N>
 string to_string(const array<T, N>& v) {
     string s;
