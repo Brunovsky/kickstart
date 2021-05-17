@@ -3,6 +3,17 @@
 
 const string DATASET_FILE = "datasets/planar.txt";
 
+inline namespace detail {
+
+template <typename PT>
+void add_edges(PT& planarity, const edges_t& g) {
+    for (auto [u, v] : g) {
+        planarity.add(u, v);
+    }
+}
+
+} // namespace detail
+
 inline namespace dataset_testing_planarity {
 
 /**
@@ -25,15 +36,18 @@ struct planarity_dataset_test_t {
         assert(ans == "planar" || ans == "nonplanar");
 
         g.resize(E);
-        for (auto& [u, v] : g)
+        for (auto& [u, v] : g) {
             in >> u >> v;
+        }
     }
 
     void run() const {
-        left_right lr(V, g);
-        bool is_planar = lr.is_planar();
-        string verdict = is_planar ? "planar" : "nonplanar";
-        print("{:>9} | {:>9}  {}\n", verdict, ans, name);
+        // left_right lr(V);
+        // add_edges(lr, g);
+        // bool is_planar = lr.is_planar();
+        bool is_planar = left_right_is_planar(V, g);
+        string actual = is_planar ? "planar" : "nonplanar";
+        print("{:>9} | {:>9} {}\n", ans, actual, name);
     }
 };
 
@@ -42,7 +56,7 @@ void dataset_test_planarity() {
     if (!file.is_open())
         return print("dataset file {} not found, skipping dataset test\n", DATASET_FILE);
     file >> ws;
-    print("===== planarity tests =====\n verdict  |  actual\n");
+    print("===== planarity tests =====\n expected  |  actual\n");
     while (!file.eof()) {
         planarity_dataset_test_t test;
         test.read(file);
