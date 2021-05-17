@@ -3,7 +3,7 @@
 new: cpp
 
 cpp:
-	@./yosupo.py cpp
+	@./spoj.py cpp
 
 cpp-interactive:
-	@./yosupo.py cpp-interactive
+	@./spoj.py cpp-interactive
