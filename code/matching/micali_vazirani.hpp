@@ -24,7 +24,7 @@ struct micali_vazirani {
     inline int other(int e, int u) const { return u ^ edge[e][0] ^ edge[e][1]; }
     inline int len(int u) const { return off[u + 1] - off[u]; }
 
-    void node_bootstrap() {
+    void bootstrap() {
         linked_lists buck(V, V);
         vector<int> cnt(V, 0);
         for (int u = 0; u < V; u++) {
@@ -67,31 +67,6 @@ struct micali_vazirani {
             }
         }
     }
-
-    void edge_bootstrap() {
-        forward_lists sumbuck(2 * V, E), minbuck(V, E);
-        for (int e = 0; e < E; e++) {
-            auto [u, v] = edge[e];
-            int s = len(u) + len(v);
-            sumbuck.push(s, e);
-        }
-        for (int s = 2 * V - 1; s >= 0; s--) {
-            FOR_EACH_IN_FORWARD_LIST (e, s, sumbuck) {
-                auto [u, v] = edge[e];
-                int m = min(len(u), len(v));
-                minbuck.push(m, e);
-            }
-        }
-        for (int m = 0; m < V; m++) {
-            FOR_EACH_IN_FORWARD_LIST (e, m, minbuck) {
-                auto [u, v] = edge[e];
-                if (mate[u] == -1 && mate[v] == -1)
-                    mate[u] = v, mate[v] = u;
-            }
-        }
-    }
-
-    void bootstrap() { node_bootstrap(); }
 
     int max_matching() {
         int more = 1;

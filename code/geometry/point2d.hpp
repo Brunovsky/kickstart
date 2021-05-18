@@ -124,7 +124,7 @@ struct Point2d {
     friend bool samedir(P u, P v) { return cross(u, v) == 0 && dot(u, v) >= 0; }
     friend bool collinear(P a, P b, P c) { return a.crossed(b, c) == 0; }
     friend bool onsegment(P a, P b, P c) {
-        return a.crossed(b, c) == 0 && doted(b, a, c) <= 0;
+        return a.crossed(b, c) == 0 && b.doted(a, c) <= 0;
     }
 
     friend int lineside(P p, P u, P v) {
@@ -150,5 +150,20 @@ struct Point2d {
     friend ostream& operator<<(ostream& out, const P& p) { return out << to_string(p); }
     friend istream& operator>>(istream& in, P& p) { return in >> p.x >> p.y; }
 };
+
+struct Hasher2d {
+    template <typename T, typename D>
+    size_t operator()(const Point2d<T, D>& p) const noexcept {
+        array<T, 2> arr{p[0], p[1]};
+        return std::hash<array<T, 2>>{}(arr);
+    }
+};
+
+namespace std {
+
+template <typename T, typename D>
+struct hash<Point2d<T, D>> : Hasher2d {};
+
+} // namespace std
 
 #endif // POINT2D_HPP

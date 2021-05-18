@@ -38,7 +38,9 @@ void print_progress(long i, long N, string_view fmt, Ts&&... args) {
 
 template <typename... Ts>
 [[noreturn]] void fail(Ts&&... args) {
-    print("\nError: {}", format(forward<Ts>(args)...));
+    print("\n");
+    clear_line();
+    print("Error: {}", format(forward<Ts>(args)...));
     exit(1);
 }
 

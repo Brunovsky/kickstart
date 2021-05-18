@@ -55,17 +55,26 @@ void speed_test_mincost_matching_run(bipartite_graph_kind i, int S, int T) {
     for (int t = 0; t < T; t++) {
         print_progress(t, T, bipartite_kind_name[i]);
         auto graph = generate_bipartite_graph(i, S);
-        add_cost_bipartite_graph(graph, 10'000'000'000);
+        add_cost_bipartite_graph(graph, 10'000'000, 300'000'000);
 
         START(hungarian);
-        mincost_hungarian<long, long> mcbm(graph.U, graph.V);
-        add_edges(mcbm, graph.g, graph.cost);
-        mcbm.pad_reverse();
-        auto mc = mcbm.mincost_max_matching();
+        mincost_hungarian<int, long> g0(graph.U, graph.V);
+        add_edges(g0, graph.g, graph.cost);
+        g0.pad_reverse();
+        auto ans0 = g0.mincost_max_matching();
         ADD_TIME(hungarian);
 
-        imperfect += mc == -1;
-        avg_mc += mc == -1 ? 0 : mc / (graph.U + graph.V);
+        auto ans1 = g0.mincost_max_matching(); // again
+
+        mincost_hungarian<long, long> g1(graph.U, graph.V);
+        add_edges(g1, graph.g, graph.cost);
+        g1.pad_reverse();
+        auto ans2 = g1.mincost_max_matching();
+
+        assert(ans0 == ans1 && ans0 == ans2);
+
+        imperfect += ans0 == -1;
+        avg_mc += ans0 == -1 ? 0 : ans0 / (graph.U + graph.V);
     }
     avg_mc /= T;
 

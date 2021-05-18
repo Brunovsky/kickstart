@@ -67,7 +67,7 @@ struct flow_dataset_test_t {
     }
 
     void run() const {
-        mincost_edmonds_karp mek(V);
+        mincost_edmonds_karp<int, long> mek(V);
         add_edges(mek, g, cap, cost);
         for (int i = 0; i < T; i++) {
             auto F = thresholds[i];
@@ -108,17 +108,27 @@ inline namespace speed_testing_mincost_flow {
 void speed_test_mincost_flow_run(flow_network_kind i, int S, int T) {
     START_ACC(edmonds_karp);
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, flow_kind_name[i]);
+    for (int tt = 0; tt < T; tt++) {
+        print_progress(tt, T, flow_kind_name[i]);
         auto network = generate_flow_network(i, S);
-        add_cap_flow_network(network, 1, 100'000'000'000);
+        add_cap_flow_network(network, 1, 100'000'000);
         add_cost_flow_network(network, 1, 100'000'000);
+        int s = network.s, t = network.t, V = network.V;
 
         START(edmonds_karp);
-        mincost_edmonds_karp g0(network.V);
+        mincost_edmonds_karp<int, int, long, long> g0(V);
         add_edges(g0, network.g, network.cap, network.cost);
-        g0.mincost_flow(network.s, network.t);
+        auto ans1 = g0.mincost_flow(s, t);
         ADD_TIME(edmonds_karp);
+
+        mincost_edmonds_karp<long, long, long, long> g1(V);
+        add_edges(g1, network.g, network.cap, network.cost);
+        auto ans2 = g1.mincost_flow(s, t);
+        assert(ans1 == ans2);
+
+        g0.clear_flow();
+        auto ans3 = g0.mincost_flow(s, t);
+        assert(ans1 == ans3);
     }
 
     clear_line();

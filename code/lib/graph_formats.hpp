@@ -72,6 +72,16 @@ string compact_simple(const edges_t& g, int V, char sep = ',') {
     return s + (i ? "\n" : "");
 }
 
+string simple_dot(const edges_t& g, bool directed) {
+    static const char* header[] = {"strict graph", "strict digraph"};
+    static const char* arrow[] = {" -- ", " -> "};
+    string a = arrow[directed], s = header[directed] + " {\n"s;
+    for (auto [u, v] : g) {
+        s += format(" {0}{2}{1};\n", u, v, a);
+    }
+    return s + "}\n";
+}
+
 template <typename NodeFn, typename EdgeFn>
 string full_dot(const edges_t& g, int lo, int hi, bool directed, NodeFn&& node_annotator,
                 EdgeFn&& edge_annotator) {

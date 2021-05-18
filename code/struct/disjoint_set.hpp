@@ -50,14 +50,16 @@ struct disjoint_set_rollback {
     void assign(int N) { *this = disjoint_set_rollback(N); }
     bool same(int i, int j) { return find(i) == find(j); }
     bool unit(int i) { return next[i] == -1; }
-    bool root(int i) { return find(i) == i; }
+    bool root(int i) { return next[i] < 0; }
     int size(int i) { return -next[i]; }
     int time() const { return history.size(); }
 
     void rollback(int t) {
         int i = time();
         while (i > t) {
-            i--, S++, next[history[i].first] = history[i].second;
+            i--, next[history[i].first] = history[i].second;
+            i--, next[history[i].first] = history[i].second;
+            S++;
         }
         history.resize(t);
     }

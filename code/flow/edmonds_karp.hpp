@@ -11,8 +11,9 @@ using namespace std;
  */
 template <typename Flow = long, typename FlowSum = Flow>
 struct edmonds_karp {
-    struct Edge : array<int, 2> {
-        long cap, flow = 0;
+    struct Edge {
+        int node[2];
+        Flow cap, flow = 0;
     };
     int V, E = 0;
     vector<vector<int>> res;
@@ -27,16 +28,16 @@ struct edmonds_karp {
     }
 
     vector<int> pred, Q;
-    static constexpr FlowSum inf = numeric_limits<FlowSum>::max() / 2;
+    static constexpr Flow finf = numeric_limits<Flow>::max();
 
     bool bfs(int s, int t) {
-        fill(begin(pred), end(pred), -1);
+        pred.assign(V, -1);
         Q[0] = s;
         int j = 0, S = 1;
         while (j < S && pred[t] == -1) {
             int u = Q[j++];
             for (auto e : res[u]) {
-                int v = edge[e][1];
+                int v = edge[e].node[1];
                 if (pred[v] == -1 && v != s && edge[e].flow < edge[e].cap) {
                     pred[v] = e;
                     Q[S++] = v;
@@ -49,11 +50,11 @@ struct edmonds_karp {
     }
 
     Flow augment(int t) {
-        Flow aug_flow = numeric_limits<Flow>::max();
-        for (int e = pred[t]; e != -1; e = pred[edge[e][0]]) {
+        Flow aug_flow = finf;
+        for (int e = pred[t]; e != -1; e = pred[edge[e].node[0]]) {
             aug_flow = min(aug_flow, edge[e].cap - edge[e].flow);
         }
-        for (int e = pred[t]; e != -1; e = pred[edge[e][0]]) {
+        for (int e = pred[t]; e != -1; e = pred[edge[e].node[0]]) {
             edge[e].flow += aug_flow;
             edge[e ^ 1].flow -= aug_flow;
         }
@@ -70,7 +71,7 @@ struct edmonds_karp {
         return max_flow;
     }
 
-    Flow get_flow(int e) const { return edge[e].flow; }
+    Flow get_flow(int e) const { return edge[2 * e].flow; }
     bool left_of_mincut(int u) const { return pred[u] >= 0; }
 };
 

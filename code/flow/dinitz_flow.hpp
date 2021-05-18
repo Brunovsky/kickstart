@@ -13,7 +13,7 @@ template <typename Flow = long, typename FlowSum = Flow>
 struct dinitz_flow {
     struct Edge {
         int node[2];
-        long cap, flow = 0;
+        Flow cap, flow = 0;
     };
     int V, E = 0;
     vector<vector<int>> res;
@@ -21,17 +21,17 @@ struct dinitz_flow {
 
     explicit dinitz_flow(int V) : V(V), res(V) {}
 
-    void add(int u, int v, Flow capacity) {
+    void add(int u, int v, Flow capacity, bool bothways = false) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0);
         res[u].push_back(E++), edge.push_back({{u, v}, capacity, 0});
-        res[v].push_back(E++), edge.push_back({{v, u}, 0, 0});
+        res[v].push_back(E++), edge.push_back({{v, u}, bothways ? capacity : 0, 0});
     }
 
     vector<int> level, arc, Q;
-    static constexpr Flow inf = numeric_limits<Flow>::max() / 2;
+    static constexpr Flow finf = numeric_limits<Flow>::max() / 2;
 
     bool bfs(int s, int t) {
-        fill(begin(level), end(level), -1);
+        level.assign(V, -1);
         level[s] = 0;
         Q[0] = s;
         int j = 0, S = 1;
@@ -54,11 +54,11 @@ struct dinitz_flow {
         if (u == t) {
             return mincap;
         }
-        FlowSum preflow = 0;
+        Flow preflow = 0;
         for (int &i = arc[u], vsize = res[u].size(); i < vsize; i++) {
             int e = res[u][i], v = edge[e].node[1];
             if (edge[e].flow < edge[e].cap && level[u] < level[v]) {
-                FlowSum df = dfs(v, t, min(mincap, edge[e].cap - edge[e].flow));
+                Flow df = dfs(v, t, min(mincap, edge[e].cap - edge[e].flow));
                 edge[e].flow += df;
                 edge[e ^ 1].flow -= df;
                 preflow += df;
@@ -76,7 +76,7 @@ struct dinitz_flow {
         Q.resize(V);
         FlowSum max_flow = 0;
         while (bfs(s, t)) {
-            max_flow += dfs(s, t, inf);
+            max_flow += dfs(s, t, finf);
             fill(begin(arc), end(arc), 0);
         }
         return max_flow;

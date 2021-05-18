@@ -5,6 +5,7 @@
 #include "../flow/push_relabel.hpp"
 #include "../flow/tidal_flow.hpp"
 #include "../lib/flow.hpp"
+#include "../lib/graph_formats.hpp"
 
 inline namespace detail {
 
@@ -31,25 +32,25 @@ void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
 
         START(generation);
         auto network = generate_flow_network(i, S);
-        add_cap_flow_network(network, 1, 100'000'000'000);
+        add_cap_flow_network(network, 1, 10'000'000);
         ADD_TIME(generation);
 
         vector<long> mf(3);
 
         START(dinitz);
-        dinitz_flow<> g0(network.V);
+        dinitz_flow<int, long> g0(network.V);
         add_edges(g0, network.g, network.cap);
         mf[0] = g0.maxflow(network.s, network.t);
         ADD_TIME(dinitz);
 
         START(push_relabel);
-        push_relabel<> g1(network.V);
+        push_relabel<int, long> g1(network.V);
         add_edges(g1, network.g, network.cap);
         mf[1] = g1.maxflow(network.s, network.t, true);
         ADD_TIME(push_relabel);
 
         START(tidal);
-        tidal_flow<> g2(network.V);
+        tidal_flow<int, long> g2(network.V);
         add_edges(g2, network.g, network.cap);
         mf[2] = g2.maxflow(network.s, network.t);
         ADD_TIME(tidal);
@@ -109,6 +110,8 @@ void stress_test_max_flow(int T = 10000) {
         assert(mf[0] != 0);
 
         if (!all_eq(mf)) {
+            ofstream file("debug.txt");
+            print(file, "{}", simple_dot(network.g, true));
             fail("Random test failed: {}", fmt::join(mf, " "));
         }
     }
@@ -117,6 +120,7 @@ void stress_test_max_flow(int T = 10000) {
 } // namespace stress_testing_maxflow
 
 int main() {
+    mt.seed(73);
     RUN_BLOCK(stress_test_max_flow());
     RUN_BLOCK(speed_test_max_flow());
     return 0;

@@ -30,26 +30,27 @@ struct mincost_edmonds_karp {
 
     vector<CostSum> dist, pi;
     vector<int> prev;
-    static inline constexpr FlowSum inf = numeric_limits<FlowSum>::max() / 2;
-    static inline constexpr CostSum cinf = numeric_limits<CostSum>::max() / 3;
+    pairing_int_heap<less_container<vector<CostSum>>> heap;
+    static inline constexpr Flow flowinf = numeric_limits<Flow>::max() / 2;
+    static inline constexpr FlowSum flowsuminf = numeric_limits<FlowSum>::max() / 2;
+    static inline constexpr CostSum costsuminf = numeric_limits<CostSum>::max() / 3;
 
     bool dijkstra(int s, int t) {
-        dist.assign(V, cinf);
+        dist.assign(V, costsuminf);
         prev.assign(V, -1);
         dist[s] = 0;
 
-        pairing_int_heap Q(V, less_container(dist));
-        Q.push(s);
+        heap.push(s);
 
-        while (!Q.empty() && Q.top() != t) {
-            auto u = Q.pop();
+        while (!heap.empty()) {
+            auto u = heap.pop();
             for (int e : res[u]) {
                 int v = edge[e].node[1];
-                auto w = dist[u] + pi[u] - pi[v] + edge[e].cost;
+                CostSum w = min(dist[u] + pi[u] - pi[v] + edge[e].cost, costsuminf);
                 if (edge[e].flow < edge[e].cap && dist[v] > w) {
                     dist[v] = w;
                     prev[v] = e;
-                    Q.push_or_improve(v);
+                    heap.push_or_improve(v);
                 }
             }
         }
@@ -59,7 +60,7 @@ struct mincost_edmonds_karp {
 
     void reprice() {
         for (int u = 0; u < V; u++) {
-            pi[u] = min(dist[u] + pi[u], cinf);
+            pi[u] = min(dist[u] + pi[u], costsuminf);
         }
     }
 
@@ -72,13 +73,14 @@ struct mincost_edmonds_karp {
         return path;
     }
 
-    pair<FlowSum, CostSum> mincost_flow(int s, int t, FlowSum F = inf) {
+    pair<FlowSum, CostSum> mincost_flow(int s, int t, FlowSum F = flowsuminf) {
         pi.assign(V, 0);
+        heap = pairing_int_heap<less_container<vector<CostSum>>>(V, dist);
 
         FlowSum sflow = 0;
         while (sflow < F && dijkstra(s, t)) {
             auto augmenting_path = path(t);
-            auto df = F - sflow;
+            Flow df = min(F - sflow, FlowSum(flowinf));
             for (int e : augmenting_path) {
                 df = min(df, edge[e].cap - edge[e].flow);
             }
@@ -102,7 +104,7 @@ struct mincost_edmonds_karp {
     }
 
     Flow get_flow(int e) const { return edge[2 * e].flow; }
-    bool left_of_mincut(int u) const { return dist[u] < inf; }
+    bool left_of_mincut(int u) const { return dist[u] < flowsuminf; }
 };
 
 #endif // MINCOST_EDMONDS_KARP_HPP

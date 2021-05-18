@@ -13,16 +13,19 @@
  * If the bipartite graph is not balanced (U != V) then it must be padded.
  * Usually the problem you're trying to solve will require a specific type of padding.
  *
- * If the graph is not too imbalanced, then pad_complete(w) will add |U-V|W extra edges
- * with cost w (usually w should be 0). There may be quadratically many such edges.
+ * If the graph is not too imbalanced, or it is actually complete but imbalanced, then
+ * pad_complete(w) will add |U-V|W extra edges with cost w (usually w should be 0). There
+ * may be quadratically many such edges.
+ * If a perfect matching did not exist, it will still not exist.
  *
  * Alternatively, pad_reverse() will set W=U+V and add a flipped copy of the graph to
- * itself plus U+V linking edges. The resulting graph will have a perfect matching.
- * Some edges have weight 0 and some have weight infinity; the weights should be discarded
- * in the compute function. Details at:
- *     https://www.hpl.hp.com/techreports/2012/HPL-2012-40.pdf
+ * itself plus U+V linking edges. The resulting graph will have a perfect matching, with
+ * double the cost.
+ * Some linking edges have weight 0 and some have weight inf; this infinity must be
+ * sufficiently big for the algorithm to prefer any other path, which might require
+ * promoting Cost's type (from int to long).
  *
- * If padding was performed, you should specify if you want to minimum cost to include
+ * If padding was performed, you should specify if you want the minimum cost to include
  * padding or not in the call to the compute function. In most cases you want to discard
  * this extra cost; if you used pad_complete(w) with w>0 you probably want to keep them.
  */
@@ -51,7 +54,7 @@ struct mincost_hungarian {
                 adj[u].push_back({v, w}), E++;
     }
 
-    void pad_reverse() {
+    void pad_reverse(Cost badw = costinf, bool guarantee = false) {
         assert(!padded), padded = true, W = U + V;
         adj.resize(W, {});
         for (int u = 0; u < U; u++)
@@ -60,43 +63,43 @@ struct mincost_hungarian {
         if (U <= V) {
             for (int v = 0; v < V; v++)
                 adj[v + U].push_back({v, 0});
-            for (int u = 0; u < U; u++)
-                adj[u].push_back({u + V, cinf});
+            for (int u = 0; u < U && guarantee; u++)
+                adj[u].push_back({u + V, badw});
         } else {
             for (int u = 0; u < U; u++)
                 adj[u].push_back({u + V, 0});
-            for (int v = 0; v < V; v++)
-                adj[v + U].push_back({v, cinf});
+            for (int v = 0; v < V && guarantee; v++)
+                adj[v + U].push_back({v, badw});
         }
     }
 
     vector<int> prev[2];
     vector<CostSum> pi[2], dist[2];
-    pairing_int_heap<less_container<vector<CostSum>>> Q;
-    static inline constexpr Cost cinf = numeric_limits<Cost>::max() / 3;
-    static inline constexpr CostSum inf = numeric_limits<CostSum>::max() / 3;
+    pairing_int_heap<less_container<vector<CostSum>>> heap;
+    static inline constexpr Cost costinf = numeric_limits<Cost>::max() / 3;
+    static inline constexpr CostSum costsuminf = numeric_limits<CostSum>::max() / 3;
 
     bool dijkstra() {
-        dist[0].assign(W + 1, inf);
-        dist[1].assign(W, inf);
+        dist[0].assign(W + 1, costsuminf);
+        dist[1].assign(W, costsuminf);
         prev[0].assign(W + 1, -1);
         prev[1].assign(W, -1);
 
         for (int u = 0; u < W; u++)
             if (m[0][u] == W)
-                dist[0][u] = 0, Q.push(u);
+                dist[0][u] = 0, heap.push(u);
 
-        while (!Q.empty()) {
-            int u = Q.pop();
+        while (!heap.empty()) {
+            int u = heap.pop();
             if (u == W) {
                 continue;
             }
             for (auto [v, w] : adj[u]) {
                 int y = m[1][v];
-                CostSum relaxed = min(dist[0][u] + w + pi[0][u] - pi[1][v], inf);
+                CostSum relaxed = min(dist[0][u] + w + pi[0][u] - pi[1][v], costsuminf);
                 if (dist[0][y] > relaxed) {
                     dist[0][y] = relaxed, prev[0][y] = v;
-                    Q.push_or_improve(y);
+                    heap.push_or_improve(y);
                 }
                 if (dist[1][v] > relaxed) {
                     dist[1][v] = relaxed, prev[1][v] = u;
@@ -110,7 +113,7 @@ struct mincost_hungarian {
     void reprice() {
         for (int i : {0, 1}) {
             for (int u = 0; u < W; u++) {
-                pi[i][u] = min(dist[i][u] + pi[i][u], inf);
+                pi[i][u] = min(dist[i][u] + pi[i][u], costsuminf);
             }
         }
     }
@@ -131,7 +134,7 @@ struct mincost_hungarian {
         m[1].assign(W, W);
         pi[0].assign(W, 0);
         pi[1].assign(W, 0);
-        Q = pairing_int_heap<less_container<vector<CostSum>>>(W + 1, dist[0]);
+        heap = pairing_int_heap<less_container<vector<CostSum>>>(W + 1, dist[0]);
 
         int matches = 0;
         while (matches < W && dijkstra()) {

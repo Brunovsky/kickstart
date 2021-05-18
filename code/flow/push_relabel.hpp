@@ -12,7 +12,7 @@ template <typename Flow = long, typename FlowSum = Flow>
 struct push_relabel {
     struct Edge {
         int node[2];
-        long cap, flow = 0;
+        Flow cap, flow = 0;
     };
     int V, E = 0;
     vector<vector<int>> res;
@@ -20,20 +20,20 @@ struct push_relabel {
 
     explicit push_relabel(int V) : V(V), res(V) {}
 
-    void add(int u, int v, Flow capacity) {
+    void add(int u, int v, Flow capacity, bool bothways = false) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0);
         res[u].push_back(E++), edge.push_back({{u, v}, capacity, 0});
-        res[v].push_back(E++), edge.push_back({{v, u}, 0, 0});
+        res[v].push_back(E++), edge.push_back({{v, u}, bothways ? capacity : 0, 0});
     }
 
     vector<int> height, arc;
     vector<FlowSum> excess;
     linked_lists active, labeled;
     int relabel_count, b; // current bucket (height)
-    static constexpr FlowSum inf = numeric_limits<FlowSum>::max() / 2;
+    static constexpr FlowSum sinf = numeric_limits<FlowSum>::max() / 2;
 
     int global_relabel_threshold() const {
-        return 1 + int(ceil(log2(1.5 * E + 1) / log2(V + 1) * V));
+        return 1 + 5 * int(ceil(log2(E + 1) / log2(V + 1) * V));
     }
 
     auto reverse_bfs(vector<int>& bfs, vector<int>& new_height) {
@@ -62,38 +62,25 @@ struct push_relabel {
         }
     }
 
-    void gap(int at) {
-        if (at < V && labeled.empty(at)) {
-            for (int h = at + 1; h < V && !labeled.empty(h); h++) {
-                FOR_EACH_IN_LINKED_LIST (v, h, labeled) {
-                    height[v] = V + 1;
-                    if (excess[v] > 0)
-                        active.erase(v), active.push_back(V + 1, v);
-                }
-                labeled.clear(h);
-            }
-        }
-    }
-
     template <bool sink> // 1=push phase (heights<V), 0=recover phase (heights>V)
     void global_relabel(int s, int t) {
         vector<int> new_height(V, 2 * V), bfs{sink ? t : s};
         new_height[s] = V, new_height[t] = 0;
         reverse_bfs(bfs, new_height);
         for (int u : bfs) {
-            if (height[u] != new_height[u]) {
-                height[u] = new_height[u];
-                if (excess[u] > 0)
-                    active.erase(u), active.push_back(height[u], u);
-                if (sink && 0 < height[u] && height[u] < V)
-                    labeled.erase(u), labeled.push_back(height[u], u);
+            height[u] = new_height[u];
+            if (excess[u] > 0) {
+                active.erase(u), active.push_back(height[u], u);
+            }
+            if (sink && 0 < height[u] && height[u] < V) {
+                labeled.erase(u), labeled.push_back(height[u], u);
             }
         }
     }
 
     void push(int e) {
         auto [u, v] = edge[e].node;
-        Flow df = min(excess[u], edge[e].cap - edge[e].flow);
+        Flow df = min(excess[u], FlowSum(edge[e].cap - edge[e].flow));
         assert(df > 0);
         if (excess[v] == 0) {
             active.push_back(height[v], v);
@@ -110,6 +97,7 @@ struct push_relabel {
         if (sink) {
             labeled.erase(u);
         }
+        assert(height[u] == b);
         height[u] = 2 * V;
         for (int i = 0, vsize = res[u].size(); i < vsize; i++) {
             int e = res[u][i], v = edge[e].node[1];
@@ -119,8 +107,22 @@ struct push_relabel {
             }
         }
         if (sink && height[u] < V) {
-            labeled.push_back(height[u], u);
-            gap(b);
+            if (b < V && labeled.empty(b)) { // gap heuristic
+                for (int h = b + 1; h < V && !labeled.empty(h); h++) {
+                    FOR_EACH_IN_LINKED_LIST (v, h, labeled) {
+                        height[v] = V;
+                        if (excess[v] > 0) {
+                            active.erase(v);
+                            active.push_back(V, v);
+                        }
+                    }
+                    labeled.clear(h);
+                }
+                height[u] = V;
+                active.push_back(V, u);
+            } else {
+                labeled.push_back(height[u], u);
+            }
         }
         b = height[u];
     }
@@ -154,7 +156,7 @@ struct push_relabel {
         init_bfs(s, t);
         relabel_count = 0;
 
-        excess[s] = inf;
+        excess[s] = sinf;
         for (int e : res[s]) {
             if (edge[e].cap > 0)
                 push(e);

@@ -15,7 +15,7 @@ template <typename Flow = long, typename FlowSum = Flow>
 struct tidal_flow {
     struct Edge {
         int node[2];
-        long cap, flow = 0;
+        Flow cap, flow = 0;
     };
     int V, E = 0;
     vector<vector<int>> res;
@@ -23,18 +23,19 @@ struct tidal_flow {
 
     explicit tidal_flow(int V) : V(V), res(V) {}
 
-    void add(int u, int v, Flow capacity) {
+    void add(int u, int v, Flow capacity, bool bothways = false) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0);
         res[u].push_back(E++), edge.push_back({{u, v}, capacity, 0});
-        res[v].push_back(E++), edge.push_back({{v, u}, 0, 0});
+        res[v].push_back(E++), edge.push_back({{v, u}, bothways ? capacity : 0, 0});
     }
 
     vector<int> level, edges, Q;
-    vector<FlowSum> p, h, l;
-    static constexpr FlowSum inf = numeric_limits<FlowSum>::max() / 2;
+    vector<Flow> p;
+    vector<FlowSum> h, l;
+    static constexpr FlowSum sinf = numeric_limits<FlowSum>::max() / 2;
 
     bool bfs(int s, int t) {
-        fill(begin(level), end(level), -1);
+        level.assign(V, -1);
         edges.clear();
         level[s] = 0;
         Q[0] = s;
@@ -59,10 +60,10 @@ struct tidal_flow {
 
     FlowSum tide(int s, int t) {
         fill(begin(h), end(h), 0);
-        h[s] = inf;
+        h[s] = sinf;
         for (int e : edges) {
             auto [w, v] = edge[e].node;
-            p[e] = min(edge[e].cap - edge[e].flow, h[w]);
+            p[e] = min(FlowSum(edge[e].cap - edge[e].flow), h[w]);
             h[v] = h[v] + p[e];
         }
         if (h[t] == 0) {
@@ -73,7 +74,7 @@ struct tidal_flow {
         for (auto it = edges.rbegin(); it != edges.rend(); it++) {
             int e = *it;
             auto [w, v] = edge[e].node;
-            p[e] = min(p[e], min(h[w] - l[w], l[v]));
+            p[e] = min(FlowSum(p[e]), min(h[w] - l[w], l[v]));
             l[v] -= p[e];
             l[w] += p[e];
         } // 1=push phase, 0=recover phase
@@ -81,7 +82,7 @@ struct tidal_flow {
         h[s] = l[s];
         for (auto e : edges) {
             auto [w, v] = edge[e].node;
-            p[e] = min(p[e], h[w]);
+            p[e] = min(FlowSum(p[e]), h[w]);
             h[w] -= p[e];
             h[v] += p[e];
             edge[e].flow += p[e];

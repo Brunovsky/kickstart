@@ -4,7 +4,7 @@
 #include "../hash.hpp"
 
 /**
- * Class to represent points exactly in 2d space.
+ * Class to represent points exactly in 3d space.
  * Set T to long, frac, __int128_t, double, long double, ... (avoid int due to overflow)
  * Set D to double or long double.
  * Careful with exact comparisons like u==v if T is not exact.

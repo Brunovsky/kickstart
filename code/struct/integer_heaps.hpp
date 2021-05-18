@@ -49,8 +49,10 @@ struct binary_int_heap {
     bool empty() const { return c.empty(); }
     size_t size() const { return c.size(); }
     bool contains(int u) const { return id[u] != -1; }
-    int top() const { return assert(!empty()), c[0]; }
-
+    int top() const {
+        assert(!empty());
+        return c[0];
+    }
     void push(int u) {
         assert(!contains(u));
         id[u] = c.size(), c.push_back(u);
@@ -59,7 +61,7 @@ struct binary_int_heap {
     int pop() {
         assert(!empty());
         int u = c[0];
-        swap(c[0], c.back());
+        c[0] = c.back();
         id[c[0]] = 0, id[u] = -1;
         c.pop_back();
         heapify_down(0);
@@ -140,13 +142,14 @@ struct pairing_int_heap {
     void push(int u) {
         assert(!contains(u)), u++;
         node[u].parent = -1;
-        root = empty() ? u : meld(root, u);
+        root = safe_meld(root, u);
     }
     int pop() {
         assert(!empty());
         int u = root;
         root = two_pass_pairing(u);
-        node[root].parent = -1, node[u] = node_t();
+        node[root].parent = -1;
+        node[u] = node_t();
         return u - 1;
     }
     void improve(int u) {
@@ -173,8 +176,9 @@ struct pairing_int_heap {
         } else {
             take(u);
             int v = two_pass_pairing(u);
-            root = v ? meld(root, v) : root;
-            node[root].parent = -1, node[u] = node_t();
+            root = safe_meld(root, v);
+            node[root].parent = -1;
+            node[u] = node_t();
         }
     }
     void clear() {

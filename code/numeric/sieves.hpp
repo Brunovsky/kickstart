@@ -222,7 +222,7 @@ auto pascal_sieve(int N) {
     fac[0] = fac[1] = ifac[1] = 1;
 
     for (int n = 1; n <= N; n++) {
-        fac[n] = 1LL * n * fac[n - 1];
+        fac[n] = n * fac[n - 1];
     }
     ifac[N] = fac[N].inv();
     for (int n = N; n >= 1; n--) {
