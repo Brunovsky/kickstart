@@ -4,6 +4,25 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+/**
+ * A tree containing a collection of non-empty intervals between an unspecified range
+ * All intervals are left-inclusive and right-exclusive; if T is an integral type,
+ * single integer intervals look like [n,n+1); if T is a floating point type this does not
+ * matter much, but there is no epsilon handling so there is a potential for very small
+ * intervals to appear.
+ *
+ * Let N be the number of existing intervals.
+ * You can insert() an interval I, and it will be merged with overlapping ones.
+ * 	 Complexity: O(I log N), I=#inserted intervals. O(log N) amortized.
+ *
+ * You can exclude() an interval I, which will erase any existing intervals contained in
+ * it and splice any intervals otherwise overlapping I (at most 2).
+ *   Complexity: O(E log N), E=#deleted intervals. O(log N) amortized.
+ *
+ * You can toggle() and interval I, which will splice overlapping intervals (at most 2)
+ * and intuitively "toggle" all of the numbers inside I and its containing intervals.
+ *   Complexity: O(T log N), T=#toggled intervals. N increases by at most 1.
+ */
 template <typename T>
 struct merging_interval_tree {
     using interval_t = array<T, 2>;
@@ -35,19 +54,60 @@ struct merging_interval_tree {
 
     void exclude(interval_t intv) {
         assert(intv[0] < intv[1]);
-        vector<interval_t> backin;
+        vector<interval_t> out;
         // Lower bound
         auto lo = tree.lower_bound({intv[0], intv[0]});
         if (lo != tree.begin() && (*prev(lo))[1] >= intv[0]) {
-            backin.push_back({(*--lo)[0], intv[0]});
+            out.push_back({(*--lo)[0], intv[0]});
         }
         // Upper bound
         auto hi = tree.lower_bound({intv[1], intv[1]});
         if (hi != tree.begin() && (*prev(hi))[1] > intv[1]) {
-            backin.push_back({intv[1], (*prev(hi))[1]});
+            out.push_back({intv[1], (*prev(hi))[1]});
         }
         tree.erase(lo, hi);
-        tree.insert(backin.begin(), backin.end());
+        tree.insert(out.begin(), out.end());
+    }
+
+    void toggle(interval_t intv) {
+        assert(intv[0] < intv[1]);
+        vector<interval_t> out, in;
+        // Lower bound
+        auto lo = tree.lower_bound({intv[0], intv[0]});
+        if (lo != tree.begin() && (*prev(lo))[1] >= intv[0]) {
+            out.push_back({(*--lo)[0], intv[0]});
+        }
+        // Upper bound
+        auto hi = tree.lower_bound({intv[1], intv[1]});
+        if (hi != tree.begin() && (*prev(hi))[1] > intv[1]) {
+            out.push_back({intv[1], (*prev(hi))[1]});
+        } else if (hi != tree.end() && (*hi)[0] <= intv[1]) {
+            out.push_back({intv[1], (*hi++)[1]});
+        }
+        // Generate intermediate intervals
+        T cur = intv[0];
+        for (auto it = lo; it != hi; ++it) {
+            auto [a, b] = *it;
+            if (cur < a) {
+                in.push_back({cur, a});
+            }
+            cur = max(cur, b);
+        }
+        if (cur < intv[1]) {
+            in.push_back({cur, intv[1]});
+        }
+        int s = out.size(), t = in.size();
+        if (s && t && out[0][0] <= in[0][0] && in[0][0] <= out[0][1]) {
+            in[0][0] = min(in[0][0], out[0][0]);
+            out.erase(out.begin()), s--;
+        }
+        if (s && t && out[s - 1][0] <= in[t - 1][1] && in[t - 1][1] <= out[s - 1][1]) {
+            in[t - 1][1] = max(in[t - 1][1], out[s - 1][1]);
+            out.erase(out.begin() + (s - 1));
+        }
+        tree.erase(lo, hi);
+        tree.insert(out.begin(), out.end());
+        tree.insert(in.begin(), in.end());
     }
 
     bool contains(T num) {
