@@ -70,16 +70,15 @@ auto make_actions(int N, int T, const int arr[END]) {
     longd deltad(mind, maxd);
 
     slow_tree slow(N);
-    vector<int> ratio(arr, arr + END);
     vector<int> occurrences(END);
-    action_selector<UnrootedActionType> selector(ratio);
+    discrete_distribution<int> selector(arr, arr + END);
 
     vector<UnrootedAction> history;
     size_t Ssum = 0, iterations = 0;
 
     while (int(history.size()) < T) {
         print_progress(history.size(), T, format("preparing history (S={})...", slow.S));
-        auto action = selector.select();
+        auto action = selector(mt);
         occurrences[action]++, iterations++;
 
         switch (action) {

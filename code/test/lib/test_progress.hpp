@@ -5,8 +5,8 @@
 #include "../../formatting.hpp"
 
 bool cout_is_terminal() {
-    static int ans = -1;
-    return ans < 0 ? (ans = isatty(STDOUT_FILENO)) : ans;
+    static int is = -1;
+    return is < 0 ? (is = isatty(STDOUT_FILENO)) : is;
 }
 
 void clear_line() { cout_is_terminal() ? print("\r\033[2K") : (void)fflush(stdout); }
