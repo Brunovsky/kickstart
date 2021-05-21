@@ -1,1 +1,1 @@
-../templates/cpp-interactive/Makefile
+../../../common/cxx.make
