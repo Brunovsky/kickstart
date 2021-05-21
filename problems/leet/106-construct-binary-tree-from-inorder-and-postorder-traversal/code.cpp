@@ -22,7 +22,6 @@ class Solution {
     TreeNode *root = new TreeNode(postorder[pe]);
     int ir = find(begin(inorder) + ib, begin(inorder) + ie, root->val) - begin(inorder);
     int lsize = ir - ib;
-    int rsize = ie - ir;
     root->left = build(inorder, postorder, ib, ir - 1, pb, pb + lsize - 1);
     root->right = build(inorder, postorder, ir + 1, ie, pb + lsize, pe - 1);
     return root;

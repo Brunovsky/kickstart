@@ -14,7 +14,7 @@ public:
     }
 
     int T = t.size();
-    int c = 0, r = 0;
+    int c = 0;
     vector<int> P(T, 0);
 
     for (int i = 0; i < T; i++) {

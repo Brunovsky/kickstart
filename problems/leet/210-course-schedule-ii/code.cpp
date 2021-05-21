@@ -38,7 +38,7 @@ public:
       }
     }
 
-    if (ans.size() != N) {
+    if (int(ans.size()) != N) {
       ans.clear();
     }
     return ans;
