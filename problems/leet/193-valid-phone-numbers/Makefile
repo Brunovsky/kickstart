@@ -1,1 +1,1 @@
-../templates/shell/Makefile
+../../../common/cxx.make
