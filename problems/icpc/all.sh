@@ -2,8 +2,7 @@
 
 set -eu
 
-ls -1Fv | grep -Eve 'template.*/' | grep -Ee '.+/' | while read -r folder; do
-	folder="${folder%/}"
+for folder in 20*; do
 	echo "$*    $folder"
-	cd "$folder" && "$@" ; cd ..
+	cd "$folder" ; "$@" ; cd ..
 done
