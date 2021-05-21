@@ -12,6 +12,8 @@ using namespace std;
  * such that dist[idx[0]], dist[idx[1]]... is sorted.
  */
 
+inline namespace outline_radix_sort {
+
 template <int B = 6>
 void radix_sort_idx(int* idx, int* cnt, int N, int d, const vector<long>& dist) {
     const int s = B * d, P = 1 << B, mask = P - 1;
@@ -105,9 +107,13 @@ void lsb_radix_sort_idx(vector<int>& idx, const vector<long>& dist) {
     }
 }
 
+} // namespace outline_radix_sort
+
 /**
  * Inplace vector radix sort for positive integers (int, long, uint, ulong)
  */
+
+inline namespace inline_radix_sort {
 
 template <int B = 6, typename I>
 void radix_sort_run(I* out, I* in, int* cnt, int N, int d) {
@@ -186,5 +192,7 @@ void lsb_radix_sort(vector<I>& v) {
         radix_sort_run<B>(v.data(), buf.data(), cnt, N, d);
     }
 }
+
+} // namespace inline_radix_sort
 
 #endif // SORT_HPP

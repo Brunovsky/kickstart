@@ -6,12 +6,11 @@
 using namespace std;
 
 /**
- * Based on
- * https://github.com/kth-competitive-programming/kactl/blob/master/content/graph/2sat.h
- *
- * Solves 2-SAT in linear time and finds strongly connected components.
+ * Solve 2-SAT in linear time and find strongly connected components.
  *
  * Complexity: O(N)
+ * Reference: kactl
+ *
  * Usage:
  *   twosat_scc sat(N);                     N variables, [0,N)
  *   sat.set(3);                            Set variable 3 to true

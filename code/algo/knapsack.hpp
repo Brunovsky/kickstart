@@ -119,7 +119,7 @@ auto repeated_knapsack(int cap, const vector<int>& weight, const vector<int>& va
         quantity[pred[w]]++;
         w -= weight[pred[w]];
     }
-    return pair<int, vector<int>>{total, quantity};
+    return make_pair(total, quantity);
 }
 
 /**
@@ -148,7 +148,7 @@ auto unit_knapsack(int cap, const vector<int>& weight, const vector<int>& value)
             w -= weight[i];
         }
     }
-    return pair<int, vector<bool>>{total, quantity};
+    return make_pair(total, quantity);
 }
 
 #endif // KNAPSACK_HPP
