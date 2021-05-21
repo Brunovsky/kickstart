@@ -73,7 +73,7 @@ struct mincost_edmonds_karp {
         return path;
     }
 
-    pair<FlowSum, CostSum> mincost_flow(int s, int t, FlowSum F = flowsuminf) {
+    auto mincost_flow(int s, int t, FlowSum F = flowsuminf) {
         pi.assign(V, 0);
         heap = pairing_int_heap<less_container<vector<CostSum>>>(V, dist);
 
@@ -94,7 +94,7 @@ struct mincost_edmonds_karp {
         for (int e = 0; e < E; e += 2) {
             scost += FlowSum(edge[e].flow) * CostSum(edge[e].cost);
         }
-        return {sflow, scost};
+        return make_pair(sflow, scost);
     }
 
     void clear_flow() {

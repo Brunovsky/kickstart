@@ -1,6 +1,28 @@
 #include "test_utils.hpp"
 #include "../struct/integer_trees.hpp"
 
+inline namespace detail {
+
+template <typename T>
+bool verify(const merging_interval_tree<T>& mit) {
+    if (!mit.empty()) {
+        auto [lo, hi] = *mit.begin();
+        if (lo >= hi) {
+            return false;
+        }
+        for (auto it = next(mit.begin()); it != mit.end(); ++it) {
+            auto [nlo, nhi] = *it;
+            if (hi >= nlo || nlo >= nhi) {
+                return false;
+            }
+            tie(lo, hi) = make_pair(nlo, nhi);
+        }
+    }
+    return true;
+}
+
+} // namespace detail
+
 inline namespace unit_testing_interval_tree {
 
 void unit_test_merging_interval_tree() {
@@ -120,10 +142,7 @@ void stress_test_merging_interval_tree(int T = 300'000, int N = 100'000, int k =
             abort();
         }
 
-        if (!tree.verify()) {
-            print("tree: {}\n", tree);
-        }
-        assert(tree.verify());
+        assert(verify(tree));
     }
 }
 

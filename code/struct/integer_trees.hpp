@@ -129,24 +129,8 @@ struct merging_interval_tree {
         return sum;
     }
 
+    bool empty() const { return tree.empty(); }
     int size() const { return tree.size(); }
-
-    bool verify() const {
-        if (!tree.empty()) {
-            auto [lo, hi] = *tree.begin();
-            if (lo >= hi) {
-                return false;
-            }
-            for (auto it = next(tree.begin()); it != tree.end(); ++it) {
-                auto [nlo, nhi] = *it;
-                if (hi >= nlo || nlo >= nhi) {
-                    return false;
-                }
-                tie(lo, hi) = make_pair(nlo, nhi);
-            }
-        }
-        return true;
-    }
 
     auto begin() const { return tree.begin(); }
     auto end() const { return tree.end(); }

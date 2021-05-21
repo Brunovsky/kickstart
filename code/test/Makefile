@@ -1,8 +1,4 @@
-# Compiler, gcc or clang
-COMPILER := clang
-CC := clang++
-CPP_STANDARD := c++17
-EXTRA_CXXFLAGS := -lfmt
+include ../../common/cxxcore.make
 
 BIN_DIR := ./bin
 DEP_DIR := ./dep
@@ -13,7 +9,6 @@ CXX_FILES := $(filter-out $(FILE), $(CXX_FILES))
 EXE_FILES := $(CXX_FILES:%.cpp=${BIN_DIR}/%)
 DEP_FILES := $(CXX_FILES:%.cpp=${DEP_DIR}/%.d)
 
-include ../../common/cxx.make
 -include $(DEP_FILES)
 DEBUG += $(SANIT)
 

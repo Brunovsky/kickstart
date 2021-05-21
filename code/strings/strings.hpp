@@ -24,7 +24,7 @@ auto build_cyclic_shifts(const Vec& s, int A, T first) {
         return vector<int>{};
 
     int C = 0, S = 1; // #classes - 1, sorted width
-    vector<int> cnt(max(A, N), 0), sa(N, 0), clazz(N, 0), pn(N, 0), clazzn(N, 0);
+    vector<int> cnt(max(A, N), 0), sa(N, 0), clazz(N, 0), perm(N, 0), clazzn(N, 0);
 
     for (int i = 0; i < N; i++)
         cnt[s[i] - first]++;
@@ -37,24 +37,27 @@ auto build_cyclic_shifts(const Vec& s, int A, T first) {
 
     while (S < N) {
         for (int i = 0; i < N; i++)
-            pn[i] = sa[i] - S, pn[i] += pn[i] < 0 ? N : 0;
+            perm[i] = sa[i] - S, perm[i] += perm[i] < 0 ? N : 0;
         for (int c = 0; c <= C; c++)
             cnt[c] = 0;
         for (int i = 0; i < N; i++)
-            cnt[clazz[pn[i]]]++;
+            cnt[clazz[perm[i]]]++;
         for (int a = 1; a <= C; a++)
             cnt[a] += cnt[a - 1];
         for (int i = N - 1; i >= 0; i--) // backwards for stable sort
-            sa[--cnt[clazz[pn[i]]]] = pn[i];
+            sa[--cnt[clazz[perm[i]]]] = perm[i];
 
         if (2 * S >= N)
             break;
 
         clazzn[sa[0]] = C = 0;
         for (int i = 1; i < N; i++) {
-            int j = sa[i] + S, k = sa[i - 1] + S;
-            j -= j >= N ? N : 0, k -= k >= N ? N : 0;
-            clazzn[sa[i]] = C += clazz[k] != clazz[j] || clazz[sa[i]] != clazz[sa[i - 1]];
+            int j = sa[i] + S;
+            int k = sa[i - 1] + S;
+            j -= j >= N ? N : 0;
+            k -= k >= N ? N : 0;
+            C += clazz[k] != clazz[j] || clazz[sa[i]] != clazz[sa[i - 1]];
+            clazzn[sa[i]] = C;
         }
         swap(clazz, clazzn);
         S *= 2;
@@ -78,10 +81,15 @@ auto build_lcp_array(const Vec& s, const vector<int>& sa) {
     }
     for (int i = 0, len = 0; i < N; lcp[rank[i++]] = len, len && len--) {
         if (rank[i] + 1 < N) {
-            int j = sa[rank[i] + 1] + len, k = i + len;
-            j -= j >= N ? N : 0, k -= k >= N ? N : 0;
-            while (len < N && s[j] == s[k])
-                len++, j++, k++, j -= j >= N ? N : 0, k -= k >= N ? N : 0;
+            int j = sa[rank[i] + 1] + len;
+            int k = i + len;
+            j -= j >= N ? N : 0;
+            k -= k >= N ? N : 0;
+            while (len < N && s[j] == s[k]) {
+                len++, j++, k++;
+                j -= j >= N ? N : 0;
+                k -= k >= N ? N : 0;
+            }
         }
     }
     if (N > 0) {

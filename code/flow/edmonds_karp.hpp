@@ -28,7 +28,7 @@ struct edmonds_karp {
     }
 
     vector<int> pred, Q;
-    static constexpr Flow finf = numeric_limits<Flow>::max();
+    static constexpr Flow flow_inf = numeric_limits<Flow>::max();
 
     bool bfs(int s, int t) {
         pred.assign(V, -1);
@@ -50,7 +50,7 @@ struct edmonds_karp {
     }
 
     Flow augment(int t) {
-        Flow aug_flow = finf;
+        Flow aug_flow = flow_inf;
         for (int e = pred[t]; e != -1; e = pred[edge[e].node[0]]) {
             aug_flow = min(aug_flow, edge[e].cap - edge[e].flow);
         }
@@ -62,7 +62,6 @@ struct edmonds_karp {
     }
 
     FlowSum maxflow(int s, int t) {
-        pred.resize(V);
         Q.resize(V);
         FlowSum max_flow = 0;
         while (bfs(s, t)) {

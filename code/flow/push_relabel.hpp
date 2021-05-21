@@ -30,7 +30,7 @@ struct push_relabel {
     vector<FlowSum> excess;
     linked_lists active, labeled;
     int relabel_count, b; // current bucket (height)
-    static constexpr FlowSum sinf = numeric_limits<FlowSum>::max() / 2;
+    static constexpr FlowSum flowsuminf = numeric_limits<FlowSum>::max() / 2;
 
     int global_relabel_threshold() const {
         return 1 + 5 * int(ceil(log2(E + 1) / log2(V + 1) * V));
@@ -156,7 +156,7 @@ struct push_relabel {
         init_bfs(s, t);
         relabel_count = 0;
 
-        excess[s] = sinf;
+        excess[s] = flowsuminf;
         for (int e : res[s]) {
             if (edge[e].cap > 0)
                 push(e);

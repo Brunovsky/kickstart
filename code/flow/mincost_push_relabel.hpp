@@ -11,9 +11,10 @@
  *
  * Uses push_relabel from maximum_flow.hpp for feasibility checking.
  * The initial maxflow computation is not required.
+ * The costs should be such that (V+1)C can be represented by Cost.
  */
-template <typename Flow = long, typename Cost = long, typename FlowSum = Flow,
-          typename CostSum = Cost>
+template <typename Flow = long, typename Cost = long, //
+          typename FlowSum = Flow, typename CostSum = Cost>
 struct mincost_push_relabel {
     struct Edge {
         int node[2];
@@ -25,7 +26,7 @@ struct mincost_push_relabel {
     vector<Edge> edge;
     vector<FlowSum> supply;
 
-    explicit mincost_push_relabel(int V = 0) : V(V), res(V) {}
+    explicit mincost_push_relabel(int V = 0) : V(V), res(V), supply(V) {}
     mincost_push_relabel(int V, vector<FlowSum> sup) : V(V), res(V), supply(move(sup)) {}
 
     void add(int u, int v, Flow capacity, Cost cost) {
@@ -81,7 +82,7 @@ struct mincost_push_relabel {
     vector<int> arc;
     queue<int> active;
     Cost epsilon = 0; // scaling
-    static inline constexpr CostSum cninf = numeric_limits<CostSum>::min() / 3;
+    static inline constexpr CostSum costsumninf = numeric_limits<CostSum>::min() / 3;
 
     CostSum reduced_cost(int e) const {
         auto [u, v] = edge[e].node;
@@ -118,7 +119,7 @@ struct mincost_push_relabel {
 
     void relabel(int u) {
         auto good = pi[u] - epsilon;
-        auto pmax = cninf;
+        auto pmax = costsumninf;
         int vsize = res[u].size();
         for (int i = 0; i < vsize; i++) {
             int e = res[u][i], v = edge[e].node[1];
@@ -133,7 +134,7 @@ struct mincost_push_relabel {
                 }
             }
         }
-        assert(pmax > cninf); // oops, infeasible!
+        assert(pmax > costsumninf); // oops, infeasible!
         pi[u] = pmax - epsilon;
         arc[u] = 0;
     }

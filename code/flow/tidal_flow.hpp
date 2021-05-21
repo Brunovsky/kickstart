@@ -9,7 +9,7 @@ using namespace std;
  * Simple tidal flow algorithm
  * Complexity: O(V E^2)
  * Based on "Tidal Flow: A Fast and Teachable Maximum Flow Algorithm" by Fontaine, M.C.
- * Slower than push-relabel, comparable to dinitz
+ * Faster than dinitz and comparable to push-relabel on random graphs
  */
 template <typename Flow = long, typename FlowSum = Flow>
 struct tidal_flow {
@@ -32,7 +32,7 @@ struct tidal_flow {
     vector<int> level, edges, Q;
     vector<Flow> p;
     vector<FlowSum> h, l;
-    static constexpr FlowSum sinf = numeric_limits<FlowSum>::max() / 2;
+    static constexpr FlowSum flowsuminf = numeric_limits<FlowSum>::max() / 2;
 
     bool bfs(int s, int t) {
         level.assign(V, -1);
@@ -60,7 +60,7 @@ struct tidal_flow {
 
     FlowSum tide(int s, int t) {
         fill(begin(h), end(h), 0);
-        h[s] = sinf;
+        h[s] = flowsuminf;
         for (int e : edges) {
             auto [w, v] = edge[e].node;
             p[e] = min(FlowSum(edge[e].cap - edge[e].flow), h[w]);
@@ -92,7 +92,6 @@ struct tidal_flow {
     }
 
     FlowSum maxflow(int s, int t) {
-        level.assign(V, 0);
         h.assign(V, 0);
         l.assign(V, 0);
         p.assign(E, 0);

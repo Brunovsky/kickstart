@@ -28,7 +28,7 @@ struct dinitz_flow {
     }
 
     vector<int> level, arc, Q;
-    static constexpr Flow finf = numeric_limits<Flow>::max() / 2;
+    static constexpr Flow flowinf = numeric_limits<Flow>::max() / 2;
 
     bool bfs(int s, int t) {
         level.assign(V, -1);
@@ -71,12 +71,11 @@ struct dinitz_flow {
     }
 
     FlowSum maxflow(int s, int t) {
-        level.assign(V, 0);
         arc.assign(V, 0);
         Q.resize(V);
         FlowSum max_flow = 0;
         while (bfs(s, t)) {
-            max_flow += dfs(s, t, finf);
+            max_flow += dfs(s, t, flowinf);
             fill(begin(arc), end(arc), 0);
         }
         return max_flow;
