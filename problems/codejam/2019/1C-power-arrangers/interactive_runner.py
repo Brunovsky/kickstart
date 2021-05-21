@@ -1,1 +1,0 @@
-../../templates/cpp-interactive/interactive_runner.py

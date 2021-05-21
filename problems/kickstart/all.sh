@@ -2,8 +2,7 @@
 
 set -eu
 
-for folder in 20*/*/; do
-	folder="${folder%/}"
+for folder in 20*; do
 	echo "$*    $folder"
-	cd "$folder" && "$@" ; cd ../..
+	cd "$folder" ; "$@" ; cd ..
 done

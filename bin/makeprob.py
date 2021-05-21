@@ -30,7 +30,7 @@ def read_name():
         print(f"Bad input name: {name}")
         return read_name()
     foldername = re.sub('[^a-zA-Z0-9-\+]+', '', name.lower().replace(' ', '-'))
-    return foldername
+    return name, foldername
 
 
 def get_repo_root():
@@ -47,7 +47,7 @@ def get_repo_root():
 
 def makeprob():
     which = read_which()
-    folder = read_name()
+    name, folder = read_name()
     print(f"Problem folder: {folder}")
 
     root = get_repo_root()
