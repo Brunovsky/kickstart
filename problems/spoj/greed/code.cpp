@@ -281,12 +281,10 @@ struct mincost_edmonds_karp {
 
     explicit mincost_edmonds_karp(int V) : V(V), res(V) {}
 
-    void add(int u, int v, Flow capacity, Cost cost, bool bothways = false) {
+    void add(int u, int v, Flow capacity, Cost cost) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0 && cost >= 0);
-        Flow rcapacity = bothways ? capacity : 0;
-        Cost rcost = bothways ? cost : -cost;
         res[u].push_back(E++), edge.push_back({{u, v}, capacity, 0, cost});
-        res[v].push_back(E++), edge.push_back({{v, u}, rcapacity, 0, 0});
+        res[v].push_back(E++), edge.push_back({{v, u}, 0, 0, 0});
     }
 
     vector<CostSum> dist, pi;
@@ -399,14 +397,15 @@ auto solve_mincost_flow() {
 
     for (int u = 0; u < V; u++) {
         if (cnt[u] > 0) {
-            mcf.add(s, u, cnt[u], 0, false);
+            mcf.add(s, u, cnt[u], 0);
         }
         for (int v : adj[u]) {
             if (u < v) {
-                mcf.add(u, v, V, 1, true);
+                mcf.add(u, v, V, 1);
+                mcf.add(v, u, V, 1);
             }
         }
-        mcf.add(u, t, 1, 0, false);
+        mcf.add(u, t, 1, 0);
     }
 
     auto [sflow, scost] = mcf.mincost_flow(s, t, V);
