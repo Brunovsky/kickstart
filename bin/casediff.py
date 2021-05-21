@@ -11,7 +11,6 @@
 # they have the same number of lines and each of their corresponding lines is equal
 # (--equal-body, the default).
 # Lines can be compared byte-by-byte (like diff), token-by-token or numerically.
-#
 
 import sys
 import re
@@ -50,7 +49,8 @@ class CasediffErrors:
               file=sys.stderr)
 
     def no_cases_warn(file_a, file_b):
-        print("casediff: no cases found in either {} or {}".format(file_a, file_b),
+        print("casediff: no cases found in either {} or {}".format(
+            file_a, file_b),
               file=sys.stderr)
 
 
@@ -207,14 +207,15 @@ def read_cases(file, pattern):
     try:
         with open(file, "r") as f:
             for lineno, line in enumerate(f):
-                line = line[:-1] if len(line) > 0 and line[-1] == '\n' else line
+                line = line[:-1] if len(
+                    line) > 0 and line[-1] == '\n' else line
                 match = pattern.match(line)
                 if match:
                     caseno += 1
                     actual_caseno = int(match.group(1))
                     if actual_caseno != caseno:
-                        CasediffErrors.wrong_caseno_error(file, lineno, actual_caseno,
-                                                          caseno)
+                        CasediffErrors.wrong_caseno_error(
+                            file, lineno, actual_caseno, caseno)
                     prefix_len = len(match[0])
                     bodies.append([line])
                     headers.append(line[prefix_len:])
@@ -370,7 +371,8 @@ def equal_cases(a, b, opts):
         return equal_lines(a_header, b_header, opts)
     else:
         return len(alines) == len(blines) and all(
-            equal_lines(aline, bline, opts) for aline, bline in zip(alines, blines))
+            equal_lines(aline, bline, opts)
+            for aline, bline in zip(alines, blines))
 
 
 def make_case_difflines(caseno, a, b, opts):
@@ -378,7 +380,10 @@ def make_case_difflines(caseno, a, b, opts):
     _, blines, blineno = b
     n, m = min(len(alines), len(blines)), max(len(alines), len(blines))
 
-    eqs = [equal_lines(aline, bline, opts) for aline, bline in zip(alines, blines)]
+    eqs = [
+        equal_lines(aline, bline, opts)
+        for aline, bline in zip(alines, blines)
+    ]
 
     diffs = [
         Diffline(caseno, i, (alineno, blineno), (aline, bline),
@@ -409,7 +414,9 @@ def print_difflines(diffs, opts):
     if len(diffs) == 0:
         return
 
-    lineno_align = [max(len(str(diff.lineno[s])) for diff in diffs) for s in range(2)]
+    lineno_align = [
+        max(len(str(diff.lineno[s])) for diff in diffs) for s in range(2)
+    ]
     text_align = [max(diff.width[0] for diff in diffs), 0]
     pad = " " * (lineno_align[0] + 2 + text_align[0])
     total_len = sum(lineno_align) + sum(text_align) + 4
@@ -417,8 +424,8 @@ def print_difflines(diffs, opts):
 
     def build(diff, s):
         spaces = text_align[s] - diff.width[s]
-        return "{:>{}}: {}{}".format(diff.lineno[s], lineno_align[s], diff.diff[s],
-                                     " " * spaces)
+        return "{:>{}}: {}{}".format(diff.lineno[s], lineno_align[s],
+                                     diff.diff[s], " " * spaces)
 
     if opts.sidebyside and total_len <= WRAP_LENGTH - 6:
         for diff in diffs:
