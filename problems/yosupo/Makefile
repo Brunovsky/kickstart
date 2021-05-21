@@ -1,9 +1,0 @@
-.PHONY: new cpp formatall
-
-new: cpp
-
-cpp:
-	@./yosupo.py cpp
-
-cpp-interactive:
-	@./yosupo.py cpp-interactive
