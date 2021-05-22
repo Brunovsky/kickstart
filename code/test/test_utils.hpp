@@ -1,9 +1,9 @@
 #ifndef TEST_UTILS_HPP
 #define TEST_UTILS_HPP
 
-#include "../random.hpp"
 #include "lib/test_chrono.hpp"
 #include "lib/test_progress.hpp"
+#include "../random.hpp"
 
 template <typename Container>
 bool all_eq(const Container& v) {

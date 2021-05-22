@@ -1,9 +1,8 @@
 #ifndef RANDOM_HPP
 #define RANDOM_HPP
 
-#include <bits/stdc++.h>
-
-using namespace std;
+#include "hash.hpp"
+#include "algo/sort.hpp"
 
 // *****
 
@@ -14,6 +13,9 @@ using longd = uniform_int_distribution<long>;
 using ulongd = uniform_int_distribution<size_t>;
 using reald = uniform_real_distribution<double>;
 using binomd = binomial_distribution<long>;
+using geod = geometric_distribution<int>;
+using intnd = normal_distribution<int>;
+using longnd = normal_distribution<long>;
 using boold = bernoulli_distribution;
 
 using edge_t = array<int, 2>;
@@ -54,52 +56,116 @@ void fisher_yates(vector<T>& univ, int k = -1) {
     }
 }
 
+template <typename T>
+void reservoir_sample_inplace(vector<T>& univ, int k) {
+    int N = univ.size();
+    assert(k <= N);
+    for (int i = k; i < N; i++) {
+        intd dist(0, i);
+        int j = dist(mt);
+        if (j < k) {
+            univ[j] = univ[i];
+        }
+    }
+    univ.resize(k);
+}
+
 /**
  * Generate a sorted sample of k distinct integers from the range [a..b)
  * It must hold that a <= b and k <= n = b - a.
  * Complexity: O(k log k) with E[mt] <= 3k.
  */
-vector<int> int_sample(long k, int a, int b, bool complement = false) {
-    if ((k == 0 && !complement) || a >= b)
+template <typename T = int, typename I>
+vector<T> int_sample(int k, I a, I b) {
+    assert(k <= 500'000'000); // don't try anything crazy
+    if (k == 0 || a >= b)
         return {};
 
-    long ab = b - a, remaining = k;
-    assert(ab >= 0 && 0 <= k && k <= ab);
-    if (3 * k >= 2 * ab) {
-        return int_sample(ab - k, a, b, !complement);
+    using sample_t = vector<T>;
+    long univ = b - a;
+    assert(univ >= 0 && 0 <= k && k <= univ);
+
+    // 1/5 One sample -- sample any
+    if (k == 1) {
+        uniform_int_distribution<I> distn(a, b - 1);
+        sample_t sample = {distn(mt)};
+        return sample;
     }
 
-    intd dist(a, b - 1);
-    unordered_set<int> seen;
-    seen.reserve(k);
-    while (remaining--) {
-        int n;
+    // 2/5 Full sample -- run iota
+    if (k == univ) {
+        sample_t whole(univ);
+        iota(begin(whole), end(whole), a);
+        return whole;
+    }
+
+    // 3/5 Majority sample: run negative bitset sampling
+    if (k >= univ / 2) {
+        vector<bool> unsampled(univ, false);
+        int included = univ;
+        intd disti(0, univ - 1);
+        while (included > k) {
+            int i = disti(mt);
+            included -= !unsampled[i];
+            unsampled[i] = true;
+        }
+        sample_t sample(k);
+        for (int i = 0, n = 0; i < k; n++) {
+            if (!unsampled[n]) {
+                sample[i++] = a + n;
+            }
+        }
+        return sample;
+    }
+
+    // 4/5 Large minority sample: run positive bitset sampling
+    if (k >= univ / 12) {
+        vector<bool> sampled(univ, false);
+        int included = 0;
+        intd disti(0, univ - 1);
+        while (included < k) {
+            int i = disti(mt);
+            included += !sampled[i];
+            sampled[i] = true;
+        }
+        sample_t sample(k);
+        for (int i = 0, n = 0; i < k; n++) {
+            if (sampled[n]) {
+                sample[i++] = a + n;
+            }
+        }
+        return sample;
+    }
+
+    // 5/5 Large sample: run repeated sampling
+    sample_t sample(k);
+    uniform_int_distribution<I> dist(a, b - 1);
+    for (int i = 0; i < k; i++) {
+        sample[i] = dist(mt);
+    }
+    sort(begin(sample), end(sample));
+    int S = unique(begin(sample), end(sample)) - begin(sample);
+    while (S < k) {
+        int M = S;
         do {
-            n = dist(mt);
-        } while (seen.count(n));
-        seen.insert(n);
-    }
+            for (int i = M; i < k; i++) {
+                sample[i] = dist(mt);
+            }
+            sort(begin(sample) + M, end(sample));
+            inplace_merge(begin(sample) + S, begin(sample) + M, end(sample));
+            M = unique(begin(sample) + S, end(sample)) - begin(sample);
+        } while (M < k);
 
-    vector<int> sample;
-    sample.reserve(seen.size());
-    if (complement) {
-        for (int n = a; n < b; n++)
-            if (!seen.count(n))
-                sample.push_back(n);
-    } else if (3 * k >= ab) {
-        for (int n = a; n < b; n++)
-            if (seen.count(n))
-                sample.push_back(n);
-    } else {
-        copy(begin(seen), end(seen), back_inserter(sample));
-        sort(begin(sample), end(sample));
+        inplace_merge(begin(sample), begin(sample) + S, end(sample));
+        S = unique(begin(sample), end(sample)) - begin(sample);
     }
     return sample;
 }
 
-auto int_sample_p(double p, int a, int b) {
+template <typename T = int, typename I>
+auto int_sample_p(double p, I a, I b) {
     long ab = b - a;
-    return int_sample(binomd(ab, min(p, 1.0))(mt), a, b);
+    return int_sample<T>(binomd(ab, min(p, 1.0))(mt), a, b);
 }
 
 /**
@@ -108,52 +174,113 @@ auto int_sample_p(double p, int a, int b) {
  * It must hold that a <= b and k <= (n choose 2) where n = b - a.
  * Complexity: O(k log k) with E[mt] <= 6k.
  */
-edges_t choose_sample(long k, int a, int b, bool complement = false) {
-    if ((k == 0 && !complement) || a >= b - 1)
+template <typename T = int, typename I>
+vector<array<T, 2>> choose_sample(int k, I a, I b) {
+    if (k == 0 || a >= b - 1)
         return {};
 
-    static_assert(sizeof(int) == 4);
-    long ab = 1L * (b - a) * (b - a - 1) / 2, remaining = k;
-    assert(ab >= 0 && 0 <= k && k <= ab);
-    if (3 * k >= 2 * ab) {
-        return choose_sample(ab - k, a, b, !complement);
+    using sample_t = vector<array<T, 2>>;
+    long univ = 1L * (b - a) * (b - a - 1) / 2;
+    assert(univ >= 0 && 0 <= k && k <= univ);
+
+    // 1/5 One sample -- sample any
+    if (k == 1) {
+        uniform_int_distribution<I> distx(a, b - 1), disty(a, b - 2);
+        I x = distx(mt), y = disty(mt);
+        tie(x, y) = minmax(x + 0, y + (y >= x));
+        sample_t sample = {{x, y}};
+        return sample;
     }
 
-    intd distx(a, b - 1), disty(a, b - 2);
-    unordered_set<long> seen;
-    seen.reserve(k);
-    while (remaining--) {
-        int x, y;
+    // 2/5 Full sample -- run iota
+    if (k == univ) {
+        sample_t whole(univ);
+        int i = 0;
+        for (I x = a; x < b; x++) {
+            for (I y = x + 1; y < b; y++) {
+                whole[i++] = {x, y};
+            }
+        }
+        return whole;
+    }
+
+    // 3/5 Majority sample: run negative bitset sampling
+    if (k >= univ / 2) {
+        vector<bool> unsampled(univ, false);
+        int included = univ;
+        intd disti(0, univ - 1);
+        while (included > k) {
+            int i = disti(mt);
+            included -= !unsampled[i];
+            unsampled[i] = true;
+        }
+        sample_t sample(k);
+        I x = a, y = a + 1;
+        for (int i = 0, n = 0; i < k; n++) {
+            if (!unsampled[n]) {
+                sample[i++] = {x, y};
+            }
+            tie(x, y) = y == b - 1 ? make_pair(x + 1, x + 2) : make_pair(x, y + 1);
+        }
+        return sample;
+    }
+
+    // 4/5 Large minority sample: run positive bitset sampling
+    if (k >= univ / 24) {
+        vector<bool> sampled(univ, false);
+        int included = 0;
+        intd disti(0, univ - 1);
+        while (included < k) {
+            int i = disti(mt);
+            included += !sampled[i];
+            sampled[i] = true;
+        }
+        sample_t sample(k);
+        I x = a, y = a + 1;
+        for (int i = 0, n = 0; i < k; n++) {
+            if (sampled[n]) {
+                sample[i++] = {x, y};
+            }
+            tie(x, y) = y == b - 1 ? make_pair(x + 1, x + 2) : make_pair(x, y + 1);
+        }
+        return sample;
+    }
+
+    // 5/5 Large sample: run repeated sampling
+    sample_t sample(k);
+    uniform_int_distribution<I> distx(a, b - 1), disty(a, b - 2);
+    for (int i = 0; i < k; i++) {
+        I x = distx(mt), y = disty(mt);
+        tie(x, y) = minmax(x + 0, y + (y >= x));
+        assert(x < y);
+        sample[i] = {x, y};
+    }
+    sort(begin(sample), end(sample));
+    int S = unique(begin(sample), end(sample)) - begin(sample);
+    while (S < k) {
+        int M = S;
         do {
-            x = distx(mt), y = disty(mt), tie(x, y) = minmax(x, y + (y >= x));
-        } while (seen.count(long(x) << 32 | y));
-        seen.insert(long(x) << 32 | y);
-    }
+            for (int i = M; i < k; i++) {
+                I x = distx(mt), y = disty(mt);
+                tie(x, y) = minmax(x + 0, y + (y >= x));
+                assert(x < y);
+                sample[i] = {x, y};
+            }
+            sort(begin(sample) + M, end(sample));
+            inplace_merge(begin(sample) + S, begin(sample) + M, end(sample));
+            M = unique(begin(sample) + S, end(sample)) - begin(sample);
+        } while (M < k);
 
-    edges_t sample;
-    sample.reserve(seen.size());
-    if (complement) {
-        for (int x = a; x < b; x++)
-            for (int y = x + 1; y < b; y++)
-                if (!seen.count(long(x) << 32 | y))
-                    sample.push_back({x, y});
-    } else if (12 * k >= ab) {
-        for (int x = a; x < b; x++)
-            for (int y = x + 1; y < b; y++)
-                if (seen.count(long(x) << 32 | y))
-                    sample.push_back({x, y});
-    } else {
-        int x, y;
-        for (long n : seen)
-            x = n >> 32, y = n & 0xffffffffL, sample.push_back({x, y});
-        sort(begin(sample), end(sample));
+        inplace_merge(begin(sample), begin(sample) + S, end(sample));
+        S = unique(begin(sample), end(sample)) - begin(sample);
     }
     return sample;
 }
 
-auto choose_sample_p(double p, int a, int b) {
+template <typename T = int, typename I>
+auto choose_sample_p(double p, I a, I b) {
     long ab = 1L * (b - a) * (b - a - 1) / 2;
-    return choose_sample(binomd(ab, min(p, 1.0))(mt), a, b);
+    return choose_sample<T>(binomd(ab, min(p, 1.0))(mt), a, b);
 }
 
 /**
@@ -162,52 +289,108 @@ auto choose_sample_p(double p, int a, int b) {
  * It must hold that a <= b, c <= d, and k <= nm = (b - a)(d - c).
  * Complexity: O(k log k) with E[mt] <= 6k.
  */
-edges_t pair_sample(long k, int a, int b, int c, int d, bool complement = false) {
-    if ((k == 0 && !complement) || a >= b || c >= d)
+template <typename T = int, typename I>
+vector<array<T, 2>> pair_sample(int k, I a, I b, I c, I d) {
+    if (k == 0 || a >= b || c >= d)
         return {};
 
-    static_assert(sizeof(int) == 4);
-    long ab = b - a, cd = d - c, remaining = k;
-    assert(ab >= 0 && cd >= 0 && 0 <= k && k <= ab * cd);
-    if (3 * k >= 2 * ab * cd) {
-        return pair_sample(ab * cd - k, a, b, c, d, !complement);
+    using sample_t = vector<array<T, 2>>;
+    long univ = 1L * (b - a) * (d - c);
+    assert(univ >= 0 && 0 <= k && k <= univ);
+
+    // 1/5 One sample -- sample any
+    if (k == 1) {
+        uniform_int_distribution<I> distx(a, b - 1), disty(c, d - 1);
+        I x = distx(mt), y = disty(mt);
+        sample_t sample = {{x, y}};
+        return sample;
     }
 
-    intd distx(a, b - 1), disty(c, d - 1);
-    unordered_set<long> seen;
-    seen.reserve(k);
-    while (remaining--) {
-        int x, y;
+    // 2/5 Full sample -- run iota
+    if (k == univ) {
+        sample_t whole(univ);
+        int i = 0;
+        for (I x = a; x < b; x++) {
+            for (I y = c; y < d; y++) {
+                whole[i++] = {x, y};
+            }
+        }
+        return whole;
+    }
+
+    // 3/5 Majority sample: run negative bitset sampling
+    if (k >= univ / 2) {
+        vector<bool> unsampled(univ, false);
+        int included = univ;
+        intd disti(0, univ - 1);
+        while (included > k) {
+            int i = disti(mt);
+            included -= !unsampled[i];
+            unsampled[i] = true;
+        }
+        sample_t sample(k);
+        I x = a, y = c;
+        for (int i = 0, n = 0; i < k; n++) {
+            if (!unsampled[n]) {
+                sample[i++] = {x, y};
+            }
+            tie(x, y) = y == d - 1 ? make_pair(x + 1, c) : make_pair(x, y + 1);
+        }
+        return sample;
+    }
+
+    // 4/5 Large minority sample: run positive bitset sampling
+    if (k >= univ / 24) {
+        vector<bool> sampled(univ, false);
+        int included = 0;
+        intd disti(0, univ - 1);
+        while (included < k) {
+            int i = disti(mt);
+            included += !sampled[i];
+            sampled[i] = true;
+        }
+        sample_t sample(k);
+        I x = a, y = c;
+        for (int i = 0, n = 0; i < k; n++) {
+            if (sampled[n]) {
+                sample[i++] = {x, y};
+            }
+            tie(x, y) = y == d - 1 ? make_pair(x + 1, c) : make_pair(x, y + 1);
+        }
+        return sample;
+    }
+
+    // 5/5 Large sample: run repeated sampling
+    sample_t sample(k);
+    uniform_int_distribution<I> distx(a, b - 1), disty(c, d - 1);
+    for (int i = 0; i < k; i++) {
+        I x = distx(mt), y = disty(mt);
+        sample[i] = {x, y};
+    }
+    sort(begin(sample), end(sample));
+    int S = unique(begin(sample), end(sample)) - begin(sample);
+    while (S < k) {
+        int M = S;
         do {
-            x = distx(mt), y = disty(mt);
-        } while (seen.count(long(x) << 32 | y));
-        seen.insert(long(x) << 32 | y);
-    }
+            for (int i = M; i < k; i++) {
+                I x = distx(mt), y = disty(mt);
+                sample[i] = {x, y};
+            }
+            sort(begin(sample) + M, end(sample));
+            inplace_merge(begin(sample) + S, begin(sample) + M, end(sample));
+            M = unique(begin(sample) + S, end(sample)) - begin(sample);
+        } while (M < k);
 
-    edges_t sample;
-    sample.reserve(seen.size());
-    if (complement) {
-        for (int x = a; x < b; x++)
-            for (int y = c; y < d; y++)
-                if (!seen.count(long(x) << 32 | y))
-                    sample.push_back({x, y});
-    } else if (12 * k >= ab * cd) {
-        for (int x = a; x < b; x++)
-            for (int y = c; y < d; y++)
-                if (seen.count(long(x) << 32 | y))
-                    sample.push_back({x, y});
-    } else {
-        int x, y;
-        for (long n : seen)
-            x = n >> 32, y = n & 0xffffffffL, sample.push_back({x, y});
-        sort(begin(sample), end(sample));
+        inplace_merge(begin(sample), begin(sample) + S, end(sample));
+        S = unique(begin(sample), end(sample)) - begin(sample);
     }
     return sample;
 }
 
-auto pair_sample_p(double p, int a, int b, int c, int d) {
+template <typename T = int, typename I>
+auto pair_sample_p(double p, I a, I b, I c, I d) {
     long ab = b - a, cd = d - c;
-    return pair_sample(binomd(ab * cd, min(p, 1.0))(mt), a, b, c, d);
+    return pair_sample<T>(binomd(ab * cd, min(p, 1.0))(mt), a, b, c, d);
 }
 
 /**
@@ -216,14 +399,16 @@ auto pair_sample_p(double p, int a, int b, int c, int d) {
  * It must hold that a <= b, and k <= n(n - 1) where n = b - a.
  * Complexity: O(k log k) with E[mt] <= 6k.
  */
-edges_t distinct_pair_sample(long k, int a, int b, bool complement = false) {
-    auto g = pair_sample(k, a, b, a, b - 1, complement);
+template <typename T = int, typename I>
+auto distinct_pair_sample(int k, I a, I b) {
+    auto g = pair_sample(k, a, b, a, b - 1);
     for (auto& [u, v] : g)
         v += v >= u;
     return g;
 }
 
-auto distinct_pair_sample_p(double p, int a, int b) {
+template <typename T = int, typename I>
+auto distinct_pair_sample_p(double p, I a, I b) {
     long ab = 1L * (b - a) * (b - a - 1);
     return distinct_pair_sample(binomd(ab, min(p, 1.0))(mt), a, b);
 }
