@@ -40,7 +40,7 @@ auto relabel(int U, int V, const edges_t& g) {
  */
 auto random_flip_inplace(edges_t& g, double p = 0.5) {
     if (p <= 0.25) {
-        for (int e : int_sample_p(p, 0, g.size()))
+        for (int e : int_sample_p(p, 0, int(g.size())))
             swap(g[e][0], g[e][1]);
     } else {
         boold flipd(p);

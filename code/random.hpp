@@ -75,7 +75,7 @@ void reservoir_sample_inplace(vector<T>& univ, int k) {
  * It must hold that a <= b and k <= n = b - a.
  * Complexity: O(k log k) with E[mt] <= 3k.
  */
-template <typename T = int, typename I>
+template <typename T = int, typename I = int>
 vector<T> int_sample(int k, I a, I b) {
     assert(k <= 500'000'000); // don't try anything crazy
     if (k == 0 || a >= b)
@@ -162,7 +162,7 @@ vector<T> int_sample(int k, I a, I b) {
     return sample;
 }
 
-template <typename T = int, typename I>
+template <typename T = int, typename I = int>
 auto int_sample_p(double p, I a, I b) {
     long ab = b - a;
     return int_sample<T>(binomd(ab, min(p, 1.0))(mt), a, b);

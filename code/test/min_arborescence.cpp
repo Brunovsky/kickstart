@@ -4,7 +4,6 @@
 
 namespace kactl {
 
-typedef long long int;
 typedef vector<int> vi;
 
 struct Edge {
@@ -51,7 +50,7 @@ pair<int, vector<int>> dmst(int n, int r, vector<Edge>& g) {
     int res = 0;
     vi seen(n, -1), path(n), par(n);
     seen[r] = r;
-    vector<Edge> Q(n), in(n, {-1, -1, -1, 0}), comp;
+    vector<Edge> Q(n), in(n, {-1, -1, -1, 0});
     deque<tuple<int, int, vector<Edge>>> cycs;
     for (int s = 0; s < n; s++) {
         int u = s, qi = 0, w;
