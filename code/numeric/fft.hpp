@@ -107,6 +107,38 @@ struct fft_cache {
 
 } // namespace caches
 
+inline namespace ext {
+
+struct int_ext {
+    template <typename C>
+    static auto get(const C& c) {
+        return llround(c.real());
+    }
+};
+
+struct real_ext {
+    template <typename C>
+    static auto get(const C& c) {
+        return c.real();
+    }
+};
+
+struct imag_ext {
+    template <typename C>
+    static auto get(const C& c) {
+        return c.imag();
+    }
+};
+
+struct exact_ext {
+    template <typename C>
+    static const C& get(const C& c) {
+        return c;
+    }
+};
+
+} // namespace ext
+
 inline namespace runners {
 
 template <bool inverse, typename C>
@@ -136,7 +168,15 @@ void fft_transform_run(C* a, int N) {
     }
 }
 
-template <typename C, typename E, typename At, typename Bt, typename Ct>
+template <typename Ext, typename C, typename T>
+void fft_inverse_transform_run(T* a, C* c, int N) {
+    fft_transform_run<1, C>(c, N);
+    for (int i = 0; i < N; i++) {
+        a[i] = Ext::get(c[i]);
+    }
+}
+
+template <typename Ext, typename C, typename At, typename Bt, typename Ct>
 void fft_multiply_run(At* ia, int A, Bt* ib, int B, Ct* ic) {
     if (A == 0 || B == 0)
         return;
@@ -154,11 +194,11 @@ void fft_multiply_run(At* ia, int A, Bt* ib, int B, Ct* ic) {
     }
     fft_transform_run<1, C>(fa, N); // reverse fft A
     for (int i = 0; i < S; i++) {
-        ic[i] = E::get(fa[i]);
+        ic[i] = Ext::get(fa[i]);
     }
 }
 
-template <typename C, typename E, typename At, typename Ct>
+template <typename Ext, typename C, typename At, typename Ct>
 void fft_square_run(At* ia, int A, Ct* ic) {
     if (A == 0)
         return;
@@ -173,43 +213,11 @@ void fft_square_run(At* ia, int A, Ct* ic) {
     }
     fft_transform_run<1, C>(fa, N); // reverse fft A
     for (int i = 0; i < S; i++) {
-        ic[i] = E::get(fa[i]);
+        ic[i] = Ext::get(fa[i]);
     }
 }
 
 } // namespace runners
-
-inline namespace ext {
-
-struct int_ext {
-    template <typename C>
-    static auto get(const C& c) {
-        return llround(c.real());
-    }
-};
-
-struct real_ext {
-    template <typename C>
-    static auto get(const C& c) {
-        return c.real();
-    }
-};
-
-struct imag_ext {
-    template <typename C>
-    static auto get(const C& c) {
-        return c.real();
-    }
-};
-
-struct exact_ext {
-    template <typename C>
-    static const C& get(const C& c) {
-        return c;
-    }
-};
-
-} // namespace ext
 
 template <typename Mod, typename At, typename Bt, typename Ct>
 void ntt_split_lower_upper(Mod H, At* ia, int A, Bt* ismall, Ct* ilarge) {
@@ -313,7 +321,7 @@ auto ntt_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
     if (A <= INTMOD_BREAKEVEN || B <= INTMOD_BREAKEVEN) {
         naive_multiply_run(a.data(), A, b.data(), B, c.data());
     } else {
-        fft_multiply_run<modnum<MOD>, exact_ext>(a.data(), A, b.data(), B, c.data());
+        fft_multiply_run<exact_ext, modnum<MOD>>(a.data(), A, b.data(), B, c.data());
     }
 
     return c;
@@ -327,7 +335,7 @@ auto ntt_square(const vector<modnum<MOD>>& a) {
     if (A <= INTMOD_BREAKEVEN) {
         naive_square_run(a.data(), A, c.data());
     } else {
-        fft_square_run<modnum<MOD>, exact_ext>(a.data(), A, c.data());
+        fft_square_run<exact_ext, modnum<MOD>>(a.data(), A, c.data());
     }
 
     return c;
@@ -352,10 +360,10 @@ auto ntt_split_multiply(Mod mod, const vector<T>& a, const vector<T>& b) {
     ntt_split_lower_upper(H, b.data(), B, b0.data(), b1.data());
 
     vector<Prom> c00(S), c01(S), c10(S), c11(S);
-    fft_multiply_run<C, int_ext>(a0.data(), A, b0.data(), B, c00.data());
-    fft_multiply_run<C, int_ext>(a0.data(), A, b1.data(), B, c01.data());
-    fft_multiply_run<C, int_ext>(a1.data(), A, b0.data(), B, c10.data());
-    fft_multiply_run<C, int_ext>(a1.data(), A, b1.data(), B, c11.data());
+    fft_multiply_run<int_ext, C>(a0.data(), A, b0.data(), B, c00.data());
+    fft_multiply_run<int_ext, C>(a0.data(), A, b1.data(), B, c01.data());
+    fft_multiply_run<int_ext, C>(a1.data(), A, b0.data(), B, c10.data());
+    fft_multiply_run<int_ext, C>(a1.data(), A, b1.data(), B, c11.data());
 
     for (int i = 0; i < S; i++) {
         c[i] = c00[i] % mod;
@@ -389,9 +397,9 @@ auto ntt_split_square(Mod mod, const vector<T>& a) {
     ntt_split_lower_upper(H, a.data(), A, a0.data(), a1.data());
 
     vector<Prom> c0(S), c1(S), c2(S);
-    fft_multiply_run<C, int_ext>(a0.data(), A, a0.data(), A, c0.data());
-    fft_multiply_run<C, int_ext>(a0.data(), A, a1.data(), A, c1.data());
-    fft_multiply_run<C, int_ext>(a1.data(), A, a1.data(), A, c2.data());
+    fft_multiply_run<int_ext, C>(a0.data(), A, a0.data(), A, c0.data());
+    fft_multiply_run<int_ext, C>(a0.data(), A, a1.data(), A, c1.data());
+    fft_multiply_run<int_ext, C>(a1.data(), A, a1.data(), A, c2.data());
 
     for (int i = 0; i < S; i++) {
         c[i] = c0[i] % mod;
@@ -417,13 +425,13 @@ auto fft_multiply(const vector<T>& a, const vector<T>& b) {
         } else if (sizeof(T) == 8 && (A <= INT8_BREAKEVEN || B <= INT8_BREAKEVEN)) {
             naive_multiply_run(a.data(), A, b.data(), B, c.data());
         } else {
-            fft_multiply_run<C, int_ext>(a.data(), A, b.data(), B, c.data());
+            fft_multiply_run<int_ext, C>(a.data(), A, b.data(), B, c.data());
         }
     } else if constexpr (is_floating_point<T>::value) {
         if (A <= DOUBLE_BREAKEVEN || B <= DOUBLE_BREAKEVEN) {
             naive_multiply_run(a.data(), A, b.data(), B, c.data());
         } else {
-            fft_multiply_run<C, real_ext>(a.data(), A, b.data(), B, c.data());
+            fft_multiply_run<real_ext, C>(a.data(), A, b.data(), B, c.data());
         }
     } else {
         assert(false && "Unimplemented, fill in...");
@@ -443,17 +451,47 @@ auto fft_square(const vector<T>& a) {
         } else if (sizeof(T) > 4 && A <= INT8_BREAKEVEN) {
             naive_square_run(a.data(), A, c.data());
         } else {
-            fft_square_run<C, int_ext>(a.data(), A, c.data());
+            fft_square_run<int_ext, C>(a.data(), A, c.data());
         }
     } else if constexpr (is_floating_point<T>::value) {
         if (A <= DOUBLE_BREAKEVEN) {
             naive_square_run(a.data(), A, c.data());
         } else {
-            fft_square_run<C, real_ext>(a.data(), A, c.data());
+            fft_square_run<real_ext, C>(a.data(), A, c.data());
         }
     }
 
     return c;
+}
+
+template <typename C = default_complex, typename T>
+auto fft_transform(const vector<T>& a) {
+    int A = a.size(), n = next_two(A), N = 1 << n;
+    vector<C> c(N);
+    if (A == 0)
+        return c;
+
+    copy_n(a.data(), A, c.data());
+    fft_transform_run<0, C>(c.data(), N);
+    return c;
+}
+
+template <typename T, typename C>
+auto fft_inverse_transform(vector<C> c) {
+    int N = c.size();
+    vector<T> a(N);
+    if (N == 0)
+        return a;
+
+    if constexpr (is_integral<T>::value) {
+        fft_inverse_transform_run<int_ext>(a.data(), c.data(), N);
+    } else if constexpr (is_floating_point<T>::value) {
+        fft_inverse_transform_run<real_ext>(a.data(), c.data(), N);
+    } else {
+        assert(false && "Unimplemented, fill in...");
+    }
+    trim(a);
+    return a;
 }
 
 } // namespace fft
