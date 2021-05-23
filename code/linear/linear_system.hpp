@@ -7,22 +7,24 @@
 
 inline namespace system_double {
 
+constexpr double EPS = 50 * numeric_limits<double>::epsilon();
 using matd = mat<double>;
 using vecd = vector<double>;
 
-optional<matd> inverse(matd a, double epsilon = 1e-15) {
+optional<matd> inverse(matd a, double epsilon = EPS) {
     assert(a.n == a.m && "Matrix inverse operand is not square");
     int n = a.n;
     auto b = matd::identity(n);
-    for (int j = 0, i; j < n; j++) {
-        for (i = j; i < n; i++) {
-            if (abs(a[i][j]) > epsilon) {
-                swap(a[i], a[j]);
-                break;
+    for (int j = 0, i, x; j < n; j++) {
+        for (i = j, x = j; x < n; x++) {
+            if (abs(a[i][j]) < abs(a[x][j])) {
+                i = x;
             }
         }
-        if (i == n)
-            return {};
+        if (i == n || abs(a[i][j]) <= epsilon)
+            return std::nullopt;
+        if (i != j)
+            swap(a[i], a[j]);
         for (int k = 0; k < n; k++)
             b[j][k] /= a[j][j];
         for (int k = n - 1; k >= j; k--)
@@ -43,20 +45,21 @@ optional<matd> inverse(matd a, double epsilon = 1e-15) {
     return b;
 }
 
-optional<vecd> gauss(matd a, vecd b, double epsilon = 1e-15) {
+optional<vecd> gauss(matd a, vecd b, double epsilon = EPS) {
     assert(a.n == int(b.size()) && a.n == a.m);
     int n = a.n;
     for (int i = 0; i < n; i++)
         a[i].push_back(b[i]);
-    for (int j = 0, i; j < n; j++) {
-        for (i = j; i < n; i++) {
-            if (abs(a[i][j]) > epsilon) {
-                swap(a[i], a[j]);
-                break;
+    for (int j = 0, i, x; j < n; j++) {
+        for (i = j, x = j; x < n; x++) {
+            if (abs(a[i][j]) < abs(a[x][j])) {
+                i = x;
             }
         }
-        if (i == n)
-            return {};
+        if (i == n || abs(a[i][j]) <= epsilon)
+            return std::nullopt;
+        if (i != j)
+            swap(a[i], a[j]);
         for (int k = n; k >= j; k--)
             a[j][k] /= a[j][j];
         for (i = j + 1; i < n; i++)
@@ -72,19 +75,19 @@ optional<vecd> gauss(matd a, vecd b, double epsilon = 1e-15) {
     return b;
 }
 
-double det(matd a, double epsilon = 1e-15) {
+double det(matd a, double epsilon = EPS) {
     assert(a.n == a.m);
     int n = a.n, exchanges = 0;
-    for (int j = 0, i; j < n; j++) {
-        for (i = j; i < n; i++) {
-            if (abs(a[i][j]) > epsilon) {
-                swap(a[i], a[j]);
-                exchanges += i != j;
-                break;
+    for (int j = 0, i, x; j < n; j++) {
+        for (i = j, x = j; x < n; x++) {
+            if (abs(a[i][j]) < abs(a[x][j])) {
+                i = x;
             }
         }
-        if (i == n)
-            return 0;
+        if (i >= n || abs(a[i][j]) <= epsilon)
+            continue;
+        if (i != j)
+            swap(a[i], a[j]), exchanges++;
         for (int k = j + 1; k < n; k++)
             a[j][k] /= a[j][j];
         for (i = j + 1; i < n; i++)
@@ -96,6 +99,30 @@ double det(matd a, double epsilon = 1e-15) {
     for (int i = 0; i < n; i++)
         ans *= a[i][i];
     return ans;
+}
+
+int matrank(matd a, double epsilon = EPS) {
+    int n = a.n, m = a.m;
+    int rank = 0;
+    for (int j = 0, i, x; j < min(n, m); j++) {
+        for (i = j, x = j; x < n; x++) {
+            if (abs(a[i][j]) < abs(a[x][j])) {
+                i = x;
+            }
+        }
+        if (i >= n || abs(a[i][j]) <= epsilon)
+            continue;
+        rank++;
+        if (i != j)
+            swap(a[i], a[j]);
+        for (int k = m - 1; k >= j; k--)
+            a[j][k] /= a[j][j];
+        for (i = j + 1; i < n; i++)
+            if (abs(a[i][j]) > epsilon)
+                for (int k = m - 1; k >= j; k--)
+                    a[i][k] -= a[i][j] * a[j][k];
+    }
+    return rank;
 }
 
 } // namespace system_double
@@ -193,6 +220,29 @@ frac det(matf a) {
     return ans;
 }
 
+int matrank(matf a) {
+    int n = a.n, m = a.m;
+    int rank = 0;
+    for (int j = 0, i; j < min(n, m); j++) {
+        for (i = j; i < n; i++) {
+            if (a[i][j]) {
+                swap(a[i], a[j]);
+                break;
+            }
+        }
+        if (i >= n)
+            continue;
+        rank++;
+        for (int k = m - 1; k >= j; k--)
+            a[j][k] /= a[j][j];
+        for (i = j + 1; i < n; i++)
+            if (a[i][j])
+                for (int k = m - 1; k >= j; k--)
+                    a[i][k] -= a[i][j] * a[j][k];
+    }
+    return rank;
+}
+
 } // namespace system_frac
 
 inline namespace system_bfrac {
@@ -286,6 +336,29 @@ bfrac det(matbf a) {
     for (int i = 0; i < n; i++)
         ans *= a[i][i];
     return ans;
+}
+
+int matrank(matbf a) {
+    int n = a.n, m = a.m;
+    int rank = 0;
+    for (int j = 0, i; j < min(n, m); j++) {
+        for (i = j; i < n; i++) {
+            if (a[i][j]) {
+                swap(a[i], a[j]);
+                break;
+            }
+        }
+        if (i >= n)
+            continue;
+        rank++;
+        for (int k = m - 1; k >= j; k--)
+            a[j][k] /= a[j][j];
+        for (i = j + 1; i < n; i++)
+            if (a[i][j])
+                for (int k = m - 1; k >= j; k--)
+                    a[i][k] -= a[i][j] * a[j][k];
+    }
+    return rank;
 }
 
 } // namespace system_bfrac

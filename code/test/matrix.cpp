@@ -176,7 +176,7 @@ void stress_test_inverse_double(int T = 1000) {
     intd distn(5, 100);
     int degenerate = 0, different_mul = 0, different_inv = 0;
 
-    for (int t = 0; t <= T; t++) {
+    for (int t = 0; t < T; t++) {
         print_progress(t, T, "stress test inverse double");
         int n = distn(mt);
         auto [a, z] = generate_gauss_double(n, -10, 10);
@@ -267,29 +267,75 @@ void unit_test_det() {
             {-2, 6, -2, -8, 2},
             {8, 3, 7, 21, 17},
         },
+        {
+            {1, 0, 0, 0},
+            {0, 1, 0, 0},
+            {1, 1, 1, 0},
+            {0, 0, 1, 1},
+        },
     }};
-    vector<int> ans = {141267, 5870, 0};
+    vector<int> ans_det = {141267, 5870, 0, 1};
+    vector<int> ans_rank = {5, 5, 4, 4};
 
-    assert(quest[0][2][3] == -9 && quest.size() == ans.size());
+    assert(quest.size() == ans_det.size());
+    assert(quest.size() == ans_rank.size());
+    int N = ans_det.size();
 
-    for (int t = 0, N = ans.size(); t < N; t++) {
+    for (int t = 0; t < N; t++) {
         int n = quest[t].size();
         matd a(n, n);
         matf b(n, n);
         matbf c(n, n);
 
-        for (int i = 0; i < n; i++)
-            for (int j = 0, x; j < n; j++)
-                x = quest[t][i][j], a[i][j] = x, b[i][j] = x, c[i][j] = x;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0, x; j < n; j++) {
+                x = quest[t][i][j];
+                a[i][j] = x;
+                b[i][j] = x;
+                c[i][j] = x;
+            }
+        }
 
-        double a_ans = det(a);
-        frac b_ans = det(b);
-        bfrac c_ans = det(c);
+        auto a_ans = det(a);
+        auto b_ans = det(b);
+        auto c_ans = det(c);
+        int a_rank = matrank(a);
+        int b_rank = matrank(b);
+        int c_rank = matrank(c);
 
-        assert(abs(a_ans - ans[t]) < 1e-10);
-        assert(b_ans == ans[t]);
-        assert(c_ans == ans[t]);
+        assert(abs(a_ans - ans_det[t]) < 1e-10);
+        assert(b_ans == ans_det[t]);
+        assert(c_ans == ans_det[t]);
+        assert(a_rank == ans_rank[t]);
+        assert(b_rank == ans_rank[t]);
+        assert(c_rank == ans_rank[t]);
     }
+}
+
+void unit_test_rank() {
+    mat<double> a;
+
+    a = mat<double>({
+        {1, 3, 5},
+        {2, 4, 6},
+        {6, 7, 8},
+        {1, 2, 3},
+        {9, 8, 7},
+    });
+    print("rank(a) = {}\n", matrank(a));
+
+    a = mat<double>({
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 1, 0, 1},
+        {1, 0, 1, 0},
+        {1, 1, 1, 0},
+    });
+    print("rank(a) = {}\n", matrank(a));
+
+    a = transpose(a);
+    print("rank(transpose(a)) = {}\n", matrank(a));
 }
 
 } // namespace unit_testing_mat
@@ -298,6 +344,7 @@ int main() {
     RUN_SHORT(unit_test_gauss_frac());
     RUN_SHORT(unit_test_inverse_frac());
     RUN_SHORT(unit_test_det());
+    RUN_SHORT(unit_test_rank());
     RUN_BLOCK(stress_test_gauss_frac());
     RUN_BLOCK(stress_test_gauss_double());
     RUN_BLOCK(stress_test_inverse_double());
