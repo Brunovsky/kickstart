@@ -2,7 +2,6 @@
 #define MODNUM_HPP
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 template <int mod>
@@ -19,6 +18,16 @@ struct modnum {
     static int modinv(int v, int m = mod) {
         v %= m, assert(v);
         return v == 1 ? 1 : (m - 1LL * modinv(m, v) * m / v);
+    }
+    friend modnum modpow(modnum b, long e) {
+        modnum p = 1;
+        while (e > 0) {
+            if (e & 1)
+                p = p * b;
+            if (e >>= 1)
+                b = b * b;
+        }
+        return p;
     }
 
     modnum inv() const { return {modinv(n)}; }

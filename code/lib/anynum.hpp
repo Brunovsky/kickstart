@@ -5,8 +5,8 @@
 #include "../numeric/frac.hpp"
 #include "../random.hpp"
 
-template <typename T>
-auto uniform_gen(long minv, long maxv, long maxd = 2) {
+template <typename T, typename O = T>
+O uniform_gen(long minv, long maxv, long maxd = 2) {
     assert(max(abs(minv), abs(maxv)) <= LONG_MAX / maxd);
     if constexpr (is_same_v<T, frac>) {
         long d = longd(1, maxd)(mt);
@@ -24,9 +24,9 @@ auto uniform_gen(long minv, long maxv, long maxd = 2) {
     }
 }
 
-template <typename T>
+template <typename T, typename O = T>
 auto uniform_gen_many(int N, long minv, long maxv, long maxd = 2) {
-    vector<T> nums(N);
+    vector<O> nums(N);
     for (int i = 0; i < N; i++) {
         nums[i] = uniform_gen<T>(minv, maxv, maxd);
     }

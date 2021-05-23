@@ -381,12 +381,21 @@ sure if this is correct.
 
 ## Link Cut Tree
 
-We implement link cut trees in `struct/link_cut_tree.hpp`. The implementation tested is
-the classical add-update and sum-query where nodes maintain an integer value.
+We have link cut trees in `struct/link_cut_tree_path.hpp` and
+`struct/link_cut_tree_subtree.hpp`.
 
-We support both oriented subtree queries and ancestor path queries. General path queries
-can also be implemented "by hand" using the least common ancestor of the two nodes. Idem
-for updates.
+The first type aggregates on paths, and implements the operations *set-node-update*,
+*lazy-add-path-update* and *path-sum-query*.
+
+The second type aggregates on subtrees, and implements the operations *set-node-update*
+and *subtree-sum-query*.
+
+Both should be straightforward to modify and augment, and also support other operations
+such as `lca(u,v)`, `path_length(u,v)` and `subtree_size(u,v)`.
+
+Both LCTs are **unrooted**, meaning interface operations will reroot represented subtrees
+for their own convenience. For meaningful `lca` queries the subtree should be rooted
+beforehand.
 
 We follow the left-hand rule in the implementation: going right in an internal splay tree
 is going down in the represented tree (by default).
@@ -396,73 +405,20 @@ values (often not the default value for other nodes).
 
 ### Lazy propagation and rerooting - Implementation notes
 
-To support tree rerooting we maintain a lazy flip boolean on each node. Notice that when
-we reroot a tree previously rooted at $r$ on a node $u$, we flip exactly those edges on
-the path from $u$ to $r$, i.e. the operation needs to be propagated on the splay tree that
-is formed by connecting exactly these two nodes.
+To support tree rerooting we maintain a lazy flip boolean on each node. This is pretty
+standard but can be difficult to grasp at first.
 
-To support this `reroot` operation and coincidentally also the other queries, we need to
-make a setup where the virtual tree's root splay tree is made up of exactly those nodes
-from $r$ to $u$, and $u$ is the splay root. Notice that in this case, $u$ has no right
-child.
+Notice that when we reroot a tree previously rooted at $r$ on a node $u$, we flip exactly
+those edges on the *path from $u$ to $r$ in the represented tree*, i.e. the operation
+needs to be propagated on the splay tree that is formed by connecting exactly these two
+nodes.
 
-We start by accessing $u$; this merges $u$'s splay tree with all its parent nodes, and
-makes $u$ the virtual root. Then we *trim* $u$'s right child, i.e. we explicitly turn the
-edge going down from $u$ into a light edge (if it wasn't already) and turn the right
-subtree into a virtual subtree. Then, to reroot at $u$ we simply move its left child to
-the right side, and to query $u$'s path aggregate we simply maintain the aggregate of just
-$u$'s splay tree, etc.
+To support this `reroot` operation and coincidentally also the other queries conveniently,
+we need to make a setup where the virtual tree's root splay tree is made up of exactly
+those nodes from $r$ to $u$, and $u$ is the splay root. This is precisely what `access()`
+does.
 
-### Aggregate operations
-
-We can group the interface into three parts:
-- The **core** interface which includes `link`, `cut`, `reroot`, `findroot` and `lca`.
-- The **update** interface which includes `update_node`, `update_path` and
-  `update_subtree`.
-- The **query** interface which includes `query_subtree` and `query_path`, along with
-  their size/length counterparts if desired.
-
-While `update_node` can be implemented in a straightforward way by just calling `access`
-and `apply`, the other two require lazy propagation akin to that on a segment tree.
-
-Not many *update operations* can be supported and propagated lazily through the update
-interface to change the value at each node. Some good examples include `+=` and `^=`, and
-also `=` if we keep tracking subtree sizes. Other operations like `gcd` are not supported
-for updates - use a different data structure in this case.
-
-The *query operations* should of course be associative, and preferably commutative. In
-particular, for subtree queries they need to be invertible, otherwise implementing
-`[link|cut]_virtual_subtree` is impossible. Use top trees instead in this case.
-
-- Updates are handled in the functions at the top:
-    - `apply(u, value)`
-        - Set a new value at node $u$, and update aggregates too.
-    - `pushup(u)`
-        - Update $u$'s aggregates from its splay children's and virtual aggregates.
-    - `pushdown(u)`
-        - Flush $u$'s lazy deltas to its splay children.
-    - `link_virtual_subtree(u, c)`
-        - Add $c$ as a virtual subtree of $u$. Should update $u$'s virtual aggregates.
-    - `cut_virtual_subtree(u, c)`
-        - Remove $c$ as a virtual subtree of $u$. Should update $u$'s virtual aggregates.
-```
-    What to include in the queries/aggregates?
-    u.self = u's value | u.sub = subtree aggregate | u.vir = virtual aggregate
-    Let u be a node, l the left child, r the right child, and virt a virtual child.
-
-                          u.self   l.sub   r.sub   u.vir   virt.sub...
-    aggregate subtree      yes      yes     yes     yes        no
-    aggregate virtual      no       no      no      no         yes
-    query subtree          yes      no      yes     yes        no
-    query path             yes       ?       ?      no         no
-```
-- For **subtree queries**:
-    - The operation must be **invertible**.
-        - Examples: `+`, `xor`, `or`, ...
-        - Not supported: `min`, `max`, `gcd`, ...
-    - Virtual subtree aggregates must be tracked in `[link|cut]_virtual_subtree()`.
-- For **path queries**:
-    - The operation need not be invertible.
+To reroot the tree we now invert the binary tree below $u$, lazily.
 
 ### Interface
 
@@ -488,9 +444,37 @@ We support all of the following. Below *sum* should be understood as *aggregate*
     - Update lazily `value(w)` from $u$ to $v$, where $v$ is ancestor of $u$.
 - Path length $O(\log N)$: `path_length(u, v)`
     - Compute the length of the path from $u$ to $v$, where $v$ is an ancestor of $u$.
-- Find root $O(\log N)$: `find_root(u)`
-    - Find the root of $u$'s tree.
 - Reroot $O(\log N)$: `reroot(u)`
     - Make $u$ the new root of its tree, *flipping* the orientation of all parent edges.
 - Lowest common ancestor $O(\log N)$: `lca(u, v)`
     - Compute the lowest common ancestor of two nodes $u$ and $v$ (possibly inexistent).
+
+## Fast Fourier Transform - FFT and NTT
+
+Designing this fucking shit is *hard*. Still working on improving constant factors.
+We produce an FFT library tuned for polynomial multiplication with high level operations
+for multiply, square, transform and inverse transform.
+
+We want the library to handle a lot of types.
+
+Consider FFT multiplication. We want:
+
+- `vector<T> x vector<T> -> vector<T>`
+  - `T=int` (no overflows)
+  - `I=long` (no overflows)
+  - `I=uint` (with wrapping)
+  - `I=double` (assumed safe)
+  - `I=complex` (assumed safe)
+  - `I=modnum<PRIME>` (primitive root will be computed)
+
+Consider NTT multiplication. We want:
+
+- `vector<I> x vector<I> (modulo MOD) -> vector<O>`
+  - `I=modnum<PRIME>` (NTT; no overflows)
+  - `I=int, runtime MOD` (SPLIT FFT; no overflows)
+  - `I=long, runtime MOD` (SPLIT FFT; no overflows)
+  - `I=uint, runtime MOD` (SPLIT FFT; with wrapping)
+  - `I=modnum<PRIME>` (primitive root will be computed)
+
+We do not handle *two inputs* of different types or input and output of different types.
+This helps simplify the implementation a bit, as it is already template-heavy.
