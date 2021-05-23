@@ -24,4 +24,13 @@ auto uniform_gen(long minv, long maxv, long maxd = 2) {
     }
 }
 
+template <typename T>
+auto uniform_gen_many(int N, long minv, long maxv, long maxd = 2) {
+    vector<T> nums(N);
+    for (int i = 0; i < N; i++) {
+        nums[i] = uniform_gen<T>(minv, maxv, maxd);
+    }
+    return nums;
+}
+
 #endif // LIB_ANY_NUM

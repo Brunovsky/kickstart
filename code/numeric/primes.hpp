@@ -3,6 +3,55 @@
 
 #include "math.hpp"
 
+auto factor_simple(long n) {
+    vector<long> primes;
+    for (long p = 2; p * p <= n; p++) {
+        while (n % p == 0) {
+            primes.push_back(p);
+            n = n / p;
+        }
+    }
+    if (n > 1) {
+        primes.push_back(n);
+    }
+    return primes;
+}
+
+auto factor_map(long n) {
+    unordered_map<long, int> primes;
+    for (long p = 2; p * p <= n; p++) {
+        while (n % p == 0) {
+            primes[p]++;
+            n = n / p;
+        }
+    }
+    if (n > 1) {
+        primes[n]++;
+    }
+    return primes;
+}
+
+template <typename T>
+auto get_divisors(const unordered_map<T, int>& factors, bool one, bool self) {
+    vector<T> divs = {1};
+    for (const auto& [p, e] : factors) {
+        int D = divs.size();
+        divs.resize(D * (e + 1));
+        for (int n = 1; n <= e; n++) {
+            for (int d = 0; d < D; d++) {
+                divs[d + n * D] = divs[d + (n - 1) * D] * p;
+            }
+        }
+    }
+    if (!one) {
+        divs.erase(begin(divs));
+    }
+    if (!self && !divs.empty()) {
+        divs.erase(begin(divs) + (divs.size() - 1));
+    }
+    return divs;
+}
+
 /**
  * Compute the jacobi (a/b) = ±1 (from quadratic reciprocity)
  * Complexity: O(log ab)
@@ -74,54 +123,6 @@ bool miller_rabin(long n) {
             return false;
     }
     return true;
-}
-
-auto factor_simple(long n) {
-    vector<long> primes;
-    for (long p = 2; p * p <= n; p++) {
-        while (n % p == 0) {
-            primes.push_back(p);
-            n = n / p;
-        }
-    }
-    if (n > 1) {
-        primes.push_back(n);
-    }
-    return primes;
-}
-
-auto factor_map(long n) {
-    unordered_map<long, int> primes;
-    for (long p = 2; p * p <= n; p++) {
-        while (n % p == 0) {
-            primes[p]++;
-            n = n / p;
-        }
-    }
-    if (n > 1) {
-        primes[n]++;
-    }
-    return primes;
-}
-
-auto get_divisors(const unordered_map<long, int>& factors, bool one, bool self) {
-    vector<long> divs = {1};
-    for (const auto& [p, e] : factors) {
-        int D = divs.size();
-        divs.resize(D * (e + 1));
-        for (int n = 1; n <= e; n++) {
-            for (int d = 0; d < D; d++) {
-                divs[d + n * D] = divs[d + (n - 1) * D] * p;
-            }
-        }
-    }
-    if (!one) {
-        divs.erase(begin(divs));
-    }
-    if (!self && !divs.empty()) {
-        divs.erase(begin(divs) + (divs.size() - 1));
-    }
-    return divs;
 }
 
 #endif // PRIMES_HPP

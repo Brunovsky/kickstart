@@ -233,4 +233,10 @@ long partitions(long n) {
     return table[n];
 }
 
+// Probability of k successes in a binomial(n,p)
+template <typename D = double>
+D binom_success(int n, int k, D p, const vector<D>& logfac) {
+    return exp(logfac[n] - logfac[k] - logfac[n - k] + k * log(p) + (n - k) * log1p(-p));
+}
+
 #endif // MATH_HPP

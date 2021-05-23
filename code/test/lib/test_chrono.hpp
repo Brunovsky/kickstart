@@ -1,11 +1,7 @@
 #ifndef TEST_CHRONO_HPP
 #define TEST_CHRONO_HPP
 
-#include <chrono>
-
-using namespace std::chrono;
-using us = microseconds;
-using ms = milliseconds;
+#include "../../numeric/chrono.hpp"
 
 /**
  * CHRONO MACROS
