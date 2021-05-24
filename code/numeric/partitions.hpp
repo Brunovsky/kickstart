@@ -28,4 +28,51 @@ long count_partitions(int n, int k, int m = 1, int M = INT_MAX) {
     return cntpt_memo[{n, k, M}] = cnt;
 }
 
+vector<int> first_choice(int n, int k) {
+    vector<int> combination(k);
+    iota(begin(combination), end(combination), 0), (void)n;
+    return combination;
+}
+
+bool next_choice(vector<int>& combination, int n) {
+    for (int k = combination.size(), i = k - 1; i >= 0; i--) {
+        if (combination[i] <= n - k + i) {
+            combination[i]++;
+            for (int j = i + 1; j < k; j++) {
+                combination[j] = combination[j - 1] + 1;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+vector<int> first_unsized_partition(int n) { return vector<int>(n, 1); }
+
+bool next_unsized_partition(vector<int>& a, bool self = true) {
+    if (self && int(a.size()) == 1) {
+        a.assign(a[0], 1);
+        return false;
+    }
+    int k = a.size() - 1;
+    int x = a[k - 1] + 1;
+    int y = a[k] - 1;
+    k -= 1;
+    while (x <= y) {
+        a.resize(k + 1);
+        a[k] = x;
+        y -= x;
+        k += 1;
+    }
+    a.resize(k + 1);
+    a[k] = x + y;
+    return self || k > 0;
+}
+
+vector<int> first_sized_partition(int n, int k) {
+    vector<int> a(k, 1);
+    a[k - 1] = n - k + 1;
+    return a;
+}
+
 #endif // PARTITIONS_HPP
