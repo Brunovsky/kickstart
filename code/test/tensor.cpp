@@ -48,14 +48,14 @@ auto convert_to_tensor(const mat<T>& arr) {
 
 inline namespace stress_testing_tensor {
 
-void stress_test_tensor_multiply(double F = 1.0, int T = 1000) {
-    intd distN(int(150 * F), int(200 * F));
+void stress_test_tensor_multiply() {
+    intd distN(150, 200);
 
     START_ACC(mat);
     START_ACC(tensor);
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test tensor");
+    LOOP_FOR_DURATION_OR_RUNS_TRACKED(5s, now, 100'000, runs) {
+        print_time(now, 5s, 50ms, "stress test tensor");
 
         int N = distN(mt), M = distN(mt), K = distN(mt);
         mat<int> amat = generate_mat<int>(N, M, 1000);

@@ -9,28 +9,30 @@ auto relabel_nonroot_inplace(int V, edges_t& g) {
     vector<int> label(V);
     iota(begin(label), end(label), 0);
     shuffle(begin(label) + 1, end(label), mt);
-    for (auto& [u, v] : g)
+    for (auto& [u, v] : g) {
         u = label[u], v = label[v];
+    }
 }
 
 } // namespace detail
 
 inline namespace stress_testing {
 
-void stress_test_unrooted_tree_isomorphism(int T = 1000, int V = 10000, int K = 10) {
-    T /= K;
+void stress_test_unrooted_tree_isomorphism() {
+    const int V = 10000;
     int errors = 0;
 
-    for (int t = 0; t < T; t++) {
+    LOOP_FOR_DURATION_TRACKED(3s, now) {
+        print_time(now, 3s, 50ms, "stress test unrooted tree isomorphism");
+
         auto g = random_tree_undirected(V);
         relabel_inplace(V, g);
         random_flip_inplace(g);
         auto ghash = hash_unrooted_tree(V, g);
         auto gvhash = hash_unrooted_tree_vertices(V, g);
         sort(begin(gvhash), end(gvhash));
-        print_progress(t, T, "stress test unrooted tree isomorphism {}", ghash);
 
-        for (int k = 0; k < K; k++) {
+        LOOP_FOR_DURATION(25ms) {
             auto h = g;
             relabel_inplace(V, h);
             random_flip_inplace(h);
@@ -43,24 +45,25 @@ void stress_test_unrooted_tree_isomorphism(int T = 1000, int V = 10000, int K = 
     }
 
     if (errors > 0) {
-        clear_line(), print("ERRORS: {}\n", errors);
+        print_clear("ERRORS: {}\n", errors);
     }
 }
 
-void stress_test_rooted_tree_isomorphism(int T = 1000, int V = 10000, int K = 10) {
-    T /= K;
+void stress_test_rooted_tree_isomorphism() {
+    const int V = 10000;
     int errors = 0;
 
-    for (int t = 0; t < T; t++) {
+    LOOP_FOR_DURATION_TRACKED(3s, now) {
+        print_time(now, 3s, 50ms, "stress test rooted tree isomorphism");
+
         auto g = random_tree_undirected(V);
         relabel_nonroot_inplace(V, g);
         random_flip_inplace(g);
         auto ghash = hash_rooted_tree(V, g, 0);
         auto gvhash = hash_rooted_tree_vertices(V, g, 0);
         sort(begin(gvhash), end(gvhash));
-        print_progress(t, T, "stress test unrooted tree isomorphism {}", ghash);
 
-        for (int k = 0; k < K; k++) {
+        LOOP_FOR_DURATION(25ms) {
             auto h = g;
             relabel_nonroot_inplace(V, h);
             random_flip_inplace(h);
@@ -73,7 +76,7 @@ void stress_test_rooted_tree_isomorphism(int T = 1000, int V = 10000, int K = 10
     }
 
     if (errors > 0) {
-        clear_line(), print("ERRORS: {}\n", errors);
+        print_clear("ERRORS: {}\n", errors);
     }
 }
 

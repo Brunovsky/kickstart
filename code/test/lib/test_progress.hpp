@@ -50,7 +50,7 @@ void print_regular(long i, long N, long step, Ts&&... args) {
 }
 
 template <typename T1, typename T2, typename T>
-void print_time(T1 now, T2 duration, T&& content) {
+void print_time_view(T1 now, T2 duration, T&& content) {
     if (cout_is_terminal()) {
         double percent = 100.0 * now / duration;
         auto txt = format("{}", forward<T>(content));
@@ -59,7 +59,7 @@ void print_time(T1 now, T2 duration, T&& content) {
 }
 
 template <typename T1, typename T2, typename... Ts>
-void print_time(T1 now, T2 duration, string_view fmt, Ts&&... args) {
+void print_time_view(T1 now, T2 duration, string_view fmt, Ts&&... args) {
     if (cout_is_terminal()) {
         double percent = 100.0 * now / duration;
         auto txt = format(fmt, forward<Ts>(args)...);
@@ -67,12 +67,12 @@ void print_time(T1 now, T2 duration, string_view fmt, Ts&&... args) {
     }
 }
 
-template <typename T1, typename T2, typename T3, typename... Ts>
-void print_time(T1 now, T2 duration, T3 step, Ts&&... args) {
-    static T1 next_now = T1(0);
-    if (cout_is_terminal() && (now == T1(0) || now >= next_now)) {
-        next_now = now == T1(0) ? step : next_now + step;
-        print_time(now, duration, forward<Ts>(args)...);
+template <typename T1, typename T2, typename... Ts>
+void print_time(T1 now, T2 duration, chrono::nanoseconds step, Ts&&... args) {
+    static chrono::nanoseconds next_now = 0ns;
+    if (cout_is_terminal() && (now == 0ns || now >= next_now)) {
+        next_now = now == 0ns ? step : next_now + step;
+        print_time_view(now, duration, forward<Ts>(args)...);
     }
 }
 

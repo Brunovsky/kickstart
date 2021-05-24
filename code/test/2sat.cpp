@@ -35,6 +35,8 @@ bool verify(const edges_t& g, const vector<int>& assignment) {
 
 } // namespace detail
 
+inline namespace unit_testing_twosat {
+
 void unit_test_twosat() {
     // vertex 0 is completely disconnected
     edges_t g = {{0, 1}, {~1, 2}, {~0, ~1}, {2, 3}, {~2, 4}, {~3, ~4}, {~2, 3}};
@@ -46,14 +48,17 @@ void unit_test_twosat() {
     assert(sat.solve());
 }
 
-void speed_test_twosat_positive(int T = 3000) {
-    intd distN(100, 300);
-    intd distE(1000, 5000);
+} // namespace unit_testing_twosat
+
+inline namespace speed_testing_two_sat {
+
+void speed_test_twosat_positive(ms runtime = 2s) {
+    intd distN(1000, 3000);
+    intd distE(2000, 5000);
 
     START_ACC(sat);
-
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "speed test 2-SAT positive");
+    LOOP_FOR_DURATION_OR_RUNS_TRACKED(runtime, now, 100'000, runs) {
+        print_time(now, runtime, 50ms, "speed test 2-SAT positive");
         int N = distN(mt), E = distE(mt);
         auto g = generate_twosat(N, E);
 
@@ -67,9 +72,11 @@ void speed_test_twosat_positive(int T = 3000) {
         assert(ok);
         assert(verify(g, sat.assignment));
     }
-
-    PRINT_TIME(sat);
+    double each = 1e-3 * TIME_US(sat) / runs;
+    print_clear(" {:>8.2f}ms -- 2sat positive x{}\n", each, runs);
 }
+
+} // namespace speed_testing_two_sat
 
 int main() {
     RUN_SHORT(unit_test_twosat());
