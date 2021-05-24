@@ -14,8 +14,8 @@ auto build_scc(const vector<vector<int>>& adj) {
 
     vector<vector<int>> cset;
     vector<int> cmap(V, -1);
-    vector<int> index(V, 0);
-    vector<int> lowlink(V, 0);
+    vector<int> index(V);
+    vector<int> lowlink(V);
     int timer = 1;
 
     stack<int> S;
@@ -33,7 +33,7 @@ auto build_scc(const vector<vector<int>>& adj) {
             }
         }
 
-        // found a strongly connected components
+        // found a strongly connected component
         if (index[u] == lowlink[u]) {
             int c = C++;
             cset.push_back({});

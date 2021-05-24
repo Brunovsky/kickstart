@@ -3,33 +3,6 @@
 
 #include "../struct/y_combinator.hpp"
 
-auto is_bipartite(int V, const vector<vector<int>>& adj) {
-    vector<int8_t> side(V, -1);
-    vector<int> bfs;
-    int i = 0, S = 0;
-
-    for (int s = 0; s < V; s++) {
-        if (side[s] == -1) {
-            bfs.push_back(s), S++;
-            side[s] = 0;
-
-            while (i < S) {
-                int u = bfs[i++];
-                for (int v : adj[u]) {
-                    if (side[v] < 0) {
-                        side[v] = !side[u];
-                        bfs.push_back(v), S++;
-                    } else if (side[u] == side[v]) {
-                        return make_pair(false, side);
-                    }
-                }
-            }
-        }
-    }
-
-    return make_pair(true, side);
-}
-
 auto find_tree_centroids(const vector<vector<int>>& tree) {
     int V = tree.size();
     vector<int> subsize(V), centroids;
@@ -86,7 +59,7 @@ auto find_tree_centers(const vector<vector<int>>& tree) {
         centers.push_back(bfs[V - 2]);
     }
 
-    // The diameter is dist[centers]
+    // The diameter length can be found from dist[centers[..]]
     return centers;
 }
 
@@ -117,6 +90,7 @@ auto find_tree_diameter(const vector<vector<int>>& tree) {
     assert(S == V && (V < 3 || dist[bfs[V - 3]] != dist[bfs[V - 1]]));
 
     vector<int> diameter;
+
     if (V > 0) {
         int u = bfs[V - 1];
         do {
@@ -125,12 +99,12 @@ auto find_tree_diameter(const vector<vector<int>>& tree) {
         } while (u != -1);
     }
     if (V > 1) {
-        int u = bfs[V - 2], s = diameter.size();
+        int u = bfs[V - 2];
+        reverse(begin(diameter), end(diameter));
         do {
             diameter.push_back(u);
             u = prev[u];
         } while (u != -1);
-        reverse(begin(diameter), begin(diameter) + s);
     }
 
     return diameter;
@@ -200,9 +174,36 @@ auto visit_cut_points(const vector<vector<int>>& adj, Fn&& visitor) {
 
     for (int u = 0; u < V; u++) {
         if (!index[u]) {
-            dfs(u);
+            dfs(u, -1);
         }
     }
+}
+
+auto is_bipartite(int V, const vector<vector<int>>& adj) {
+    vector<int8_t> side(V, -1);
+    vector<int> bfs;
+    int i = 0, S = 0;
+
+    for (int s = 0; s < V; s++) {
+        if (side[s] == -1) {
+            bfs.push_back(s), S++;
+            side[s] = 0;
+
+            while (i < S) {
+                int u = bfs[i++];
+                for (int v : adj[u]) {
+                    if (side[v] < 0) {
+                        side[v] = !side[u];
+                        bfs.push_back(v), S++;
+                    } else if (side[u] == side[v]) {
+                        return make_pair(false, move(side));
+                    }
+                }
+            }
+        }
+    }
+
+    return make_pair(true, move(side));
 }
 
 auto find_cycle(const vector<vector<int>>& adj) {
