@@ -4,6 +4,7 @@
 #include "../graphs/scc.hpp"
 #include "../graphs/euler_tour.hpp"
 #include "../graphs/centroid_decomposition.hpp"
+#include "../graphs/heavy_light_decomposition.hpp"
 #include "../lib/graph_operations.hpp"
 #include "../lib/graph_formats.hpp"
 #include "../lib/graph_generator.hpp"
@@ -38,14 +39,43 @@ void unit_test_centroid_decomposition() {
                     "12,31 13,18 13,19 14,24 14,25 14,26 14,27 15,21 15,23 21,22";
 
     edges_t g = scan_edges(sedges);
-    print("g: {}\n", g);
     assert(int(g.size()) == V - 1);
 
     auto tree = make_adjacency_lists_undirected(V, g);
     auto decomp = build_tree_centroid_decomposition(tree);
-    print("{}\n", decomp);
     for (int u = 0; u < V; u++) {
-        print("cparent[{:2}] = {}\n", u, decomp[u]);
+        cout << (u ? " " : "        ") << setw(2) << u << " \n"[u + 1 == V];
+    }
+    for (int u = 0; u < V; u++) {
+        cout << (u ? " " : "cparent ") << setw(2) << decomp[u] << " \n"[u + 1 == V];
+    }
+}
+
+void unit_test_heavy_light_decomposition() {
+    int V = 38;
+    string sedges = "0,1 0,2 0,3 0,4 1,5 1,6 2,7 2,8 3,9 3,10 6,11 6,36 6,37 7,28 7,29 "
+                    "8,12 8,32 8,33 9,14 9,15 9,20 10,13 10,16 10,17 11,34 11,35 12,30 "
+                    "12,31 13,18 13,19 14,24 14,25 14,26 14,27 15,21 15,23 21,22";
+
+    edges_t g = scan_edges(sedges);
+    assert(int(g.size()) == V - 1);
+
+    auto tree = make_adjacency_lists_undirected(V, g);
+    auto [parent, depth, head, index] = build_tree_heavy_light_decomposition(tree, 0);
+    for (int u = 0; u < V; u++) {
+        cout << (u ? " " : "       ") << setw(2) << u << " \n"[u + 1 == V];
+    }
+    for (int u = 0; u < V; u++) {
+        cout << (u ? " " : "parent ") << setw(2) << parent[u] << " \n"[u + 1 == V];
+    }
+    for (int u = 0; u < V; u++) {
+        cout << (u ? " " : " depth ") << setw(2) << depth[u] << " \n"[u + 1 == V];
+    }
+    for (int u = 0; u < V; u++) {
+        cout << (u ? " " : "  head ") << setw(2) << head[u] << " \n"[u + 1 == V];
+    }
+    for (int u = 0; u < V; u++) {
+        cout << (u ? " " : " index ") << setw(2) << index[u] << " \n"[u + 1 == V];
     }
 }
 
@@ -200,6 +230,7 @@ void unit_test_tree_centers() {
 } // namespace unit_testing_finders
 
 int main() {
+    RUN_SHORT(unit_test_heavy_light_decomposition());
     RUN_SHORT(unit_test_centroid_decomposition());
     RUN_SHORT(unit_test_scc());
     RUN_SHORT(unit_test_dominator_tree());

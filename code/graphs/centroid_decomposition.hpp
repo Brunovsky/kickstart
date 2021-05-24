@@ -5,11 +5,12 @@
 
 auto build_tree_centroid_decomposition(const vector<vector<int>>& tree) {
     int V = tree.size();
-    vector<int> subsize(V), cparent(V);
+    vector<int> subsize(V);
+    vector<int> cparent(V);
     vector<bool> mark(V, false);
     int marked = 0;
 
-    auto dfs_centroid = y_combinator([&](auto self, int S, int u, int p, int cp) -> bool {
+    auto dfs = y_combinator([&](auto self, int S, int u, int p, int cp) -> bool {
         subsize[u] = 1;
         bool is = true;
         for (int v : tree[u]) {
@@ -36,7 +37,7 @@ auto build_tree_centroid_decomposition(const vector<vector<int>>& tree) {
         return false;
     });
 
-    dfs_centroid(V, 0, -1, -1);
+    dfs(V, 0, -1, -1);
     assert(marked == V);
     return cparent;
 }
