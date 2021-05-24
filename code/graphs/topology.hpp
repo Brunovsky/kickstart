@@ -75,7 +75,8 @@ auto find_tree_centers(const vector<vector<int>>& tree) {
             }
         }
     }
-    assert(S == V && (V < 3 || dist[bfs[V - 3]] != dist[bfs[V - 1]])); // up to 2 centers
+    // up to 2 centers.
+    assert(S == V && (V < 3 || dist[bfs[V - 3]] != dist[bfs[V - 1]]));
 
     vector<int> centers;
     if (V > 0) {
@@ -84,7 +85,55 @@ auto find_tree_centers(const vector<vector<int>>& tree) {
     if (V > 1 && dist[bfs[V - 1]] == dist[bfs[V - 2]]) {
         centers.push_back(bfs[V - 2]);
     }
+
+    // The diameter is dist[centers]
     return centers;
+}
+
+auto find_tree_diameter(const vector<vector<int>>& tree) {
+    int V = tree.size();
+    vector<int> degree(V), dist(V, 0), bfs(V), prev(V, -1);
+    int i = 0, S = 0;
+
+    for (int u = 0; u < V; u++) {
+        degree[u] = tree[u].size();
+        assert(degree[u] >= 1);
+        if (degree[u] == 1) {
+            bfs[S++] = u;
+        }
+    }
+
+    while (i < S) {
+        int u = bfs[i++];
+        for (int v : tree[u]) {
+            if (--degree[v] == 1) {
+                bfs[S++] = v;
+                dist[v] = dist[u] + 1;
+                prev[v] = u;
+            }
+        }
+    }
+    // up to 2 centers.
+    assert(S == V && (V < 3 || dist[bfs[V - 3]] != dist[bfs[V - 1]]));
+
+    vector<int> diameter;
+    if (V > 0) {
+        int u = bfs[V - 1];
+        do {
+            diameter.push_back(u);
+            u = prev[u];
+        } while (u != -1);
+    }
+    if (V > 1) {
+        int u = bfs[V - 2], s = diameter.size();
+        do {
+            diameter.push_back(u);
+            u = prev[u];
+        } while (u != -1);
+        reverse(begin(diameter), begin(diameter) + s);
+    }
+
+    return diameter;
 }
 
 template <typename Fn>

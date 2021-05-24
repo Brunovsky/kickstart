@@ -3,13 +3,51 @@
 #include "../graphs/dominator_tree.hpp"
 #include "../graphs/scc.hpp"
 #include "../graphs/euler_tour.hpp"
+#include "../graphs/centroid_decomposition.hpp"
 #include "../lib/graph_operations.hpp"
 #include "../lib/graph_formats.hpp"
 #include "../lib/graph_generator.hpp"
 
 using vi = vector<int>;
 
+inline namespace detail {
+
+edges_t scan_edges(const string& s, char sep = ',') {
+    edges_t g;
+    stringstream ss(s);
+    while (ss) {
+        int u, v;
+        char dummy;
+        ss >> u >> dummy >> v;
+        if (ss) {
+            g.push_back({u, v});
+            assert(dummy == sep);
+        }
+    }
+    return g;
+}
+
+} // namespace detail
+
 inline namespace unit_testing_builders {
+
+void unit_test_centroid_decomposition() {
+    int V = 38;
+    string sedges = "0,1 0,2 0,3 0,4 1,5 1,6 2,7 2,8 3,9 3,10 6,11 6,36 6,37 7,28 7,29 "
+                    "8,12 8,32 8,33 9,14 9,15 9,20 10,13 10,16 10,17 11,34 11,35 12,30 "
+                    "12,31 13,18 13,19 14,24 14,25 14,26 14,27 15,21 15,23 21,22";
+
+    edges_t g = scan_edges(sedges);
+    print("g: {}\n", g);
+    assert(int(g.size()) == V - 1);
+
+    auto tree = make_adjacency_lists_undirected(V, g);
+    auto decomp = build_tree_centroid_decomposition(tree);
+    print("{}\n", decomp);
+    for (int u = 0; u < V; u++) {
+        print("cparent[{:2}] = {}\n", u, decomp[u]);
+    }
+}
 
 void unit_test_scc() {
     // vertex 0 is completely disconnected
@@ -134,7 +172,7 @@ void unit_test_tree_centers() {
     int V;
     vector<array<int, 2>> g;
     vector<vector<int>> tree;
-    vector<int> centers;
+    vector<int> centers, diameter;
 
     V = 14;
     g = {
@@ -143,21 +181,26 @@ void unit_test_tree_centers() {
     };
     tree = make_adjacency_lists_undirected(V, g);
     centers = find_tree_centers(tree);
+    diameter = find_tree_diameter(tree);
     print("centers: {}\n", centers);
+    print("diameter: {}\n", diameter);
     assert(centers.size() == 1 && centers[0] == 9);
 
     V = 11;
     g = {{0, 2}, {1, 2}, {2, 3}, {3, 4}, {3, 5}, {5, 6}, {5, 7}, {5, 8}, {8, 10}, {8, 9}};
     tree = make_adjacency_lists_undirected(V, g);
     centers = find_tree_centers(tree);
+    diameter = find_tree_diameter(tree);
     sort(begin(centers), end(centers));
     print("centers: {}\n", centers);
+    print("diameter: {}\n", diameter);
     assert(centers.size() == 2 && centers == vi({3, 5}));
 }
 
 } // namespace unit_testing_finders
 
 int main() {
+    RUN_SHORT(unit_test_centroid_decomposition());
     RUN_SHORT(unit_test_scc());
     RUN_SHORT(unit_test_dominator_tree());
     RUN_SHORT(unit_test_tree_centers());
