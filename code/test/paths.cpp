@@ -4,7 +4,7 @@
 
 inline namespace stress_testing_positive_paths {
 
-void stress_test_positive_shortest_paths(int T = 300) {
+void stress_test_positive_shortest_paths() {
     intd weightd(1, 10'000);
     intd distV(6000, 8000);
     intd distE(30000, 45000);
@@ -13,8 +13,8 @@ void stress_test_positive_shortest_paths(int T = 300) {
     START_ACC(spfa);
     START_ACC(bellman_ford);
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test positive shortest paths");
+    LOOP_FOR_DURATION_TRACKED(5s, now) {
+        print_time(now, 5s, 50ms, "stress test positive shortest paths");
         int V = distV(mt), E = distE(mt);
         auto dg = random_exact_undirected_connected(V, E);
 
@@ -45,7 +45,7 @@ void stress_test_positive_shortest_paths(int T = 300) {
     PRINT_TIME(bellman_ford);
 }
 
-void stress_test_all_positive_shortest_paths(int T = 30) {
+void stress_test_all_positive_shortest_paths() {
     intd weightd(1, 10'000);
     intd distV(700, 800);
     intd distE(3000, 4500);
@@ -54,8 +54,8 @@ void stress_test_all_positive_shortest_paths(int T = 30) {
     START_ACC(floyd_warshall);
     START_ACC(dijkstra_all);
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test positive shortest paths");
+    LOOP_FOR_DURATION_TRACKED(15s, now) {
+        print_time(now, 15s, 50ms, "stress test all positive shortest paths");
         int V = distV(mt), E = distE(mt);
         auto dg = random_exact_undirected_connected(V, E);
 

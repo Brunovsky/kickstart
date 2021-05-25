@@ -1,7 +1,8 @@
 #ifndef SHORTEST_PATHS_HPP
 #define SHORTEST_PATHS_HPP
 
-#include "../struct/integer_heaps.hpp" // pairing_int_heap
+#include "../struct/pbds.hpp"          // pbds priority queue
+#include "../struct/integer_heaps.hpp" // binary_int_heap
 
 template <typename Cost = long, typename CostSum = Cost>
 auto spfa(int s, const vector<vector<pair<int, Cost>>>& adj) {
@@ -29,7 +30,12 @@ auto spfa(int s, const vector<vector<pair<int, Cost>>>& adj) {
                 dist[v] = dist[u] + w;
                 // prev[v] = u;
                 if (!in_queue[v]) {
-                    Q.push_back(v), in_queue[v] = true;
+                    if (Q.empty() || dist[v] < dist[Q.front()]) {
+                        Q.push_front(v);
+                    } else {
+                        Q.push_back(v);
+                    }
+                    in_queue[v] = true;
                 }
             }
         }
@@ -48,7 +54,8 @@ auto dijkstra(int s, const vector<vector<pair<int, Cost>>>& adj) {
     // vector<int> prev(V, -1);
     dist[s] = 0;
 
-    pairing_int_heap heap(V, [&](int u, int v) { return dist[u] < dist[v]; });
+    using min_heap = binary_int_heap<less_container<vector<CostSum>>>;
+    min_heap heap(V, dist);
     heap.push(s);
 
     do {
@@ -57,7 +64,6 @@ auto dijkstra(int s, const vector<vector<pair<int, Cost>>>& adj) {
         for (auto [v, w] : adj[u]) {
             if (dist[v] > dist[u] + w) {
                 dist[v] = dist[u] + w;
-                // prev[v] = u;
                 heap.push_or_improve(v);
             }
         }
@@ -250,7 +256,9 @@ auto dijkstra_all(const vector<vector<pair<int, Cost>>>& adj) {
     // vector<vector<int>> prev(V, vector<int>(V, -1));
 
     int s = 0;
-    pairing_int_heap heap(V, [&](int u, int v) { return dist[s][u] < dist[s][v]; });
+    auto cmp = [&](int u, int v) { return dist[s][u] < dist[s][v]; };
+    using min_heap = binary_int_heap<decltype(cmp)>;
+    min_heap heap(V, cmp);
 
     while (s < V) {
         dist[s][s] = 0;
@@ -308,7 +316,12 @@ auto johnsons(vector<vector<pair<int, Cost>>>& adj) {
             if (pi[v] > pi[u] + w) {
                 pi[v] = pi[u] + w;
                 if (!in_queue[v]) {
-                    Q.push_back(v), in_queue[v] = true;
+                    if (Q.empty() || dist[v] < dist[Q.front()]) {
+                        Q.push_front(v);
+                    } else {
+                        Q.push_back(v);
+                    }
+                    in_queue[v] = true;
                 }
             }
         }
@@ -318,7 +331,9 @@ auto johnsons(vector<vector<pair<int, Cost>>>& adj) {
 
     // Step 2: run dijkstra V times; removed extra edges above
     int s = 0;
-    pairing_int_heap heap(V, [&](int u, int v) { return dist[s][u] < dist[s][v]; });
+    auto cmp = [&](int u, int v) { return dist[s][u] < dist[s][v]; };
+    using min_heap = binary_int_heap<decltype(cmp)>;
+    min_heap heap(V, cmp);
 
     while (s < V) {
         dist[s][s] = 0;
@@ -355,9 +370,10 @@ auto astar(int s, int t, const vector<vector<pair<int, Cost>>>& adj, Fn&& heuris
     int V = adj.size();
     vector<CostSum> dist(V, inf), heur(V, inf);
     // vector<int> prev(V, -1);
-    dist[s] = heur[0] = 0;
+    dist[s] = heur[s] = 0;
 
-    pairing_int_heap heap(V, [&](int u, int v) { return dist[u] < dist[v]; });
+    using min_heap = binary_int_heap<less_container<vector<CostSum>>>;
+    min_heap heap(V, heur);
     heap.push(s);
 
     do {
