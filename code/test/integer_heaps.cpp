@@ -49,43 +49,39 @@ void stress_test_int_heap(int N = 60) {
     for (int n = 0; n < N; n++) {
         weight[n] = getnext(n);
         heap.push(n), nums.insert(n);
-    }
-    for (int n = 0; n < N; n++) {
         assert(heap.contains(n));
     }
 
-    reald actiond(0, 1);
-    double action;
-
-#define STRESS_VERIFY(ok) verify(ok, #ok, __LINE__)
-
-    auto verify = [&](bool ok, string text, int line) {
-        if (!ok) {
-            print("{}: Assertion '{}' failed.\nHeap: {}\nNums: {}\nAction: {}\n", line,
-                  text, heap, nums, action);
-            abort();
-        }
+    enum HeapAction {
+        CLEAR,
+        PUSH,
+        ADJUST,
+        POP,
     };
+    discrete_distribution<int> actiond({20, 4000, 4000, 2000});
 
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED(10s, now, 300'000, runs) {
-        print_time(now, 10s, 50ms, "stress heap");
-        action = actiond(mt);
+    LOOP_FOR_DURATION_TRACKED_RUNS(3s, now, runs) {
+        print_time(now, 3s, 50ms, "stress heap");
+        auto action = HeapAction(actiond(mt));
 
-        if (action < 0.0000) { // clear
+        switch (action) {
+        case CLEAR: {
             nums.clear();
             heap.clear();
-        } else if (action < 0.40) { // push
+        } break;
+        case PUSH: {
             int n = numd(mt);
             if (!nums.count(n)) {
-                STRESS_VERIFY(!heap.contains(n));
+                assert(!heap.contains(n));
                 weight[n] = getnext(n);
                 heap.push(n);
                 nums.insert(n);
             }
-        } else if (action < 0.80) { // improve or adjust
+        } break;
+        case ADJUST: {
             int n = numd(mt);
             if (nums.count(n)) {
-                STRESS_VERIFY(heap.contains(n));
+                assert(heap.contains(n));
                 nums.erase(n);
                 weight[n] = getnext(n);
                 if constexpr (adjust) {
@@ -95,24 +91,26 @@ void stress_test_int_heap(int N = 60) {
                 }
                 nums.insert(n);
             }
-        } else if (action < 1.0) { // pop
+        } break;
+        case POP: {
             if (!nums.empty()) {
-                STRESS_VERIFY(!heap.empty());
+                assert(!heap.empty());
                 int n = *nums.begin();
                 nums.erase(nums.begin());
                 int m = heap.pop();
-                STRESS_VERIFY(n == m);
+                assert(n == m);
             }
+        } break;
         }
 
         size_sum += nums.size();
 
-        STRESS_VERIFY(heap.empty() == nums.empty());
-        STRESS_VERIFY(heap.empty() || heap.top() == *nums.begin());
+        assert(heap.empty() == nums.empty());
+        assert(heap.empty() || heap.top() == *nums.begin());
     }
 
     double avg = 1.0 * size_sum / runs;
-    print_clear("average size: {:.2f} ({:.2f}%)\n", avg, 100.0 * avg / N);
+    printcl("average size: {:.2f} ({:.2f}%)\n", avg, 100.0 * avg / N);
 }
 
 } // namespace stress_testing_int_heap

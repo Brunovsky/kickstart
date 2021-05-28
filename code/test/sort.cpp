@@ -3,7 +3,8 @@
 
 inline namespace detail {
 
-bool verify(const vector<int>& idx, const vector<long>& dist) {
+template <typename T>
+bool verify(const vector<int>& idx, const vector<T>& dist) {
     int N = dist.size();
     if (int(idx.size()) != N)
         return false;
@@ -13,7 +14,8 @@ bool verify(const vector<int>& idx, const vector<long>& dist) {
     return true;
 }
 
-void std_sort(vector<int>& idx, vector<long>& dist) {
+template <typename T>
+void std_sort(vector<int>& idx, vector<T>& dist) {
     int N = dist.size();
     idx.resize(N);
     iota(begin(idx), end(idx), 0);
@@ -24,18 +26,19 @@ void std_sort(vector<int>& idx, vector<long>& dist) {
 
 inline namespace speed_testing_radix_sort {
 
-void speed_test_radix_sort_idx(int T = 100) {
+void speed_test_radix_sort_idx() {
     START_ACC(lsb);
     START_ACC(msb);
     START_ACC(std);
 
-    for (int i = 0; i < T; i++) {
-        print_progress(i, T, "speed test radix sort idx");
-        vector<long> dist = int_gen<long>(500'000, 100'000, 100'000'000);
+    LOOP_FOR_DURATION_TRACKED(3s, now) {
+        print_time(now, 3s, 50ms, "speed test radix sort idx");
+
+        vector<int> dist = int_gen<int>(500'000, 100'000, 100'000'000);
         vector<int> idx[3];
 
         START(lsb);
-        lsb_radix_sort_idx(idx[0], dist);
+        lsb_radix_sort_idx<8>(idx[0], dist);
         ADD_TIME(lsb);
 
         START(msb);
@@ -51,23 +54,24 @@ void speed_test_radix_sort_idx(int T = 100) {
         assert(verify(idx[2], dist));
     }
 
-    PRINT_TIME(lsb);
-    PRINT_TIME(msb);
-    PRINT_TIME(std);
+    PRINT_TIME_MS(lsb);
+    PRINT_TIME_MS(msb);
+    PRINT_TIME_MS(std);
 }
 
-void speed_test_radix_sort(int T = 100) {
+void speed_test_radix_sort() {
     START_ACC(lsb);
     START_ACC(msb);
     START_ACC(std);
 
-    for (int i = 0; i < T; i++) {
-        print_progress(i, T, "speed test radix sort");
-        auto v0 = int_gen<long>(500'000, 100'000, 100'000'000);
+    LOOP_FOR_DURATION_TRACKED(3s, now) {
+        print_time(now, 3s, 50ms, "speed test radix sort");
+
+        auto v0 = int_gen<int>(500'000, 100'000, 100'000'000);
         auto v1 = v0, v2 = v0;
 
         START(lsb);
-        lsb_radix_sort(v0);
+        lsb_radix_sort<8>(v0);
         ADD_TIME(lsb);
 
         START(msb);
@@ -82,9 +86,9 @@ void speed_test_radix_sort(int T = 100) {
         assert(v1 == v2);
     }
 
-    PRINT_TIME(lsb);
-    PRINT_TIME(msb);
-    PRINT_TIME(std);
+    PRINT_TIME_MS(lsb);
+    PRINT_TIME_MS(msb);
+    PRINT_TIME_MS(std);
 }
 
 } // namespace speed_testing_radix_sort

@@ -43,10 +43,11 @@ struct exact_tsp_dataset_t {
     void run() const {
         vector<int> path;
         long optimum = tsp_held_karp(V, dist, &path);
+
         if (optimum != ans || !trips_match(path, ans_path)) {
             print(" exact tsp -- V={}\n", V);
-            print("   expected: {:>9} | trip: {}\n", ans, fmt::join(ans_path, " "));
-            print("     actual: {:>9} | trip: {}\n", optimum, fmt::join(path, " "));
+            print("   expected: {:>9} | trip: {}\n", ans, ans_path);
+            print("     actual: {:>9} | trip: {}\n", optimum, path);
         }
     }
 };

@@ -17,7 +17,9 @@ inline NumT parse(string s) { return stoll(s); }
 // inline string convert(NumT n) { to_string(n >= 0 ? long(n) : -long(-n)); }
 inline string convert(NumT n) { return to_string(n); }
 
-inline double compute_ratio(double time, int N) { return 1e7 * time / (N * log2(N)); }
+inline auto compute_ratio(double time, int N) {
+    return format("{:7.1f} ratio", 1e7 * time / (N * log2(N)));
+}
 
 /**
  * Generate N random points inside the sphere of radius R or cube of side 2R
@@ -188,7 +190,7 @@ struct quickhull3d_dataset_test_t {
         auto counterexample = verify_hull(hull, points);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
-            print_clear("Incorrect convex hull\n");
+            printcl("Incorrect convex hull\n");
             if (kind == 0) {
                 print("ce: point {} does not lie on plane of face {}\n", v, f);
             } else if (kind == 1) {
@@ -235,7 +237,7 @@ void stress_test_quickhull3d_run(int N, int L, int C, int I, long R = 100) {
         auto counterexample = verify_hull(hull, points);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
-            print_clear("Incorrect convex hull, check file {}\n", tmpfile.string());
+            printcl("Incorrect convex hull, check file {}\n", tmpfile.string());
             if (kind == 0) {
                 print("ce: point {} does not lie on plane of face {}\n", v, f);
             } else if (kind == 1) {
@@ -283,9 +285,9 @@ void scaling_test_quickhull3d_run(int N, int L, int C, int I = 0, long R = 200) 
     }
 
     int all = N + L + C + I;
-    auto each = 1.0 * TIME_MS(hull) / runs;
-    print(" {:>7.1f}ms each -- {:7.1f} ratio -- x{:<6}  P={:<6} (N={},L={},C={},I={})\n",
-          each, compute_ratio(each, all), runs, all, N, L, C, I);
+    print(" {:>8.2f}ms/1 -- {} -- x{:<6}  P={:<6} (N={},L={},C={},I={})\n",
+          EACH_MS(hull, runs), compute_ratio(EACH_MS(hull, runs), all), runs, all, N, L,
+          C, I);
 }
 
 void scaling_test_quickhull3d() {

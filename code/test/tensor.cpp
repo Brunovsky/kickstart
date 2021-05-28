@@ -78,8 +78,8 @@ void stress_test_tensor_multiply() {
         }
     }
 
-    PRINT_TIME(mat);
-    PRINT_TIME(tensor);
+    PRINT_EACH_US(mat, runs);
+    PRINT_EACH_US(tensor, runs);
 }
 
 } // namespace stress_testing_tensor

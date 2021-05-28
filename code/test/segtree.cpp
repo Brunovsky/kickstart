@@ -12,11 +12,12 @@ void unit_test_add_segtree() {
     int N = arr.size();
 
     segtree<sum_segnode, add_segupdate> tree(0, N, arr);
-
     assert(tree.query_range(0, 7).value == 42);
+
     tree.update_range(0, 3, 2);
     assert(tree.query_range(0, 7).value == 48);
     assert(tree.query_index(2).value == 9);
+
     tree.update_index(4, 10);
     assert(tree.query_range(0, 7).value == 58);
 }

@@ -39,6 +39,7 @@ void unit_test_centroid_decomposition() {
                     "12,31 13,18 13,19 14,24 14,25 14,26 14,27 15,21 15,23 21,22";
 
     edges_t g = scan_edges(sedges);
+    random_flip_inplace(g);
     assert(int(g.size()) == V - 1);
 
     auto tree = make_adjacency_lists_undirected(V, g);
@@ -58,6 +59,7 @@ void unit_test_heavy_light_decomposition() {
                     "12,31 13,18 13,19 14,24 14,25 14,26 14,27 15,21 15,23 21,22";
 
     edges_t g = scan_edges(sedges);
+    random_flip_inplace(g);
     assert(int(g.size()) == V - 1);
 
     auto tree = make_adjacency_lists_undirected(V, g);
@@ -177,7 +179,6 @@ void unit_test_undirected_euler_tour(int V = 8, int k = 4) {
     auto path = build_undirected_euler_tour(0, g);
     assert(int(path.size()) == E);
 
-    [[maybe_unused]] auto xore = [&](int e) { return g[e][0] ^ g[e][1]; };
     vector<bool> seen(E, false);
 
     for (int i = 0; i < E; i++) {

@@ -27,6 +27,7 @@ void setup() {
 }
 
 void unit_test_lca() {
+    setup();
     lca_tree<20, 5> lca;
     lca.init(1);
     assert(lca.lca(11, 19) == 5);
@@ -44,7 +45,6 @@ void unit_test_lca() {
 } // namespace unit_testing_lca
 
 int main() {
-    setup();
     RUN_SHORT(unit_test_lca());
     return 0;
 }

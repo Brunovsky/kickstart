@@ -112,9 +112,11 @@ void unit_test_linked_lists() {
 
 inline namespace battle_testing_linked_lists {
 
-void battle_test_linked_lists(int T = 500000) {
+void battle_test_linked_lists() {
     constexpr int L = 30, N = 5000;
-    intd distL(0, L - 1), distN(0, N - 1), action(0, 99);
+    intd distL(0, L - 1);
+    intd distN(0, N - 1);
+    intd actiond(0, 99);
     linked_lists ll(L, N);
     unordered_set<int> lists[L];
     unordered_map<int, int> all;
@@ -140,10 +142,12 @@ void battle_test_linked_lists(int T = 500000) {
         return true;
     };
 
-    for (int i = 0; i < T; i++) {
-        int a = action(mt);
+    LOOP_FOR_DURATION_OR_RUNS_TRACKED(5s, now, 300'000, runs) {
+        print_time(now, 5s, 50ms, "battle test linked list");
+
+        int a = actiond(mt);
         if (a < 40) {
-            int l = distL(mt), n = distN(mt), b = action(mt);
+            int l = distL(mt), n = distN(mt), b = actiond(mt);
             if (all.count(n)) {
                 ll.erase(n);
 
@@ -164,7 +168,7 @@ void battle_test_linked_lists(int T = 500000) {
                 all[n] = l, lists[l].insert(n);
             }
         } else if (a < 70) {
-            int l = distL(mt), g = distL(mt), b = action(mt);
+            int l = distL(mt), g = distL(mt), b = actiond(mt);
             if (l != g) {
                 if (b < 50 && !lists[l].empty()) {
                     int n = *lists[l].begin();
@@ -199,7 +203,7 @@ void battle_test_linked_lists(int T = 500000) {
                 swap(lists[l], lists[g]);
             }
         } else if (a < 95) {
-            int l = distL(mt), b = action(mt), n;
+            int l = distL(mt), b = actiond(mt), n;
             if (!lists[l].empty()) {
                 if (b < 50) {
                     n = ll.head(l);
@@ -220,11 +224,10 @@ void battle_test_linked_lists(int T = 500000) {
                 all.erase(n);
             lists[l].clear();
         }
-        if (action(mt) < 5) {
+
+        if (actiond(mt) < 5) {
             assert(verify());
         }
-        if (i % 100 == 0)
-            print_progress(i, T, "battle test linked list");
     }
     assert(verify());
 }

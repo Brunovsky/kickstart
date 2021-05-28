@@ -87,7 +87,7 @@ void stress_test_fft_multiply(int N = 1000, int V = 1000) {
     }
 
     double percent = 1.0 * errors / runs;
-    print_clear("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
+    printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
 }
 
 template <typename I>
@@ -107,7 +107,7 @@ void stress_test_fft_square(int N = 1000, int V = 1000) {
     }
 
     double percent = 1.0 * errors / runs;
-    print_clear("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
+    printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
 }
 
 void stress_test_ntt_multiply(int N = 1000, int V = 1000) {
@@ -127,7 +127,7 @@ void stress_test_ntt_multiply(int N = 1000, int V = 1000) {
     }
 
     double percent = 1.0 * errors / runs;
-    print_clear("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
+    printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
 }
 
 } // namespace stress_testing_fft
@@ -166,9 +166,9 @@ void speed_test_fft_multiply(int V = 1000) {
                 ADD_TIME(naive);
             }
 
-            print_clear(" -- fft multiply {}x{}\n", A, B);
-            PRINT_TIME(fft);
-            PRINT_TIME(naive);
+            printcl(" -- fft multiply {}x{}\n", A, B);
+            PRINT_TIME_MS(fft);
+            PRINT_TIME_MS(naive);
 
             ffttime[ia][ib] = format("{:.1f}", 1.0 * TIME_US(fft) / runs);
             naivetime[ia][ib] = format("{:.1f}", 1.0 * TIME_US(naive) / runs);
@@ -193,7 +193,7 @@ void breakeven_test_fft_square(int V = 100) {
     while (delta > stop) {
         N++;
         auto ratio = 1.0 * fft_time[N - 1] / naive_time[N - 1];
-        print_clear("breakeven N={} delta={} ratio={:.1f}", N, delta, ratio);
+        printcl("breakeven N={} delta={} ratio={:.1f}", N, delta, ratio);
 
         START_ACC(fft);
         START_ACC(naive);
@@ -222,7 +222,7 @@ void breakeven_test_fft_square(int V = 100) {
         }
     }
 
-    print_clear("breakeven: N={}\n", N - window / 2);
+    printcl("breakeven: N={}\n", N - window / 2);
 }
 
 template <typename T>
@@ -237,7 +237,7 @@ void breakeven_test_ntt_square(int V = 10000) {
     while (delta > stop) {
         N++;
         auto ratio = 1.0 * fft_time[N - 1] / naive_time[N - 1];
-        print_clear("breakeven N={} delta={} ratio={:.1f}", N, delta, ratio);
+        printcl("breakeven N={} delta={} ratio={:.1f}", N, delta, ratio);
 
         START_ACC(fft);
         START_ACC(naive);
@@ -266,7 +266,7 @@ void breakeven_test_ntt_square(int V = 10000) {
         }
     }
 
-    print_clear("breakeven: N={}\n", N - window / 2);
+    printcl("breakeven: N={}\n", N - window / 2);
 }
 
 void breakeven_test_ntt_split_square(int mod = 1'000'000'007, int V = 1000000) {
@@ -280,7 +280,7 @@ void breakeven_test_ntt_split_square(int mod = 1'000'000'007, int V = 1000000) {
     while (delta > stop) {
         N++;
         auto ratio = 1.0 * fft_time[N - 1] / naive_time[N - 1];
-        print_clear("breakeven N={} delta={} ratio={:.1f}", N, delta, ratio);
+        printcl("breakeven N={} delta={} ratio={:.1f}", N, delta, ratio);
 
         START_ACC(fft);
         START_ACC(naive);
@@ -309,7 +309,7 @@ void breakeven_test_ntt_split_square(int mod = 1'000'000'007, int V = 1000000) {
         }
     }
 
-    print_clear("breakeven: N={}\n", N - window / 2);
+    printcl("breakeven: N={}\n", N - window / 2);
 }
 
 } // namespace speed_testing_fft

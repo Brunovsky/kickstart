@@ -110,8 +110,8 @@ inline namespace speed_testing_mincost_flow {
 void speed_test_mincost_flow_run(flow_network_kind i, int S) {
     START_ACC(edmonds);
 
-    LOOP_FOR_DURATION_TRACKED(800ms, now) {
-        print_time(now, 800ms, 50ms, flow_kind_name[i]);
+    LOOP_FOR_DURATION_TRACKED_RUNS(1s, now, runs) {
+        print_time(now, 1s, 50ms, flow_kind_name[i]);
 
         auto network = generate_flow_network(i, S);
         add_cap_flow_network(network, 1, 100'000'000);
@@ -134,7 +134,7 @@ void speed_test_mincost_flow_run(flow_network_kind i, int S) {
         assert(ans1 == ans3);
     }
 
-    print_clear(" {:>8}ms -- edmonds -- {}\n", TIME_MS(edmonds), flow_kind_name[i]);
+    printcl(" {:>8.2f}us -- edmonds -- {}\n", EACH_US(edmonds, runs), flow_kind_name[i]);
 }
 
 void speed_test_mincost_flow() {

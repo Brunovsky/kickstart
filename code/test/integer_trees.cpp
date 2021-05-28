@@ -78,20 +78,18 @@ enum MergingAction {
 
 constexpr int arr[END] = {100, 100, 400, 1000, 200};
 
-void stress_test_merging_interval_tree(int T = 300'000, int N = 100'000, int k = 200) {
+void stress_test_merging_interval_tree(int N = 100'000, int k = 200) {
     intd numd(0, N);
     intd rang(0, N - k);
     intd lend(1, k);
 
     discrete_distribution<int> actiond(arr, arr + END);
     set<int> nums;
-    merging_interval_tree<int> tree;
+    merging_interval_tree<int> mit;
 
-    for (int t = 0; t < T; t++) {
-        if (t % 100 == 0) {
-            print_progress(t, T, "stress test merging interval tree {:7} {:3}",
-                           nums.size(), tree.size());
-        }
+    LOOP_FOR_DURATION_OR_RUNS_TRACKED(10s, now, 400'000, runs) {
+        print_time(now, 10s, 50ms, "stress test merging interval tree {:7} {:3}",
+                   nums.size(), mit.size());
 
         auto action = MergingAction(actiond(mt));
 
@@ -99,7 +97,7 @@ void stress_test_merging_interval_tree(int T = 300'000, int N = 100'000, int k =
         case INSERT: {
             int lo = rang(mt);
             int hi = lo + lend(mt);
-            tree.insert({lo, hi});
+            mit.insert({lo, hi});
             auto it = nums.lower_bound(hi);
             for (int n = hi - 1; n >= lo; n--) {
                 it = nums.insert(it, n);
@@ -108,7 +106,7 @@ void stress_test_merging_interval_tree(int T = 300'000, int N = 100'000, int k =
         case EXCLUDE: {
             int lo = rang(mt);
             int hi = lo + lend(mt);
-            tree.exclude({lo, hi});
+            mit.exclude({lo, hi});
             auto it0 = nums.lower_bound(lo);
             auto it1 = nums.lower_bound(hi);
             nums.erase(it0, it1);
@@ -116,7 +114,7 @@ void stress_test_merging_interval_tree(int T = 300'000, int N = 100'000, int k =
         case TOGGLE: {
             int lo = rang(mt);
             int hi = lo + lend(mt);
-            tree.toggle({lo, hi});
+            mit.toggle({lo, hi});
             auto it0 = nums.lower_bound(lo);
             auto it1 = nums.lower_bound(hi);
             vector<int> exists(it0, it1);
@@ -132,17 +130,17 @@ void stress_test_merging_interval_tree(int T = 300'000, int N = 100'000, int k =
         } break;
         case CONTAINS: {
             int n = numd(mt);
-            assert(tree.contains(n) == nums.count(n));
+            assert(mit.contains(n) == nums.count(n));
         } break;
         case COVER_LENGTH: {
-            assert(tree.cover_length() == int(nums.size()));
+            assert(mit.cover_length() == int(nums.size()));
         } break;
         default:
             print("Unsupported action: {}\n", int(action));
             abort();
         }
 
-        assert(verify(tree));
+        assert(verify(mit));
     }
 }
 
@@ -150,7 +148,7 @@ void stress_test_merging_interval_tree(int T = 300'000, int N = 100'000, int k =
 
 int main() {
     RUN_SHORT(unit_test_merging_interval_tree());
-    RUN_BLOCK(stress_test_merging_interval_tree(500'000, 3000, 50));
-    RUN_BLOCK(stress_test_merging_interval_tree(150'000, 100'000, 500));
+    RUN_BLOCK(stress_test_merging_interval_tree(3000, 50));
+    RUN_BLOCK(stress_test_merging_interval_tree(100'000, 500));
     return 0;
 }

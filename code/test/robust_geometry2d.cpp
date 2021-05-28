@@ -136,7 +136,6 @@ void table_test_same(int mx = 20, int my = 20) {
 
 int main() {
     print("Epsilon Point2d: {}\n", P::deps);
-    mt.seed(73);
     RUN_SHORT(table_test_collinear());
     RUN_SHORT(table_test_same());
     RUN_SHORT(stress_test_collinear());

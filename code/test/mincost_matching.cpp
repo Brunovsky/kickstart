@@ -80,8 +80,8 @@ void speed_test_mincost_matching_run(bipartite_graph_kind i, int S) {
     avg_mc /= runs;
 
     double imperfect_percent = 100.0 * imperfect / runs;
-    print_clear(" {:>8}ms -- hungarian -- {:14.1f} avg. -- {:5.1f}% imperfect -- {}\n",
-                TIME_MS(hungarian), avg_mc, imperfect_percent, bipartite_kind_name[i]);
+    printcl(" {:>8}us -- hungarian -- {:14.1f} avg. -- {:5.1f}% imperfect -- {}\n",
+            EACH_US(hungarian, runs), avg_mc, imperfect_percent, bipartite_kind_name[i]);
 }
 
 void speed_test_mincost_matching() {

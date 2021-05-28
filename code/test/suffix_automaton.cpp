@@ -44,14 +44,14 @@ void speed_test_build(int min_scale = 10, int max_scale = 15) {
         times[2][id] = 1.0 * TIME_US(msa) / runs;
         times[3][id] = 1.0 * TIME_US(vsa) / runs;
 
-        print_clear(" -- speed test SA build len={}\n", len);
-        PRINT_TIME(gsa);
-        PRINT_TIME(ssa);
-        PRINT_TIME(msa);
-        PRINT_TIME(vsa);
+        printcl(" -- speed test SA build len={}\n", len);
+        PRINT_EACH_MS(gsa, runs);
+        PRINT_EACH_MS(ssa, runs);
+        PRINT_EACH_MS(msa, runs);
+        PRINT_EACH_MS(vsa, runs);
     }
 
-    print_clear("speed test suffix_automaton build:\n{}\n", times);
+    printcl("speed test suffix_automaton build:\n{}\n", times);
 }
 
 void speed_test_contains(int min_scale = 10, int max_scale = 18) {
@@ -101,14 +101,14 @@ void speed_test_contains(int min_scale = 10, int max_scale = 18) {
         times[2][id] = 1.0 * TIME_US(msa) / runs;
         times[3][id] = 1.0 * TIME_US(vsa) / runs;
 
-        print_clear(" -- speed test SA contains len={}\n", len);
-        PRINT_TIME(gsa);
-        PRINT_TIME(ssa);
-        PRINT_TIME(msa);
-        PRINT_TIME(vsa);
+        printcl(" -- speed test SA contains len={}\n", len);
+        PRINT_EACH_NS(gsa, runs);
+        PRINT_EACH_NS(ssa, runs);
+        PRINT_EACH_NS(msa, runs);
+        PRINT_EACH_NS(vsa, runs);
     }
 
-    print_clear("speed test suffix_automaton contains:\n{}\n", times);
+    printcl("speed test suffix_automaton contains:\n{}\n", times);
 }
 
 } // namespace speed_testing_suffix_automaton

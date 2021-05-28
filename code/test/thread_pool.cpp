@@ -58,7 +58,6 @@ void stress_test_pool_submit(int N = 200, int rate = 47, int nthreads = 5) {
     thread_pool pool(nthreads);
     assert(pool.pool_size() == nthreads);
     int i = 1;
-    print("stress test iterative submit\n");
     while (i <= N) {
         int j = 0;
         while (i <= N && j < rate) {
@@ -77,9 +76,8 @@ void stress_test_pool_submit(int N = 200, int rate = 47, int nthreads = 5) {
 void stress_test_priority_pool_submit(int N = 200, int rate = 47, int nthreads = 5) {
     priority_thread_pool<int> pool(nthreads);
     assert(int(pool.pool_size()) == nthreads);
-    int i = 1;
     intd priorityd(1000, 9999);
-    print("stress test iterative submit with priority\n");
+    int i = 1;
     while (i <= N) {
         int j = 0;
         while (i <= N && j < rate) {
@@ -168,14 +166,14 @@ void fn_orchestrator_speed_run(int V, int n, int buckets, int nthreads) {
     START(sequential);
     orch.sequential_make(job);
     TIME(sequential);
-    PRINT_TIME(sequential);
+    PRINT_TIME_MS(sequential);
 
     swap(vis, vis2);
 
     START(concurrent);
     orch.concurrent_make(job, nthreads);
     TIME(concurrent);
-    PRINT_TIME(concurrent);
+    PRINT_TIME_MS(concurrent);
 
     if (vis != vis2) {
         fail("Different matrices");
@@ -247,9 +245,9 @@ void graph_orchestrator_speed_run(int V, int E, int n, int nthreads) {
     orch.concurrent_make(job, nthreads);
     TIME(concurrent);
 
-    print_clear(" V:{}, E:{}, {} threads\n", V, E, nthreads);
-    PRINT_TIME(sequential);
-    PRINT_TIME(concurrent);
+    printcl(" V:{}, E:{}, {} threads\n", V, E, nthreads);
+    PRINT_TIME_MS(sequential);
+    PRINT_TIME_MS(concurrent);
 
     if (vis != vis2) {
         fail("Different values");

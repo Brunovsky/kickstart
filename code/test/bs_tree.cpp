@@ -46,12 +46,14 @@ template struct bs_set<int, greater<int>>;
  *      - set_union, set_different, etc
  *      - bst_inserters
  */
-void merge_test(int T = 500) {
+void merge_test() {
     intd dists(0, 100);
     intd distn(-70, 70);
 
     // subtest 1: multi merge
-    for (int t = 0; t < T; t++) {
+    LOOP_FOR_DURATION_TRACKED(1s, now) {
+        print_time(now, 1s, 50ms, "multi merge test");
+
         bs_multiset<int> a, b;
         size_t as = dists(mt), bs = dists(mt);
 
@@ -90,12 +92,12 @@ void merge_test(int T = 500) {
         b.merge(c);
         c.merge(b);
         assert(a == c);
-
-        print_progress(t, 3 * T, "merge");
     }
 
     // subtest 2: unique merge
-    for (int t = 0; t < T; t++) {
+    LOOP_FOR_DURATION_TRACKED(1s, now) {
+        print_time(now, 1s, 50ms, "unique merge test");
+
         bs_set<int> a, b;
         size_t as = dists(mt), bs = dists(mt);
 
@@ -152,12 +154,12 @@ void merge_test(int T = 500) {
             print("C: {}\n", fmt::join(C, " "));
         }
         assert(a == c);
-
-        print_progress(t + T, 3 * T, "merge");
     }
 
     // subtest 3: extract
-    for (int t = 0; t < T; t++) {
+    LOOP_FOR_DURATION_TRACKED(1s, now) {
+        print_time(now, 1s, 50ms, "extract test");
+
         bs_multiset<int> a, b;
         int s = dists(mt);
         for (int i = 0; i < s; i++) {
@@ -176,8 +178,6 @@ void merge_test(int T = 500) {
         }
         debug_tree(b).debug();
         assert(b == c);
-
-        print_progress(t + 2 * T, 3 * T, "merge");
     }
 }
 
@@ -186,13 +186,15 @@ void merge_test(int T = 500) {
  *      - Copy construction, move construction
  *      - Copy assignment, move assignment
  */
-void construct_test(int T = 500) {
+void construct_test() {
     intd dists(0, 50);
     intd distn(-1000, 1000);
 
     bs_multiset<int> d, e;
 
-    for (int t = 0; t < T; t++) {
+    LOOP_FOR_DURATION_TRACKED(1s, now) {
+        print_time(now, 1s, 50ms, "construct test");
+
         bs_multiset<int> a;
         for (int i = 0, s = dists(mt); i < s; i++) {
             a.insert(distn(mt));
@@ -222,8 +224,6 @@ void construct_test(int T = 500) {
         debug_tree(b).debug();
         debug_tree(c).debug();
         debug_tree(d).debug();
-
-        print_progress(t, T, "construct");
     }
 }
 
@@ -235,11 +235,13 @@ void construct_test(int T = 500) {
  *    4 - find(), count()
  *    5 - lower_bound(), upper_bound(), equal_range()
  */
-void iterator_test(int T = 500) {
+void iterator_test() {
     intd dists(0, 50);
     intd distn(-10000, 10000);
 
-    for (int t = 0; t < T; t++) {
+    LOOP_FOR_DURATION_TRACKED(1s, now) {
+        print_time(now, 1s, 50ms, "iterator test");
+
         bs_multiset<int> tree;
 
         // generate a bunch of numbers, possibly repeated
@@ -371,8 +373,6 @@ void iterator_test(int T = 500) {
                 assert(n <= *it && *it <= m);
             }
         }
-
-        print_progress(t, T, "iterator");
     }
 }
 
@@ -381,11 +381,13 @@ void iterator_test(int T = 500) {
  *      - comparison operators <=, >=, ==, !=
  *      - order invariance of elements (that the tree is actually sorted correctly)
  */
-void equality_test(int T = 500) {
+void equality_test() {
     intd dists(0, 200);
     intd distn(1, 10000);
 
-    for (int t = 0; t < T; t++) {
+    LOOP_FOR_DURATION_TRACKED(1s, now) {
+        print_time(now, 1s, 50ms, "equality test");
+
         bs_multiset<int> lhs, rhs;
         vector<int> nums;
         for (int i = 0, s = dists(mt); i < s; i++) {
@@ -417,8 +419,6 @@ void equality_test(int T = 500) {
         assert(lhs >= rhs);
         assert(!(lhs < rhs));
         assert(!(lhs > rhs));
-
-        print_progress(t, T, "equality");
     }
 }
 
@@ -471,17 +471,17 @@ void comparison_test(int T = 500) {
  * Test the following:
  *      - Tree core (avl/rb) insertion
  */
-void insert_test(int T = 500) {
+void insert_test() {
     intd distn(0, 1'000);
     intd dists(0, 200);
 
-    for (int t = 0; t < T; t++) {
+    LOOP_FOR_DURATION_TRACKED(1s, now) {
+        print_time(now, 1s, 50ms, "insert test");
         bs_set<int> tree;
         for (int i = 0, s = dists(mt); i < s; i++) {
             tree.insert(distn(mt));
             debug_tree(tree).debug();
         }
-        print_progress(t, T, "insert");
     }
 }
 
@@ -489,11 +489,12 @@ void insert_test(int T = 500) {
  * Test the following:
  *      - Tree core (avl/rb) removal
  */
-void erase_test(int T = 500) {
+void erase_test() {
     intd distn(0, 1'000);
     intd dists(0, 200);
 
-    for (int t = 0; t < T; t++) {
+    LOOP_FOR_DURATION_TRACKED(1s, now) {
+        print_time(now, 1s, 50ms, "erase test");
         bs_set<int> tree;
         vector<int> nums;
         int s = dists(mt);
@@ -508,7 +509,6 @@ void erase_test(int T = 500) {
             tree.erase(nums[i]);
             debug_tree(tree).debug();
         }
-        print_progress(t, T, "erase");
     }
 }
 
@@ -609,15 +609,27 @@ void hint_test() {
 void emplace_test() {
     bs_tree<pair<int, int>> a, b;
 
-    a.insert_unique({3, 2}), a.insert_unique({2, 3}), a.insert_unique({1, 2});
-    a.insert_unique({2, 1}), a.insert_unique({1, 3}), a.insert_unique({3, 1});
+    a.insert_unique({3, 2});
+    a.insert_unique({2, 3});
+    a.insert_unique({1, 2});
+    a.insert_unique({2, 1});
+    a.insert_unique({1, 3});
+    a.insert_unique({3, 1});
 
-    b.emplace_unique(2, 1), b.emplace_unique(1, 3), b.emplace_unique(3, 1);
-    b.emplace_unique(3, 2), b.emplace_unique(2, 3), b.emplace_unique(1, 2);
+    b.emplace_unique(2, 1);
+    b.emplace_unique(1, 3);
+    b.emplace_unique(3, 1);
+    b.emplace_unique(3, 2);
+    b.emplace_unique(2, 3);
+    b.emplace_unique(1, 2);
 
-    a.emplace_multi(4, 7), a.emplace_multi(7, 4), a.emplace_multi(4, 7);
+    a.emplace_multi(4, 7);
+    a.emplace_multi(7, 4);
+    a.emplace_multi(4, 7);
 
-    b.insert_multi({4, 7}), b.insert_multi({4, 7}), b.insert_multi({7, 4});
+    b.insert_multi({4, 7});
+    b.insert_multi({4, 7});
+    b.insert_multi({7, 4});
 
     assert(a == b);
     debug_tree(a).debug();
@@ -695,8 +707,8 @@ static int bti = 0;
  * Compare the results of all operations with the equivalents ones on std::multiset.
  */
 template <typename Compare = less<pair<int, int>>>
-void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
-                 boold domulti, boold dohint, boold doclear) {
+void battle_test(intd dists, intd distn, boold doerase, boold doemplace, boold domulti,
+                 boold dohint, boold doclear) {
     bti++;
 
     using pair_t = pair<int, int>;
@@ -705,7 +717,9 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
     using constit_t = typename tree_t::const_iterator;
     using stl_t = std::multiset<pair_t, Compare>;
 
-    for (int t = 0; t < T; t++) {
+    LOOP_FOR_DURATION_TRACKED(2s, now) {
+        print_time(now, 2s, 50ms, "battle test");
+
         tree_t tree;
         stl_t good;
         assert(tree.empty());
@@ -833,8 +847,6 @@ void battle_test(int T, intd dists, intd distn, boold doerase, boold doemplace,
 
         // punchline
         assert(equal(ALL(good), ALL(tree)));
-
-        print_progress(t, T, "battle " + to_string(bti));
     }
 }
 
@@ -853,22 +865,22 @@ int main() {
 
     // clang-format off
     // generic test with moderate conflicts
-    RUN_SHORT((battle_test(800, intd(5, 700), intd(0, 7),
+    RUN_SHORT((battle_test(intd(5, 700), intd(0, 7),
                 boold(0.40), boold(0.45), boold(0.30), boold(0.20), boold(0.002))));
     // inserts only test
-    RUN_SHORT((battle_test(300, intd(5, 700), intd(0, 7),
+    RUN_SHORT((battle_test(intd(5, 700), intd(0, 7),
                 boold(0.00), boold(0.30), boold(0.60), boold(0.50), boold(0.000))));
     // generic test with many conflicts
-    RUN_SHORT((battle_test(800, intd(100, 700), intd(0, 3),
+    RUN_SHORT((battle_test(intd(100, 700), intd(0, 3),
                 boold(0.40), boold(0.45), boold(0.30), boold(0.20), boold(0.003))));
     // hinted test
-    RUN_SHORT((battle_test(700, intd(50, 200), intd(0, 7),
+    RUN_SHORT((battle_test(intd(50, 200), intd(0, 7),
                 boold(0.10), boold(0.50), boold(0.40), boold(0.90), boold(0.004))));
     // different compare
-    RUN_SHORT((battle_test<greater<pair<int, int>>>(500, intd(5, 700), intd(0, 7),
+    RUN_SHORT((battle_test<greater<pair<int, int>>>(intd(5, 700), intd(0, 7),
                 boold(0.40), boold(0.45), boold(0.30), boold(0.20), boold(0.002))));
     // many clears
-    RUN_SHORT((battle_test(500, intd(200, 300), intd(0, 10),
+    RUN_SHORT((battle_test(intd(200, 300), intd(0, 10),
                 boold(0.10), boold(0.25), boold(0.50), boold(0.30), boold(0.075))));
     //               erase        emplace      multi        hint         clear
     // clang-format on

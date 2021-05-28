@@ -172,7 +172,7 @@ struct quickhull3d_dataset_test_t {
         auto counterexample = verify_hull(hull, points, P::deps);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
-            print_clear("Incorrect convex hull\n");
+            printcl("Incorrect convex hull\n");
             if (kind == 0) {
                 print("ce: point {} does not lie on plane of face {}\n", v, f);
             } else if (kind == 1) {
@@ -219,7 +219,7 @@ void stress_test_quickhull3d_run(int T, int N, int L, int C, int I, long R = 50)
         auto counterexample = verify_hull(hull, points, 10 * P::deps);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
-            print_clear("Incorrect convex hull, check file {}\n", tmpfile.string());
+            printcl("Incorrect convex hull, check file {}\n", tmpfile.string());
             if (kind == 0) {
                 print("ce: point {} does not lie on plane of face {}\n", v, f);
             } else if (kind == 1) {

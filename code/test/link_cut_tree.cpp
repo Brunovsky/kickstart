@@ -174,7 +174,7 @@ auto make_actions(int N, ms runtime, const int arr[END]) {
         Ssum += slow.S;
     }
 
-    print_clear("S avg: {:.2f}\n", 1.0 * Ssum / iterations);
+    printcl("S avg: {:.2f}\n", 1.0 * Ssum / iterations);
     print("iterations: {}\n", iterations);
     // print("Frequency table:\n");
     // for (int a = 0; a < END; a++) {
@@ -545,7 +545,7 @@ void speed_test_link_cut_tree_path(int N, const int arr[END]) {
         }
     }
     TIME(linkcut);
-    PRINT_TIME(linkcut);
+    PRINT_TIME_MS(linkcut);
 }
 
 } // namespace speed_testing
@@ -554,8 +554,8 @@ int main() {
     setbuf(stdout, nullptr);
     RUN_SHORT(stress_test_link_cut_tree_subtree());
     RUN_SHORT(stress_test_link_cut_tree_path());
-    RUN_SHORT(speed_test_link_cut_tree_path(1'000, 70'000, speed_query_heavy));
-    RUN_SHORT(speed_test_link_cut_tree_path(1'000, 70'000, speed_update_heavy));
-    RUN_SHORT(speed_test_link_cut_tree_path(1'000, 70'000, speed_topo_heavy));
+    RUN_SHORT(speed_test_link_cut_tree_path(1'000, speed_query_heavy));
+    RUN_SHORT(speed_test_link_cut_tree_path(1'000, speed_update_heavy));
+    RUN_SHORT(speed_test_link_cut_tree_path(1'000, speed_topo_heavy));
     return 0;
 }

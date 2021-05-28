@@ -31,16 +31,16 @@ void speed_test_maximum_matching_run(bipartite_graph_kind i, int S) {
         assert(m0 == m1);
     }
 
-    print_clear(" speed test {} (S={}, x{}):\n", bipartite_kind_name[i], S, runs);
-    PRINT_TIME(gen);
-    PRINT_TIME(mm);
-    PRINT_TIME(hopcroft);
+    printcl(" speed test {} (S={}, x{}):\n", bipartite_kind_name[i], S, runs);
+    PRINT_EACH_US(gen, runs);
+    PRINT_EACH_US(mm, runs);
+    PRINT_EACH_US(hopcroft, runs);
 }
 
 void speed_test_maximum_matching() {
-    static constexpr int N = 5;
-    static constexpr int sizes[] = {1000, 2500, 8000, 15000, 30000};
-    for (int n = 0; n < N; n++) {
+    static const vector<int> sizes = {1000, 2500, 8000, 15000, 30000};
+
+    for (int n = 0; n < int(sizes.size()); n++) {
         print("speed test group S={}\n", sizes[n]);
         for (int i = 0; i < int(BG_END); i++) {
             speed_test_maximum_matching_run(bipartite_graph_kind(i), sizes[n]);

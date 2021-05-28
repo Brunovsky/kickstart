@@ -131,21 +131,21 @@ bool verify_inedges(int V, const vector<int>& in, const edges_t& g) {
 
 inline namespace stress_testing_min_arborescence {
 
-void stress_test_min_arborescence(double F = 10.0, int T = 500) {
-    int minV = 100 * F, maxV = 150 * F;
-    int minE = 600 * F, maxE = 800 * F;
+void stress_test_min_arborescence() {
+    int minV = 1000, maxV = 1500;
+    int minE = 6000, maxE = 8000;
     int mincost = 1, maxcost = 1000;
     intd distV(minV, maxV);
     intd distE(minE, maxE);
     int avgV = (minV + maxV) / 2, avgE = (minE + maxE) / 2;
+    long sum_costs = 0;
 
     START_ACC(kactl);
     START_ACC(min_arbo);
     START_ACC(min_arbo_extract);
-    long sum_costs = 0;
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test min arborescence");
+    LOOP_FOR_DURATION_TRACKED_RUNS(2s, now, runs) {
+        print_time(now, 2s, 50ms, "stress test min arborescence");
 
         int V = distV(mt), E = distE(mt);
         auto G = random_exact_directed_connected(V, E);
@@ -174,12 +174,12 @@ void stress_test_min_arborescence(double F = 10.0, int T = 500) {
         sum_costs += ans1;
     }
 
-    double avg_cost = 1.0 * sum_costs / T;
+    double avg_cost = 1.0 * sum_costs / runs;
     double exp_cost = (1.0 * (maxcost - mincost) * avgV / avgE + mincost) * (avgV - 1);
 
-    PRINT_TIME(kactl);
-    PRINT_TIME(min_arbo);
-    PRINT_TIME(min_arbo_extract);
+    PRINT_EACH_NS(kactl, runs);
+    PRINT_EACH_NS(min_arbo, runs);
+    PRINT_EACH_NS(min_arbo_extract, runs);
     print(" {:8.1f} average cost\n", avg_cost);
     print(" {:8.1f} expected cost\n", exp_cost);
 }

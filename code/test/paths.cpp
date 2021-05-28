@@ -13,7 +13,7 @@ void stress_test_positive_shortest_paths() {
     START_ACC(spfa);
     START_ACC(bellman_ford);
 
-    LOOP_FOR_DURATION_TRACKED(5s, now) {
+    LOOP_FOR_DURATION_TRACKED_RUNS(5s, now, runs) {
         print_time(now, 5s, 50ms, "stress test positive shortest paths");
         int V = distV(mt), E = distE(mt);
         auto dg = random_exact_undirected_connected(V, E);
@@ -40,9 +40,9 @@ void stress_test_positive_shortest_paths() {
         assert(d1 == d2 && d1 == d3);
     }
 
-    PRINT_TIME(dijkstra);
-    PRINT_TIME(spfa);
-    PRINT_TIME(bellman_ford);
+    PRINT_EACH_US(dijkstra, runs);
+    PRINT_EACH_US(spfa, runs);
+    PRINT_EACH_US(bellman_ford, runs);
 }
 
 void stress_test_all_positive_shortest_paths() {
@@ -54,7 +54,7 @@ void stress_test_all_positive_shortest_paths() {
     START_ACC(floyd_warshall);
     START_ACC(dijkstra_all);
 
-    LOOP_FOR_DURATION_TRACKED(15s, now) {
+    LOOP_FOR_DURATION_TRACKED_RUNS(15s, now, runs) {
         print_time(now, 15s, 50ms, "stress test all positive shortest paths");
         int V = distV(mt), E = distE(mt);
         auto dg = random_exact_undirected_connected(V, E);
@@ -81,9 +81,9 @@ void stress_test_all_positive_shortest_paths() {
         assert(d1 == d2);
     }
 
-    PRINT_TIME(johnsons);
-    PRINT_TIME(floyd_warshall);
-    PRINT_TIME(dijkstra_all);
+    PRINT_EACH_MS(johnsons, runs);
+    PRINT_EACH_MS(floyd_warshall, runs);
+    PRINT_EACH_MS(dijkstra_all, runs);
 }
 
 } // namespace stress_testing_positive_paths

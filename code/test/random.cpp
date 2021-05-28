@@ -83,7 +83,7 @@ void verify_normality(vi& v, bool show_histogram = false) {
         within[i] += within[i - 1];
     }
 
-    print_clear("===== NORMALITY TEST =====\n");
+    printcl("===== NORMALITY TEST =====\n");
     if (show_histogram) {
         long each = sum / n;
         for (int i = 0; i < n; i++) {
@@ -137,7 +137,7 @@ void stress_test_partition_sample_uniform(double F = 100) {
     for (int i = 0; i < P; i++) {
         auto p = count_permutations(pts[i]);
         double fast_w = 1.0 * fast[i] / p, naive_w = 1.0 * naive[i] / p;
-        print_clear("{:12} -- {:5} | {:6.1f} {:6.1f}\n", pts[i], p, fast_w, naive_w);
+        printcl("{:12} -- {:5} | {:6.1f} {:6.1f}\n", pts[i], p, fast_w, naive_w);
         fast[i] *= f / p;
         naive[i] *= f / p;
     }
@@ -146,15 +146,16 @@ void stress_test_partition_sample_uniform(double F = 100) {
     verify_normality(naive);
 }
 
-void stress_test_vec_sample(int T = 7000, int n = 4096, int k = 37) {
+void stress_test_vec_sample(int n = 4096, int k = 37) {
     int start = 87632;
     vector<int> univ(n);
     iota(begin(univ), end(univ), start);
     shuffle(begin(univ), end(univ), mt);
     vector<int> cnt(n, 0);
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test vec_sample");
+    LOOP_FOR_DURATION_TRACKED(3s, now) {
+        print_time(now, 3s, 50ms, "stress test vec_sample");
+
         vector<int> sample = vec_sample(univ, k);
         for (int m : sample) {
             assert(start <= m && m < start + n);
@@ -278,7 +279,7 @@ void scaling_test_int_sample(long F = 4'000'000) {
     mat<string> times_dense = make_table(abs, dense);
 
     for (long k : sparse) {
-        print_clear(" int sample sparse test x{}\n", k);
+        printcl(" int sample sparse test x{}\n", k);
 
         for (int n : abs) {
             if (k > n)
@@ -295,14 +296,13 @@ void scaling_test_int_sample(long F = 4'000'000) {
             TIME(sampler);
 
             double W = N * k;
-            double each = 1e3 * TIME_US(sampler) / W;
-            print_clear(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- sparse {:<8}\n",
-                        TIME_MS(sampler), each, n, N, k);
+            printcl(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- sparse {:<8}\n",
+                    TIME_MS(sampler), EACH_NS(sampler, W), n, N, k);
         }
     }
 
     for (double p : dense) {
-        print(" int sample dense test p={:5.3f}\n", p);
+        printcl(" int sample dense test p={:5.3f}\n", p);
 
         for (int n : abs) {
             if (p * n > F)
@@ -318,9 +318,8 @@ void scaling_test_int_sample(long F = 4'000'000) {
             TIME(sampler);
 
             double W = p * N * n;
-            double each = 1e3 * TIME_US(sampler) / W;
-            print_clear(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- dense {:>5.3f}\n",
-                        TIME_MS(sampler), each, n, N, p);
+            printcl(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- dense {:>5.3f}\n",
+                    TIME_MS(sampler), EACH_NS(sampler, W), n, N, p);
         }
     }
 }
@@ -346,7 +345,7 @@ void scaling_test_choose_sample(long F = 4'000'000) {
 
     row = col = 0;
     for (long k : sparse) {
-        print(" choose sample sparse test x{}\n", k), col++, row = 0;
+        printcl(" choose sample sparse test x{}\n", k), col++, row = 0;
 
         for (int n : abs_sparse) {
             row++;
@@ -362,14 +361,13 @@ void scaling_test_choose_sample(long F = 4'000'000) {
             }
             TIME(sampler);
             double W = N * k;
-            double each = 1e3 * TIME_US(sampler) / W;
-            print(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- sparse {:>8}\n",
-                  TIME_MS(sampler), each, n, N, k);
+            printcl(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- sparse {:>8}\n",
+                    TIME_MS(sampler), EACH_NS(sampler, W), n, N, k);
         }
     }
 
     for (double p : dense) {
-        print(" choose sample dense test p={:5.3f}\n", p);
+        printcl(" choose sample dense test p={:5.3f}\n", p);
 
         for (int n : abs_dense) {
             START(sampler);
@@ -381,9 +379,8 @@ void scaling_test_choose_sample(long F = 4'000'000) {
             TIME(sampler);
 
             double W = p * N * n * (n - 1) / 2;
-            double each = 1e3 * TIME_US(sampler) / W;
-            print(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- dense {:>5.3f}\n",
-                  TIME_MS(sampler), each, n, N, p);
+            printcl(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- dense {:>5.3f}\n",
+                    TIME_MS(sampler), EACH_NS(sampler, W), n, N, p);
         }
     }
 }
@@ -408,7 +405,7 @@ void scaling_test_pair_sample(long F = 4'000'000) {
     mat<string> times_dense = make_table(abs_dense, dense);
 
     for (long k : sparse) {
-        print(" pair sample sparse test x{}\n", k);
+        printcl(" pair sample sparse test x{}\n", k);
 
         for (auto [n, m] : abs_sparse) {
             if (k > n * m)
@@ -425,14 +422,13 @@ void scaling_test_pair_sample(long F = 4'000'000) {
             TIME(sampler);
 
             double W = N * k;
-            double each = 1e3 * TIME_US(sampler) / W;
-            print(" {:>8}ms -- {:>7.2f}ns/1 -- {:>5}x{:<5} x{:<8} -- sparse {:>8}\n",
-                  TIME_MS(sampler), each, n, m, N, k);
+            printcl(" {:>8}ms -- {:>7.2f}ns/1 -- {:>5}x{:<5} x{:<8} -- sparse {:>8}\n",
+                    TIME_MS(sampler), EACH_NS(sampler, W), n, m, N, k);
         }
     }
 
     for (double p : dense) {
-        print(" pair sample dense test p={:5.3f}\n", p);
+        printcl(" pair sample dense test p={:5.3f}\n", p);
 
         for (auto [n, m] : abs_dense) {
             START(sampler);
@@ -444,9 +440,8 @@ void scaling_test_pair_sample(long F = 4'000'000) {
             TIME(sampler);
 
             double W = p * N * n * m;
-            double each = 1e3 * TIME_US(sampler) / W;
-            print(" {:>8}ms -- {:>7.2f}ns/1 -- {:>5}x{:<5} x{:<8} -- dense {:>5.3f}\n",
-                  TIME_MS(sampler), each, n, m, N, p);
+            printcl(" {:>8}ms -- {:>7.2f}ns/1 -- {:>5}x{:<5} x{:<8} -- dense {:>5.3f}\n",
+                    TIME_MS(sampler), EACH_NS(sampler, W), n, m, N, p);
         }
     }
 }

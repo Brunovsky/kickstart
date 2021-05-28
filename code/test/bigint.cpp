@@ -395,7 +395,7 @@ void speed_test_pairwise_mul(int max_scale = 16, ms runtime = 1s) {
             ADD_TIME(mul);
         }
         double each = 1.0 * TIME_US(mul) / runs;
-        print_clear(" {:>12.4f}us -- size {:10} x{}\n", each, 1 << scale, runs);
+        printcl(" {:>12.4f}us -- size {:10} x{}\n", each, 1 << scale, runs);
     }
 }
 

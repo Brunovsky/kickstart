@@ -26,8 +26,8 @@ void speed_test_max_flow_run(flow_network_kind i, int S) {
     START_ACC(push_relabel);
     START_ACC(tidal);
 
-    LOOP_FOR_DURATION_TRACKED_RUNS(800ms, now, runs) {
-        print_time(now, 800ms, 50ms, flow_kind_name[i]);
+    LOOP_FOR_DURATION_TRACKED_RUNS(1s, now, runs) {
+        print_time(now, 1s, 50ms, flow_kind_name[i]);
 
         START(generation);
         auto network = generate_flow_network(i, S);
@@ -59,11 +59,11 @@ void speed_test_max_flow_run(flow_network_kind i, int S) {
         }
     }
 
-    print_clear(" speed test {} (S={}, x{}):\n", flow_kind_name[i], S, runs);
-    PRINT_TIME(generation);
-    PRINT_TIME(dinitz);
-    PRINT_TIME(push_relabel);
-    PRINT_TIME(tidal);
+    printcl(" speed test {} (S={}, x{}):\n", flow_kind_name[i], S, runs);
+    PRINT_EACH_US(generation, runs);
+    PRINT_EACH_US(dinitz, runs);
+    PRINT_EACH_US(push_relabel, runs);
+    PRINT_EACH_US(tidal, runs);
 }
 
 void speed_test_max_flow() {

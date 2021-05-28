@@ -14,52 +14,52 @@ void speed_test_sieves() {
         START(classic);
         classic_sieve(N);
         TIME(classic);
-        PRINT_TIME(classic);
+        PRINT_TIME_MS(classic);
 
         START(least_prime);
         least_prime_sieve(N);
         TIME(least_prime);
-        PRINT_TIME(least_prime);
+        PRINT_TIME_MS(least_prime);
 
         START(num_prime_divisors);
         num_prime_divisors_sieve(N);
         TIME(num_prime_divisors);
-        PRINT_TIME(num_prime_divisors);
+        PRINT_TIME_MS(num_prime_divisors);
 
         START(num_divisors);
         num_divisors_sieve(N);
         TIME(num_divisors);
-        PRINT_TIME(num_divisors);
+        PRINT_TIME_MS(num_divisors);
 
         START(sum_divisors);
         sum_divisors_sieve(N);
         TIME(sum_divisors);
-        PRINT_TIME(sum_divisors);
+        PRINT_TIME_MS(sum_divisors);
 
         START(phi);
         phi_sieve(N);
         TIME(phi);
-        PRINT_TIME(phi);
+        PRINT_TIME_MS(phi);
 
         START(modinv);
         modinv_sieve(N, 1'000'000'007);
         TIME(modinv);
-        PRINT_TIME(modinv);
+        PRINT_TIME_MS(modinv);
 
         START(logfac);
         logfac_sieve(N);
         TIME(logfac);
-        PRINT_TIME(logfac);
+        PRINT_TIME_MS(logfac);
 
         START(modnum_1000000007);
         pascal_sieve<modnum<1'000'000'007>>(N);
         TIME(modnum_1000000007);
-        PRINT_TIME(modnum_1000000007);
+        PRINT_TIME_MS(modnum_1000000007);
 
         START(modnum_998244353);
         pascal_sieve<modnum<998'244'353>>(N);
         TIME(modnum_998244353);
-        PRINT_TIME(modnum_998244353);
+        PRINT_TIME_MS(modnum_998244353);
     }
 }
 
@@ -82,6 +82,7 @@ void unit_test_classic_sieve() {
 
 void unit_test_sieves() {
     constexpr int N = 100, M = 21;
+
     auto primes = classic_sieve(N);
     auto least = least_prime_sieve(N);
     auto tau_primes = num_prime_divisors_sieve(N);
@@ -112,7 +113,7 @@ void unit_test_sieves() {
 }
 
 void unit_test_num_divisors_sieve() {
-    const int N = 1'000'000;
+    constexpr int N = 1'000'000;
 
     auto lp = least_prime_sieve(N);
     auto divs = num_divisors_sieve(N);
@@ -134,30 +135,6 @@ void unit_test_num_divisors_sieve() {
 
 inline namespace stress_testing_primes {
 
-void stress_test_factor(int T = 500) {
-    intd numfactorsd(1, 30);
-    auto primes = classic_sieve(10'000);
-    intd factord(0, primes.size() - 1);
-
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test factor");
-        vector<long> factors;
-        long n = 1;
-        for (int j = 0, numf = numfactorsd(mt); j < numf; j++) {
-            long f = primes[factord(mt)];
-            if (LONG_MAX / f < n)
-                break;
-            n *= f;
-            factors.push_back(f);
-        }
-        sort(begin(factors), end(factors));
-
-        auto simple = factor_simple(n);
-        sort(begin(simple), end(simple));
-        assert(simple == factors);
-    }
-}
-
 void stress_test_jacobi() {
     for (long n = 1; n < 300; n += 2) {
         for (long m = 1; m < 300; m += 2) {
@@ -172,8 +149,9 @@ void stress_test_jacobi() {
 }
 
 void stress_test_miller_rabin() {
-    const char* what[2] = {"composite", "prime"};
+    static const char* what[2] = {"composite", "prime"};
     constexpr long N = 4'000'000;
+
     auto primes = classic_sieve(N);
 
     vector<bool> small_prime(N + 1, false);
@@ -214,7 +192,6 @@ void stress_test_miller_rabin() {
 int main() {
     RUN_SHORT(unit_test_sieves());
     RUN_SHORT(unit_test_num_divisors_sieve());
-    RUN_BLOCK(stress_test_factor());
     RUN_BLOCK(stress_test_jacobi());
     RUN_BLOCK(stress_test_miller_rabin());
     RUN_BLOCK(speed_test_sieves());

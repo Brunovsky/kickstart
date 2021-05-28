@@ -32,21 +32,21 @@ mat<string> make_table(const vector<U>& u, const vector<V>& v, string s = "") {
     return mat;
 }
 
-#define RUN_BLOCK(test)                                               \
-    do {                                                              \
-        print_clear("{:<10} === {}\n", "RUN", #test);                 \
-        START(runner);                                                \
-        test;                                                         \
-        TIME(runner);                                                 \
-        print_clear("OK {:>6.2f}s === {}\n", FTIME_S(runner), #test); \
+#define RUN_BLOCK(test)                                                  \
+    do {                                                                 \
+        printcl("{:<10} === {}\n", "RUN", #test);                        \
+        START(runner);                                                   \
+        test;                                                            \
+        TIME(runner);                                                    \
+        printcl("OK {:>6.2f}s === {}\n", 1e-3 * TIME_MS(runner), #test); \
     } while (0)
 
-#define RUN_SHORT(test)                                               \
-    do {                                                              \
-        START(runner);                                                \
-        test;                                                         \
-        TIME(runner);                                                 \
-        print_clear("OK {:>6.2f}s === {}\n", FTIME_S(runner), #test); \
+#define RUN_SHORT(test)                                                  \
+    do {                                                                 \
+        START(runner);                                                   \
+        test;                                                            \
+        TIME(runner);                                                    \
+        printcl("OK {:>6.2f}s === {}\n", 1e-3 * TIME_MS(runner), #test); \
     } while (0)
 
 #endif // TEST_UTILS_HPP

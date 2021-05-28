@@ -53,11 +53,10 @@ void scaling_test_random_regular_run(int n, int k) {
     TIME(regular);
 
     long E = 1L * runs * (n * k / 2);
-    double per_instance = 1e6 * runs / E;
+    double per_edge = TIME_NS(regular) / E;
 
-    print_clear(
-        "  -- x{:<6} n={:<6} k={:<4} E={:<9} -- {:>5}ms total -- {:>7.1f}ms per 1M\n",
-        runs, n, k, E, TIME_MS(regular), per_instance);
+    printcl(" {:>8.1f}us -- n={:<6} k={:<4} E={:<9} -- {:>7.1f}ns/edge\n",
+            EACH_US(regular, runs), n, k, E, per_edge);
 }
 
 void scaling_test_random_regular() {

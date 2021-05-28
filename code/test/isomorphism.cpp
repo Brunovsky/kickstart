@@ -31,9 +31,7 @@ auto generator_regular(int V, int kmin, int kmax) {
         int m = V % 2 ? 2 : 1;
         intd distk(kmin / m, kmax / m);
         int k = m * distk(mt);
-        auto g1 = random_regular(V, k);
-        auto g2 = random_regular(V, k);
-        return tuple<int, edges_t, edges_t>{V, g1, g2};
+        return make_tuple(V, random_regular(V, k), random_regular(V, k));
     };
 }
 
@@ -73,7 +71,7 @@ void fp_test_run(const string& name, Gn&& gn) {
         }
     }
 
-    print_clear("{:>25} -- x{}  {}\n", name, runs, show(negatives, positives, fps));
+    printcl("{:>25} -- x{}  {}\n", name, runs, show(negatives, positives, fps));
 }
 
 void stress_test_isomorphic_false_positives() {

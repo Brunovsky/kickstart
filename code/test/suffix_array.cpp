@@ -11,9 +11,10 @@ void unit_test_suffix_array() {
     s = "abbaacaaabab"s;
     sa = build_cyclic_shifts(s, 256, '\0');
     lcp = build_lcp_array(s, sa);
-    for (int i = 0, N = s.size(); i < N; i++)
-        cout << setw(2) << i << ": " << s.substr(sa[i]) + s.substr(0, sa[i]) << endl;
-    cout << sa << endl << lcp << endl;
+    for (int i = 0, N = s.size(); i < N; i++) {
+        print("{:2}: {}\n", i, s.substr(sa[i]) + s.substr(0, sa[i]));
+    }
+    print(" sa: {}\nlcp: {}\n", sa, lcp);
 }
 
 } // namespace unit_testing_suffix_array

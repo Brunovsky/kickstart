@@ -13,18 +13,23 @@ bool cout_is_terminal() {
 void clear_line() { cout_is_terminal() ? print("\r\033[2K") : (void)fflush(stdout); }
 
 template <typename... Ts>
-void print_clear(Ts&&... args) {
-    print("\r\033[2K");
-    print(forward<Ts>(args)...);
-    print("\r");
-    fflush(stdout);
+void printcl(Ts&&... args) {
+    if (cout_is_terminal()) {
+        print("\r\033[2K");
+        print(forward<Ts>(args)...);
+        print("\r");
+        fflush(stdout);
+    } else {
+        print(forward<Ts>(args)...);
+        fflush(stdout);
+    }
 }
 
 void print_progress(long i, long N) {
     if (cout_is_terminal()) {
         double percent = 100.0 * (i + 1) / N;
         int digits = to_string(N).size();
-        print_clear("{:5.1f}% {:>{}}/{}", percent, i + 1, digits, N);
+        printcl("{:5.1f}% {:>{}}/{}", percent, i + 1, digits, N);
     }
 }
 
@@ -34,7 +39,7 @@ void print_progress(long i, long N, T&& content) {
         double percent = 100.0 * (i + 1) / N;
         int digits = to_string(N).size();
         string txt = format("{}", forward<T>(content));
-        print_clear("{:5.1f}% {:>{}}/{} {}", percent, i + 1, digits, N, txt);
+        printcl("{:5.1f}% {:>{}}/{} {}", percent, i + 1, digits, N, txt);
     }
 }
 
@@ -55,7 +60,7 @@ void print_time_view(T1 now, T2 duration, T&& content) {
     if (cout_is_terminal()) {
         double percent = 100.0 * now / duration;
         auto txt = format("{}", forward<T>(content));
-        print_clear("{:5.1f}% {}", percent, txt);
+        printcl("{:5.1f}% {}", percent, txt);
     }
 }
 
@@ -64,7 +69,7 @@ void print_time_view(T1 now, T2 duration, string_view fmt, Ts&&... args) {
     if (cout_is_terminal()) {
         double percent = 100.0 * now / duration;
         auto txt = format(fmt, forward<Ts>(args)...);
-        print_clear("{:5.1f}% {}", percent, txt);
+        printcl("{:5.1f}% {}", percent, txt);
     }
 }
 

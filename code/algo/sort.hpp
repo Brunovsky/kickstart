@@ -14,8 +14,8 @@ using namespace std;
 
 inline namespace outline_radix_sort {
 
-template <int B = 6>
-void radix_sort_idx(int* idx, int* cnt, int N, int d, const vector<long>& dist) {
+template <int B = 6, typename T>
+void radix_sort_idx(int* idx, int* cnt, int N, int d, const vector<T>& dist) {
     const int s = B * d, P = 1 << B, mask = P - 1;
     for (int n = 0; n < N; n++) {
         cnt[(dist[n] >> s) & mask]++;
@@ -28,9 +28,8 @@ void radix_sort_idx(int* idx, int* cnt, int N, int d, const vector<long>& dist) 
     }
 }
 
-template <int B = 6>
-void radix_sort_buf(int* idx, int* buf, int* cnt, int N, int d,
-                    const vector<long>& dist) {
+template <int B = 6, typename T>
+void radix_sort_buf(int* idx, int* buf, int* cnt, int N, int d, const vector<T>& dist) {
     const int s = B * d, P = 1 << B, mask = P - 1;
     for (int j = 0; j < N; j++) {
         cnt[(dist[buf[j]] >> s) & mask]++;
@@ -43,9 +42,9 @@ void radix_sort_buf(int* idx, int* buf, int* cnt, int N, int d,
     }
 }
 
-template <int B = 6>
+template <int B = 6, typename T>
 void msb_radix_sort_idx_recurse(int* idx, int* buf, int N, int d, int maxd,
-                                const vector<long>& dist) {
+                                const vector<T>& dist) {
     constexpr int P = 1 << B;
     if (N <= 1 || d == maxd)
         return;
@@ -62,13 +61,13 @@ void msb_radix_sort_idx_recurse(int* idx, int* buf, int N, int d, int maxd,
     }
 }
 
-template <int B = 6>
-void msb_radix_sort_idx(vector<int>& idx, const vector<long>& dist) {
+template <int B = 6, typename T>
+void msb_radix_sort_idx(vector<int>& idx, const vector<T>& dist) {
     constexpr int P = 1 << B;
     int N = dist.size(), maxd = 0;
     idx.resize(N);
 
-    long max = *max_element(begin(dist), end(dist));
+    auto max = *max_element(begin(dist), end(dist));
     while (max > 0)
         maxd++, max >>= B;
     if (maxd == 0)
@@ -85,8 +84,8 @@ void msb_radix_sort_idx(vector<int>& idx, const vector<long>& dist) {
     delete[] buf;
 }
 
-template <int B = 6>
-void lsb_radix_sort_idx(vector<int>& idx, const vector<long>& dist) {
+template <int B = 6, typename T>
+void lsb_radix_sort_idx(vector<int>& idx, const vector<T>& dist) {
     constexpr int P = 1 << B;
     int N = dist.size(), maxd = 0;
     idx.resize(N);
@@ -115,8 +114,8 @@ void lsb_radix_sort_idx(vector<int>& idx, const vector<long>& dist) {
 
 inline namespace inline_radix_sort {
 
-template <int B = 6, typename I>
-void radix_sort_run(I* out, I* in, int* cnt, int N, int d) {
+template <int B = 6, typename T>
+void radix_sort_run(T* out, T* in, int* cnt, int N, int d) {
     const int s = B * d, P = 1 << B, mask = P - 1;
     for (int n = 0; n < N; n++) {
         cnt[(in[n] >> s) & mask]++;
@@ -129,8 +128,8 @@ void radix_sort_run(I* out, I* in, int* cnt, int N, int d) {
     }
 }
 
-template <int B = 6, typename I>
-void msb_radix_sort_recurse(I* out, I* in, int N, int d, int maxd) {
+template <int B = 6, typename T>
+void msb_radix_sort_recurse(T* out, T* in, int N, int d, int maxd) {
     constexpr int P = 1 << B;
     if (N <= 1 || d == maxd)
         return;
@@ -138,7 +137,7 @@ void msb_radix_sort_recurse(I* out, I* in, int N, int d, int maxd) {
         return std::sort(out, out + N);
 
     int cnt[P]{};
-    memcpy(in, out, N * sizeof(I));
+    memcpy(in, out, N * sizeof(T));
     radix_sort_run<B>(out, in, cnt, N, maxd - d - 1);
     msb_radix_sort_recurse<B>(out, in, cnt[0], d + 1, maxd);
     for (int i = 1; i < P; i++) {
@@ -147,8 +146,8 @@ void msb_radix_sort_recurse(I* out, I* in, int N, int d, int maxd) {
     }
 }
 
-template <int B = 6, typename I>
-void msb_radix_sort(vector<I>& v) {
+template <int B = 6, typename T>
+void msb_radix_sort(vector<T>& v) {
     constexpr int P = 1 << B;
     int N = v.size(), maxd = 0;
     if (N <= 1)
@@ -161,7 +160,7 @@ void msb_radix_sort(vector<I>& v) {
         return;
 
     int cnt[P]{};
-    vector<I> buf = v;
+    vector<T> buf = v;
     radix_sort_run<B>(v.data(), buf.data(), cnt, N, maxd - 1);
     msb_radix_sort_recurse<B>(v.data(), buf.data(), cnt[0], 1, maxd);
     for (int i = 1; i < P; i++) {
@@ -170,8 +169,8 @@ void msb_radix_sort(vector<I>& v) {
     }
 }
 
-template <int B = 6, typename I>
-void lsb_radix_sort(vector<I>& v) {
+template <int B = 6, typename T>
+void lsb_radix_sort(vector<T>& v) {
     constexpr int P = 1 << B;
     int N = v.size(), maxd = 0;
     if (N <= 1)
@@ -184,7 +183,7 @@ void lsb_radix_sort(vector<I>& v) {
         return;
 
     int cnt[P]{};
-    vector<I> buf = v;
+    vector<T> buf = v;
     radix_sort_run<B>(v.data(), buf.data(), cnt, N, 0);
     for (int d = 1; d < maxd; d++) {
         memset(cnt, 0, sizeof(cnt));

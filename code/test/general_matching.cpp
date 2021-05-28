@@ -30,8 +30,8 @@ int boost_matching_size(const bgraph& bg) {
     return cnt / 2;
 }
 
-inline double compute_ratio(int64_t time, int T, int V, int E) {
-    return 1e9 * time / (1.0 * T * E * sqrt(V));
+inline double compute_ratio(double time, int V, int E) {
+    return 1e9 * time / (E * sqrt(V));
 }
 
 } // namespace detail
@@ -93,13 +93,14 @@ void dataset_test_general_matching() {
 
 inline namespace stress_testing_general_matching {
 
-void stress_test_general_matching(int T = 10000) {
+void stress_test_general_matching() {
     intd distV(30, 100);
     reald distMp(0.1, 0.5);
     reald distEp(3.0, 15.0);
 
-    for (int i = 0; i < T; i++) {
-        print_progress(i, T, "stress test general matching");
+    LOOP_FOR_DURATION_TRACKED(4s, now) {
+        print_time(now, 4s, 50ms, "stress test general matching");
+
         int V = distV(mt);
         int M = min(V / 2, int(ceil(distMp(mt) * V)));
         double p = distEp(mt) / V;
@@ -124,13 +125,11 @@ void stress_test_general_matching(int T = 10000) {
 
 inline namespace scaling_testing_general_matching {
 
-void scaling_test_general_matching_run(int T, int V, int E) {
-    if (T == 0)
-        return;
-
+void scaling_test_general_matching_run(int V, int E) {
     START_ACC(mv);
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "scaling test");
+    LOOP_FOR_DURATION_OR_RUNS_TRACKED(1s, now, 1000, runs) {
+        print_time(now, 1s, 50ms, "scaling test general matching");
+
         edges_t g = relabel(V, random_exact_undirected_connected(V, E));
 
         START(mv);
@@ -140,53 +139,53 @@ void scaling_test_general_matching_run(int T, int V, int E) {
         ADD_TIME(mv);
     }
 
-    print(" {:>8}ms -- {:>7.1f}ms each -- {:7.1f} ratio -- x{:<6}  V={:<6}  E={:<6}\n",
-          TIME_MS(mv), 1.0 * TIME_MS(mv) / T, compute_ratio(TIME_MS(mv), T, V, E), T, V,
-          E);
+    printcl(" {:>7.1f}ms -- {:7.1f} ratio -- x{:<6}  V={:<6}  E={:<6}\n",
+            EACH_MS(mv, runs), compute_ratio(EACH_MS(mv, runs), V, E), runs, V, E);
 }
 
-void scaling_test_general_matching(double F = 1.0) {
-    scaling_test_general_matching_run(int(F * 2000), 200, 300);
-    scaling_test_general_matching_run(int(F * 600), 200, 2'000);
-    scaling_test_general_matching_run(int(F * 800), 500, 800);
-    scaling_test_general_matching_run(int(F * 100), 500, 12'000);
-    scaling_test_general_matching_run(int(F * 300), 1'000, 2'000);
-    scaling_test_general_matching_run(int(F * 200), 1'000, 8'000);
-    scaling_test_general_matching_run(int(F * 100), 1'000, 30'000);
-    scaling_test_general_matching_run(int(F * 80), 5'000, 7'000);
-    scaling_test_general_matching_run(int(F * 40), 5'000, 16'000);
-    scaling_test_general_matching_run(int(F * 10), 5'000, 70'000);
-    scaling_test_general_matching_run(int(F * 3), 5'000, 230'000);
-    scaling_test_general_matching_run(int(F * 30), 10'000, 15'000);
-    scaling_test_general_matching_run(int(F * 24), 10'000, 25'000);
-    scaling_test_general_matching_run(int(F * 5), 10'000, 150'000);
-    scaling_test_general_matching_run(int(F * 14), 20'000, 30'000);
-    scaling_test_general_matching_run(int(F * 9), 20'000, 45'000);
-    scaling_test_general_matching_run(int(F * 2), 20'000, 400'000);
-    scaling_test_general_matching_run(int(F * 6), 30'000, 50'000);
-    scaling_test_general_matching_run(int(F * 5), 30'000, 70'000);
-    scaling_test_general_matching_run(int(F * 1), 30'000, 550'000);
-    scaling_test_general_matching_run(int(F * 4), 50'000, 80'000);
-    scaling_test_general_matching_run(int(F * 1), 50'000, 780'000);
-    scaling_test_general_matching_run(int(F * 3), 100'000, 150'000);
-    scaling_test_general_matching_run(int(F * 2), 100'000, 250'000);
-    scaling_test_general_matching_run(int(F * 2), 100'000, 350'000);
-    scaling_test_general_matching_run(int(F * 1), 100'000, 1'000'000);
-    scaling_test_general_matching_run(int(F * 2), 200'000, 300'000);
-    scaling_test_general_matching_run(int(F * 2), 250'000, 300'000);
+void scaling_test_general_matching() {
+    scaling_test_general_matching_run(200, 300);
+    scaling_test_general_matching_run(200, 2'000);
+    scaling_test_general_matching_run(500, 800);
+    scaling_test_general_matching_run(500, 12'000);
+    scaling_test_general_matching_run(1'000, 2'000);
+    scaling_test_general_matching_run(1'000, 8'000);
+    scaling_test_general_matching_run(1'000, 30'000);
+    scaling_test_general_matching_run(5'000, 7'000);
+    scaling_test_general_matching_run(5'000, 16'000);
+    scaling_test_general_matching_run(5'000, 70'000);
+    scaling_test_general_matching_run(5'000, 230'000);
+    scaling_test_general_matching_run(10'000, 15'000);
+    scaling_test_general_matching_run(10'000, 25'000);
+    scaling_test_general_matching_run(10'000, 150'000);
+    scaling_test_general_matching_run(20'000, 30'000);
+    scaling_test_general_matching_run(20'000, 45'000);
+    scaling_test_general_matching_run(20'000, 400'000);
+    scaling_test_general_matching_run(30'000, 50'000);
+    scaling_test_general_matching_run(30'000, 70'000);
+    scaling_test_general_matching_run(30'000, 550'000);
+    scaling_test_general_matching_run(50'000, 80'000);
+    scaling_test_general_matching_run(50'000, 780'000);
+    scaling_test_general_matching_run(100'000, 150'000);
+    scaling_test_general_matching_run(100'000, 250'000);
+    scaling_test_general_matching_run(100'000, 350'000);
+    scaling_test_general_matching_run(100'000, 1'000'000);
+    scaling_test_general_matching_run(200'000, 300'000);
+    scaling_test_general_matching_run(250'000, 300'000);
 }
 
 } // namespace scaling_testing_general_matching
 
 inline namespace speed_testing_general_matching {
 
-void speed_test_general_matching_run(int T, int V, int E) {
-    print("  speed test x{:<6}  V={:<6}  E={}\n", T, V, E);
+void speed_test_general_matching_run(int V, int E) {
+    print("  speed test  V={:<6}  E={}\n", V, E);
     START_ACC(boost);
     START_ACC(mv);
 
-    for (int i = 0; i < T; i++) {
-        print_progress(i, T, "speed test general matching");
+    LOOP_FOR_DURATION_TRACKED_RUNS(1s, now, runs) {
+        print_time(now, 1s, 50ms, "speed test general matching");
+
         edges_t g = relabel(V, random_exact_undirected_connected(V, E));
         auto bg = to_boost(V, g);
 
@@ -203,33 +202,33 @@ void speed_test_general_matching_run(int T, int V, int E) {
         assert(ans == M);
     }
 
-    PRINT_TIME(boost);
-    PRINT_TIME(mv);
+    PRINT_EACH_MS(boost, runs);
+    PRINT_EACH_MS(mv, runs);
 }
 
-void speed_test_general_matching(double F = 1.0) {
-    speed_test_general_matching_run(int(F * 20000), 50, 70);
-    speed_test_general_matching_run(int(F * 10000), 100, 150);
-    speed_test_general_matching_run(int(F * 4000), 200, 300);
-    speed_test_general_matching_run(int(F * 2000), 500, 800);
-    speed_test_general_matching_run(int(F * 700), 500, 3'000);
-    speed_test_general_matching_run(int(F * 300), 500, 8'000);
-    speed_test_general_matching_run(int(F * 300), 2'000, 5'000);
-    speed_test_general_matching_run(int(F * 200), 2'000, 12'000);
-    speed_test_general_matching_run(int(F * 200), 5'000, 7'000);
-    speed_test_general_matching_run(int(F * 80), 5'000, 30'000);
-    speed_test_general_matching_run(int(F * 30), 5'000, 100'000);
-    speed_test_general_matching_run(int(F * 12), 5'000, 300'000);
-    speed_test_general_matching_run(int(F * 5), 5'000, 1'000'000);
-    speed_test_general_matching_run(int(F * 40), 10'000, 15'000);
-    speed_test_general_matching_run(int(F * 30), 10'000, 25'000);
-    speed_test_general_matching_run(int(F * 14), 20'000, 30'000);
-    speed_test_general_matching_run(int(F * 11), 20'000, 45'000);
-    speed_test_general_matching_run(int(F * 6), 30'000, 50'000);
-    speed_test_general_matching_run(int(F * 4), 30'000, 80'000);
-    speed_test_general_matching_run(int(F * 3), 30'000, 300'000);
-    speed_test_general_matching_run(int(F * 2), 50'000, 100'000);
-    speed_test_general_matching_run(int(F * 1), 100'000, 150'000);
+void speed_test_general_matching() {
+    speed_test_general_matching_run(50, 70);
+    speed_test_general_matching_run(100, 150);
+    speed_test_general_matching_run(200, 300);
+    speed_test_general_matching_run(500, 800);
+    speed_test_general_matching_run(500, 3'000);
+    speed_test_general_matching_run(500, 8'000);
+    speed_test_general_matching_run(2'000, 5'000);
+    speed_test_general_matching_run(2'000, 12'000);
+    speed_test_general_matching_run(5'000, 7'000);
+    speed_test_general_matching_run(5'000, 30'000);
+    speed_test_general_matching_run(5'000, 100'000);
+    speed_test_general_matching_run(5'000, 300'000);
+    speed_test_general_matching_run(5'000, 1'000'000);
+    speed_test_general_matching_run(10'000, 15'000);
+    speed_test_general_matching_run(10'000, 25'000);
+    speed_test_general_matching_run(20'000, 30'000);
+    speed_test_general_matching_run(20'000, 45'000);
+    speed_test_general_matching_run(30'000, 50'000);
+    speed_test_general_matching_run(30'000, 80'000);
+    speed_test_general_matching_run(30'000, 300'000);
+    speed_test_general_matching_run(50'000, 100'000);
+    speed_test_general_matching_run(100'000, 150'000);
 }
 
 } // namespace speed_testing_general_matching

@@ -45,7 +45,7 @@ void stress_test_unrooted_tree_isomorphism() {
     }
 
     if (errors > 0) {
-        print_clear("ERRORS: {}\n", errors);
+        printcl("ERRORS: {}\n", errors);
     }
 }
 
@@ -76,7 +76,7 @@ void stress_test_rooted_tree_isomorphism() {
     }
 
     if (errors > 0) {
-        print_clear("ERRORS: {}\n", errors);
+        printcl("ERRORS: {}\n", errors);
     }
 }
 
