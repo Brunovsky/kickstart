@@ -219,11 +219,11 @@ void unit_test_simplex() {
 inline namespace stress_testing_simplex {
 
 template <typename F>
-auto stress_test_standardize_run(int T, int n, int m) {
+auto stress_test_standardize_run(int n, int m, ms runtime = 1s) {
     int good = 0, unbounded = 0;
 
-    for (int i = 0; i < T; i++) {
-        print_progress(i, T, "simplex standardize test");
+    LOOP_FOR_DURATION_TRACKED_RUNS(runtime, now, runs) {
+        print_time(now, runtime, 50ms, "simplex standardize test");
 
         auto parts = partition_sample(m, 3, 0);
         int le = parts[0], eq = parts[1], ge = parts[2];
@@ -266,19 +266,21 @@ auto stress_test_standardize_run(int T, int n, int m) {
         good += ok;
     }
 
-    clear_line();
-    print(" n={:<2} m={:<2} correct: {}/{} ({:.1f}%) | unbounded: {}/{} ({:.1f}%) \n", n,
-          m, good, T, 100.0 * good / T, unbounded, T, 100.0 * unbounded / T);
+    double good_percent = 100.0 * good / runs;
+    double unbounded_percent = 100.0 * unbounded / runs;
+    print_clear(
+        " n={:<2} m={:<2} correct: {}/{} ({:.1f}%) | unbounded: {}/{} ({:.1f}%) \n", n, m,
+        good, runs, good_percent, unbounded, runs, unbounded_percent);
     return good;
 }
 
 template <typename F>
-void stress_test_standardize(int T = 400, int lo = 2, int hi = 20, int max_sum = 30) {
+void stress_test_standardize(int lo = 2, int hi = 20, int max_sum = 30) {
     mat<int> corrects(hi - lo + 1, hi - lo + 1, 0);
 
     for (int n = lo; n <= hi; n++) {
         for (int m = lo; m <= hi && n + m <= max_sum; m++) {
-            auto correct = stress_test_standardize_run<F>(T, n, m);
+            auto correct = stress_test_standardize_run<F>(n, m);
             corrects[n - lo][m - lo] = correct;
         }
     }
@@ -291,11 +293,11 @@ void stress_test_standardize(int T = 400, int lo = 2, int hi = 20, int max_sum =
 inline namespace speed_testing_simplex {
 
 template <typename F>
-auto speed_test_simplex_run(int T, int n, int m, LPState state) {
+auto speed_test_simplex_run(int n, int m, LPState state, ms runtime = 1s) {
     START_ACC(simplex);
 
-    for (int i = 0; i < T; i++) {
-        print_progress(i, T, "simplex speed test");
+    LOOP_FOR_DURATION_TRACKED_RUNS(runtime, now, runs) {
+        print_time(now, runtime, 50ms, "simplex speed test");
 
         auto parts = partition_sample(m, 3, 0);
         int le = parts[0], eq = parts[1], ge = parts[2];
@@ -306,18 +308,17 @@ auto speed_test_simplex_run(int T, int n, int m, LPState state) {
         ADD_TIME(simplex);
     }
 
-    clear_line();
-    print(" {:>8}ms -- x{} n={:<2} m={:<2}\n", TIME_MS(simplex), T, n, m);
-    return time_simplex / 1000;
+    print_clear(" {:>8}ms -- x{} n={:<2} m={:<2}\n", TIME_MS(simplex), runs, n, m);
+    return TIME_MS(simplex);
 }
 
 template <typename F>
-void speed_test_simplex(int T = 2000, int lo = 2, int hi = 20, int max_sum = 30) {
+void speed_test_simplex(int lo = 2, int hi = 20, int max_sum = 30) {
     mat<size_t> times(hi - lo + 1, hi - lo + 1, 0);
 
     for (int n = lo; n <= hi; n++) {
         for (int m = lo; m <= hi && n + m <= max_sum; m++) {
-            auto time = speed_test_simplex_run<F>(T, n, m, LP_OPTIMAL);
+            auto time = speed_test_simplex_run<F>(n, m, LP_OPTIMAL);
             times[n - lo][m - lo] = time;
         }
     }
@@ -330,9 +331,9 @@ void speed_test_simplex(int T = 2000, int lo = 2, int hi = 20, int max_sum = 30)
 int main() {
     RUN_SHORT(unit_test_simplex<frac>());
     RUN_SHORT(unit_test_simplex<bfrac>());
-    RUN_BLOCK(stress_test_standardize<frac>(200, 2, 12, 15));
-    RUN_BLOCK(stress_test_standardize<bfrac>(10, 2, 25, 30));
-    RUN_BLOCK(speed_test_simplex<frac>(2000, 2, 12, 15));
-    RUN_BLOCK(speed_test_simplex<bfrac>(100, 2, 25, 30));
+    RUN_BLOCK(stress_test_standardize<frac>(2, 12, 15));
+    RUN_BLOCK(stress_test_standardize<bfrac>(2, 25, 30));
+    RUN_BLOCK(speed_test_simplex<frac>(2, 12, 15));
+    RUN_BLOCK(speed_test_simplex<bfrac>(2, 25, 30));
     return 0;
 }

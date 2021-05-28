@@ -25,7 +25,7 @@ ostream& operator<<(ostream& out, binary_int_heap<Compare> heap) {
 inline namespace stress_testing_int_heap {
 
 template <template <typename> typename Heap, bool adjust = true>
-void stress_test_int_heap(int N = 60, int T = 300'000) {
+void stress_test_int_heap(int N = 60) {
     const int K = 100'000;
     assert(2LL * K * N <= INT_MAX);
     int super = N * K + 1, bound = N * K;
@@ -67,11 +67,9 @@ void stress_test_int_heap(int N = 60, int T = 300'000) {
         }
     };
 
-    for (int t = 0; t < T; t++) {
+    LOOP_FOR_DURATION_OR_RUNS_TRACKED(10s, now, 300'000, runs) {
+        print_time(now, 10s, 50ms, "stress heap");
         action = actiond(mt);
-        if (t % 500 == 0) {
-            print_progress(t, T, "stress heap");
-        }
 
         if (action < 0.0000) { // clear
             nums.clear();
@@ -113,9 +111,8 @@ void stress_test_int_heap(int N = 60, int T = 300'000) {
         STRESS_VERIFY(heap.empty() || heap.top() == *nums.begin());
     }
 
-    double avg = 1.0 * size_sum / T;
-    clear_line();
-    print("average size: {:.2f} ({:.2f}%)\n", avg, 100.0 * avg / N);
+    double avg = 1.0 * size_sum / runs;
+    print_clear("average size: {:.2f} ({:.2f}%)\n", avg, 100.0 * avg / N);
 }
 
 } // namespace stress_testing_int_heap

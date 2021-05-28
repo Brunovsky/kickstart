@@ -57,6 +57,7 @@ void speed_test_twosat_positive(ms runtime = 2s) {
     intd distE(2000, 5000);
 
     START_ACC(sat);
+
     LOOP_FOR_DURATION_OR_RUNS_TRACKED(runtime, now, 100'000, runs) {
         print_time(now, runtime, 50ms, "speed test 2-SAT positive");
         int N = distN(mt), E = distE(mt);
@@ -72,6 +73,7 @@ void speed_test_twosat_positive(ms runtime = 2s) {
         assert(ok);
         assert(verify(g, sat.assignment));
     }
+
     double each = 1e-3 * TIME_US(sat) / runs;
     print_clear(" {:>8.2f}ms -- 2sat positive x{}\n", each, runs);
 }

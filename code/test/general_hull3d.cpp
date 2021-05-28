@@ -188,7 +188,7 @@ struct quickhull3d_dataset_test_t {
         auto counterexample = verify_hull(hull, points);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
-            clear_line(), print("Incorrect convex hull\n");
+            print_clear("Incorrect convex hull\n");
             if (kind == 0) {
                 print("ce: point {} does not lie on plane of face {}\n", v, f);
             } else if (kind == 1) {
@@ -217,9 +217,9 @@ inline namespace stress_testing_hull3d {
 
 fs::path tmpfile;
 
-void stress_test_quickhull3d_run(int T, int N, int L, int C, int I, long R = 100) {
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test quickhull3d");
+void stress_test_quickhull3d_run(int N, int L, int C, int I, long R = 100) {
+    LOOP_FOR_DURATION_TRACKED(4s, now) {
+        print_time(now, 4s, 50ms, "stress test quickhull3d");
 
         auto points = random_points(N, R);
         add_coplanar_points(L, points, 2 * R);
@@ -235,8 +235,7 @@ void stress_test_quickhull3d_run(int T, int N, int L, int C, int I, long R = 100
         auto counterexample = verify_hull(hull, points);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
-            clear_line();
-            print("Incorrect convex hull, check file {}\n", tmpfile.string());
+            print_clear("Incorrect convex hull, check file {}\n", tmpfile.string());
             if (kind == 0) {
                 print("ce: point {} does not lie on plane of face {}\n", v, f);
             } else if (kind == 1) {
@@ -250,8 +249,8 @@ void stress_test_quickhull3d_run(int T, int N, int L, int C, int I, long R = 100
 void stress_test_quickhull3d(double F = 1.0) {
     auto tmpdir = fs::temp_directory_path() / fs::path("hull3d");
     fs::create_directory(tmpdir);
-    print("Temp directory: {}\n", tmpdir);
     tmpfile = tmpdir / fs::path("hull3d-stress.obj");
+    print("Temp file: {}\n", tmpfile);
 
     stress_test_quickhull3d_run(int(F * 500), 8, 20, 0, 0);
     stress_test_quickhull3d_run(int(F * 500), 10, 50, 0, 0);
@@ -267,55 +266,51 @@ void stress_test_quickhull3d(double F = 1.0) {
 
 inline namespace scaling_testing_hull3d {
 
-void scaling_test_quickhull3d_run(int T, int N, int L, int C, int I = 0, long R = 200) {
-    // N points + L collinear + C coplanar + I incident
-    if (T == 0)
-        return;
+void scaling_test_quickhull3d_run(int N, int L, int C, int I = 0, long R = 200) {
+    START_ACC(hull);
 
-    START_ACC(quickhull3d);
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "scaling test");
+    LOOP_FOR_DURATION_TRACKED_RUNS(2s, now, runs) {
+        print_time(now, 2s, 50ms, "scaling test hull");
+
         auto points = random_points(N, R);
         add_coplanar_points(L, points, R);
         add_collinear_points(C, points, R);
         assert(points.size() == uint(N + L + C + I));
 
-        START(quickhull3d);
+        START(hull);
         auto hull = compute_hull(points);
-        ADD_TIME(quickhull3d);
+        ADD_TIME(hull);
     }
 
     int all = N + L + C + I;
-    auto each = 1.0 * TIME_MS(quickhull3d) / T;
-    print(" {:>8}ms -- {:>7.1f}ms each -- {:7.1f} ratio -- x{:<6}  P={:<6} "
-          "(N={},L={},C={},I={})\n",
-          TIME_MS(quickhull3d), each, compute_ratio(each, all), T, all, N, L, C, I);
+    auto each = 1.0 * TIME_MS(hull) / runs;
+    print(" {:>7.1f}ms each -- {:7.1f} ratio -- x{:<6}  P={:<6} (N={},L={},C={},I={})\n",
+          each, compute_ratio(each, all), runs, all, N, L, C, I);
 }
 
-void scaling_test_quickhull3d(double F = 1.0) {
-    scaling_test_quickhull3d_run(int(F * 3000), 400, 50, 50);
-    scaling_test_quickhull3d_run(int(F * 3000), 300, 100, 100);
-    scaling_test_quickhull3d_run(int(F * 2000), 800, 100, 100);
-    scaling_test_quickhull3d_run(int(F * 2000), 600, 200, 200);
-    scaling_test_quickhull3d_run(int(F * 1500), 400, 300, 300);
-    scaling_test_quickhull3d_run(int(F * 1000), 1500, 2500, 2500);
-    scaling_test_quickhull3d_run(int(F * 1000), 1200, 4000, 4000);
-    scaling_test_quickhull3d_run(int(F * 400), 4500, 2500, 2500);
-    scaling_test_quickhull3d_run(int(F * 400), 3500, 7500, 7500);
-    scaling_test_quickhull3d_run(int(F * 150), 9400, 3000, 3000);
-    scaling_test_quickhull3d_run(int(F * 150), 5000, 2500, 2500);
-    scaling_test_quickhull3d_run(int(F * 100), 15'000, 2500, 2500);
-    scaling_test_quickhull3d_run(int(F * 100), 15'000, 2500, 2500);
-    scaling_test_quickhull3d_run(int(F * 20), 100'000, 0, 0);
-    scaling_test_quickhull3d_run(int(F * 20), 10'000, 90'000, 0);
-    scaling_test_quickhull3d_run(int(F * 5), 400'000, 0, 0);
-    scaling_test_quickhull3d_run(int(F * 5), 10'000, 300'000, 90'000);
+void scaling_test_quickhull3d() {
+    scaling_test_quickhull3d_run(400, 50, 50);
+    scaling_test_quickhull3d_run(300, 100, 100);
+    scaling_test_quickhull3d_run(800, 100, 100);
+    scaling_test_quickhull3d_run(600, 200, 200);
+    scaling_test_quickhull3d_run(400, 300, 300);
+    scaling_test_quickhull3d_run(1500, 2500, 2500);
+    scaling_test_quickhull3d_run(1200, 4000, 4000);
+    scaling_test_quickhull3d_run(4500, 2500, 2500);
+    scaling_test_quickhull3d_run(3500, 7500, 7500);
+    scaling_test_quickhull3d_run(9400, 3000, 3000);
+    scaling_test_quickhull3d_run(5000, 2500, 2500);
+    scaling_test_quickhull3d_run(15'000, 2500, 2500);
+    scaling_test_quickhull3d_run(15'000, 2500, 2500);
+    scaling_test_quickhull3d_run(100'000, 0, 0);
+    scaling_test_quickhull3d_run(10'000, 90'000, 0);
+    scaling_test_quickhull3d_run(400'000, 0, 0);
+    scaling_test_quickhull3d_run(10'000, 300'000, 90'000);
 }
 
 } // namespace scaling_testing_hull3d
 
 int main() {
-    mt.seed(37);
     RUN_BLOCK(dataset_test_quickhull3d());
     RUN_BLOCK(stress_test_quickhull3d());
     RUN_BLOCK(scaling_test_quickhull3d());

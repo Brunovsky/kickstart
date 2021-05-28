@@ -247,8 +247,7 @@ void graph_orchestrator_speed_run(int V, int E, int n, int nthreads) {
     orch.concurrent_make(job, nthreads);
     TIME(concurrent);
 
-    clear_line();
-    print(" V:{}, E:{}, {} threads\n", V, E, nthreads);
+    print_clear(" V:{}, E:{}, {} threads\n", V, E, nthreads);
     PRINT_TIME(sequential);
     PRINT_TIME(concurrent);
 

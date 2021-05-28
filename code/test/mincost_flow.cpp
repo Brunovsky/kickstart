@@ -69,10 +69,12 @@ struct flow_dataset_test_t {
     void run() const {
         mincost_edmonds_karp<int, long> mek(V);
         add_edges(mek, g, cap, cost);
+
         for (int i = 0; i < T; i++) {
             auto F = thresholds[i];
             auto [f0, c0] = mek.mincost_flow(s, t, F);
             mek.clear_flow();
+
             if (c0 != ans[i]) {
                 print(" {} -- V={} E={} -- threshold {} (F={})\n", name, V, E, i, F);
                 print("   expected: {:>12} flow | {:>12} cost\n", F, ans[i]);
@@ -105,21 +107,22 @@ void dataset_test_mincost_flow() {
 
 inline namespace speed_testing_mincost_flow {
 
-void speed_test_mincost_flow_run(flow_network_kind i, int S, int T) {
-    START_ACC(edmonds_karp);
+void speed_test_mincost_flow_run(flow_network_kind i, int S) {
+    START_ACC(edmonds);
 
-    for (int tt = 0; tt < T; tt++) {
-        print_progress(tt, T, flow_kind_name[i]);
+    LOOP_FOR_DURATION_TRACKED(800ms, now) {
+        print_time(now, 800ms, 50ms, flow_kind_name[i]);
+
         auto network = generate_flow_network(i, S);
         add_cap_flow_network(network, 1, 100'000'000);
         add_cost_flow_network(network, 1, 100'000'000);
         int s = network.s, t = network.t, V = network.V;
 
-        START(edmonds_karp);
+        START(edmonds);
         mincost_edmonds_karp<int, int, long, long> g0(V);
         add_edges(g0, network.g, network.cap, network.cost);
         auto ans1 = g0.mincost_flow(s, t);
-        ADD_TIME(edmonds_karp);
+        ADD_TIME(edmonds);
 
         mincost_edmonds_karp<long, long, long, long> g1(V);
         add_edges(g1, network.g, network.cap, network.cost);
@@ -131,18 +134,16 @@ void speed_test_mincost_flow_run(flow_network_kind i, int S, int T) {
         assert(ans1 == ans3);
     }
 
-    clear_line();
-    print(" {:>8}ms -- edmonds_karp -- {}\n", TIME_MS(edmonds_karp), flow_kind_name[i]);
+    print_clear(" {:>8}ms -- edmonds -- {}\n", TIME_MS(edmonds), flow_kind_name[i]);
 }
 
 void speed_test_mincost_flow() {
-    static constexpr int N = 5;
-    static constexpr int sizes[] = {100, 250, 800, 1500, 3000};
-    static constexpr int amounts[] = {200, 60, 10, 4, 1};
-    for (int n = 0; n < N; n++) {
-        print("speed test group S={}, x{}\n", sizes[n], amounts[n]);
+    static const vector<int> sizes = {100, 250, 800, 1500, 3000};
+
+    for (int n = 0; n < int(sizes.size()); n++) {
+        print("speed test group S={}, x{}\n", sizes[n]);
         for (int i = 0; i < int(FN_END); i++) {
-            speed_test_mincost_flow_run(flow_network_kind(i), sizes[n], amounts[n]);
+            speed_test_mincost_flow_run(flow_network_kind(i), sizes[n]);
         }
     }
 }

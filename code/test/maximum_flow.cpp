@@ -20,14 +20,14 @@ void add_edges(MF& mf, const edges_t& g, const Caps& caps) {
 
 inline namespace speed_testing_maxflow {
 
-void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
+void speed_test_max_flow_run(flow_network_kind i, int S) {
     START_ACC(generation);
     START_ACC(dinitz);
     START_ACC(push_relabel);
     START_ACC(tidal);
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, flow_kind_name[i]);
+    LOOP_FOR_DURATION_TRACKED_RUNS(800ms, now, runs) {
+        print_time(now, 800ms, 50ms, flow_kind_name[i]);
 
         START(generation);
         auto network = generate_flow_network(i, S);
@@ -59,8 +59,7 @@ void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
         }
     }
 
-    clear_line();
-    print(" speed test {} (S={}, x{}):\n", flow_kind_name[i], S, T);
+    print_clear(" speed test {} (S={}, x{}):\n", flow_kind_name[i], S, runs);
     PRINT_TIME(generation);
     PRINT_TIME(dinitz);
     PRINT_TIME(push_relabel);
@@ -68,13 +67,12 @@ void speed_test_max_flow_run(flow_network_kind i, int S, int T) {
 }
 
 void speed_test_max_flow() {
-    static constexpr int N = 5;
-    static constexpr int sizes[] = {500, 1800, 6000, 12000, 20000};
-    static constexpr int amounts[] = {400, 100, 25, 15, 10};
-    for (int n = 0; n < N; n++) {
-        print("speed test group S={}, x{}\n", sizes[n], amounts[n]);
+    static const vector<int> sizes = {500, 1800, 6000, 12000, 20000};
+
+    for (int n = 0; n < int(sizes.size()); n++) {
+        print("speed test group S={}, x{}\n", sizes[n]);
         for (int i = 0; i < int(FN_END); i++) {
-            speed_test_max_flow_run(flow_network_kind(i), sizes[n], amounts[n]);
+            speed_test_max_flow_run(flow_network_kind(i), sizes[n]);
         }
     }
 }
@@ -83,10 +81,12 @@ void speed_test_max_flow() {
 
 inline namespace stress_testing_maxflow {
 
-void stress_test_max_flow(int T = 10000) {
+void stress_test_max_flow() {
     intd kindd(0, int(FN_END) - 1);
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test max flow");
+
+    LOOP_FOR_DURATION_TRACKED(10s, now) {
+        print_time(now, 10s, 50ms, "stress test max flow");
+
         auto network = generate_flow_network(flow_network_kind(kindd(mt)), 100);
         add_cap_flow_network(network, 1, 100'000);
         int V = network.V;
@@ -119,7 +119,6 @@ void stress_test_max_flow(int T = 10000) {
 } // namespace stress_testing_maxflow
 
 int main() {
-    mt.seed(73);
     RUN_BLOCK(stress_test_max_flow());
     RUN_BLOCK(speed_test_max_flow());
     return 0;

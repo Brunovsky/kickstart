@@ -102,6 +102,11 @@ struct link_cut_tree_subtree {
         // return t[u].subt_size - t[t[u].child[0]].subt_size;
     }
 
+    auto query_node(int u) {
+        access(u);
+        return t[u].self;
+    }
+
   private:
     bool is_root(int u) const {
         return t[t[u].parent].child[0] != u && t[t[u].parent].child[1] != u;

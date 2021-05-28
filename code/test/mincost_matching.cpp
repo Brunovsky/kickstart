@@ -47,13 +47,14 @@ void unit_test_mincost_hungarian() {
 
 inline namespace speed_testing_mincost_matching {
 
-void speed_test_mincost_matching_run(bipartite_graph_kind i, int S, int T) {
+void speed_test_mincost_matching_run(bipartite_graph_kind i, int S) {
     START_ACC(hungarian);
     int imperfect = 0;
     double avg_mc = 0;
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, bipartite_kind_name[i]);
+    LOOP_FOR_DURATION_TRACKED_RUNS(1s, now, runs) {
+        print_time(now, 1s, 50ms, bipartite_kind_name[i]);
+
         auto graph = generate_bipartite_graph(i, S);
         add_cost_bipartite_graph(graph, 10'000'000, 300'000'000);
 
@@ -76,22 +77,20 @@ void speed_test_mincost_matching_run(bipartite_graph_kind i, int S, int T) {
         imperfect += ans0 == -1;
         avg_mc += ans0 == -1 ? 0 : ans0 / (graph.U + graph.V);
     }
-    avg_mc /= T;
+    avg_mc /= runs;
 
-    clear_line();
-    print(" {:>8}ms -- hungarian -- {:14.1f} avg. -- {:5.1f}% imperfect -- {}\n",
-          TIME_MS(hungarian), avg_mc, 100.0 * imperfect / T, bipartite_kind_name[i]);
+    double imperfect_percent = 100.0 * imperfect / runs;
+    print_clear(" {:>8}ms -- hungarian -- {:14.1f} avg. -- {:5.1f}% imperfect -- {}\n",
+                TIME_MS(hungarian), avg_mc, imperfect_percent, bipartite_kind_name[i]);
 }
 
 void speed_test_mincost_matching() {
-    static constexpr int N = 5;
-    static constexpr int sizes[] = {100, 250, 800, 1500, 3000};
-    static constexpr int amounts[] = {300, 100, 20, 10, 4};
-    for (int n = 0; n < N; n++) {
-        print("speed test group S={}, x={}\n", sizes[n], amounts[n]);
+    static const vector<int> sizes = {100, 250, 800, 1500, 3000};
+
+    for (int n = 0; n < int(sizes.size()); n++) {
+        print("speed test group S={}, x={}\n", sizes[n]);
         for (int i = 0; i < int(BG_END); i++) {
-            speed_test_mincost_matching_run(bipartite_graph_kind(i), sizes[n],
-                                            amounts[n]);
+            speed_test_mincost_matching_run(bipartite_graph_kind(i), sizes[n]);
         }
     }
 }

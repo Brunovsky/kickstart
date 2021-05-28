@@ -41,12 +41,13 @@ auto generator_regular(int V, int kmin, int kmax) {
 
 inline namespace stress_testing_isomorphism {
 
-void stress_test_isomorphic_positives(int T = 3000) {
+void stress_test_isomorphic_positives() {
     intd distV(10, 50);
     reald distp(0.1, 0.9);
 
-    for (int i = 0; i < T; i++) {
-        print_progress(i, T, "true test");
+    LOOP_FOR_DURATION_TRACKED(5s, now) {
+        print_time(now, 5s, 50ms, "true test");
+
         int V = distV(mt);
         auto g1 = random_uniform_undirected_connected(V, distp(mt));
         auto g2 = relabel(V, g1);
@@ -55,35 +56,34 @@ void stress_test_isomorphic_positives(int T = 3000) {
 }
 
 template <typename Gn>
-void fp_test_run(const string& name, int T, Gn&& gn) {
-    int negatives = 0, positives = 0, false_positives = 0;
+void fp_test_run(const string& name, Gn&& gn) {
+    int negatives = 0, positives = 0, fps = 0;
 
-    for (int i = 0; i < T; i++) {
-        print_progress(i, T, show(negatives, positives, false_positives));
+    LOOP_FOR_DURATION_TRACKED_RUNS(4s, now, runs) {
+        print_time(now, 4s, 50ms, show(negatives, positives, fps));
+
         auto [V, g1, g2] = gn();
 
         if (isomorphic(V, g1, g2)) {
             positives++;
-            false_positives += !boost_test(V, g1, g2);
+            fps += !boost_test(V, g1, g2);
         } else {
             negatives++;
             assert(!boost_test(V, g1, g2));
         }
     }
 
-    clear_line();
-    print("{:>25} -- x{}  {}\n", name, T, show(negatives, positives, false_positives));
+    print_clear("{:>25} -- x{}  {}\n", name, runs, show(negatives, positives, fps));
 }
 
 void stress_test_isomorphic_false_positives() {
     print("graph isomorphism false positives test\n");
-    fp_test_run("regular 11V k=2,4", 500, generator_regular(11, 2, 4));
-    fp_test_run("regular 11V k=6,8", 500, generator_regular(11, 6, 8));
-    fp_test_run("regular 12V k=3-5", 1000, generator_regular(12, 3, 5));
-    fp_test_run("regular 12V k=6-8", 1000, generator_regular(12, 6, 8));
+    fp_test_run("regular 11V k=2,4", generator_regular(11, 2, 4));
+    fp_test_run("regular 11V k=6,8", generator_regular(11, 6, 8));
+    fp_test_run("regular 12V k=3-5", generator_regular(12, 3, 5));
+    fp_test_run("regular 12V k=6-8", generator_regular(12, 6, 8));
     for (int k = 10; k <= 11; k++) {
-        fp_test_run("regular 14V k=" + to_string(k), 3000 - 400 * k,
-                    generator_regular(14, k, k));
+        fp_test_run("regular 14V k=" + to_string(k), generator_regular(14, k, k));
     }
 }
 

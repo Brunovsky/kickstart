@@ -6,13 +6,13 @@
 
 inline namespace speed_testing_maximum_matching {
 
-void speed_test_maximum_matching_run(bipartite_graph_kind i, int S, int T) {
+void speed_test_maximum_matching_run(bipartite_graph_kind i, int S) {
     START_ACC(gen);
     START_ACC(mm);
     START_ACC(hopcroft);
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, bipartite_kind_name[i]);
+    LOOP_FOR_DURATION_TRACKED_RUNS(2s, now, runs) {
+        print_time(now, 2s, 50ms, bipartite_kind_name[i]);
 
         START(gen);
         auto network = generate_bipartite_graph(i, S);
@@ -31,8 +31,7 @@ void speed_test_maximum_matching_run(bipartite_graph_kind i, int S, int T) {
         assert(m0 == m1);
     }
 
-    clear_line();
-    print(" speed test {} (S={}, x{}):\n", bipartite_kind_name[i], S, T);
+    print_clear(" speed test {} (S={}, x{}):\n", bipartite_kind_name[i], S, runs);
     PRINT_TIME(gen);
     PRINT_TIME(mm);
     PRINT_TIME(hopcroft);
@@ -41,12 +40,10 @@ void speed_test_maximum_matching_run(bipartite_graph_kind i, int S, int T) {
 void speed_test_maximum_matching() {
     static constexpr int N = 5;
     static constexpr int sizes[] = {1000, 2500, 8000, 15000, 30000};
-    static constexpr int amounts[] = {500, 150, 25, 10, 4};
     for (int n = 0; n < N; n++) {
-        print("speed test group S={}, x{}\n", sizes[n], amounts[n]);
+        print("speed test group S={}\n", sizes[n]);
         for (int i = 0; i < int(BG_END); i++) {
-            speed_test_maximum_matching_run(bipartite_graph_kind(i), sizes[n],
-                                            amounts[n]);
+            speed_test_maximum_matching_run(bipartite_graph_kind(i), sizes[n]);
         }
     }
 }
@@ -55,13 +52,14 @@ void speed_test_maximum_matching() {
 
 inline namespace stress_testing_maximum_matching {
 
-void stress_test_maximum_matching(int T = 2000) {
+void stress_test_maximum_matching() {
     intd distV(90, 600);
     reald distMp(0.1, 1.0);
     reald distEp(3.0, 30.0);
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test maximum matching");
+    LOOP_FOR_DURATION_TRACKED(8s, now) {
+        print_time(now, 8s, 50ms, "stress test maximum matching");
+
         int U = distV(mt), V = distV(mt);
         int M = ceil(distMp(mt) * min(U, V));
         double p = distEp(mt) / (max(U, V));

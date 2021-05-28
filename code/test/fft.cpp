@@ -222,8 +222,7 @@ void breakeven_test_fft_square(int V = 100) {
         }
     }
 
-    clear_line();
-    print("breakeven: N={}\n", N - window / 2);
+    print_clear("breakeven: N={}\n", N - window / 2);
 }
 
 template <typename T>
@@ -267,8 +266,7 @@ void breakeven_test_ntt_square(int V = 10000) {
         }
     }
 
-    clear_line();
-    print("breakeven: N={}\n", N - window / 2);
+    print_clear("breakeven: N={}\n", N - window / 2);
 }
 
 void breakeven_test_ntt_split_square(int mod = 1'000'000'007, int V = 1000000) {
@@ -311,8 +309,7 @@ void breakeven_test_ntt_split_square(int mod = 1'000'000'007, int V = 1000000) {
         }
     }
 
-    clear_line();
-    print("breakeven: N={}\n", N - window / 2);
+    print_clear("breakeven: N={}\n", N - window / 2);
 }
 
 } // namespace speed_testing_fft

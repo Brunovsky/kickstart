@@ -32,21 +32,9 @@ enum UnrootedActionType {
 };
 
 string action_name[END + 1] = {
-    [LINK] = "LINK",
-    [CUT] = "CUT",
-    [LINK_CUT] = "LINK_CUT",
-    [FINDROOT] = "FINDROOT",
-    [LCA] = "LCA",
-    [LCA_CONN] = "LCA CONN",
-    [UPDATE_NODE] = "UPDATE NODE",
-    [UPDATE_PATH] = "UPDATE PATH",
-    [QUERY_PATH] = "QUERY PATH",
-    [PATH_LENGTH] = "PATH LENGTH",
-    [UPDATE_SUBTREE] = "UPDATE SUBTREE",
-    [QUERY_SUBTREE] = "QUERY SUBTREE",
-    [SUBTREE_SIZE] = "SUBTREE SIZE",
-    [STRESS_TEST] = "STRESS TEST",
-    [END] = "END",
+    "LINK",           "CUT",           "LINK_CUT",     "FINDROOT",    "LCA",
+    "LCA CONN",       "UPDATE NODE",   "UPDATE PATH",  "QUERY PATH",  "PATH LENGTH",
+    "UPDATE SUBTREE", "QUERY SUBTREE", "SUBTREE SIZE", "STRESS TEST", "END",
 };
 
 struct UnrootedAction {
@@ -63,7 +51,7 @@ struct UnrootedAction {
         : action(a), u(u), v(v), r(r), w(w), value(value) {}
 };
 
-auto make_actions(int N, int T, const int arr[END]) {
+auto make_actions(int N, ms runtime, const int arr[END]) {
     constexpr long minv = 1, maxv = 50, mind = -30, maxd = 30;
     intd noded(1, N);
     longd vald(minv, maxv);
@@ -76,8 +64,9 @@ auto make_actions(int N, int T, const int arr[END]) {
     vector<UnrootedAction> history;
     size_t Ssum = 0, iterations = 0;
 
-    while (int(history.size()) < T) {
-        print_progress(history.size(), T, format("preparing history (S={})...", slow.S));
+    LOOP_FOR_DURATION_TRACKED(runtime, now) {
+        print_time(now, runtime, 50ms, "preparing history (S={})...", slow.S);
+
         auto action = selector(mt);
         occurrences[action]++, iterations++;
 
@@ -185,8 +174,7 @@ auto make_actions(int N, int T, const int arr[END]) {
         Ssum += slow.S;
     }
 
-    clear_line();
-    print("S avg: {:.2f}\n", 1.0 * Ssum / iterations);
+    print_clear("S avg: {:.2f}\n", 1.0 * Ssum / iterations);
     print("iterations: {}\n", iterations);
     // print("Frequency table:\n");
     // for (int a = 0; a < END; a++) {
@@ -314,7 +302,7 @@ constexpr int stress_path_ratio_arr[END] = {
 void stress_test_link_cut_tree_path(int N = 200, int T = 50'000) {
     slow_tree slow(N);
     link_cut_tree_path tree(N);
-    auto actions = make_actions(N, T, stress_path_ratio_arr);
+    auto actions = make_actions(N, 3s, stress_path_ratio_arr);
     deque<tuple<string, string>> states;
     int t = 0;
     bool ok = true;
@@ -401,7 +389,7 @@ constexpr int stress_subtree_ratio_arr[END] = {
 void stress_test_link_cut_tree_subtree(int N = 200, int T = 50'000) {
     slow_tree slow(N);
     link_cut_tree_subtree tree(N);
-    auto actions = make_actions(N, T, stress_subtree_ratio_arr);
+    auto actions = make_actions(N, 3s, stress_subtree_ratio_arr);
     deque<tuple<string, string>> states;
     int t = 0;
     bool ok = true;
@@ -514,9 +502,9 @@ constexpr int speed_query_heavy[END] = {
     [SUBTREE_SIZE] = 0,   [STRESS_TEST] = 0,
 };
 
-void speed_test_link_cut_tree_path(int N, int T, const int arr[END]) {
+void speed_test_link_cut_tree_path(int N, const int arr[END]) {
     link_cut_tree_path tree(N);
-    auto actions = make_actions(N, T, arr);
+    auto actions = make_actions(N, 4s, arr);
 
     START(linkcut);
     for (const auto& [action, u, v, r, w, val] : actions) {
@@ -564,7 +552,6 @@ void speed_test_link_cut_tree_path(int N, int T, const int arr[END]) {
 
 int main() {
     setbuf(stdout, nullptr);
-    mt.seed(73);
     RUN_SHORT(stress_test_link_cut_tree_subtree());
     RUN_SHORT(stress_test_link_cut_tree_path());
     RUN_SHORT(speed_test_link_cut_tree_path(1'000, 70'000, speed_query_heavy));

@@ -9,14 +9,16 @@ inline namespace detail {
 
 double min_diff(const vecd& u, const vecd& v) {
     double x = numeric_limits<double>::max();
-    for (int i = 0, n = u.size(); i < n; i++)
+    for (int i = 0, n = u.size(); i < n; i++) {
         x = min(x, abs(u[i] - v[i]));
+    }
     return x;
 }
 double min_diff(const matd& u, const matd& v) {
     double x = numeric_limits<double>::max();
-    for (int i = 0; i < u.n; i++)
+    for (int i = 0; i < u.n; i++) {
         x = min(x, min_diff(u[i], v[i]));
+    }
     return x;
 }
 
@@ -35,7 +37,7 @@ auto generate_gauss_frac(int n, long minv, long maxv, long maxd) {
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             a[i][j] = dista(mt);
-    return tuple<matf, vecf>{move(a), move(x)};
+    return make_pair(move(a), move(x));
 }
 
 auto generate_gauss_double(int n, double minv, double maxv) {
@@ -47,7 +49,7 @@ auto generate_gauss_double(int n, double minv, double maxv) {
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             a[i][j] = dista(mt);
-    return tuple<matd, vecd>{move(a), move(x)};
+    return make_pair(move(a), move(x));
 }
 
 } // namespace detail
@@ -128,56 +130,62 @@ void unit_test_inverse_frac() {
 
 inline namespace stress_testing_gauss {
 
-void stress_test_gauss_frac(int T = 2000) {
+void stress_test_gauss_frac() {
     intd distn(3, 7);
     int degenerate = 0, infeasible = 0, different = 0;
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test gauss frac");
+    LOOP_FOR_DURATION_TRACKED_RUNS(5s, now, runs) {
+        print_time(now, 5s, 50ms, "stress test gauss frac");
+
         int n = distn(mt);
         auto [a, z] = generate_gauss_frac(n, -8, 8, 4);
         auto b = a * z;
         auto x = gauss(a, b);
         degenerate += !x;
-        if (!x)
-            continue;
-        bool ok = a * *x == b;
-        infeasible += !ok;
-        different += ok && *x != z;
+
+        if (x) {
+            bool ok = a * *x == b;
+            infeasible += !ok;
+            different += ok && *x != z;
+        }
     }
-    print("  {:5.1f}% ({}) degenerate\n", 100.0 * degenerate / T, degenerate);
-    print("  {:5.1f}% ({}) infeasible\n", 100.0 * infeasible / T, infeasible);
-    print("  {:5.1f}% ({}) different\n", 100.0 * different / T, different);
+
+    print_clear("  {:5.1f}% ({}) degenerate\n", 100.0 * degenerate / runs, degenerate);
+    print_clear("  {:5.1f}% ({}) infeasible\n", 100.0 * infeasible / runs, infeasible);
+    print_clear("  {:5.1f}% ({}) different\n", 100.0 * different / runs, different);
 }
 
-void stress_test_gauss_double(int T = 1000) {
+void stress_test_gauss_double() {
     intd distn(5, 100);
     int degenerate = 0, infeasible = 0, different = 0;
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test gauss double");
+    LOOP_FOR_DURATION_TRACKED_RUNS(5s, now, runs) {
+        print_time(now, 5s, 50ms, "stress test gauss double");
+
         int n = distn(mt);
         auto [a, z] = generate_gauss_double(n, -10, 10);
         auto b = a * z;
         auto x = gauss(a, b);
         degenerate += !x;
-        if (!x)
-            continue;
-        bool ok = min_diff(a * *x, b) <= 1e-10;
-        infeasible += !ok;
-        different += ok && !(min_diff(*x, z) <= 1e-12);
+
+        if (x) {
+            bool ok = min_diff(a * *x, b) <= 1e-10;
+            infeasible += !ok;
+            different += ok && !(min_diff(*x, z) <= 1e-12);
+        }
     }
-    print("  {:5.1f}% ({}) degenerate\n", 100.0 * degenerate / T, degenerate);
-    print("  {:5.1f}% ({}) infeasible\n", 100.0 * infeasible / T, infeasible);
-    print("  {:5.1f}% ({}) different\n", 100.0 * different / T, different);
+    print("  {:5.1f}% ({}) degenerate\n", 100.0 * degenerate / runs, degenerate);
+    print("  {:5.1f}% ({}) infeasible\n", 100.0 * infeasible / runs, infeasible);
+    print("  {:5.1f}% ({}) different\n", 100.0 * different / runs, different);
 }
 
-void stress_test_inverse_double(int T = 1000) {
+void stress_test_inverse_double() {
     intd distn(5, 100);
     int degenerate = 0, different_mul = 0, different_inv = 0;
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test inverse double");
+    LOOP_FOR_DURATION_TRACKED_RUNS(5s, now, runs) {
+        print_time(now, 5s, 50ms, "stress test inverse double");
+
         int n = distn(mt);
         auto [a, z] = generate_gauss_double(n, -10, 10);
 
@@ -185,32 +193,39 @@ void stress_test_inverse_double(int T = 1000) {
         degenerate += !b;
         if (!b)
             continue;
+
         auto c = inverse(*b);
         degenerate += !c;
         if (!c)
             continue;
+
         different_mul += !(min_diff(matd::identity(n), a * *b) <= 1e-16);
         different_inv += !(min_diff(a, *c) <= 1e-12);
     }
-    print("  {:5.1f}% ({}) degenerate\n", 100.0 * degenerate / T, degenerate);
-    print("  {:5.1f}% ({}) different mul\n", 100.0 * different_mul / T, different_mul);
-    print("  {:5.1f}% ({}) different inv\n", 100.0 * different_inv / T, different_inv);
+
+    print_clear("  {:5.1f}% ({}) degenerate\n", 100.0 * degenerate / runs, degenerate);
+    print_clear("  {:5.1f}% ({}) diff mul\n", 100.0 * different_mul / runs,
+                different_mul);
+    print_clear("  {:5.1f}% ({}) diff inv\n", 100.0 * different_inv / runs,
+                different_inv);
 }
 
 } // namespace stress_testing_gauss
 
 inline namespace scaling_test_gauss {
 
-void scaling_test_gauss_double(int T = 100, int nmin = 5, int nmax = 300, int ninc = 5) {
-    int total_degenerate = 0, total_infeasible = 0, total_different = 0;
+void scaling_test_gauss_double(int nmin = 5, int nmax = 300, int ninc = 5) {
+    int total_degenerate = 0, total_infeasible = 0, total_different = 0, total_runs = 0;
 
     for (int n = nmin; n <= nmax; n += ninc) {
         string label = format("{} stress test gauss double", n);
+
         START_ACC(gauss);
         int degenerate = 0, infeasible = 0, different = 0;
 
-        for (int t = 0; t < T; t++) {
-            print_progress(t, T, label);
+        LOOP_FOR_DURATION_TRACKED_RUNS(800ms, now, runs) {
+            print_time(now, 800ms, 50ms, label);
+
             auto [a, z] = generate_gauss_double(n, -10, 10);
             auto b = a * z;
 
@@ -221,20 +236,23 @@ void scaling_test_gauss_double(int T = 100, int nmin = 5, int nmax = 300, int ni
             degenerate += !x;
             if (!x)
                 continue;
+
             bool ok = min_diff(a * *x, b) <= 1e-10;
             infeasible += !ok;
             different += ok && !(min_diff(*x, z) <= 1e-12);
         }
 
-        clear_line();
-        print(" {:>8}ms -- {:>3} -- {:5.1f}%  {:5.1f}%  {:5.1f}%\n", TIME_MS(gauss), n,
-              100.0 * degenerate / T, 100.0 * infeasible / T, 100.0 * different / T);
+        print_clear(" {:>8}ms -- {:>3} -- {:5.1f}%  {:5.1f}%  {:5.1f}%\n", TIME_MS(gauss),
+                    n, 100.0 * degenerate / runs, 100.0 * infeasible / runs,
+                    100.0 * different / runs);
+
         total_degenerate += degenerate;
         total_infeasible += infeasible;
         total_different += different;
+        total_runs += runs;
     }
 
-    int N = T * (nmax - nmin + ninc) / ninc;
+    int N = total_runs;
     print("  {:5.1f}% ({}) degenerate\n", 100.0 * total_degenerate / N, total_degenerate);
     print("  {:5.1f}% ({}) infeasible\n", 100.0 * total_infeasible / N, total_infeasible);
     print("  {:5.1f}% ({}) different\n", 100.0 * total_different / N, total_different);

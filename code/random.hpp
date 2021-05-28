@@ -77,7 +77,7 @@ void reservoir_sample_inplace(vector<T>& univ, int k) {
  */
 template <typename T = int, typename I = int>
 vector<T> int_sample(int k, I a, I b) {
-    assert(k <= 500'000'000); // don't try anything crazy
+    assert(k <= 100'000'000); // don't try anything crazy
     if (k == 0 || a >= b)
         return {};
 
@@ -176,6 +176,7 @@ auto int_sample_p(double p, I a, I b) {
  */
 template <typename T = int, typename I>
 vector<array<T, 2>> choose_sample(int k, I a, I b) {
+    assert(k <= 50'000'000); // don't try anything crazy
     if (k == 0 || a >= b - 1)
         return {};
 
@@ -291,6 +292,7 @@ auto choose_sample_p(double p, I a, I b) {
  */
 template <typename T = int, typename I>
 vector<array<T, 2>> pair_sample(int k, I a, I b, I c, I d) {
+    assert(k <= 50'000'000); // don't try anything crazy
     if (k == 0 || a >= b || c >= d)
         return {};
 

@@ -47,43 +47,38 @@ void showb(string msg, const edges_t& g) {
 
 inline namespace scaling_testing_regular {
 
-void scaling_test_random_regular_run(int T, int n, int k) {
-    if (T == 0)
-        return;
-
+void scaling_test_random_regular_run(int n, int k) {
     START(regular);
-    for (int i = 0; i < T; i++) {
-        auto g = random_regular(n, k);
-    }
+    LOOP_FOR_DURATION_TRACKED_RUNS(1s, now, runs) { auto g = random_regular(n, k); }
     TIME(regular);
 
-    long E = 1L * T * (n * k / 2);
-    double per_instance = 1e6 * T / E;
+    long E = 1L * runs * (n * k / 2);
+    double per_instance = 1e6 * runs / E;
 
-    clear_line();
-    print("  -- x{:<6} n={:<6} k={:<4} E={:<9} -- {:>5}ms total -- {:>7.1f}ms per 1M\n",
-          T, n, k, E, TIME_MS(regular), per_instance);
+    print_clear(
+        "  -- x{:<6} n={:<6} k={:<4} E={:<9} -- {:>5}ms total -- {:>7.1f}ms per 1M\n",
+        runs, n, k, E, TIME_MS(regular), per_instance);
 }
 
-void scaling_test_random_regular(double M = 1) {
-    scaling_test_random_regular_run(int(M * 10), 300, 100);
-    scaling_test_random_regular_run(int(M * 10), 300, 200);
-    scaling_test_random_regular_run(int(M * 5000), 25, 6);
-    scaling_test_random_regular_run(int(M * 5000), 25, 10);
-    scaling_test_random_regular_run(int(M * 3000), 36, 6);
-    scaling_test_random_regular_run(int(M * 3000), 36, 8);
-    scaling_test_random_regular_run(int(M * 3000), 36, 10);
-    scaling_test_random_regular_run(int(M * 1000), 80, 5);
-    scaling_test_random_regular_run(int(M * 1000), 80, 9);
-    scaling_test_random_regular_run(int(M * 1000), 80, 13);
-    scaling_test_random_regular_run(int(M * 100), 400, 12);
-    scaling_test_random_regular_run(int(M * 100), 400, 16);
-    scaling_test_random_regular_run(int(M * 100), 400, 20);
-    scaling_test_random_regular_run(int(M * 6), 10000, 30);
-    scaling_test_random_regular_run(int(M * 6), 10000, 40);
-    scaling_test_random_regular_run(int(M * 6), 10000, 50);
-    scaling_test_random_regular_run(int(M * 1), 50000, 60);
-    scaling_test_random_regular_run(int(M * 1), 50000, 120);
+void scaling_test_random_regular() {
+    scaling_test_random_regular_run(300, 100);
+    scaling_test_random_regular_run(300, 200);
+    scaling_test_random_regular_run(25, 6);
+    scaling_test_random_regular_run(25, 10);
+    scaling_test_random_regular_run(36, 6);
+    scaling_test_random_regular_run(36, 8);
+    scaling_test_random_regular_run(36, 10);
+    scaling_test_random_regular_run(80, 5);
+    scaling_test_random_regular_run(80, 9);
+    scaling_test_random_regular_run(80, 13);
+    scaling_test_random_regular_run(400, 12);
+    scaling_test_random_regular_run(400, 16);
+    scaling_test_random_regular_run(400, 20);
+    scaling_test_random_regular_run(10000, 30);
+    scaling_test_random_regular_run(10000, 40);
+    scaling_test_random_regular_run(10000, 50);
+    scaling_test_random_regular_run(50000, 60);
+    scaling_test_random_regular_run(50000, 120);
 }
 
 } // namespace scaling_testing_regular
@@ -190,16 +185,15 @@ void balance_test_generate_flow() {
         double sum_W = 0;
 
         for (int i = 0; i < int(FN_END); i++) {
-            long V_sum = 0, E_sum = 0, runs = 0;
+            long V_sum = 0, E_sum = 0;
 
-            START(fn);
-            do {
+            LOOP_FOR_DURATION_OR_RUNS_TRACKED(500ms, now, 50, runs) {
                 auto fn = generate_flow_network(flow_network_kind(i), S);
                 V_sum += fn.V, E_sum += fn.E;
-            } while (++runs <= 50 && CUR_TIME(fn) < 500ms);
+            }
             V_sum /= runs, E_sum /= runs;
 
-            double V = log2(V_sum), E = log2(E_sum), logV = log2(V);
+            double V = log2(V_sum + 1), E = log2(E_sum + 1), logV = log2(V + 1);
             double W = 9 * V + 4 * E + 2 * logV;
             sum_W += W;
 
@@ -221,13 +215,12 @@ void balance_test_generate_circulation() {
         double sum_W = 0;
 
         for (int i = 0; i < int(CN_END); i++) {
-            long V_sum = 0, E_sum = 0, runs = 0;
+            long V_sum = 0, E_sum = 0;
 
-            START(fn);
-            do {
+            LOOP_FOR_DURATION_OR_RUNS_TRACKED(500ms, now, 50, runs) {
                 auto fn = generate_circulation_network(circulation_network_kind(i), S);
                 V_sum += fn.V, E_sum += fn.E;
-            } while (++runs <= 50 && CUR_TIME(fn) < 500ms);
+            }
             V_sum /= runs, E_sum /= runs;
 
             double V = log2(V_sum), E = log2(E_sum), logV = log2(V);
@@ -251,13 +244,12 @@ void balance_test_generate_bipartite() {
         double sum_W = 0;
 
         for (int i = 0; i < int(BG_END); i++) {
-            long U_sum = 0, V_sum = 0, E_sum = 0, runs = 0;
+            long U_sum = 0, V_sum = 0, E_sum = 0;
 
-            START(fn);
-            do {
+            LOOP_FOR_DURATION_OR_RUNS_TRACKED(500ms, now, 50, runs) {
                 auto fn = generate_bipartite_graph(bipartite_graph_kind(i), S);
                 U_sum += fn.U, V_sum += fn.V, E_sum += fn.E;
-            } while (++runs <= 50 && CUR_TIME(fn) < 500ms);
+            }
             V_sum /= runs, E_sum /= runs;
 
             double U = log2(U_sum), V = log2(V_sum), E = log2(E_sum), logV = log2(V);
@@ -281,6 +273,6 @@ int main() {
     RUN_BLOCK(balance_test_generate_flow());
     RUN_BLOCK(balance_test_generate_circulation());
     RUN_BLOCK(balance_test_generate_bipartite());
-    RUN_BLOCK(scaling_test_random_regular(1));
+    RUN_BLOCK(scaling_test_random_regular());
     return 0;
 }

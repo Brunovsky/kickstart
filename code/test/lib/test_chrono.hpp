@@ -22,15 +22,17 @@
  *     PRINT_TIME($var);
  * Either way, in the end the result is in time_$var
  */
-#define START_ACC(var)     size_t time_##var = 0
-#define START(var)         auto now_##var = steady_clock::now()
-#define CUR_TIME(var)      duration_cast<us>(steady_clock::now() - now_##var)
-#define TIME(var)          auto time_##var = CUR_TIME(var).count()
-#define ADD_TIME(var)      time_##var += CUR_TIME(var).count()
-#define TIME_S(var)        (time_##var / 1e6)
-#define TIME_MS(var)       (time_##var / 1'000)
-#define TIME_US(var)       time_##var
-#define PRINT_TIME(var)    clear_line(), print(" {:>8}ms -- {}\n", TIME_MS(var), #var)
-#define PRINT_TIME_US(var) clear_line(), print(" {:>9}us -- {}\n", TIME_US(var), #var)
+#define START_ACC(var)     chrono::nanoseconds time_##var = 0ns
+#define START(var)         auto now_##var = chrono::steady_clock::now()
+#define CUR_TIME(var)      chrono::steady_clock::now() - now_##var
+#define TIME(var)          chrono::nanoseconds time_##var = CUR_TIME(var)
+#define ADD_TIME(var)      time_##var += CUR_TIME(var)
+#define TIME_S(var)        chrono::duration_cast<chrono::seconds>(time_##var).count()
+#define TIME_MS(var)       chrono::duration_cast<chrono::milliseconds>(time_##var).count()
+#define TIME_US(var)       chrono::duration_cast<chrono::microseconds>(time_##var).count()
+#define FTIME_S(var)       TIME_US(var) / 1e6
+#define FTIME_MS(var)      TIME_US(var) / 1e3
+#define PRINT_TIME(var)    print_clear(" {:>8}ms -- {}\n", TIME_MS(var), #var)
+#define PRINT_TIME_US(var) print_clear(" {:>9}us -- {}\n", TIME_US(var), #var)
 
 #endif // TEST_CHRONO_HPP

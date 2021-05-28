@@ -83,12 +83,11 @@ void verify_normality(vi& v, bool show_histogram = false) {
         within[i] += within[i - 1];
     }
 
-    clear_line();
-    print("===== NORMALITY TEST =====\n");
+    print_clear("===== NORMALITY TEST =====\n");
     if (show_histogram) {
         long each = sum / n;
         for (int i = 0; i < n; i++) {
-            print("{:2} -- {}\n", i, string(v[i] * 60 / each, '*'));
+            print("{:2} -- {}\n", i, string(v[i] * 40 / each, '*'));
         }
     }
     print("sum: {}\n", sum);
@@ -135,11 +134,10 @@ void stress_test_partition_sample_uniform(double F = 100) {
         naive[id.at(pt)]++;
     }
 
-    clear_line();
     for (int i = 0; i < P; i++) {
         auto p = count_permutations(pts[i]);
         double fast_w = 1.0 * fast[i] / p, naive_w = 1.0 * naive[i] / p;
-        print("{:12} -- {:5} | {:6.1f} {:6.1f}\n", pts[i], p, fast_w, naive_w);
+        print_clear("{:12} -- {:5} | {:6.1f} {:6.1f}\n", pts[i], p, fast_w, naive_w);
         fast[i] *= f / p;
         naive[i] *= f / p;
     }
@@ -164,6 +162,7 @@ void stress_test_vec_sample(int T = 7000, int n = 4096, int k = 37) {
         }
         assert(int(sample.size()) == k);
     }
+
     verify_normality(cnt);
 }
 
@@ -171,12 +170,12 @@ void stress_test_vec_sample(int T = 7000, int n = 4096, int k = 37) {
 
 inline namespace stress_test_int_samplers {
 
-void stress_test_int_sample(int T = 100'000, int n = 50) {
+void stress_test_int_sample(int n = 1000) {
     vector<int> cnt(n, 0);
     intd distk(0, n - 1);
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test int sample");
+    LOOP_FOR_DURATION_TRACKED(10s, now) {
+        print_time(now, 10s, 50ms, "stress test int sample");
 
         int k = distk(mt);
         auto nums = int_sample(k, 0, n);
@@ -191,15 +190,15 @@ void stress_test_int_sample(int T = 100'000, int n = 50) {
         }
     }
 
-    verify_normality(cnt, true);
+    verify_normality(cnt);
 }
 
-void stress_test_choose_sample(int T = 100'000, int n = 10) {
+void stress_test_choose_sample(int n = 45) {
     vector<vector<int>> matcnt(n, vector<int>(n, 0));
     intd distk(0, n * (n - 1) / 2);
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test choose sample");
+    LOOP_FOR_DURATION_TRACKED(10s, now) {
+        print_time(now, 10s, 50ms, "stress test choose sample");
 
         int k = distk(mt);
         auto nums = choose_sample(k, 0, n);
@@ -223,19 +222,20 @@ void stress_test_choose_sample(int T = 100'000, int n = 10) {
         }
     }
 
-    verify_normality(cnt, true);
+    verify_normality(cnt);
 }
 
-void stress_test_pair_sample(int T = 100'000, int n = 6, int m = 8) {
+void stress_test_pair_sample(int n = 31, int m = 31) {
     vector<vector<int>> matcnt(n, vector<int>(m, 0));
     intd distk(0, n * m);
 
-    for (int t = 0; t < T; t++) {
-        print_progress(t, T, "stress test pair sample");
+    LOOP_FOR_DURATION_TRACKED(10s, now) {
+        print_time(now, 10s, 50ms, "stress test pair sample");
 
         int k = distk(mt);
         auto nums = pair_sample(k, 0, n, 0, m);
         assert(is_sorted(begin(nums), end(nums)));
+
         assert(int(nums.size()) == k);
         for (int i = 1; i < k; i++) {
             assert(nums[i - 1] < nums[i]);
@@ -254,7 +254,7 @@ void stress_test_pair_sample(int T = 100'000, int n = 6, int m = 8) {
         }
     }
 
-    verify_normality(cnt, true);
+    verify_normality(cnt);
 }
 
 } // namespace stress_test_int_samplers
@@ -262,67 +262,49 @@ void stress_test_pair_sample(int T = 100'000, int n = 6, int m = 8) {
 inline namespace scaling_test_samplers {
 
 void scaling_test_int_sample(long F = 4'000'000) {
-    intd dista(0, 25000);
-
-    vector<int> abs = {
+    static const vector<int> abs = {
         10, 100, 1000, 10'000, 100'000, 1'000'000, 10'000'000, 100'000'000,
     };
-    vector<long> sparse = {
+    static const vector<long> sparse = {
         2,     4,     9,     20,     40,     90,     200,     400,     900,
         2'000, 4'000, 9'000, 20'000, 40'000, 90'000, 200'000, 400'000, 900'000,
     };
-    vector<double> dense = {
+    static const vector<double> dense = {
         .01, .025, .05, .1, .2, .3, .5, .75, .9, .98,
     };
 
-    int A = abs.size(), S = sparse.size(), D = dense.size();
-    int t = 0, T = A * (S + D), row = 0, col = 0;
+    intd dista(0, 25000);
+    mat<string> times_sparse = make_table(abs, sparse);
+    mat<string> times_dense = make_table(abs, dense);
 
-    mat<string> times_sparse(A + 1, S + 1), times_dense(A + 1, D + 1);
-
-    for (int i = 1; i <= A; i++) {
-        times_sparse[i][0] = to_string(abs[i - 1]);
-        times_dense[i][0] = to_string(abs[i - 1]);
-    }
-    for (int j = 1; j <= S; j++) {
-        times_sparse[0][j] = to_string(sparse[j - 1]);
-    }
-    for (int j = 1; j <= D; j++) {
-        times_dense[0][j] = format("{:.3f}", dense[j - 1]);
-    }
-
-    row = col = 0;
     for (long k : sparse) {
-        print(" int sample sparse test x{}\n", k), col++, row = 0;
+        print_clear(" int sample sparse test x{}\n", k);
 
         for (int n : abs) {
-            print_progress(t++, T, "scaling test int sample"), row++;
             if (k > n)
                 continue;
+
             int N = F / k;
 
             START(sampler);
             for (int i = 0; i < N; i++) {
                 int a = dista(mt), b = a + n;
-                int_sample(k, a, b);
+                auto res = int_sample(k, a, b);
+                assert(int(res.size()) == k);
             }
             TIME(sampler);
 
             double W = N * k;
             double each = 1e3 * TIME_US(sampler) / W;
-            print(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- sparse {:<8}\n",
-                  TIME_MS(sampler), each, n, N, k);
-
-            times_sparse[row][col] = format("{:.2f}", each);
+            print_clear(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- sparse {:<8}\n",
+                        TIME_MS(sampler), each, n, N, k);
         }
     }
 
-    row = col = 0;
     for (double p : dense) {
-        print(" int sample dense test p={:5.3f}\n", p), col++, row = 0;
+        print(" int sample dense test p={:5.3f}\n", p);
 
         for (int n : abs) {
-            print_progress(t++, T, "scaling test int sample"), row++;
             if (p * n > F)
                 continue;
 
@@ -331,68 +313,46 @@ void scaling_test_int_sample(long F = 4'000'000) {
             START(sampler);
             for (int i = 0; i < N; i++) {
                 int a = dista(mt), b = a + n;
-                int k = binomd(n, p)(mt);
-                int_sample(k, a, b);
+                int_sample_p(p, a, b);
             }
             TIME(sampler);
 
             double W = p * N * n;
             double each = 1e3 * TIME_US(sampler) / W;
-            print(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- dense {:>5.3f}\n",
-                  TIME_MS(sampler), each, n, N, p);
-
-            times_dense[row][col] = format("{:.2f}", each);
+            print_clear(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- dense {:>5.3f}\n",
+                        TIME_MS(sampler), each, n, N, p);
         }
     }
-
-    ofstream outfile("sampling_times.txt", ios::app);
-    print(outfile, "=== SPARSE:\n{}\n=== DENSE:\n{}\n", times_sparse, times_dense);
 }
 
 void scaling_test_choose_sample(long F = 4'000'000) {
-    intd dista(0, 25000);
-
-    vector<int> abs_sparse = {
+    static const vector<int> abs_sparse = {
         100, 1000, 10'000, 100'000, 1'000'000,
     };
-    vector<long> sparse = {
+    static const vector<long> sparse = {
         10, 40, 90, 400, 900, 4'000, 9'000, 40'000, 90'000, 400'000, 900'000,
     };
-    vector<int> abs_dense = {
+    static const vector<int> abs_dense = {
         10, 40, 100, 300, 800, 2'000, 5'000,
     };
-    vector<double> dense = {
+    static const vector<double> dense = {
         .01, .025, .05, .1, .2, .3, .5, .75, .9, .98,
     };
 
-    int AS = abs_sparse.size(), AD = abs_dense.size();
-    int S = sparse.size(), D = dense.size();
-    int t = 0, T = AS * S + AD * D, row = 0, col = 0;
-
-    mat<string> times_sparse(AS + 1, S + 1), times_dense(AD + 1, D + 1);
-
-    for (int i = 1; i <= AS; i++) {
-        times_sparse[i][0] = to_string(abs_sparse[i - 1]);
-    }
-    for (int i = 1; i <= AD; i++) {
-        times_dense[i][0] = to_string(abs_dense[i - 1]);
-    }
-    for (int j = 1; j <= S; j++) {
-        times_sparse[0][j] = to_string(sparse[j - 1]);
-    }
-    for (int j = 1; j <= D; j++) {
-        times_dense[0][j] = format("{:.3f}", dense[j - 1]);
-    }
+    intd dista(0, 25000);
+    int row = 0, col = 0;
+    mat<string> times_sparse = make_table(abs_sparse, sparse);
+    mat<string> times_dense = make_table(abs_dense, dense);
 
     row = col = 0;
     for (long k : sparse) {
         print(" choose sample sparse test x{}\n", k), col++, row = 0;
 
         for (int n : abs_sparse) {
-            print_progress(t++, T, "scaling test choose sample"), row++;
-
+            row++;
             if (k > choose(n, 2))
                 continue;
+
             int N = F / k;
             START(sampler);
             for (int i = 0; i < N; i++) {
@@ -405,18 +365,13 @@ void scaling_test_choose_sample(long F = 4'000'000) {
             double each = 1e3 * TIME_US(sampler) / W;
             print(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- sparse {:>8}\n",
                   TIME_MS(sampler), each, n, N, k);
-
-            times_sparse[row][col] = format("{:.2f}", each);
         }
     }
 
-    row = col = 0;
     for (double p : dense) {
-        print(" choose sample dense test p={:5.3f}\n", p), col++, row = 0;
+        print(" choose sample dense test p={:5.3f}\n", p);
 
         for (int n : abs_dense) {
-            print_progress(t++, T, "scaling test choose sample"), row++;
-
             START(sampler);
             int N = max(1, int(F / (p * choose(n, 2))));
             for (int i = 0; i < N; i++) {
@@ -429,59 +384,36 @@ void scaling_test_choose_sample(long F = 4'000'000) {
             double each = 1e3 * TIME_US(sampler) / W;
             print(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- dense {:>5.3f}\n",
                   TIME_MS(sampler), each, n, N, p);
-
-            times_dense[row][col] = format("{:.2f}", each);
         }
     }
-
-    ofstream outfile("sampling_times.txt", ios::app);
-    print(outfile, "=== SPARSE:\n{}\n=== DENSE:\n{}\n", times_sparse, times_dense);
 }
 
 void scaling_test_pair_sample(long F = 4'000'000) {
-    intd dista(0, 25000), distc(0, 25000);
-
-    vector<array<int, 2>> abs_sparse = {
+    static const vector<array<int, 2>> abs_sparse = {
         {100, 100}, {100, 500},  {300, 300},  {100, 3000},
         {500, 500}, {500, 1000}, {300, 2000}, {1000, 1000},
     };
-    vector<long> sparse = {
+    static const vector<long> sparse = {
         10, 40, 90, 400, 900, 4'000, 9'000, 40'000, 90'000, 400'000, 900'000,
     };
-    vector<array<int, 2>> abs_dense = {
+    static const vector<array<int, 2>> abs_dense = {
         {20, 20}, {30, 30}, {20, 50}, {10, 200}, {20, 100}, {50, 50},
     };
-    vector<double> dense = {
+    static const vector<double> dense = {
         .01, .025, .05, .1, .2, .3, .5, .75, .9, .98,
     };
 
-    int AS = abs_sparse.size(), AD = abs_dense.size();
-    int S = sparse.size(), D = dense.size();
-    int t = 0, T = AS * S + AD * D, row = 0, col = 0;
+    intd dista(0, 25000), distc(30000, 35000);
+    mat<string> times_sparse = make_table(abs_sparse, sparse);
+    mat<string> times_dense = make_table(abs_dense, dense);
 
-    mat<string> times_sparse(AS + 1, S + 1), times_dense(AD + 1, D + 1);
-
-    for (int i = 1; i <= AS; i++) {
-        times_sparse[i][0] = to_string(abs_sparse[i - 1]);
-    }
-    for (int i = 1; i <= AD; i++) {
-        times_dense[i][0] = to_string(abs_dense[i - 1]);
-    }
-    for (int j = 1; j <= S; j++) {
-        times_sparse[0][j] = to_string(sparse[j - 1]);
-    }
-    for (int j = 1; j <= D; j++) {
-        times_dense[0][j] = format("{:.3f}", dense[j - 1]);
-    }
-
-    row = col = 0;
     for (long k : sparse) {
-        print(" pair sample sparse test x{}\n", k), col++, row = 0;
+        print(" pair sample sparse test x{}\n", k);
 
         for (auto [n, m] : abs_sparse) {
-            print_progress(t++, T, "scaling test pair sample"), row++;
             if (k > n * m)
                 continue;
+
             int N = F / k;
 
             START(sampler);
@@ -496,18 +428,13 @@ void scaling_test_pair_sample(long F = 4'000'000) {
             double each = 1e3 * TIME_US(sampler) / W;
             print(" {:>8}ms -- {:>7.2f}ns/1 -- {:>5}x{:<5} x{:<8} -- sparse {:>8}\n",
                   TIME_MS(sampler), each, n, m, N, k);
-
-            times_sparse[row][col] = format("{:.2f}", each);
         }
     }
 
-    row = col = 0;
     for (double p : dense) {
-        print(" pair sample dense test p={:5.3f}\n", p), col++, row = 0;
+        print(" pair sample dense test p={:5.3f}\n", p);
 
         for (auto [n, m] : abs_dense) {
-            print_progress(t++, T, "scaling test pair sample"), row++;
-
             START(sampler);
             int N = max(1, int(F / (p * n * m)));
             for (int i = 0; i < N; i++) {
@@ -520,25 +447,20 @@ void scaling_test_pair_sample(long F = 4'000'000) {
             double each = 1e3 * TIME_US(sampler) / W;
             print(" {:>8}ms -- {:>7.2f}ns/1 -- {:>5}x{:<5} x{:<8} -- dense {:>5.3f}\n",
                   TIME_MS(sampler), each, n, m, N, p);
-
-            times_dense[row][col] = format("{:.2f}", each);
         }
     }
-
-    ofstream outfile("sampling_times.txt", ios::app);
-    print(outfile, "=== SPARSE:\n{}\n=== DENSE:\n{}\n", times_sparse, times_dense);
 }
 
 } // namespace scaling_test_samplers
 
 int main() {
-    // RUN_BLOCK(stress_test_partition_sample_uniform());
-    // RUN_BLOCK(stress_test_vec_sample());
-    // RUN_BLOCK(stress_test_int_sample());
-    // RUN_BLOCK(stress_test_choose_sample());
-    // RUN_BLOCK(stress_test_pair_sample());
-    // RUN_BLOCK(scaling_test_int_sample());
-    // RUN_BLOCK(scaling_test_choose_sample());
+    RUN_BLOCK(stress_test_partition_sample_uniform());
+    RUN_BLOCK(stress_test_vec_sample());
+    RUN_BLOCK(stress_test_int_sample());
+    RUN_BLOCK(stress_test_choose_sample());
+    RUN_BLOCK(stress_test_pair_sample());
+    RUN_BLOCK(scaling_test_int_sample());
+    RUN_BLOCK(scaling_test_choose_sample());
     RUN_BLOCK(scaling_test_pair_sample());
     return 0;
 }

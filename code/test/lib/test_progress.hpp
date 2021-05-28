@@ -16,6 +16,7 @@ template <typename... Ts>
 void print_clear(Ts&&... args) {
     print("\r\033[2K");
     print(forward<Ts>(args)...);
+    print("\r");
     fflush(stdout);
 }
 
