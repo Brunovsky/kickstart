@@ -140,9 +140,7 @@ void stress_test_jacobi() {
         for (long m = 1; m < 300; m += 2) {
             if (gcd(n, m) == 1) {
                 int reciprocity = ((n % 4) == 3 && (m % 4) == 3) ? -1 : 1;
-                if (jacobi(n, m) * jacobi(m, n) != reciprocity) {
-                    fail("Jacobi computed incorrect reciprocity");
-                }
+                assert(jacobi(n, m) * jacobi(m, n) == reciprocity);
             }
         }
     }

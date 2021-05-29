@@ -188,6 +188,7 @@ struct quickhull3d_dataset_test_t {
         }
 
         auto counterexample = verify_hull(hull, points);
+        assert(!counterexample);
         if (counterexample) {
             auto [v, f, kind] = counterexample.value();
             printcl("Incorrect convex hull\n");
@@ -221,7 +222,7 @@ fs::path tmpfile;
 
 void stress_test_quickhull3d_run(int N, int L, int C, int I, long R = 100) {
     LOOP_FOR_DURATION_TRACKED(4s, now) {
-        print_time(now, 4s, 50ms, "stress test quickhull3d");
+        print_time(now, 4s, 50ms, "stress test quickhull3d {} {} {} {}", N, L, C, I);
 
         auto points = random_points(N, R);
         add_coplanar_points(L, points, 2 * R);
@@ -248,20 +249,20 @@ void stress_test_quickhull3d_run(int N, int L, int C, int I, long R = 100) {
     }
 }
 
-void stress_test_quickhull3d(double F = 1.0) {
+void stress_test_quickhull3d() {
     auto tmpdir = fs::temp_directory_path() / fs::path("hull3d");
     fs::create_directory(tmpdir);
     tmpfile = tmpdir / fs::path("hull3d-stress.obj");
     print("Temp file: {}\n", tmpfile);
 
-    stress_test_quickhull3d_run(int(F * 500), 8, 20, 0, 0);
-    stress_test_quickhull3d_run(int(F * 500), 10, 50, 0, 0);
-    stress_test_quickhull3d_run(int(F * 500), 25, 0, 0, 0);
-    stress_test_quickhull3d_run(int(F * 500), 200, 0, 0, 0);
-    stress_test_quickhull3d_run(int(F * 500), 170, 0, 0, 30);
-    stress_test_quickhull3d_run(int(F * 500), 90, 100, 10, 0);
-    stress_test_quickhull3d_run(int(F * 400), 50, 900, 10, 40);
-    stress_test_quickhull3d_run(int(F * 100), 9900, 0, 0, 100);
+    stress_test_quickhull3d_run(8, 20, 0, 0);
+    stress_test_quickhull3d_run(10, 50, 0, 0);
+    stress_test_quickhull3d_run(25, 0, 0, 0);
+    stress_test_quickhull3d_run(200, 0, 0, 0);
+    stress_test_quickhull3d_run(170, 0, 0, 30);
+    stress_test_quickhull3d_run(90, 100, 10, 0);
+    stress_test_quickhull3d_run(50, 900, 10, 40);
+    stress_test_quickhull3d_run(9900, 0, 0, 100);
 }
 
 } // namespace stress_testing_hull3d
@@ -285,9 +286,9 @@ void scaling_test_quickhull3d_run(int N, int L, int C, int I = 0, long R = 200) 
     }
 
     int all = N + L + C + I;
-    print(" {:>8.2f}ms/1 -- {} -- x{:<6}  P={:<6} (N={},L={},C={},I={})\n",
-          EACH_MS(hull, runs), compute_ratio(EACH_MS(hull, runs), all), runs, all, N, L,
-          C, I);
+    printcl(" {:>8.2f}ms/1 -- {} -- x{:<6}  P={:<6} (N={},L={},C={},I={})\n",
+            EACH_MS(hull, runs), compute_ratio(EACH_MS(hull, runs), all), runs, all, N, L,
+            C, I);
 }
 
 void scaling_test_quickhull3d() {

@@ -60,17 +60,17 @@ void speed_test_max_flow_run(flow_network_kind i, int S) {
     }
 
     printcl(" speed test {} (S={}, x{}):\n", flow_kind_name[i], S, runs);
-    PRINT_EACH_US(generation, runs);
-    PRINT_EACH_US(dinitz, runs);
-    PRINT_EACH_US(push_relabel, runs);
-    PRINT_EACH_US(tidal, runs);
+    PRINT_EACH_MS(generation, runs);
+    PRINT_EACH_MS(dinitz, runs);
+    PRINT_EACH_MS(push_relabel, runs);
+    PRINT_EACH_MS(tidal, runs);
 }
 
 void speed_test_max_flow() {
     static const vector<int> sizes = {500, 1800, 6000, 12000, 20000};
 
     for (int n = 0; n < int(sizes.size()); n++) {
-        print("speed test group S={}, x{}\n", sizes[n]);
+        print("speed test group S={}\n", sizes[n]);
         for (int i = 0; i < int(FN_END); i++) {
             speed_test_max_flow_run(flow_network_kind(i), sizes[n]);
         }

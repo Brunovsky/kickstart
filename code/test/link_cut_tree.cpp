@@ -299,16 +299,14 @@ constexpr int stress_path_ratio_arr[END] = {
     [SUBTREE_SIZE] = 0,  [STRESS_TEST] = 400,
 };
 
-void stress_test_link_cut_tree_path(int N = 200, int T = 50'000) {
+void stress_test_link_cut_tree_path(int N = 200) {
     slow_tree slow(N);
     link_cut_tree_path tree(N);
-    auto actions = make_actions(N, 3s, stress_path_ratio_arr);
+    auto actions = make_actions(N, 1s, stress_path_ratio_arr);
     deque<tuple<string, string>> states;
-    int t = 0;
     bool ok = true;
 
     for (const auto& [action, u, v, r, w, val] : actions) {
-        print_progress(t++, T, "stress test link cut tree");
         string label;
 
         switch (action) {
@@ -364,14 +362,7 @@ void stress_test_link_cut_tree_path(int N = 200, int T = 50'000) {
             print("Invalid action in actions\n");
             assert(false);
         }
-
-        if (!ok) {
-            print("{}\n", label);
-            if (action != STRESS_TEST) {
-                stress_verify_link_cut(slow, tree);
-            }
-            break;
-        }
+        assert(ok);
     }
 
     assert(ok);
@@ -386,16 +377,14 @@ constexpr int stress_subtree_ratio_arr[END] = {
     [SUBTREE_SIZE] = 1500, [STRESS_TEST] = 400,
 };
 
-void stress_test_link_cut_tree_subtree(int N = 200, int T = 50'000) {
+void stress_test_link_cut_tree_subtree(int N = 200) {
     slow_tree slow(N);
     link_cut_tree_subtree tree(N);
-    auto actions = make_actions(N, 3s, stress_subtree_ratio_arr);
+    auto actions = make_actions(N, 1s, stress_subtree_ratio_arr);
     deque<tuple<string, string>> states;
-    int t = 0;
     bool ok = true;
 
     for (const auto& [action, u, v, r, w, val] : actions) {
-        print_progress(t++, T, "stress test link cut tree subtree");
         string label;
 
         switch (action) {
@@ -457,19 +446,7 @@ void stress_test_link_cut_tree_subtree(int N = 200, int T = 50'000) {
         if (states.size() > 20u) {
             states.pop_front();
         }
-
-        if (!ok) {
-            print("{}\n", label);
-            if (action != STRESS_TEST) {
-                stress_verify_link_cut(slow, tree);
-            }
-            ofstream outdebug("debug.txt");
-            for (auto [lbl, state] : states) {
-                print(outdebug, "--- {}\n{}", lbl, state);
-            }
-            print("States output to debug.txt\n");
-            break;
-        }
+        assert(ok);
     }
 
     assert(ok);

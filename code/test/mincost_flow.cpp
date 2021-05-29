@@ -134,14 +134,14 @@ void speed_test_mincost_flow_run(flow_network_kind i, int S) {
         assert(ans1 == ans3);
     }
 
-    printcl(" {:>8.2f}us -- edmonds -- {}\n", EACH_US(edmonds, runs), flow_kind_name[i]);
+    printcl(" {:>8.2f}ms -- edmonds -- {}\n", EACH_MS(edmonds, runs), flow_kind_name[i]);
 }
 
 void speed_test_mincost_flow() {
     static const vector<int> sizes = {100, 250, 800, 1500, 3000};
 
     for (int n = 0; n < int(sizes.size()); n++) {
-        print("speed test group S={}, x{}\n", sizes[n]);
+        print("speed test group S={}\n", sizes[n]);
         for (int i = 0; i < int(FN_END); i++) {
             speed_test_mincost_flow_run(flow_network_kind(i), sizes[n]);
         }

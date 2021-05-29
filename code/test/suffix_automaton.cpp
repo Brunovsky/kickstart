@@ -8,15 +8,13 @@
 inline namespace speed_testing_suffix_automaton {
 
 void speed_test_build(int min_scale = 10, int max_scale = 15) {
-    int num_scales = max_scale - min_scale + 1;
-    mat<double> times(4, num_scales);
-
     for (int scale = min_scale; scale <= max_scale; scale++) {
+        int len = 1 << scale;
+
         START_ACC(gsa);
         START_ACC(ssa);
         START_ACC(msa);
         START_ACC(vsa);
-        int len = 1 << scale, id = scale - min_scale;
 
         LOOP_FOR_DURATION_OR_RUNS_TRACKED(2s, now, 10'000, runs) {
             print_time(now, 2s, 50ms, "speed test build {}/{} {}", scale, max_scale, len);
@@ -39,27 +37,17 @@ void speed_test_build(int min_scale = 10, int max_scale = 15) {
             ADD_TIME(vsa);
         }
 
-        times[0][id] = 1.0 * TIME_US(gsa) / runs;
-        times[1][id] = 1.0 * TIME_US(ssa) / runs;
-        times[2][id] = 1.0 * TIME_US(msa) / runs;
-        times[3][id] = 1.0 * TIME_US(vsa) / runs;
-
         printcl(" -- speed test SA build len={}\n", len);
         PRINT_EACH_MS(gsa, runs);
         PRINT_EACH_MS(ssa, runs);
         PRINT_EACH_MS(msa, runs);
         PRINT_EACH_MS(vsa, runs);
     }
-
-    printcl("speed test suffix_automaton build:\n{}\n", times);
 }
 
 void speed_test_contains(int min_scale = 10, int max_scale = 18) {
-    int num_scales = max_scale - min_scale + 1;
-    mat<double> times(4, num_scales);
-
     for (int scale = min_scale; scale <= max_scale; scale++) {
-        int len = 1 << scale, id = scale - min_scale;
+        int len = 1 << scale;
         string s = generate_any_string(len, 'a', 'z');
 
         START_ACC(gsa);
@@ -96,19 +84,12 @@ void speed_test_contains(int min_scale = 10, int max_scale = 18) {
             assert(c0 == c1 && c0 == c2 && c0 == c3);
         }
 
-        times[0][id] = 1.0 * TIME_US(gsa) / runs;
-        times[1][id] = 1.0 * TIME_US(ssa) / runs;
-        times[2][id] = 1.0 * TIME_US(msa) / runs;
-        times[3][id] = 1.0 * TIME_US(vsa) / runs;
-
         printcl(" -- speed test SA contains len={}\n", len);
         PRINT_EACH_NS(gsa, runs);
         PRINT_EACH_NS(ssa, runs);
         PRINT_EACH_NS(msa, runs);
         PRINT_EACH_NS(vsa, runs);
     }
-
-    printcl("speed test suffix_automaton contains:\n{}\n", times);
 }
 
 } // namespace speed_testing_suffix_automaton

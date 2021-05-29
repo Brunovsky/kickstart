@@ -193,7 +193,6 @@ void breakeven_test_fft_square(int V = 100) {
     while (delta > stop) {
         N++;
         auto ratio = 1.0 * fft_time[N - 1] / naive_time[N - 1];
-        printcl("breakeven N={} delta={} ratio={:.1f}", N, delta, ratio);
 
         START_ACC(fft);
         START_ACC(naive);
@@ -237,7 +236,6 @@ void breakeven_test_ntt_square(int V = 10000) {
     while (delta > stop) {
         N++;
         auto ratio = 1.0 * fft_time[N - 1] / naive_time[N - 1];
-        printcl("breakeven N={} delta={} ratio={:.1f}", N, delta, ratio);
 
         START_ACC(fft);
         START_ACC(naive);
@@ -280,7 +278,6 @@ void breakeven_test_ntt_split_square(int mod = 1'000'000'007, int V = 1000000) {
     while (delta > stop) {
         N++;
         auto ratio = 1.0 * fft_time[N - 1] / naive_time[N - 1];
-        printcl("breakeven N={} delta={} ratio={:.1f}", N, delta, ratio);
 
         START_ACC(fft);
         START_ACC(naive);

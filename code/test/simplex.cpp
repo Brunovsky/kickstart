@@ -253,7 +253,7 @@ void stress_test_standardize_run(int n, int m) {
         }
 
         if (!ok) {
-            print("optimums: {} {} / {} {} / {} {}\n", res, opt, res2, opt2, res3, opt3);
+            printcl("opts: {} {} / {} {} / {} {}\n", res, opt, res2, opt2, res3, opt3);
             print("  smp, x1 feasible: {}\n", is_feasible(smp, x1));
             print("  std, x1 feasible: {}\n", is_feasible(std, x1));
             print("  smp, x2 feasible: {}\n", is_feasible(smp, x2));
@@ -268,9 +268,8 @@ void stress_test_standardize_run(int n, int m) {
 
     double good_percent = 100.0 * good / runs;
     double unbounded_percent = 100.0 * unbounded / runs;
-    printcl(" n={:<2} m={:<2} correct: {:>5}/{:<5} ({:.1f}%) | unbounded: "
-            "{:>5}/{:<5} ({:.1f}%) \n",
-            n, m, good, runs, good_percent, unbounded, runs, unbounded_percent);
+    printcl(" n={:<2} m={:<2} correct: {:5.1f}% | unbounded: {:5.1f}% \n", n, m,
+            good_percent, unbounded_percent);
 }
 
 template <typename F>
@@ -302,7 +301,7 @@ void speed_test_simplex_run(int n, int m, LPState state) {
         ADD_TIME(simplex);
     }
 
-    printcl(" {:>8}ms -- x{} n={:<2} m={:<2}\n", EACH_MS(simplex, runs), runs, n, m);
+    printcl(" {:>8.2f}us -- x{} n={:<2} m={:<2}\n", EACH_US(simplex, runs), runs, n, m);
 }
 
 template <typename F>

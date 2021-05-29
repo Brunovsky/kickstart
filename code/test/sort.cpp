@@ -34,7 +34,7 @@ void speed_test_radix_sort_idx() {
     LOOP_FOR_DURATION_TRACKED(3s, now) {
         print_time(now, 3s, 50ms, "speed test radix sort idx");
 
-        vector<int> dist = int_gen<int>(500'000, 100'000, 100'000'000);
+        auto dist = int_gen<int>(500'000, 100'000, 100'000'000);
         vector<int> idx[3];
 
         START(lsb);

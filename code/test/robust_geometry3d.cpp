@@ -53,7 +53,7 @@ void stress_test_collinear_run(int N, double R) {
     }
 
     auto perc = [N](int n) { return 100.0 * n / (N * N); };
-    print("collinear R={:5.0e}:", R);
+    printcl("collinear R={:5.0e}:", R);
     print("" Z(in) Z(around) Z(out) + "\n");
 }
 

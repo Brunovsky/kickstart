@@ -275,8 +275,6 @@ void scaling_test_int_sample(long F = 4'000'000) {
     };
 
     intd dista(0, 25000);
-    mat<string> times_sparse = make_table(abs, sparse);
-    mat<string> times_dense = make_table(abs, dense);
 
     for (long k : sparse) {
         printcl(" int sample sparse test x{}\n", k);
@@ -339,16 +337,11 @@ void scaling_test_choose_sample(long F = 4'000'000) {
     };
 
     intd dista(0, 25000);
-    int row = 0, col = 0;
-    mat<string> times_sparse = make_table(abs_sparse, sparse);
-    mat<string> times_dense = make_table(abs_dense, dense);
 
-    row = col = 0;
     for (long k : sparse) {
-        printcl(" choose sample sparse test x{}\n", k), col++, row = 0;
+        printcl(" choose sample sparse test x{}\n", k);
 
         for (int n : abs_sparse) {
-            row++;
             if (k > choose(n, 2))
                 continue;
 
@@ -401,8 +394,6 @@ void scaling_test_pair_sample(long F = 4'000'000) {
     };
 
     intd dista(0, 25000), distc(30000, 35000);
-    mat<string> times_sparse = make_table(abs_sparse, sparse);
-    mat<string> times_dense = make_table(abs_dense, dense);
 
     for (long k : sparse) {
         printcl(" pair sample sparse test x{}\n", k);

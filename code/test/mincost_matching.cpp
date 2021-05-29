@@ -80,15 +80,15 @@ void speed_test_mincost_matching_run(bipartite_graph_kind i, int S) {
     avg_mc /= runs;
 
     double imperfect_percent = 100.0 * imperfect / runs;
-    printcl(" {:>8}us -- hungarian -- {:14.1f} avg. -- {:5.1f}% imperfect -- {}\n",
-            EACH_US(hungarian, runs), avg_mc, imperfect_percent, bipartite_kind_name[i]);
+    printcl(" {:>8.2f}ms -- hungarian -- {:14.1f} avg. -- {:5.1f}% imperfect -- {}\n",
+            EACH_MS(hungarian, runs), avg_mc, imperfect_percent, bipartite_kind_name[i]);
 }
 
 void speed_test_mincost_matching() {
     static const vector<int> sizes = {100, 250, 800, 1500, 3000};
 
     for (int n = 0; n < int(sizes.size()); n++) {
-        print("speed test group S={}, x={}\n", sizes[n]);
+        print("speed test group S={}\n", sizes[n]);
         for (int i = 0; i < int(BG_END); i++) {
             speed_test_mincost_matching_run(bipartite_graph_kind(i), sizes[n]);
         }

@@ -17,7 +17,6 @@ void printcl(Ts&&... args) {
     if (cout_is_terminal()) {
         print("\r\033[2K");
         print(forward<Ts>(args)...);
-        print("\r");
         fflush(stdout);
     } else {
         print(forward<Ts>(args)...);

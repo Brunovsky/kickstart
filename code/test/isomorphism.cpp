@@ -57,7 +57,7 @@ template <typename Gn>
 void fp_test_run(const string& name, Gn&& gn) {
     int negatives = 0, positives = 0, fps = 0;
 
-    LOOP_FOR_DURATION_TRACKED_RUNS(4s, now, runs) {
+    LOOP_FOR_DURATION_OR_RUNS_TRACKED(4s, now, 50'000, runs) {
         print_time(now, 4s, 50ms, show(negatives, positives, fps));
 
         auto [V, g1, g2] = gn();
@@ -71,7 +71,7 @@ void fp_test_run(const string& name, Gn&& gn) {
         }
     }
 
-    printcl("{:>25} -- x{}  {}\n", name, runs, show(negatives, positives, fps));
+    printcl("{:>25} -- x{:<5}  {}\n", name, runs, show(negatives, positives, fps));
 }
 
 void stress_test_isomorphic_false_positives() {

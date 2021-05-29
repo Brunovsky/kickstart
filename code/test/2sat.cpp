@@ -58,9 +58,13 @@ void unit_test_twosat() {
 
 inline namespace speed_testing_two_sat {
 
-void speed_test_twosat_positive(int min_N = 1000, int min_E = 3000) {
-    intd distN(min_N, 2 * min_N);
-    intd distE(min_E, 3 * min_E);
+void speed_test_twosat_positive() {
+    const int min_N = 1000, max_N = 3000;
+    const int min_E = 3000, max_E = 9000;
+    const int avg_N = (min_N + max_N) / 2;
+    const int avg_E = (min_E + max_E) / 2;
+    intd distN(min_N, max_N);
+    intd distE(min_E, max_E);
 
     START_ACC(sat);
 
@@ -76,13 +80,10 @@ void speed_test_twosat_positive(int min_N = 1000, int min_E = 3000) {
         bool ok = sat.solve();
         ADD_TIME(sat);
 
-        assert(ok);
-        assert(verify(g, sat.assignment));
+        assert(ok && verify(g, sat.assignment));
     }
 
-    int avg_N = 3 * min_N / 2;
-    double each = EACH_MS(sat, runs);
-    printcl(" {:>8.2f}ms each -- 2sat positive N={}\n", each, avg_N);
+    printcl(" {:>8.2f}ms each -- N={} E={}\n", EACH_MS(sat, runs), avg_N, avg_E);
 }
 
 } // namespace speed_testing_two_sat

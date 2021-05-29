@@ -107,9 +107,10 @@ template <int mod = 1'000'000'007>
 void stress_test_modnum() {
     using num = modnum<mod>;
 
-    for (int n = 1; n < mod; n++) {
-        if (n % 100'000 == 0) {
+    for (int n = 1, steps = 100'000; n < mod; n++, steps--) {
+        if (steps == 0) {
             print_progress(n, mod, "stress test modnum");
+            steps = 100'000;
         }
         auto k = num::modinv(n);
         assert(0 < k && k < mod && num(n) * num(k) == 1);
@@ -124,7 +125,8 @@ int main() {
     RUN_SHORT(unit_test_modsqrt());
     RUN_SHORT(unit_test_modlog());
     RUN_SHORT(unit_test_modnum());
-    RUN_SHORT(stress_test_modnum<998'244'353>());
-    RUN_SHORT(stress_test_modnum<1'000'000'007>());
+    // ~15 mins...
+    // RUN_SHORT(stress_test_modnum<998'244'353>());
+    // RUN_SHORT(stress_test_modnum<1'000'000'007>());
     return 0;
 }

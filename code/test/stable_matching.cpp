@@ -9,6 +9,7 @@ void unit_test_stable_matching() {
     vp = {{0, 1, 2}, {2, 0, 1}, {2, 1, 0}};
 
     auto [mu, mv] = stable_matching(up, vp);
+
     for (int u = 0, V = mu.size(); u < V; u++) {
         print("{} -- {}\n", u, mu[u]);
     }

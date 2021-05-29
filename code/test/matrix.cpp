@@ -229,7 +229,7 @@ void scaling_test_gauss_double() {
     int total_runs = 0;
 
     for (int n = nmin; n <= nmax; n += ninc) {
-        string label = format("{0}x{0} stress test gauss double", n);
+        string label = format("{0}x{0} scaling test gauss double", n);
 
         START_ACC(gauss);
         int run_degenerate = 0;
@@ -255,10 +255,10 @@ void scaling_test_gauss_double() {
             run_different += ok && !(min_diff(*x, z) <= 1e-12);
         }
 
-        double degenerate_percent = 100.0 * degenerate / runs;
-        double infeasible_percent = 100.0 * infeasible / runs;
-        double different_percent = 100.0 * different / runs;
-        printcl(" {:>8.2f}us/1 -- {:>3} -- {:5.1f}% deg {:5.1f}% infeas {:5.1f}% diff\n",
+        double degenerate_percent = 100.0 * run_degenerate / runs;
+        double infeasible_percent = 100.0 * run_infeasible / runs;
+        double different_percent = 100.0 * run_different / runs;
+        printcl(" {:>8.2f}us -- {:>3} -- {:5.1f}% deg {:5.1f}% infeas {:5.1f}% diff\n",
                 EACH_US(gauss, runs), n, degenerate_percent, infeasible_percent,
                 different_percent);
 

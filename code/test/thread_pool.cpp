@@ -130,12 +130,7 @@ void fn_orchestrator_stress_run(int V, int buckets, int nthreads) {
         S += vis[b].size();
     }
 
-    if (vis != vis2) {
-        fail("Different visitors");
-    }
-    if (S != 2 * V) {
-        fail("Bad count: {}/{}", S, 2 * V);
-    }
+    assert(vis == vis2 && S == 2 * V);
 }
 
 void fn_orchestrator_speed_run(int V, int n, int buckets, int nthreads) {
@@ -175,9 +170,7 @@ void fn_orchestrator_speed_run(int V, int n, int buckets, int nthreads) {
     TIME(concurrent);
     PRINT_TIME_MS(concurrent);
 
-    if (vis != vis2) {
-        fail("Different matrices");
-    }
+    assert(vis == vis2);
 }
 
 void stress_test_fn_orchestrator(int T = 100) {
@@ -215,9 +208,7 @@ void graph_orchestrator_stress_run(int V, int E, int nthreads) {
     swap(vis, vis2);
     orch.concurrent_make(job, nthreads);
 
-    if (vis != vis2) {
-        fail("Different values");
-    }
+    assert(vis == vis2);
 }
 
 void graph_orchestrator_speed_run(int V, int E, int n, int nthreads) {
@@ -249,9 +240,7 @@ void graph_orchestrator_speed_run(int V, int E, int n, int nthreads) {
     PRINT_TIME_MS(sequential);
     PRINT_TIME_MS(concurrent);
 
-    if (vis != vis2) {
-        fail("Different values");
-    }
+    assert(vis == vis2);
 }
 
 void stress_test_graph_orchestrator(int T = 100) {

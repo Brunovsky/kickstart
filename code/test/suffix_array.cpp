@@ -11,6 +11,7 @@ void unit_test_suffix_array() {
     s = "abbaacaaabab"s;
     sa = build_cyclic_shifts(s, 256, '\0');
     lcp = build_lcp_array(s, sa);
+
     for (int i = 0, N = s.size(); i < N; i++) {
         print("{:2}: {}\n", i, s.substr(sa[i]) + s.substr(0, sa[i]));
     }

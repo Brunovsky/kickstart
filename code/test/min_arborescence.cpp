@@ -177,9 +177,9 @@ void stress_test_min_arborescence() {
     double avg_cost = 1.0 * sum_costs / runs;
     double exp_cost = (1.0 * (maxcost - mincost) * avgV / avgE + mincost) * (avgV - 1);
 
-    PRINT_EACH_NS(kactl, runs);
-    PRINT_EACH_NS(min_arbo, runs);
-    PRINT_EACH_NS(min_arbo_extract, runs);
+    PRINT_EACH_US(kactl, runs);
+    PRINT_EACH_US(min_arbo, runs);
+    PRINT_EACH_US(min_arbo_extract, runs);
     print(" {:8.1f} average cost\n", avg_cost);
     print(" {:8.1f} expected cost\n", exp_cost);
 }
@@ -196,18 +196,18 @@ void unit_test_min_arborescence() {
     auto input = convert_to_kactl(G, cost);
 
     auto [ans1, in1] = kactl::dmst(V, root, input);
+    auto cost1 = get_cost(V, in1, cost);
     print("ans 1: {}\n", ans1);
     print("in1: {}\n", in1);
-    auto cost1 = get_cost(V, in1, cost);
     assert(cost1 == ans1);
 
     auto ans2 = *min_arborescence_cost(V, root, G, cost);
     print("ans 2: {}\n", ans2);
 
     auto [ans3, in3] = *min_arborescence(V, root, G, cost);
+    auto cost3 = get_cost(V, in3, cost);
     print("ans 3: {}\n", ans3);
     print("in3: {}\n", in3);
-    auto cost3 = get_cost(V, in3, cost);
     assert(cost3 == ans3);
 
     assert(ans1 == ans2 && ans1 == ans3);
@@ -217,6 +217,6 @@ void unit_test_min_arborescence() {
 
 int main() {
     RUN_SHORT(unit_test_min_arborescence());
-    RUN_SHORT(stress_test_min_arborescence());
+    RUN_BLOCK(stress_test_min_arborescence());
     return 0;
 }
