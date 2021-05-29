@@ -64,51 +64,53 @@ struct segtree {
             leaf_index[L] = u;
         } else {
             int M = (L + R + 1) / 2;
-            build(u << 1, L, M);
-            build(u << 1 | 1, M, R);
+            int cl = u << 1, cr = u << 1 | 1;
+            build(cl, L, M);
+            build(cr, M, R);
         }
     }
 
     void pushdown(int u) {
         if (lazy[u]) {
-            if (range[u][0] + 1 < range[u][1]) {
-                lazy[u << 1] = lazy[u << 1 | 1] = 1;
-                update[u << 1].merge(update[u], range[u << 1]);
-                update[u << 1 | 1].merge(update[u], range[u << 1 | 1]);
-            }
-            update[u].apply(node[u], range[u]);
+            int cl = u << 1, cr = u << 1 | 1;
+            lazy[cl] = lazy[cr] = 1;
+            update[u].apply(node[cl], range[cl]);
+            update[u].apply(node[cr], range[cr]);
+            update[cl].merge(update[u], range[cl]);
+            update[cr].merge(update[u], range[cr]);
             lazy[u] = 0;
             update[u] = Update();
         }
     }
 
     void update_range(int u, int L, int R, const Update& add) {
-        pushdown(u);
         if (R <= range[u][0] || range[u][1] <= L) {
             return;
         }
         if (L <= range[u][0] && range[u][1] <= R) {
+            add.apply(node[u], range[u]);
             update[u].merge(add, range[u]);
-            lazy[u] = 1, pushdown(u);
+            lazy[u] = 1;
             return;
         }
-        update_range(u << 1, L, R, add);
-        update_range(u << 1 | 1, L, R, add);
-        node[u].merge(node[u << 1], node[u << 1 | 1]);
+        pushdown(u);
+        int cl = u << 1, cr = u << 1 | 1;
+        update_range(cl, L, R, add);
+        update_range(cr, L, R, add);
+        node[u].merge(node[cl], node[cr]);
     }
 
     auto query_range(int u, int L, int R) {
-        pushdown(u);
         if (R <= range[u][0] || range[u][1] <= L) {
             return Node();
         }
         if (L <= range[u][0] && range[u][1] <= R) {
             return node[u];
         }
-        auto a = query_range(u << 1, L, R);
-        auto b = query_range(u << 1 | 1, L, R);
+        pushdown(u);
+        int cl = u << 1, cr = u << 1 | 1;
         Node ans;
-        ans.merge(a, b);
+        ans.merge(query_range(cl, L, R), query_range(cr, L, R));
         return ans;
     }
 

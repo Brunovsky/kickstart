@@ -4,8 +4,9 @@
 
 inline namespace unit_testing_fenwick {
 
+template <template <typename> typename Fenwick>
 void unit_test_1d() {
-    fenwick<int> fw(100);
+    Fenwick<int> fw(100);
 
     fw.add(10, 10);
     fw.add(20, 20);
@@ -26,8 +27,9 @@ void unit_test_1d() {
     assert(fw.lower_bound(541) == 101); // end is past N
 }
 
+template <template <typename> typename Fenwick2d>
 void unit_test_2d() {
-    fenwick2d<int> fw(100, 100);
+    Fenwick2d<int> fw(100, 100);
 
     fw.add(10, 10, 10);
     fw.add(20, 20, 20);
@@ -49,7 +51,9 @@ void unit_test_2d() {
 } // namespace unit_testing_fenwick
 
 int main() {
-    RUN_SHORT(unit_test_1d());
-    RUN_SHORT(unit_test_2d());
+    RUN_SHORT(unit_test_1d<fenwick>());
+    RUN_SHORT(unit_test_1d<sparse_fenwick>());
+    RUN_SHORT(unit_test_2d<fenwick2d>());
+    RUN_SHORT(unit_test_2d<sparse_fenwick2d>());
     return 0;
 }

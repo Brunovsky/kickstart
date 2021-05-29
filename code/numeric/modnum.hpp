@@ -31,7 +31,7 @@ struct modnum {
     }
 
     modnum inv() const { return {modinv(n)}; }
-    modnum operator-() const { return {fit(n)}; }
+    modnum operator-() const { return {fit(-n)}; }
     modnum operator+() const { return {n}; }
     modnum operator++(int) { return n = fit(n + 1), *this - 1; }
     modnum operator--(int) { return n = fit(n - 1), *this + 1; }

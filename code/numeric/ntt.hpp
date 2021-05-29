@@ -36,7 +36,7 @@ struct root_of_unity<modnum<mod>> {
 } // namespace caches
 
 template <typename Mod, typename At, typename Bt, typename Ct>
-void ntt_split_lower_upper(Mod H, At* ia, int A, Bt* ismall, Ct* ilarge) {
+void fft_split_lower_upper(Mod H, At* ia, int A, Bt* ismall, Ct* ilarge) {
     for (int i = 0; i < A; i++) {
         ismall[i] = ia[i] % H;
         ilarge[i] = ia[i] / H;
@@ -90,7 +90,7 @@ auto naive_square_mod(Mod mod, const vector<T>& a) {
 } // namespace naive
 
 template <int MOD>
-auto ntt_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
+auto fft_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
     int A = a.size(), B = b.size(), S = A && B ? A + B - 1 : 0;
     vector<modnum<MOD>> c(S);
 
@@ -104,8 +104,8 @@ auto ntt_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
 }
 
 template <int MOD>
-auto ntt_square(const vector<modnum<MOD>>& a) {
-    int A = a.size(), S = A ? 2 + A - 1 : 0;
+auto fft_square(const vector<modnum<MOD>>& a) {
+    int A = a.size(), S = A ? 2 * A - 1 : 0;
     vector<modnum<MOD>> c(S);
 
     if (A <= INTMOD_BREAKEVEN) {
@@ -118,7 +118,7 @@ auto ntt_square(const vector<modnum<MOD>>& a) {
 }
 
 template <typename Prom = int64_t, typename C = default_complex, typename Mod, typename T>
-auto ntt_split_multiply(Mod mod, const vector<T>& a, const vector<T>& b) {
+auto fft_split_multiply(Mod mod, const vector<T>& a, const vector<T>& b) {
     int A = a.size(), B = b.size(), S = A && B ? A + B - 1 : 0;
     vector<T> c(S);
     if (A == 0 || B == 0)
@@ -132,8 +132,8 @@ auto ntt_split_multiply(Mod mod, const vector<T>& a, const vector<T>& b) {
     // a = a0 + H * a1    |    b = b0 + H * b1
     Mod H = sqrt(mod), Q = H * H % mod;
     vector<T> a0(A), a1(A), b0(B), b1(B);
-    ntt_split_lower_upper(H, a.data(), A, a0.data(), a1.data());
-    ntt_split_lower_upper(H, b.data(), B, b0.data(), b1.data());
+    fft_split_lower_upper(H, a.data(), A, a0.data(), a1.data());
+    fft_split_lower_upper(H, b.data(), B, b0.data(), b1.data());
 
     vector<Prom> c00(S), c01(S), c10(S), c11(S);
     fft_multiply_run<int_ext, C>(a0.data(), A, b0.data(), B, c00.data());
@@ -156,7 +156,7 @@ auto ntt_split_multiply(Mod mod, const vector<T>& a, const vector<T>& b) {
 }
 
 template <typename Prom = int64_t, typename C = default_complex, typename Mod, typename T>
-auto ntt_split_square(Mod mod, const vector<T>& a) {
+auto fft_split_square(Mod mod, const vector<T>& a) {
     int A = a.size(), S = A ? 2 * A - 1 : 0;
     vector<T> c(S);
     if (A == 0)
@@ -170,7 +170,7 @@ auto ntt_split_square(Mod mod, const vector<T>& a) {
     // a = a0 + H * a1    |    b = b0 + H * b1
     Mod H = sqrt(mod), Q = H * H % mod;
     vector<T> a0(A), a1(A);
-    ntt_split_lower_upper(H, a.data(), A, a0.data(), a1.data());
+    fft_split_lower_upper(H, a.data(), A, a0.data(), a1.data());
 
     vector<Prom> c0(S), c1(S), c2(S);
     fft_multiply_run<int_ext, C>(a0.data(), A, a0.data(), A, c0.data());

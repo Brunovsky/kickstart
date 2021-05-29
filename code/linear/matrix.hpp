@@ -141,36 +141,4 @@ struct mat {
     friend ostream& operator<<(ostream& out, const mat& a) { return out << to_string(a); }
 };
 
-inline namespace vector_arithmetic {
-
-template <typename T>
-vector<T> operator-(vector<T> a) {
-    for (int i = 0; i < a.size(); i++)
-        a[i] = -a[i];
-    return a;
-}
-
-template <typename T>
-vector<T> operator+(vector<T> a, const vector<T>& b) {
-    for (int i = 0; i < a.size(); i++)
-        a[i] += b[i];
-    return a;
-}
-
-template <typename T>
-vector<T> operator-(vector<T> a, const vector<T>& b) {
-    for (int i = 0; i < a.size(); i++)
-        a[i] -= b[i];
-    return a;
-}
-
-template <typename T>
-vector<T> operator*(vector<T> a, const vector<T>& b) {
-    for (int i = 0; i < a.size(); i++)
-        a[i] *= b[i];
-    return a;
-}
-
-} // namespace vector_arithmetic
-
 #endif // MATRIX_HPP

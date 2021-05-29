@@ -120,7 +120,7 @@ void stress_test_ntt_multiply(int N = 1000, int V = 1000) {
         int A = distn(mt), B = distn(mt);
         auto a = uniform_gen_many<int, num>(A, 0, V);
         auto b = uniform_gen_many<int, num>(B, 0, V);
-        auto c = fft::ntt_multiply(a, b);
+        auto c = fft::fft_multiply(a, b);
         auto d = naive_multiply(a, b);
 
         errors += c != d;
@@ -192,7 +192,6 @@ void breakeven_test_fft_square(int V = 100) {
 
     while (delta > stop) {
         N++;
-        auto ratio = 1.0 * fft_time[N - 1] / naive_time[N - 1];
 
         START_ACC(fft);
         START_ACC(naive);
@@ -235,7 +234,6 @@ void breakeven_test_ntt_square(int V = 10000) {
 
     while (delta > stop) {
         N++;
-        auto ratio = 1.0 * fft_time[N - 1] / naive_time[N - 1];
 
         START_ACC(fft);
         START_ACC(naive);
@@ -245,7 +243,7 @@ void breakeven_test_ntt_square(int V = 10000) {
             auto b = uniform_gen_many<int, num>(N, 0, V);
 
             START(fft);
-            auto c = fft::ntt_multiply(a, b);
+            auto c = fft::fft_multiply(a, b);
             ADD_TIME(fft);
 
             START(naive);
@@ -267,7 +265,7 @@ void breakeven_test_ntt_square(int V = 10000) {
     printcl("breakeven: N={}\n", N - window / 2);
 }
 
-void breakeven_test_ntt_split_square(int mod = 1'000'000'007, int V = 1000000) {
+void breakeven_test_fft_split_square(int mod = 1'000'000'007, int V = 1000000) {
     vector<size_t> fft_time{1}, naive_time{1};
 
     // add -1 when fft is better, +1 when naive is better, run until delta is stop
@@ -277,7 +275,6 @@ void breakeven_test_ntt_split_square(int mod = 1'000'000'007, int V = 1000000) {
 
     while (delta > stop) {
         N++;
-        auto ratio = 1.0 * fft_time[N - 1] / naive_time[N - 1];
 
         START_ACC(fft);
         START_ACC(naive);
@@ -287,7 +284,7 @@ void breakeven_test_ntt_split_square(int mod = 1'000'000'007, int V = 1000000) {
             auto b = uniform_gen_many<int>(N, 0, V);
 
             START(fft);
-            auto c = fft::ntt_split_multiply(mod, a, b);
+            auto c = fft::fft_split_multiply(mod, a, b);
             ADD_TIME(fft);
 
             START(naive);
@@ -316,18 +313,18 @@ inline namespace unit_testing_ntt {
 void unit_test_ntt() {
     vector<num> a = {123412, 315312, 644121};
     vector<num> b = {123512, 52319023, 123512};
-    auto c = fft::ntt_multiply(a, b);
+    auto c = fft::fft_multiply(a, b);
     auto d = naive_multiply(a, b);
     print("c: {}\n", c);
     print("d: {}\n", d);
 }
 
-void unit_test_ntt_split() {
+void unit_test_fft_split() {
     vector<int> a = {123412, 315312, 644121};
     vector<int> b = {123512, 52319023, 123512};
-    auto c0 = fft::ntt_split_multiply(1'000'000'007, a, b);
+    auto c0 = fft::fft_split_multiply(1'000'000'007, a, b);
     auto d0 = fft::naive_multiply_mod(1'000'000'007, a, b);
-    auto c1 = fft::ntt_split_multiply(1'479'118'951, a, b);
+    auto c1 = fft::fft_split_multiply(1'479'118'951, a, b);
     auto d1 = fft::naive_multiply_mod(1'479'118'951, a, b);
     print("c0: {}\n", c0);
     print("d0: {}\n", d0);
@@ -340,8 +337,8 @@ void unit_test_ntt_split() {
 int main() {
     RUN_SHORT(stress_test_next_two());
     RUN_SHORT(unit_test_ntt());
-    RUN_SHORT(unit_test_ntt_split());
-    RUN_BLOCK(breakeven_test_ntt_split_square());
+    RUN_SHORT(unit_test_fft_split());
+    RUN_BLOCK(breakeven_test_fft_split_square());
     RUN_BLOCK(breakeven_test_fft_square<int>());
     RUN_BLOCK(breakeven_test_fft_square<long>());
     RUN_BLOCK(breakeven_test_fft_square<double>());
