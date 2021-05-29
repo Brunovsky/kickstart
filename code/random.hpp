@@ -36,7 +36,8 @@ auto different(int v1, int v2) {
     assert(v1 + 1 < v2);
     int u = intd(v1, v2 - 1)(mt);
     int v = intd(v1, v2 - 2)(mt);
-    return array<int, 2>{u, v + (v >= u)};
+    tie(u, v) = minmax(u + 0, v + (v >= u));
+    return array<int, 2>{u, v};
 }
 
 /**
