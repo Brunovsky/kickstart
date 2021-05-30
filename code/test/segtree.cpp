@@ -7,7 +7,7 @@
 inline namespace unit_testing_segtree {
 
 void unit_test_segtree_beats() {
-    using namespace samples_segtree_beats;
+    using namespace sample_jidriver;
 
     vector<int> arr = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     int N = arr.size();

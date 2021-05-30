@@ -1,28 +1,13 @@
-#ifndef INTEGER_TREES_HPP
-#define INTEGER_TREES_HPP
-
 #include <bits/stdc++.h>
+
 using namespace std;
 
-/**
- * A tree containing a collection of non-empty intervals between an unspecified range
- * All intervals are left-inclusive and right-exclusive; if T is an integral type,
- * single integer intervals look like [n,n+1); if T is a floating point type this does not
- * matter much, but there is no epsilon handling so there is a potential for very small
- * intervals to appear.
- *
- * Let N be the number of existing intervals.
- * You can insert() an interval I, and it will be merged with overlapping ones.
- * 	 Complexity: O(I log N), I=#inserted intervals. O(log N) amortized.
- *
- * You can exclude() an interval I, which will erase any existing intervals contained in
- * it and splice any intervals otherwise overlapping I (at most 2).
- *   Complexity: O(E log N), E=#deleted intervals. O(log N) amortized.
- *
- * You can toggle() and interval I, which will splice overlapping intervals (at most 2)
- * and intuitively "toggle" all of the numbers inside I and its containing intervals.
- *   Complexity: O(T log N), T=#toggled intervals. N increases by at most 1.
- */
+#define long int64_t
+
+// *****
+
+inline namespace lib {
+
 template <typename T>
 struct merging_interval_tree {
     using interval_t = array<T, 2>;
@@ -145,4 +130,62 @@ struct merging_interval_tree {
     }
 };
 
-#endif // INTEGER_TREES_HPP
+} // namespace lib
+
+auto solve() {
+    int N, M;
+    cin >> N >> M;
+    unordered_map<int, set<int>> by_column;
+    vector<array<int, 2>> blacks(M);
+    for (auto& [x, y] : blacks) {
+        cin >> x >> y;
+        by_column[y].insert(x);
+    }
+
+    unordered_map<int, merging_interval_tree<int>> tags;
+    // we start at (0,N), last row is (2N,y)
+
+    auto add_forward = [&](int x, int y) {
+        if (!by_column.count(y)) {
+            tags[y].insert({x, 2 * N + 1});
+        } else {
+            auto it = by_column.at(y).upper_bound(x);
+            if (it == by_column.at(y).end()) {
+                tags[y].insert({x, 2 * N + 1});
+            } else {
+                tags[y].insert({x, *it});
+            }
+        }
+    };
+
+    auto can_reach = [&](int x, int y) {
+        if (!tags.count(y)) {
+            return false;
+        } else {
+            return tags.at(y).contains(x);
+        }
+    };
+
+    add_forward(0, N);
+    sort(begin(blacks), end(blacks));
+
+    for (auto [x, y] : blacks) {
+        if (can_reach(x - 1, y - 1) || can_reach(x - 1, y + 1)) {
+            add_forward(x, y);
+        }
+    }
+
+    long ans = 0;
+    for (const auto& [col, tree] : tags) {
+        ans += tree.contains(2 * N);
+    }
+    return ans;
+}
+
+// *****
+
+int main() {
+    ios::sync_with_stdio(false);
+    cout << solve() << endl;
+    return 0;
+}

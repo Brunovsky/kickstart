@@ -15,7 +15,7 @@ struct fenwick {
 
     explicit fenwick(int N = 0) : N(N), tree(N + 1) {}
 
-    T sum(int i) {
+    T sum(int i) const {
         T sum = 0;
         while (i > 0) {
             sum += tree[i];
@@ -33,7 +33,7 @@ struct fenwick {
         }
     }
 
-    int lower_bound(T n) {
+    int lower_bound(T n) const {
         int i = 0;
         int bits = CHAR_BIT * sizeof(int) - __builtin_clz(N << 1);
         for (int j = 1 << bits; j; j >>= 1) {
@@ -53,12 +53,12 @@ struct sparse_fenwick {
 
     explicit sparse_fenwick(int N = 0) : N(N) {}
 
-    T get(int i) {
+    T get(int i) const {
         auto it = tree.find(i);
         return it == tree.end() ? T() : it->second;
     }
 
-    T sum(int i) {
+    T sum(int i) const {
         T sum = 0;
         while (i > 0) {
             sum += get(i);
@@ -76,7 +76,7 @@ struct sparse_fenwick {
         }
     }
 
-    int lower_bound(T n) {
+    int lower_bound(T n) const {
         int i = 0;
         int bits = CHAR_BIT * sizeof(int) - __builtin_clz(N << 1);
         for (int j = 1 << bits; j; j >>= 1) {
@@ -102,7 +102,7 @@ struct fenwick2d {
     explicit fenwick2d(int N = 0, int M = 0)
         : N(N), M(M), tree(N + 1, vector<int>(M + 1)) {}
 
-    T sum(int i, int j) {
+    T sum(int i, int j) const {
         T sum = 0;
         while (i > 0) {
             int k = j;
@@ -113,6 +113,10 @@ struct fenwick2d {
             i -= i & -i;
         }
         return sum;
+    }
+
+    T rectangle(int i0, int j0, int i1, int j1) const {
+        return sum(i1, j1) - sum(i0, j1) - sum(i1, j0) + sum(i0, j0);
     }
 
     void add(int i, int j, T n) {
@@ -136,12 +140,12 @@ struct sparse_fenwick2d {
 
     explicit sparse_fenwick2d(int N = 0, int M = 0) : N(N), M(M) {}
 
-    T get(int i, int j) {
+    T get(int i, int j) const {
         auto it = tree.find({i, j});
         return it == tree.end() ? T() : it->second;
     }
 
-    T sum(int i, int j) {
+    T sum(int i, int j) const {
         T sum = 0;
         while (i > 0) {
             int k = j;
@@ -152,6 +156,10 @@ struct sparse_fenwick2d {
             i -= i & -i;
         }
         return sum;
+    }
+
+    T rectangle(int i0, int j0, int i1, int j1) const {
+        return sum(i1, j1) - sum(i0, j1) - sum(i1, j0) + sum(i0, j0);
     }
 
     void add(int i, int j, T n) {

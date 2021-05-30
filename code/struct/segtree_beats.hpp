@@ -32,6 +32,19 @@ struct segtree_beats {
         build(1, L, R, arr);
     }
 
+    void assign(int L, int R) {
+        int N = R - L;
+        node.assign(4 * N, Node());
+        update.assign(4 * N, Update());
+        has_lazy.assign(4 * N, false);
+        range.resize(4 * N);
+        build(1, L, R);
+    }
+
+    auto query_range(int L, int R) { return query_range(1, L, R); }
+    void update_range(int L, int R, const Update& add) { update_range(1, L, R, add); }
+
+  private:
     template <typename Arr>
     void build(int u, int L, int R, const Arr& arr) {
         range[u] = {L, R};
@@ -44,15 +57,6 @@ struct segtree_beats {
             build(cr, M, R, arr);
             node[u].merge(node[cl], node[cr]);
         }
-    }
-
-    void assign(int L, int R) {
-        int N = R - L;
-        node.assign(4 * N, Node());
-        update.assign(4 * N, Update());
-        has_lazy.assign(4 * N, false);
-        range.resize(4 * N);
-        build(1, L, R);
     }
 
     void build(int u, int L, int R) {
@@ -108,12 +112,9 @@ struct segtree_beats {
         ans.merge(query_range(cl, L, R), query_range(cr, L, R));
         return ans;
     }
-
-    auto query_range(int L, int R) { return query_range(1, L, R); }
-    void update_range(int L, int R, const Update& add) { update_range(1, L, R, add); }
 };
 
-namespace samples_segtree_beats {
+namespace sample_jidriver {
 
 struct ji_segnode {
     int sum = 0;
@@ -156,6 +157,6 @@ struct ji_segupdate {
     }
 };
 
-} // namespace samples_segtree_beats
+} // namespace sample_jidriver
 
 #endif // SEGTREE_BEATS_HPP
