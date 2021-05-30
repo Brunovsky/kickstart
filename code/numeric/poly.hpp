@@ -27,8 +27,12 @@ tmpl(T) T binpow(T val, long e) {
 }
 
 tmpl(T) void trim(vector<T>& a) {
-    while (!a.empty() && a.back() == T())
-        a.pop_back();
+    if constexpr (is_floating_point<T>::value)
+        while (!a.empty() && abs(a.back()) < 30 * numeric_limits<T>::epsilon())
+            a.pop_back();
+    else
+        while (!a.empty() && a.back() == T())
+            a.pop_back();
 }
 
 tmpl(T) void truncate(vector<T>& v, int size) { v.resize(min(int(v.size()), size)); }
@@ -145,16 +149,15 @@ tmpl(T) auto operator*(const vector<T>& a, const vector<T>& b) {
 tmpl(T) auto square(const vector<T>& a) { return fft::fft_square(a); }
 
 tmpl(T) auto inverse_series(const vector<T>& a, int mod_degree) {
+    assert(a[0]);
     vector<T> b(1, T(1) / a[0]);
-    int prev = 0; // size of b in the previous iteration
-    int curr = 1; // size of b after this iteration
-    for (int len = 1; prev < curr && len < mod_degree; len *= 2) {
+
+    for (int len = 1; len < mod_degree; len *= 2) {
         // compute inverse series modulo x^len
-        prev = curr;
         b += b - truncated(a, 2 * len) * square(b);
-        trim(b), truncate(b, min(2 * len, mod_degree));
-        curr = b.size();
+        truncate(b, min(2 * len, mod_degree)), trim(b);
     }
+
     return b;
 }
 

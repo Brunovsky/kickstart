@@ -23,7 +23,7 @@ inline namespace caches {
 template <typename T>
 struct root_of_unity {
     using type = T;
-    static type get(int n) { throw runtime_error("Unimplemented"); }
+    static type get(int) { throw runtime_error("Unimplemented"); }
 };
 
 template <typename D>

@@ -1,6 +1,8 @@
 #include "test_utils.hpp"
 #include "../numeric/fft.hpp"
 #include "../numeric/ntt.hpp"
+#include "../numeric/fft_split.hpp"
+#include "../numeric/ntt_split.hpp"
 #include "../lib/anynum.hpp"
 
 using num = modnum<998244353>;
@@ -20,30 +22,6 @@ ostream& operator<<(ostream& out, complex<T> c) {
 } // namespace std
 
 inline namespace detail {
-
-template <typename T>
-auto naive_multiply(const vector<T>& a, const vector<T>& b) {
-    int A = a.size(), B = b.size(), S = A && B ? A + B - 1 : 0;
-    vector<T> c(S);
-    for (int i = 0; i < A; i++) {
-        for (int j = 0; j < B; j++) {
-            c[i + j] += a[i] * b[j];
-        }
-    }
-    return c;
-}
-
-template <typename T>
-auto naive_square(const vector<T>& a) {
-    int A = a.size(), S = A ? 2 * A - 1 : 0;
-    vector<T> c(S);
-    for (int i = 0; i < A; i++) {
-        for (int j = 0; j < A; j++) {
-            c[i + j] += a[i] * a[j];
-        }
-    }
-    return c;
-}
 
 template <typename D>
 vector<complex<D>> complex_gen(int N, D real_min, D real_max, D imag_min, D imag_max) {
@@ -81,13 +59,16 @@ void stress_test_fft_multiply(int N = 1000, int V = 1000) {
         auto a = int_gen<I>(A, -V, V);
         auto b = int_gen<I>(B, -V, V);
         auto c = fft::fft_multiply(a, b);
-        auto d = naive_multiply(a, b);
+        auto d = fft::naive_multiply(a, b);
+        auto e = fft::fft_split_multiply(a, b);
 
-        errors += c != d;
+        errors += c != d || e != d;
     }
 
-    double percent = 1.0 * errors / runs;
-    printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
+    if (errors > 0) {
+        double percent = 1.0 * errors / runs;
+        printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
+    }
 }
 
 template <typename I>
@@ -101,13 +82,16 @@ void stress_test_fft_square(int N = 1000, int V = 1000) {
         int A = distn(mt);
         auto a = int_gen<I>(A, -V, V);
         auto c = fft::fft_square(a);
-        auto d = naive_square(a);
+        auto d = fft::naive_square(a);
+        auto e = fft::fft_split_square(a);
 
-        errors += c != d;
+        errors += c != d || e != d;
     }
 
-    double percent = 1.0 * errors / runs;
-    printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
+    if (errors > 0) {
+        double percent = 1.0 * errors / runs;
+        printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
+    }
 }
 
 void stress_test_ntt_multiply(int N = 1000, int V = 1000) {
@@ -121,13 +105,20 @@ void stress_test_ntt_multiply(int N = 1000, int V = 1000) {
         auto a = uniform_gen_many<int, num>(A, 0, V);
         auto b = uniform_gen_many<int, num>(B, 0, V);
         auto c = fft::fft_multiply(a, b);
-        auto d = naive_multiply(a, b);
+        auto d = fft::naive_multiply(a, b);
 
-        errors += c != d;
+        vector<int> aints(begin(a), end(a));
+        vector<int> bints(begin(b), end(b));
+        auto eints = fft::fft_split_multiply_mod(998244353, aints, bints);
+        vector<num> e(begin(eints), end(eints));
+
+        errors += c != d || e != d;
     }
 
-    double percent = 1.0 * errors / runs;
-    printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
+    if (errors > 0) {
+        double percent = 1.0 * errors / runs;
+        printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
+    }
 }
 
 } // namespace stress_testing_fft
@@ -182,7 +173,8 @@ void speed_test_fft_multiply(int V = 1000) {
 }
 
 template <typename T>
-void breakeven_test_fft_square(int V = 100) {
+void breakeven_test_fft_square() {
+    constexpr int V = 100;
     vector<size_t> fft_time{1}, naive_time{1};
 
     // add -1 when fft is better, +1 when naive is better, run until delta is stop
@@ -224,7 +216,8 @@ void breakeven_test_fft_square(int V = 100) {
 }
 
 template <typename T>
-void breakeven_test_ntt_square(int V = 10000) {
+void breakeven_test_ntt_square() {
+    constexpr int V = 10000;
     vector<size_t> fft_time{1}, naive_time{1};
 
     // add -1 when fft is better, +1 when naive is better, run until delta is stop
@@ -247,7 +240,7 @@ void breakeven_test_ntt_square(int V = 10000) {
             ADD_TIME(fft);
 
             START(naive);
-            auto d = naive_multiply(a, b);
+            auto d = fft::naive_multiply(a, b);
             ADD_TIME(naive);
         }
 
@@ -265,7 +258,9 @@ void breakeven_test_ntt_square(int V = 10000) {
     printcl("breakeven: N={}\n", N - window / 2);
 }
 
-void breakeven_test_fft_split_square(int mod = 1'000'000'007, int V = 1000000) {
+void breakeven_test_fft_split_square_mod() {
+    constexpr int mod = 1'000'000'007;
+    constexpr int V = 1'000'000;
     vector<size_t> fft_time{1}, naive_time{1};
 
     // add -1 when fft is better, +1 when naive is better, run until delta is stop
@@ -284,11 +279,52 @@ void breakeven_test_fft_split_square(int mod = 1'000'000'007, int V = 1000000) {
             auto b = uniform_gen_many<int>(N, 0, V);
 
             START(fft);
-            auto c = fft::fft_split_multiply(mod, a, b);
+            auto c = fft::fft_split_multiply_mod(mod, a, b);
             ADD_TIME(fft);
 
             START(naive);
             auto d = fft::naive_multiply_mod(mod, a, b);
+            ADD_TIME(naive);
+        }
+
+        fft_time.push_back(TIME_US(fft));
+        naive_time.push_back(TIME_US(naive));
+
+        delta += fft_time[N] < naive_time[N] ? -1 : 1;
+        window_len++;
+        if (window_len > window) {
+            delta -= fft_time[N - window] < naive_time[N - window] ? -1 : 1;
+            window_len--;
+        }
+    }
+
+    printcl("breakeven: N={}\n", N - window / 2);
+}
+
+void breakeven_test_fft_split_square() {
+    vector<size_t> fft_time{1}, naive_time{1};
+
+    // add -1 when fft is better, +1 when naive is better, run until delta is stop
+    const int window = 40, stop = -30;
+    int delta = 0, window_len = 0;
+    int N = 0;
+
+    while (delta > stop) {
+        N++;
+
+        START_ACC(fft);
+        START_ACC(naive);
+
+        LOOP_FOR_DURATION_OR_RUNS(30ms, 10000) {
+            auto a = uniform_gen_many<long>(N, 500'000, 10'000'000);
+            auto b = uniform_gen_many<long>(N, 500'000, 10'000'000);
+
+            START(fft);
+            auto c = fft::fft_split_multiply(a, b);
+            ADD_TIME(fft);
+
+            START(naive);
+            auto d = fft::naive_multiply(a, b);
             ADD_TIME(naive);
         }
 
@@ -314,22 +350,33 @@ void unit_test_ntt() {
     vector<num> a = {123412, 315312, 644121};
     vector<num> b = {123512, 52319023, 123512};
     auto c = fft::fft_multiply(a, b);
-    auto d = naive_multiply(a, b);
+    auto d = fft::naive_multiply(a, b);
     print("c: {}\n", c);
     print("d: {}\n", d);
 }
 
-void unit_test_fft_split() {
+void unit_test_fft_split_mod() {
     vector<int> a = {123412, 315312, 644121};
     vector<int> b = {123512, 52319023, 123512};
-    auto c0 = fft::fft_split_multiply(1'000'000'007, a, b);
+    auto c0 = fft::fft_split_multiply_mod(1'000'000'007, a, b);
     auto d0 = fft::naive_multiply_mod(1'000'000'007, a, b);
-    auto c1 = fft::fft_split_multiply(1'479'118'951, a, b);
+    auto c1 = fft::fft_split_multiply_mod(1'479'118'951, a, b);
     auto d1 = fft::naive_multiply_mod(1'479'118'951, a, b);
     print("c0: {}\n", c0);
     print("d0: {}\n", d0);
     print("c1: {}\n", c1);
     print("d1: {}\n", d1);
+}
+
+void unit_test_fft_split() {
+    vector<long> a = {412433412, 315312312, 644431121};
+    vector<long> b = {712332512, 1352319023, 1212313512};
+    auto c = fft::fft_multiply(a, b);
+    auto d = fft::fft_split_multiply(a, b);
+    auto e = fft::naive_multiply(a, b);
+    print("c: {}\n", c);
+    print("d: {}\n", d);
+    print("e: {}\n", e);
 }
 
 } // namespace unit_testing_ntt
@@ -338,11 +385,13 @@ int main() {
     RUN_SHORT(stress_test_next_two());
     RUN_SHORT(unit_test_ntt());
     RUN_SHORT(unit_test_fft_split());
-    RUN_BLOCK(breakeven_test_fft_split_square());
-    RUN_BLOCK(breakeven_test_fft_square<int>());
-    RUN_BLOCK(breakeven_test_fft_square<long>());
-    RUN_BLOCK(breakeven_test_fft_square<double>());
-    RUN_BLOCK(breakeven_test_ntt_square<num>());
+    RUN_SHORT(unit_test_fft_split_mod());
+    // RUN_BLOCK(breakeven_test_fft_split_square());
+    // RUN_BLOCK(breakeven_test_fft_split_square_mod());
+    // RUN_BLOCK(breakeven_test_fft_square<int>());
+    // RUN_BLOCK(breakeven_test_fft_square<long>());
+    // RUN_BLOCK(breakeven_test_fft_square<double>());
+    // RUN_BLOCK(breakeven_test_ntt_square<num>());
     RUN_SHORT(stress_test_fft_multiply<int>());
     RUN_SHORT(stress_test_fft_multiply<long>());
     RUN_SHORT(stress_test_fft_square<int>());

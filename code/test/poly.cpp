@@ -74,7 +74,7 @@ void unit_test_multieval() {
 
     auto val = multieval(a, x);
     for (int i = 0; i < N; i++) {
-        print("a({}) = {} / {}\n", i, val[i], eval(a, x[i]));
+        assert(val[i] == eval(a, x[i]));
     }
 }
 
@@ -106,7 +106,7 @@ inline namespace speed_testing_poly {
 void speed_test_multieval() {
     const int max_N = 1 << 15;
 
-    for (int N = 1; N <= max_N; N *= 2) {
+    for (int N = 8; N <= max_N; N *= 2) {
         vector<num> x(N);
         iota(begin(x), end(x), 0);
         shuffle(begin(x), end(x), mt);
@@ -133,7 +133,7 @@ void speed_test_multieval() {
 void speed_test_inverse_series() {
     const int max_N = 1 << 16;
 
-    for (int N = 1; N <= max_N; N *= 2) {
+    for (int N = 8; N <= max_N; N *= 2) {
         START_ACC(inverse);
 
         LOOP_FOR_DURATION_OR_RUNS_TRACKED(1s, now, 1000, runs) {
