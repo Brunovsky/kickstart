@@ -253,14 +253,12 @@ auto fft_multiply(const vector<T>& a, const vector<T>& b) {
         } else {
             fft_multiply_run<int_ext, C>(a.data(), A, b.data(), B, c.data());
         }
-    } else if constexpr (is_floating_point<T>::value) {
+    } else {
         if (A <= DOUBLE_BREAKEVEN || B <= DOUBLE_BREAKEVEN) {
             naive_multiply_run(a.data(), A, b.data(), B, c.data());
         } else {
             fft_multiply_run<real_ext, C>(a.data(), A, b.data(), B, c.data());
         }
-    } else {
-        assert(false && "Unimplemented, fill in...");
     }
 
     return c;
@@ -279,14 +277,12 @@ auto fft_square(const vector<T>& a) {
         } else {
             fft_square_run<int_ext, C>(a.data(), A, c.data());
         }
-    } else if constexpr (is_floating_point<T>::value) {
+    } else {
         if (A <= DOUBLE_BREAKEVEN) {
             naive_square_run(a.data(), A, c.data());
         } else {
             fft_square_run<real_ext, C>(a.data(), A, c.data());
         }
-    } else {
-        assert(false && "Unimplemented, fill in...");
     }
 
     return c;
@@ -313,10 +309,8 @@ auto fft_inverse_transform(vector<C> c) {
 
     if constexpr (is_integral<T>::value) {
         fft_inverse_transform_run<int_ext>(a.data(), c.data(), N);
-    } else if constexpr (is_floating_point<T>::value) {
-        fft_inverse_transform_run<real_ext>(a.data(), c.data(), N);
     } else {
-        assert(false && "Unimplemented, fill in...");
+        fft_inverse_transform_run<real_ext>(a.data(), c.data(), N);
     }
     trim(a);
     return a;

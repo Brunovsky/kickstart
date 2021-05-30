@@ -1,6 +1,7 @@
 #include "test_utils.hpp"
 #include "../numeric/ntt.hpp"
 #include "../numeric/poly.hpp"
+#include "../numeric/poly_multieval.hpp"
 #include "../lib/anynum.hpp"
 
 using num = modnum<998244353>;

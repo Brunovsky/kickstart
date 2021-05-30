@@ -45,7 +45,7 @@ tmpl(T) auto eval(const vector<T>& a, T x) {
 tmpl(T) void deriv_inplace(vector<T>& a) {
     int N = a.size();
     for (int i = 0; i + 1 < N; i++)
-        a[i] = (i + 1) * a[i + 1];
+        a[i] = T(i + 1) * a[i + 1];
     if (N > 0)
         a.pop_back();
 }
@@ -59,13 +59,35 @@ tmpl(T) void integr_inplace(vector<T>& a, T c = T()) {
     int N = a.size();
     a.resize(N + 1);
     for (int i = N; i > 0; i--)
-        a[i] = a[i - 1] / i;
+        a[i] = a[i - 1] / T(i);
     a[0] = c;
 }
 
 tmpl(T) auto integr(vector<T> a, T c = T()) {
     integr_inplace(a, c);
     return a;
+}
+
+tmpl(T) auto withroots(const vector<T>& roots) {
+    int R = roots.size();
+    vector<vector<T>> polys(R);
+
+    for (int i = 0; i < R; i++) {
+        polys[i] = {-roots[i], 1};
+    }
+
+    while (R > 1) {
+        for (int i = 0; i < R / 2; i++) {
+            polys[i] = polys[i << 1] * polys[i << 1 | 1];
+        }
+        if (R & 1) {
+            polys[R / 2] = move(polys[R - 1]);
+        }
+        R = (R + 1) / 2;
+        polys.resize(R);
+    }
+
+    return polys[0];
 }
 
 tmpl(T) auto operator-(vector<T> a) {
@@ -123,7 +145,7 @@ tmpl(T) auto operator*(const vector<T>& a, const vector<T>& b) {
 tmpl(T) auto square(const vector<T>& a) { return fft::fft_square(a); }
 
 tmpl(T) auto inverse_series(const vector<T>& a, int mod_degree) {
-    vector<T> b(1, 1 / a[0]);
+    vector<T> b(1, T(1) / a[0]);
     int prev = 0; // size of b in the previous iteration
     int curr = 1; // size of b after this iteration
     for (int len = 1; prev < curr && len < mod_degree; len *= 2) {
@@ -179,61 +201,7 @@ tmpl(T) auto resultant(const vector<T>& a, const vector<T>& b) {
     }
 }
 
-tmpl(T) struct multieval_tree {
-    vector<array<int, 2>> ranges;
-    vector<vector<T>> tree;
-    vector<T> x;
-};
-
-tmpl(T) auto build_multieval_tree(const vector<T>& x) {
-    int N = x.size(), M = 1 << fft::next_two(N);
-
-    // We build a perfect segtree (no wasted nodes)
-    // Build leaves, then align leaves, then pushup nodes
-
-    vector<array<int, 2>> ranges(2 * N);
-    vector<vector<T>> tree(2 * N);
-    for (int i = 0; i < N; i++) {
-        ranges[i + N] = {i, i + 1};
-        tree[i + N] = {-x[i], 1};
-    }
-
-    rotate(begin(ranges) + N, begin(ranges) + (3 * N - M), end(ranges));
-    rotate(begin(tree) + N, begin(tree) + (3 * N - M), end(tree));
-
-    for (int i = N - 1; i >= 1; i--) {
-        int l = i << 1, r = i << 1 | 1;
-        ranges[i] = {ranges[l][0], ranges[r][1]};
-        assert(ranges[i][0] + 1 < ranges[i][1]);
-        tree[i] = tree[l] * tree[r];
-        assert(int(tree[i].size()) == ranges[i][1] - ranges[i][0] + 1);
-    }
-
-    return multieval_tree<T>{move(ranges), move(tree), x};
-}
-
-tmpl(T) void multieval_dfs(int i, const vector<T>& b, vector<T>& value,
-                           const multieval_tree<T>& evaltree) {
-    const auto& [ranges, tree, x] = evaltree;
-    auto [L, R] = ranges[i];
-    if (L + 1 == R) {
-        value[L] = eval(b, x[L]);
-    } else {
-        int l = i << 1, r = i << 1 | 1;
-        multieval_dfs(l, b % tree[l], value, evaltree);
-        multieval_dfs(r, b % tree[r], value, evaltree);
-    }
-}
-
-tmpl(T) auto multieval(const vector<T>& a, const multieval_tree<T>& evaltree) {
-    vector<T> value(evaltree.x.size());
-    multieval_dfs(1, a % evaltree.tree[1], value, evaltree);
-    return value;
-}
-
-tmpl(T) auto multieval(const vector<T>& a, const vector<T>& x) {
-    return multieval(a, build_multieval_tree(x));
-}
+#undef tmpl
 
 } // namespace polymath
 
