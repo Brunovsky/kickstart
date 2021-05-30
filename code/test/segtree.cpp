@@ -2,13 +2,30 @@
 #include "../struct/segtree.hpp"
 #include "../struct/dyn_segtree.hpp"
 #include "../struct/sparse_segtree.hpp"
+#include "../struct/segtree_beats.hpp"
 
 inline namespace unit_testing_segtree {
 
+void unit_test_segtree_beats() {
+    using namespace samples_segtree_beats;
+
+    vector<int> arr = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    int N = arr.size();
+
+    segtree_beats<ji_segnode, ji_segupdate> tree(0, N, arr);
+    assert(tree.query_range(0, N).sum == 45);
+
+    tree.update_range(2, 7, 5); // 1 2 3 4 5 5 5 8 9
+    tree.update_range(1, 4, 3); // 1 2 3 3 5 5 5 8 9
+    tree.update_range(6, 8, 6); // 1 2 3 3 5 5 5 6 9
+
+    assert(tree.query_range(0, N).sum == 1 + 2 + 3 + 3 + 5 + 5 + 5 + 6 + 9);
+    assert(tree.query_range(5, 7).sum == 10);
+    assert(tree.query_range(5, 7).maximum == 5);
+}
+
 void unit_test_add_segtree() {
     using namespace samples_segtree;
-    using sum_segnode = sum_segnode;
-    using add_segupdate = add_segupdate;
 
     vector<int> arr = {9, 8, 7, 6, 5, 4, 3, 2, 1};
     int N = arr.size();
@@ -26,8 +43,6 @@ void unit_test_add_segtree() {
 
 void unit_test_dyn_segtree() {
     using namespace samples_dyn_segtree;
-    using sum_segnode = sum_segnode;
-    using add_segupdate = add_segupdate;
 
     dyn_segtree<sum_segnode> tree(10, 30);
 
@@ -46,8 +61,6 @@ void unit_test_dyn_segtree() {
 
 void unit_test_sparse_segtree() {
     using namespace samples_sparse_segtree;
-    using sum_segnode = sum_segnode;
-    using add_segupdate = add_segupdate;
 
     sparse_segtree<sum_segnode, add_segupdate> tree(1, 300'000'000);
 
@@ -133,6 +146,7 @@ void stress_test_segtree() {
 } // namespace stress_testing_segtree
 
 int main() {
+    RUN_SHORT(unit_test_segtree_beats());
     RUN_SHORT(unit_test_add_segtree());
     RUN_SHORT(unit_test_dyn_segtree());
     RUN_SHORT(unit_test_sparse_segtree());
