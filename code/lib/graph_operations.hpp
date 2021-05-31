@@ -140,7 +140,7 @@ int count_reachable(const vector<vector<int>>& adj, int s = 0) {
 }
 
 bool reachable(const vector<vector<int>>& adj, int s, int t) {
-    uint i = 0, S = 1, V = adj.size();
+    int i = 0, S = 1, V = adj.size();
     vector<bool> vis(V, false);
     vector<int> bfs{s};
     vis[s] = true;

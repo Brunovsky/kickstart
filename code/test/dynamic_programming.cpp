@@ -2,6 +2,7 @@
 #include "../algo/dynamic_programming.hpp"
 #include "../algo/knapsack.hpp"
 #include "../strings/string_distance.hpp"
+#include "../numeric/bits.hpp"
 
 inline namespace testing_string_distance {
 
@@ -149,9 +150,46 @@ void unit_test_longest_increasing_subsequence() {
     assert(sub3 == (vi{0, 1}));
 }
 
+void unit_test_sos() {
+    constexpr int N = 3;
+    vector<unsigned> A = {1, 10, 100, 1000, 10'000, 100'000, 1'000'000, 10'000'000};
+
+    vector<unsigned> F = A;
+    for (int i = 0; i < N; i++) {
+        for (int mask = 0; mask < (1 << N); mask++) {
+            if (mask & (1 << i)) {
+                F[mask] += F[mask ^ (1 << i)];
+            }
+        }
+    }
+
+    vector<unsigned> B = A;
+    for (int i = 0; i < N; i++) {
+        for (int mask = 0; mask < (1 << N); mask++) {
+            if (mask & (1 << i)) {
+                B[mask ^ (1 << i)] += B[mask];
+            }
+        }
+    }
+
+    vector<unsigned> C = A;
+    for (int i = 0; i < N; i++) {
+        for (int mask = (1 << N) - 1; mask >= 0; mask--) {
+            if (mask & (1 << i)) {
+                C[mask ^ (1 << i)] += C[mask];
+            }
+        }
+    }
+
+    print("F: {}\n", F);
+    print("B: {}\n", B);
+    print("C: {}\n", C);
+}
+
 } // namespace testing_longest_subsequences
 
 int main() {
+    RUN_SHORT(unit_test_sos());
     RUN_SHORT(unit_test_string_distance());
     RUN_SHORT(unit_test_subset_sum());
     RUN_BLOCK(stress_test_subset_sum());

@@ -9,24 +9,25 @@
  */
 struct bigint {
     static_assert(0xffffffff == UINT_MAX);
-    static_assert(sizeof(uint) == 4 && sizeof(ulong) == 8, "Unexpected integer sizes");
+    static_assert(sizeof(unsigned) == 4 && sizeof(ulong) == 8,
+                  "Unexpected integer sizes");
 
-    vector<uint> nums;
+    vector<unsigned> nums;
     bool sign = 0; // 0=positive, 1=negative
 
     bigint() = default;
     bigint(int n) : nums(n != 0, abs(n)), sign(n < 0) {}
-    bigint(uint n, bool s = 0) : nums(n > 0, n), sign(s && n) {}
-    bigint(const string& s, uint b = 10) {
+    bigint(unsigned n, bool s = 0) : nums(n > 0, n), sign(s && n) {}
+    bigint(const string& s, unsigned b = 10) {
         assert(2 <= b && b <= 10);
         int i = 0, S = s.size();
         while (i < S && isspace(s[i]))
             i++; // skip whitespace
         bool neg = i < S && s[i] == '-', pos = i < S && s[i] == '+';
         i += neg || pos, sign = neg;
-        uint n = 0, tens = 1, threshold = UINT_MAX / (b + 1);
+        unsigned n = 0, tens = 1, threshold = UINT_MAX / (b + 1);
         while (i < S && ('0' <= s[i] && s[i] < char('0' + b))) {
-            n = b * n + uint(s[i++] - '0');
+            n = b * n + unsigned(s[i++] - '0');
             tens *= b;
             if (tens >= threshold) {
                 mul_int(*this, tens);
@@ -39,9 +40,9 @@ struct bigint {
         add_int(*this, n);
     }
 
-    auto& operator[](uint x) { return nums[x]; }
-    const auto& operator[](uint x) const { return nums[x]; }
-    bool bit(uint x) const { return nums[x / 32] & (1 << (x % 32)); }
+    auto& operator[](unsigned x) { return nums[x]; }
+    const auto& operator[](unsigned x) const { return nums[x]; }
+    bool bit(unsigned x) const { return nums[x / 32] & (1 << (x % 32)); }
     int len() const { return nums.size(); }
     bool zero() const noexcept { return nums.empty(); }
     void clear() { nums.clear(), sign = 0; }
@@ -79,9 +80,9 @@ struct bigint {
     }
     friend bool operator!=(const bigint& u, const bigint& v) { return !(u == v); }
 
-    friend bigint& operator>>=(bigint& u, uint shift) {
+    friend bigint& operator>>=(bigint& u, unsigned shift) {
         int s = shift / 32, n = u.len();
-        uint lo = shift % 32, hi = 32 - lo;
+        unsigned lo = shift % 32, hi = 32 - lo;
 
         if (s >= n) {
             u.clear();
@@ -97,9 +98,9 @@ struct bigint {
 
         return u;
     }
-    friend bigint& operator<<=(bigint& u, uint shift) {
+    friend bigint& operator<<=(bigint& u, unsigned shift) {
         int s = shift / 32, n = u.len();
-        uint hi = shift % 32, lo = 32 - hi;
+        unsigned hi = shift % 32, lo = 32 - hi;
 
         if (hi > 0) {
             u.nums.resize(n + s + 1, 0);
@@ -116,8 +117,8 @@ struct bigint {
         return u;
     }
 
-    friend bigint operator>>(bigint u, uint shift) { return u >>= shift; }
-    friend bigint operator<<(bigint u, uint shift) { return u <<= shift; }
+    friend bigint operator>>(bigint u, unsigned shift) { return u >>= shift; }
+    friend bigint operator<<(bigint u, unsigned shift) { return u <<= shift; }
 
     friend bigint& operator&=(bigint& u, const bigint& v) {
         int n = min(u.len(), v.len());
@@ -175,13 +176,13 @@ struct bigint {
         return s;
     }
 
-    friend void add_int(bigint& u, uint v) {
+    friend void add_int(bigint& u, unsigned v) {
         for (int i = 0; v && i < u.len(); i++)
             u[i] += v, v = u[i] < v;
         if (v > 0)
             u.nums.push_back(v);
     }
-    friend void sub_int(bigint& u, uint v) {
+    friend void sub_int(bigint& u, unsigned v) {
         if (v == 0)
             return;
         if (u.zero()) {
@@ -199,7 +200,7 @@ struct bigint {
         }
         u.trim();
     }
-    friend void mul_int(bigint& u, uint v) {
+    friend void mul_int(bigint& u, unsigned v) {
         if (v == 0) {
             u.clear();
             return;
@@ -216,12 +217,12 @@ struct bigint {
         if (sum > 0)
             u.nums.push_back(sum);
     }
-    friend uint div_int(bigint& u, uint v) {
+    friend unsigned div_int(bigint& u, unsigned v) {
         constexpr ulong b = 1UL + UINT_MAX;
         assert(v > 0);
         if (v == 1 || u.zero())
             return 0;
-        uint r = 0;
+        unsigned r = 0;
         for (int i = u.len() - 1; i >= 0; i--) {
             ulong p = r * b + u[i];
             u[i] = p / v, r = p % v;
@@ -325,7 +326,7 @@ struct bigint {
         c.nums.resize(n + m, 0);
         c.sign = u.sign ^ v.sign;
         for (int j = 0; j < m; j++) {
-            uint k = 0;
+            unsigned k = 0;
             for (int i = 0; i < n; i++) {
                 ulong t = ulong(u[i]) * v[j] + c[i + j] + k;
                 c[i + j] = t & UINT_MAX;
@@ -343,7 +344,7 @@ struct bigint {
         // return the remainder and set u to the quotient, but throughout the algorithm
         // u is the remainder and d is the quotient.
         int n = v.len(), m = u.len() - n;
-        uint c = __builtin_clz(v[n - 1]);
+        unsigned c = __builtin_clz(v[n - 1]);
         u <<= c, v <<= c;
         if (u.len() == n + m)
             u.nums.push_back(0);
@@ -425,33 +426,33 @@ struct bigint {
         return u;
     }
 
-    friend bigint& operator+=(bigint& u, uint n) {
+    friend bigint& operator+=(bigint& u, unsigned n) {
         u.sign == 0 ? add_int(u, n) : sub_int(u, n);
         return u;
     }
-    friend bigint& operator-=(bigint& u, uint n) {
+    friend bigint& operator-=(bigint& u, unsigned n) {
         u.sign == 1 ? add_int(u, n) : sub_int(u, n);
         return u;
     }
-    friend bigint& operator*=(bigint& u, uint n) {
+    friend bigint& operator*=(bigint& u, unsigned n) {
         mul_int(u, n);
         return u;
     }
-    friend bigint& operator/=(bigint& u, uint n) {
+    friend bigint& operator/=(bigint& u, unsigned n) {
         div_int(u, n);
         return u;
     }
-    friend bigint& operator%=(bigint& u, uint n) {
+    friend bigint& operator%=(bigint& u, unsigned n) {
         u = bigint(div_int(u, n), u.sign);
         return u;
     }
 
     friend bigint& operator+=(bigint& u, int n) {
-        n >= 0 ? u += uint(n) : u -= uint(abs(n));
+        n >= 0 ? u += unsigned(n) : u -= unsigned(abs(n));
         return u;
     }
     friend bigint& operator-=(bigint& u, int n) {
-        n >= 0 ? u -= uint(n) : u += uint(abs(n));
+        n >= 0 ? u -= unsigned(n) : u += unsigned(abs(n));
         return u;
     }
     friend bigint& operator*=(bigint& u, int n) {
@@ -468,27 +469,27 @@ struct bigint {
     }
 
     friend bigint operator+(bigint u, const bigint& v) { return u += v; }
-    friend bigint operator+(bigint u, uint n) { return u += n; }
+    friend bigint operator+(bigint u, unsigned n) { return u += n; }
     friend bigint operator+(bigint u, int n) { return u += n; }
-    friend bigint operator+(uint n, bigint u) { return u += n; }
+    friend bigint operator+(unsigned n, bigint u) { return u += n; }
     friend bigint operator+(int n, bigint u) { return u += n; }
 
     friend bigint operator-(bigint u, const bigint& v) { return u -= v; }
-    friend bigint operator-(bigint u, uint n) { return u -= n; }
+    friend bigint operator-(bigint u, unsigned n) { return u -= n; }
     friend bigint operator-(bigint u, int n) { return u -= n; }
 
     friend bigint operator*(const bigint& u, const bigint& v) { return mul_vec(u, v); }
-    friend bigint operator*(bigint u, uint n) { return u *= n; }
+    friend bigint operator*(bigint u, unsigned n) { return u *= n; }
     friend bigint operator*(bigint u, int n) { return u *= n; }
-    friend bigint operator*(uint n, bigint u) { return u *= n; }
+    friend bigint operator*(unsigned n, bigint u) { return u *= n; }
     friend bigint operator*(int n, bigint u) { return u *= n; }
 
     friend bigint operator/(bigint u, const bigint& v) { return u /= v; }
-    friend bigint operator/(bigint u, uint n) { return u /= n; }
+    friend bigint operator/(bigint u, unsigned n) { return u /= n; }
     friend bigint operator/(bigint u, int n) { return u /= n; }
 
     friend bigint operator%(bigint u, const bigint& v) { return u %= v; }
-    friend bigint operator%(bigint u, uint n) { return u %= n; }
+    friend bigint operator%(bigint u, unsigned n) { return u %= n; }
     friend bigint operator%(bigint u, int n) { return u %= n; }
 
     bigint operator++() { return *this += 1u; }
@@ -519,9 +520,9 @@ struct bigint {
         if (n == 0) {
             return 0;
         } else if (n == 1) {
-            return uint(std::sqrt(u[0]));
+            return unsigned(std::sqrt(u[0]));
         } else if (n == 2) {
-            return uint(std::sqrt(ulong(u[1]) << 32 | u[0]));
+            return unsigned(std::sqrt(ulong(u[1]) << 32 | u[0]));
         }
         bigint x, y;
         x.nums.resize(m);
@@ -532,11 +533,11 @@ struct bigint {
         return x;
     }
 
-    friend string to_string(bigint u, uint b = 10) {
-        static auto uint_to_string = [](uint n, uint base) {
+    friend string to_string(bigint u, unsigned b = 10) {
+        static auto uint_to_string = [](unsigned n, unsigned base) {
             string s;
             while (n > 0) {
-                uint m = n / base;
+                unsigned m = n / base;
                 s += '0' + (n - base * m), n = m;
             }
             reverse(begin(s), end(s));
@@ -547,7 +548,7 @@ struct bigint {
             return "0";
         string s = u.sign ? "-" : "";
         vector<string> rems;
-        uint divisor = b, digits = 1;
+        unsigned divisor = b, digits = 1;
         while (divisor < UINT_MAX / b) {
             divisor *= b, digits++;
         }
@@ -571,7 +572,7 @@ namespace std {
 template <>
 struct hash<bigint> {
     size_t operator()(const bigint& u) const noexcept {
-        return std::hash<pair<vector<uint>, bool>>{}(make_pair(u.nums, u.sign));
+        return std::hash<pair<vector<unsigned>, bool>>{}(make_pair(u.nums, u.sign));
     }
 };
 

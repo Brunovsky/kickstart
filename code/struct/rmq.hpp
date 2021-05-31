@@ -17,9 +17,9 @@ struct RMQ {
 
     RMQ() = default;
     RMQ(const vector<T>& V) : jmp(1, V) {
-        for (uint pw = 1, k = 1; pw * 2 <= V.size(); pw *= 2, ++k) {
+        for (unsigned pw = 1, k = 1; pw * 2 <= V.size(); pw *= 2, ++k) {
             jmp.emplace_back(V.size() - pw * 2 + 1);
-            for (uint j = 0; j < jmp[k].size(); j++)
+            for (unsigned j = 0; j < jmp[k].size(); j++)
                 jmp[k][j] = min(jmp[k - 1][j], jmp[k - 1][j + pw]);
         }
     }

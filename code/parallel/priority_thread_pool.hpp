@@ -28,7 +28,7 @@ struct priority_thread_pool {
     mutable mutex mtx;
     condition_variable cv, cv_user;
     pool_status state = ready;
-    uint idle = 0, waiting = 0;
+    unsigned idle = 0, waiting = 0;
 
     inline int pending_unsafe() const { return jobs.size() + pool_size() - idle; }
     inline int worker_ready() const { return !jobs.empty() || state == cancelled; }
@@ -170,11 +170,11 @@ struct priority_thread_pool {
         state = invalid;
     }
 
-    inline uint pending() const noexcept {
+    inline unsigned pending() const noexcept {
         lock_guard guard(mtx);
         return jobs.size() + pool_size() - idle;
     }
-    inline uint pool_size() const noexcept { return threads.size(); }
+    inline unsigned pool_size() const noexcept { return threads.size(); }
     inline bool empty() const noexcept { return pending() == 0; }
 };
 

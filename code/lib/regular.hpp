@@ -7,7 +7,7 @@
 using edges_t = vector<array<int, 2>>;
 
 edges_t degree_sample(int n, const vector<int>& k) {
-    assert(k.size() == uint(n));
+    assert(k.size() == unsigned(n));
     int d = accumulate(begin(k), end(k), 0);
     assert(d % 2 == 0);
 
@@ -52,7 +52,7 @@ edges_t degree_sample(int n, const vector<int>& k) {
 
 edges_t degree_bipartite_sample(int n, int m, const vector<int>& k,
                                 const vector<int>& p) {
-    assert(k.size() == uint(n) && p.size() == uint(m));
+    assert(k.size() == unsigned(n) && p.size() == unsigned(m));
     int d = accumulate(begin(k), end(k), 0);
     assert(d == accumulate(begin(p), end(p), 0));
 
@@ -100,7 +100,7 @@ edges_t degree_bipartite_sample(int n, int m, const vector<int>& k,
 }
 
 edges_t degree_directed_sample(int n, const vector<int>& out, const vector<int>& in) {
-    assert(out.size() == uint(n) && in.size() == uint(n));
+    assert(out.size() == unsigned(n) && in.size() == unsigned(n));
     int d = accumulate(begin(out), end(out), 0);
     assert(d == accumulate(begin(in), end(in), 0));
 

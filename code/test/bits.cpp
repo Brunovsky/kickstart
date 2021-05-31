@@ -3,7 +3,6 @@
 
 inline namespace unit_testing_bits {
 
-// clang-format off
 void unit_test_bits() {
     assert(is_power_of_two(2));
     assert(is_power_of_two(32));
@@ -22,14 +21,14 @@ void unit_test_bits() {
     assert(msbits(0b101011010110, 12) == "101011010110");
     assert(msbits(32, 7) == "0100000");
 
-    uint v = 0b10000001000001000010001001011111;
+    unsigned v = 0b10000001000001000010001001011111;
     reverse_bits(v);
     assert(v == 0b11111010010001000010000010000001);
 }
 
-// clang-format off
 void unit_test_foreach_mask() {
-    vector<uint> masks = {
+    // clang-format off
+    vector<unsigned> masks = {
         0b001111,
         0b010111,
         0b011011,
@@ -46,16 +45,19 @@ void unit_test_foreach_mask() {
         0b111010,
         0b111100,
     };
-    vector<uint> loop;
-    FOR_EACH_MASK(mask, 4, 6)
+    // clang-format on
+    vector<unsigned> loop;
+    FOR_EACH_MASK (mask, 4, 6)
         loop.push_back(mask);
 
     assert(loop == masks);
 }
 
 void unit_test_foreach_subset() {
-    const uint mask = 0b0110110;
-    vector<uint> masks = {
+    const unsigned mask = 0b0110110;
+    // clang-format off
+    vector<unsigned> all_masks = {
+        0b0000000,
         0b0000010,
         0b0000100,
         0b0010000,
@@ -70,16 +72,31 @@ void unit_test_foreach_subset() {
         0b0100110,
         0b0110010,
         0b0110100,
+        0b0110110,
     };
-    vector<uint> loop;
-    FOR_EACH_SUBSET(subset, mask)
-        loop.push_back(subset);
+    // clang-format on
+    vector<unsigned> not_zero = all_masks;
+    vector<unsigned> not_self = all_masks;
+    not_zero.erase(begin(not_zero));
+    not_self.erase(--end(not_self));
+    sort(begin(all_masks), end(all_masks));
+    sort(begin(not_zero), end(not_zero));
+    sort(begin(not_self), end(not_self));
 
-    sort(begin(loop), end(loop));
-    sort(begin(masks), end(masks));
-    assert(loop == masks);
+    multiset<unsigned> loop;
+
+    loop.clear();
+    FOR_EACH_SUBSET (subset, mask) { loop.insert(subset); }
+    assert(vector<unsigned>(begin(loop), end(loop)) == all_masks);
+
+    loop.clear();
+    FOR_EACH_NONZERO_SUBSET(subset, mask) { loop.insert(subset); }
+    assert(vector<unsigned>(begin(loop), end(loop)) == not_zero);
+
+    loop.clear();
+    FOR_EACH_PROPER_SUBSET(subset, mask) { loop.insert(subset); }
+    assert(vector<unsigned>(begin(loop), end(loop)) == not_self);
 }
-// clang-format on
 
 } // namespace unit_testing_bits
 

@@ -5,8 +5,8 @@
 
 inline namespace detail {
 
-constexpr uint U = UINT_MAX;         // 0xffffffff
-constexpr uint M = UINT_MAX / 2 + 1; // 0x80000000
+constexpr unsigned U = UINT_MAX;         // 0xffffffff
+constexpr unsigned M = UINT_MAX / 2 + 1; // 0x80000000
 
 reald distp(0.0, 1.0);
 ulongd distv(0, U), distvp(1, U);
@@ -233,7 +233,7 @@ ms stress_runtime = 2s;
 void stress_test_sqrt() {
     intd digitsd(10, 500);
 
-    LOOP_FOR_DURATION_TRACKED(stress_runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
         print_time(now, stress_runtime, 50ms, "stress test sqrt");
 
         auto n = random_numeric_string(digitsd(mt), 10);
@@ -247,7 +247,7 @@ void stress_test_sqrt() {
 void stress_test_to_string() {
     intd digitsd(10, 500);
 
-    LOOP_FOR_DURATION_TRACKED(stress_runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
         print_time(now, stress_runtime, 50ms, "stress test base to_string");
 
         for (int b = 2; b <= 10; b++) {
@@ -268,7 +268,7 @@ void stress_test_to_string() {
 void stress_test_compare_sort() {
     intd distN(100, 2000);
 
-    LOOP_FOR_DURATION_TRACKED(stress_runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
         print_time(now, stress_runtime, 50ms, "stress test compare sort");
 
         int N = distN(mt);
@@ -286,7 +286,7 @@ void stress_test_compare_sort() {
 }
 
 void stress_test_add_commutative() {
-    LOOP_FOR_DURATION_TRACKED(stress_runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
         print_time(now, stress_runtime, 50ms, "stress test add commutative");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_small));
         bigint c = a + b;
@@ -296,7 +296,7 @@ void stress_test_add_commutative() {
 }
 
 void stress_test_add_transitive() {
-    LOOP_FOR_DURATION_TRACKED(stress_runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
         print_time(now, stress_runtime, 50ms, "stress test add transitive");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
         bigint d = (a + b) + c;
@@ -306,7 +306,7 @@ void stress_test_add_transitive() {
 }
 
 void stress_test_add_sub_reverse() {
-    LOOP_FOR_DURATION_TRACKED(stress_runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
         print_time(now, stress_runtime, 50ms, "stress test add sub reverse");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_small));
         bigint c = a - b;
@@ -316,7 +316,7 @@ void stress_test_add_sub_reverse() {
 }
 
 void stress_test_add_sub_group() {
-    LOOP_FOR_DURATION_TRACKED(stress_runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
         print_time(now, stress_runtime, 50ms, "stress test add sub group");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
         bigint d = a - b + c;
@@ -328,7 +328,7 @@ void stress_test_add_sub_group() {
 }
 
 void stress_test_mul_commutative() {
-    LOOP_FOR_DURATION_TRACKED(stress_runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
         print_time(now, stress_runtime, 50ms, "stress test mul commutative");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_small));
         bigint c = a * b;
@@ -338,7 +338,7 @@ void stress_test_mul_commutative() {
 }
 
 void stress_test_mul_transitive() {
-    LOOP_FOR_DURATION_TRACKED(stress_runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
         print_time(now, stress_runtime, 50ms, "stress test mul transitive");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
         bigint d = (a * b) * c;
@@ -348,7 +348,7 @@ void stress_test_mul_transitive() {
 }
 
 void stress_test_mul_distributive() {
-    LOOP_FOR_DURATION_TRACKED(stress_runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
         print_time(now, stress_runtime, 50ms, "stress test mul distributive");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
         bigint d = a * (b + c);
@@ -358,7 +358,7 @@ void stress_test_mul_distributive() {
 }
 
 void stress_test_div_perfect() {
-    LOOP_FOR_DURATION_TRACKED(stress_runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
         print_time(now, stress_runtime, 50ms, "stress test div perfect");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_pos), 10, 0.0);
         bigint c = a * b;
@@ -368,7 +368,7 @@ void stress_test_div_perfect() {
 }
 
 void stress_test_div_imperfect() {
-    LOOP_FOR_DURATION_TRACKED(stress_runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
         print_time(now, stress_runtime, 50ms, "stress test div imperfect");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_pos));
         bigint q = a;
@@ -384,7 +384,7 @@ inline namespace speed_testing_bigint {
 void speed_test_pairwise_mul(int max_scale = 16, ms runtime = 1s) {
     for (int scale = 1; scale <= max_scale; scale++) {
         START_ACC(mul);
-        LOOP_FOR_DURATION_OR_RUNS_TRACKED(runtime, now, 10000, runs) {
+        LOOP_FOR_DURATION_OR_RUNS_TRACKED (runtime, now, 10000, runs) {
             print_time(now, runtime, 50ms, "speed test multiplication scale={}", scale);
 
             auto a = random_bigint(1 << scale);

@@ -116,15 +116,15 @@ template <typename T>
 struct concurrent_queue {
   private:
     vector<T> buf;
-    uint l = 0, r = 0;
+    unsigned l = 0, r = 0;
     mutable spinlock<8 * sizeof(T)> mtx;
 
   public:
-    explicit concurrent_queue(uint N) : buf(N) {}
+    explicit concurrent_queue(unsigned N) : buf(N) {}
     concurrent_queue(const concurrent_queue&) = delete;
     concurrent_queue& operator=(const concurrent_queue&) = delete;
 
-    uint size() const {
+    unsigned size() const {
         lock_guard guard(mtx);
         return r - l;
     }

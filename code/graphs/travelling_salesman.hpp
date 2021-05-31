@@ -17,8 +17,8 @@ long tsp_held_karp(int V, const vector<vector<int>>& dist, vector<int>* out_path
     }
     for (int s = 2; s <= n; s++) {
         FOR_EACH_MASK (set, s, n) {
-            FOR_EACH_BIT (set, k, kbit) {
-                FOR_EACH_BIT (set ^ kbit, m, mbit) {
+            FOR_EACH_BIT_NUMBER (kbit, k, set) {
+                FOR_EACH_BIT_NUMBER (mbit, m, set ^ kbit) {
                     cost[set][k] = min(cost[set][k], cost[set ^ kbit][m] + dist[m][k]);
                 }
             }
@@ -39,7 +39,7 @@ long tsp_held_karp(int V, const vector<vector<int>>& dist, vector<int>* out_path
     path.push_back(k);
     for (int s = n; s >= 2; s--) {
         int kbit = 1 << k;
-        FOR_EACH_BIT (set ^ kbit, m, mbit) {
+        FOR_EACH_BIT_NUMBER (mbit, m, set ^ kbit) {
             if (cost[set][k] == cost[set ^ kbit][m] + dist[m][k]) {
                 path.push_back(m);
                 set ^= kbit;

@@ -19,7 +19,7 @@ struct thread_pool {
     mutable mutex mtx;
     condition_variable cv, cv_user;
     pool_status state = ready;
-    uint idle = 0, waiting = 0;
+    unsigned idle = 0, waiting = 0;
 
     inline int pending_unsafe() const { return jobs.size() + pool_size() - idle; }
     inline int worker_ready() const { return !jobs.empty() || state == cancelled; }

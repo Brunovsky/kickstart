@@ -784,9 +784,9 @@ auto johnson(int n, int k) {
     (void)V, assert(l == V);
 
     FOR_EACH_MASK (u, k, n)
-        FOR_EACH_BIT (u, a, i)
-            FOR_EACH_BIT ((~u & fmask), b, j)
-                if (a < b)
+        FOR_EACH_BIT (i, u)
+            FOR_EACH_BIT (j, ~u & fmask)
+                if (i < j)
                     g.push_back({label[u], label[(u ^ i) | j]});
     assert(verify_edges_undirected(g, V, k * (n - k) * V / 2));
     return g;

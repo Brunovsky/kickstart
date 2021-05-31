@@ -39,7 +39,7 @@ bigint intfac(int n) {
 }
 
 // Compute n! (mod m)
-bigint modfac(uint n, const bigint& m) {
+bigint modfac(unsigned n, const bigint& m) {
     bigint f = 1;
     while (n > 1) {
         f = (f * n--) % m;

@@ -202,7 +202,7 @@ inline namespace stress_testing_epsilon_hull3d {
 fs::path tmpfile;
 
 void stress_test_quickhull3d_run(int N, int L, int C, int I, long R = 50) {
-    LOOP_FOR_DURATION_TRACKED(4s, now) {
+    LOOP_FOR_DURATION_TRACKED (4s, now) {
         print_time(now, 4s, 50ms, "stress test quickhull3d {} {} {} {}", N, L, C, I);
 
         auto points = random_points(N, R);
@@ -254,13 +254,13 @@ inline namespace scaling_testing_hull3d {
 void scaling_test_quickhull3d_run(int N, int L, int C, int I = 0, long R = 50) {
     START_ACC(hull);
 
-    LOOP_FOR_DURATION_TRACKED_RUNS(2s, now, runs) {
+    LOOP_FOR_DURATION_TRACKED_RUNS (2s, now, runs) {
         print_time(now, 2s, 50ms, "scaling test");
 
         auto points = random_points(N, R);
         add_coplanar_points(L, points, R);
         add_collinear_points(C, points, R);
-        assert(points.size() == uint(N + L + C + I));
+        assert(points.size() == unsigned(N + L + C + I));
 
         START(hull);
         auto hull = compute_hull(points);

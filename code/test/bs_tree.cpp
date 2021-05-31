@@ -51,16 +51,16 @@ void merge_test() {
     intd distn(-70, 70);
 
     // subtest 1: multi merge
-    LOOP_FOR_DURATION_TRACKED(1s, now) {
+    LOOP_FOR_DURATION_TRACKED (1s, now) {
         print_time(now, 1s, 50ms, "multi merge test");
 
         bs_multiset<int> a, b;
         size_t as = dists(mt), bs = dists(mt);
 
-        for (uint i = 0; i < as; i++) {
+        for (unsigned i = 0; i < as; i++) {
             a.insert(distn(mt));
         }
-        for (uint i = 0; i < bs; i++) {
+        for (unsigned i = 0; i < bs; i++) {
             b.insert(distn(mt));
         }
         assert(as == a.size() && bs == b.size());
@@ -95,16 +95,16 @@ void merge_test() {
     }
 
     // subtest 2: unique merge
-    LOOP_FOR_DURATION_TRACKED(1s, now) {
+    LOOP_FOR_DURATION_TRACKED (1s, now) {
         print_time(now, 1s, 50ms, "unique merge test");
 
         bs_set<int> a, b;
         size_t as = dists(mt), bs = dists(mt);
 
-        for (uint i = 0; i < as; i++) {
+        for (unsigned i = 0; i < as; i++) {
             a.insert(distn(mt));
         }
-        for (uint i = 0; i < bs; i++) {
+        for (unsigned i = 0; i < bs; i++) {
             b.insert(distn(mt));
         }
         assert(as >= a.size() && bs >= b.size());
@@ -157,7 +157,7 @@ void merge_test() {
     }
 
     // subtest 3: extract
-    LOOP_FOR_DURATION_TRACKED(1s, now) {
+    LOOP_FOR_DURATION_TRACKED (1s, now) {
         print_time(now, 1s, 50ms, "extract test");
 
         bs_multiset<int> a, b;
@@ -192,7 +192,7 @@ void construct_test() {
 
     bs_multiset<int> d, e;
 
-    LOOP_FOR_DURATION_TRACKED(1s, now) {
+    LOOP_FOR_DURATION_TRACKED (1s, now) {
         print_time(now, 1s, 50ms, "construct test");
 
         bs_multiset<int> a;
@@ -239,7 +239,7 @@ void iterator_test() {
     intd dists(0, 50);
     intd distn(-10000, 10000);
 
-    LOOP_FOR_DURATION_TRACKED(1s, now) {
+    LOOP_FOR_DURATION_TRACKED (1s, now) {
         print_time(now, 1s, 50ms, "iterator test");
 
         bs_multiset<int> tree;
@@ -385,7 +385,7 @@ void equality_test() {
     intd dists(0, 200);
     intd distn(1, 10000);
 
-    LOOP_FOR_DURATION_TRACKED(1s, now) {
+    LOOP_FOR_DURATION_TRACKED (1s, now) {
         print_time(now, 1s, 50ms, "equality test");
 
         bs_multiset<int> lhs, rhs;
@@ -475,7 +475,7 @@ void insert_test() {
     intd distn(0, 1'000);
     intd dists(0, 200);
 
-    LOOP_FOR_DURATION_TRACKED(1s, now) {
+    LOOP_FOR_DURATION_TRACKED (1s, now) {
         print_time(now, 1s, 50ms, "insert test");
         bs_set<int> tree;
         for (int i = 0, s = dists(mt); i < s; i++) {
@@ -493,7 +493,7 @@ void erase_test() {
     intd distn(0, 1'000);
     intd dists(0, 200);
 
-    LOOP_FOR_DURATION_TRACKED(1s, now) {
+    LOOP_FOR_DURATION_TRACKED (1s, now) {
         print_time(now, 1s, 50ms, "erase test");
         bs_set<int> tree;
         vector<int> nums;
@@ -717,7 +717,7 @@ void battle_test(intd dists, intd distn, boold doerase, boold doemplace, boold d
     using constit_t = typename tree_t::const_iterator;
     using stl_t = std::multiset<pair_t, Compare>;
 
-    LOOP_FOR_DURATION_TRACKED(2s, now) {
+    LOOP_FOR_DURATION_TRACKED (2s, now) {
         print_time(now, 2s, 50ms, "battle test");
 
         tree_t tree;
