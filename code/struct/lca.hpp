@@ -5,17 +5,20 @@
 
 using namespace std;
 
+/**
+ * LCA on a tree, 1-indexed
+ */
 struct lca_tree {
     int N, B;
     vector<vector<int>> up;
-    vector<int> depth;
+    vector<int> subt, depth;
 
     static int need_bits(int n) {
         return 1 + (n > 1 ? 8 * sizeof(n) - __builtin_clz(n - 1) : 0);
     }
 
     explicit lca_tree(const vector<vector<int>>& tree, int root)
-        : N(tree.size()), B(need_bits(N)), up(B, vector<int>(N)), depth(N) {
+        : N(tree.size()), B(need_bits(N)), up(B, vector<int>(N)), subt(N), depth(N) {
         init_dfs(tree, root, 0);
 
         for (int b = 1; b < B; b++) {
@@ -29,9 +32,11 @@ struct lca_tree {
     void init_dfs(const vector<vector<int>>& tree, int u, int p) {
         up[0][u] = p;
         depth[u] = (p >= 1) ? depth[p] + 1 : 0;
+        subt[u] = 1;
         for (int v : tree[u]) {
             if (v != p) {
                 init_dfs(tree, v, u);
+                subt[u] += subt[v];
             }
         }
     }
