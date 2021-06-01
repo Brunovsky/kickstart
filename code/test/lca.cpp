@@ -1,35 +1,38 @@
 #include "test_utils.hpp"
+#include "../lib/graph_operations.hpp"
 #include "../struct/lca.hpp"
+
+inline namespace detail {
+
+edges_t scan_edges(const string& s, char sep = ',') {
+    edges_t g;
+    stringstream ss(s);
+    while (ss) {
+        int u, v;
+        char dummy;
+        ss >> u >> dummy >> v;
+        if (ss) {
+            g.push_back({u, v});
+            assert(dummy == sep);
+        }
+    }
+    return g;
+}
+
+} // namespace detail
 
 inline namespace unit_testing_lca {
 
-// https://www.geeksforgeeks.org/depth-n-ary-tree/
-void setup() {
-    children[1] = {2, 3, 4, 5};
-    children[2] = {6, 7};
-    children[3] = {8, 9, 10};
-    children[4] = {};
-    children[5] = {11, 12, 13};
-    children[6] = {};
-    children[7] = {14};
-    children[8] = {};
-    children[9] = {};
-    children[10] = {15, 16};
-    children[11] = {};
-    children[12] = {};
-    children[13] = {17, 18, 19};
-    children[14] = {};
-    children[15] = {};
-    children[16] = {};
-    children[17] = {};
-    children[18] = {};
-    children[19] = {};
-}
+void unit_test_lca_tree() {
+    int V = 20;
+    string s = "1,2 1,3 1,4 1,5 2,6 2,7 3,8 3,9 3,10 5,11 5,12 5,13 "
+               "7,14 10,15 10,16 13,17 13,18 13,19";
+    auto g = scan_edges(s);
+    random_flip_inplace(g);
+    auto tree = make_adjacency_lists_undirected(V, g);
 
-void unit_test_lca() {
-    setup();
-    lca_tree<20, 5> lca;
-    lca.init(1);
+    lca_tree lca(tree, 1);
+
     assert(lca.lca(11, 19) == 5);
     assert(lca.lca(9, 15) == 3);
     assert(lca.lca(14, 15) == 1);
@@ -45,6 +48,6 @@ void unit_test_lca() {
 } // namespace unit_testing_lca
 
 int main() {
-    RUN_SHORT(unit_test_lca());
+    RUN_SHORT(unit_test_lca_tree());
     return 0;
 }

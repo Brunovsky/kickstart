@@ -5,62 +5,64 @@
 
 using namespace std;
 
-#define MAXN 100'000
-
-vector<int> children[MAXN];
-
-template <int N, int BITS>
 struct lca_tree {
-    int parent[BITS][N];
-    int depth[N];
+    int N, B;
+    vector<vector<int>> up;
+    vector<int> depth;
 
-    void init(int root) {
-        memset(parent, 0, sizeof(parent));
-        memset(depth, 0, sizeof(depth));
-        init_dfs(root, -1);
-        for (int k = 1; k < BITS; k++) {
-            for (int i = 0; i < N; i++) {
-                int t = parent[k - 1][i];
-                parent[k][i] = (t == -1) ? -1 : parent[k - 1][t];
+    static int need_bits(int n) {
+        return 1 + (n > 1 ? 8 * sizeof(n) - __builtin_clz(n - 1) : 0);
+    }
+
+    explicit lca_tree(const vector<vector<int>>& tree, int root)
+        : N(tree.size()), B(need_bits(N)), up(B, vector<int>(N)), depth(N) {
+        init_dfs(tree, root, 0);
+
+        for (int b = 1; b < B; b++) {
+            for (int i = 1; i < N; i++) {
+                int p = up[b - 1][i];
+                up[b][i] = (p >= 1) ? up[b - 1][p] : 0;
             }
         }
     }
 
-    // b=1 for parent, b=2 for grandparent, etc.
-    int ancestor(int u, int b) {
-        for (int k = BITS - 1; k >= 0; k--) {
-            if (b & (1 << k)) {
-                u = parent[k][u];
+    void init_dfs(const vector<vector<int>>& tree, int u, int p) {
+        up[0][u] = p;
+        depth[u] = (p >= 1) ? depth[p] + 1 : 0;
+        for (int v : tree[u]) {
+            if (v != p) {
+                init_dfs(tree, v, u);
+            }
+        }
+    }
+
+    int ancestor(int u, int steps) const {
+        for (int b = B - 1; b >= 0; b--) {
+            if (steps & (1 << b)) {
+                u = up[b][u];
             }
         }
         return u;
     }
 
-    int lca(int u, int v) {
+    int parent(int u) const { return up[0][u]; }
+
+    int lca(int u, int v) const {
         if (depth[u] < depth[v]) {
             v = ancestor(v, depth[v] - depth[u]);
         } else if (depth[u] > depth[v]) {
             u = ancestor(u, depth[u] - depth[v]);
         }
-        for (int k = BITS - 1; k >= 0; k--) {
-            if (parent[k][u] != parent[k][v]) {
-                u = parent[k][u], v = parent[k][v];
+        for (int k = B - 1; k >= 0; k--) {
+            if (up[k][u] != up[k][v]) {
+                u = up[k][u], v = up[k][v];
             }
         }
-        return u == v ? u : parent[0][u];
+        return u == v ? u : up[0][u];
     }
 
     int dist(int u, int v) { // # edges on path
         return depth[u] + depth[v] - 2 * depth[lca(u, v)];
-    }
-
-  private:
-    void init_dfs(int u, int w) {
-        parent[0][u] = w;
-        depth[u] = (w == -1) ? 0 : depth[w] + 1;
-        for (int v : children[u]) {
-            init_dfs(v, u);
-        }
     }
 };
 

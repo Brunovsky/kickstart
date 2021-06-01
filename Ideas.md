@@ -7,12 +7,16 @@
   - Can you binary search one dimension of the dp?
 
 - Combinatorics
+  - Look for bijections (of the entire problem or of subproblems)
   - Does the order matter? Maybe solve unordered then apply ordering.
   - Try to break cases apart (instead of summing nums >=1, sum portions=1 of nums)
+  - If formula is too complicated try to count a different way (you'll save time)
   - Different perspectives:
-    - Frequency (global or local)
-    - Count (global or local)
-    - Up to count (global or local)
+    - Event frequency (global or local)
+    - Event count (global or local)
+    - Event prefix count (global or local)
+    - Probability
+    - Inclusion-exclusion
 
 - Dynamic programming
   - $n! \to 2^n$ look for SOS and TSP like approaches
