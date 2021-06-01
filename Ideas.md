@@ -1,5 +1,8 @@
 # Ideas
 
+- Constructive
+  - Look for overlay patterns, independent of particular input
+
 - Look for randomized solutions
   - Need to find something such that *at least $\frac{N}{constant}$ elements*...
 
