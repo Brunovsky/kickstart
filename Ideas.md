@@ -10,10 +10,10 @@
   - Can you binary search one dimension of the dp?
 
 - Combinatorics
-  - Look for bijections (of the entire problem or of subproblems)
+  - Look for *bijections* (of the entire problem or of subproblems)
   - Does the order matter? Maybe solve unordered then apply ordering.
   - Try to break cases apart (instead of summing nums >=1, sum portions=1 of nums)
-  - If formula is too complicated try to count a different way (you'll save time)
+  - If formula is too complicated then count a different way (you'll save time)
   - Different perspectives:
     - Event frequency (global or local)
     - Event count (global or local)
@@ -28,3 +28,5 @@
   - TSP-like: ~ graphs
     - The optimal value for `mask` must *encode* the position of its elements
     - Walk left to right, add new value to `mask` on the right side
+  - Walk-like: ~ arrays
+    - Instead of counting good cases, count all - bad cases (global or local)

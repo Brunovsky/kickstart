@@ -54,10 +54,16 @@ fastinttest: fast ./judger
 	python3 ./testing_tool.py $(ARGS) ./solver
 
 # Other stuff
-.PHONY: diff linediff
+.PHONY: casediff linediff
 
-diff:
+casediff:
 	@casediff program.txt correct.txt $(ARGS)
 
-linediff:
+sidediff:
 	@diff -y --tabsize=4 --minimal program.txt correct.txt $(ARGS)
+
+diff:
+	@diff --unchanged-line-format="" \
+		  --old-line-format="< %dn: %L" \
+		  --new-line-format="> %dn: %L" \
+		  --minimal program.txt correct.txt $(ARGS)

@@ -14,11 +14,12 @@ using namespace std;
 template <typename T>
 struct min_rmq {
     vector<vector<T>> jmp;
+    static constexpr int bits = CHAR_BIT * sizeof(int) - 1;
 
     min_rmq() = default;
-    explicit min_rmq(const vector<T>& V) : jmp(1, V) {
-        for (unsigned len = 1, k = 1; len * 2 <= V.size(); len *= 2, ++k) {
-            jmp.emplace_back(V.size() - len * 2 + 1);
+    explicit min_rmq(const vector<T>& v) : jmp(1, v) {
+        for (unsigned len = 1, k = 1; len * 2 <= v.size(); len *= 2, ++k) {
+            jmp.emplace_back(v.size() - len * 2 + 1);
             for (unsigned j = 0; j < jmp[k].size(); j++) {
                 const auto& l = jmp[k - 1][j];
                 const auto& r = jmp[k - 1][j + len];
@@ -29,7 +30,6 @@ struct min_rmq {
 
     T query(int a, int b) const /* [a,b) */ {
         assert(a < b); // or return inf if a == b
-        static constexpr int bits = CHAR_BIT * sizeof(int) - 1;
         int dep = bits - __builtin_clz(b - a);
         const auto& l = jmp[dep][a];
         const auto& r = jmp[dep][b - (1 << dep)];
@@ -41,6 +41,7 @@ template <typename T>
 struct min_rmq_index {
     vector<T> v;
     vector<vector<int>> jmp;
+    static constexpr int bits = CHAR_BIT * sizeof(int) - 1;
 
     min_rmq_index() = default;
     explicit min_rmq_index(const vector<T>& v) : v(v), jmp(1, vector<int>(v.size())) {
@@ -57,7 +58,6 @@ struct min_rmq_index {
 
     int query(int a, int b) const /* [a, b) */ {
         assert(a < b); // or return inf if a == b
-        static constexpr int bits = CHAR_BIT * sizeof(int) - 1;
         int dep = bits - __builtin_clz(b - a);
         int l = jmp[dep][a];
         int r = jmp[dep][b - (1 << dep)];

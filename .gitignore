@@ -50,3 +50,4 @@ debug.txt
 # Instrumentation
 gmon.out
 analysis.txt
+sandbox
