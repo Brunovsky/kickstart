@@ -6,7 +6,7 @@
  * A repertoir of techniques on a rooted tree with values on nodes
  * Assumes tree is 1-indexed so 0 can be used nicely.
  */
-void rooted_tree_sample(const vector<vector<int>>& adj, int root, vector<int>& arr) {
+void rooted_tree_sample(vector<vector<int>> adj, int root, vector<int> arr) {
     int N = adj.size() - 1;
 
     // ***** General
@@ -19,14 +19,8 @@ void rooted_tree_sample(const vector<vector<int>>& adj, int root, vector<int>& a
     vector<int> heavy(N + 1);   // heaviest child
     int timer = 0;
 
-    vector<array<int, 2>> euler_index(N + 1); // euler tour index, [0]=in [1]=out
-    vector<int> euler_tour;
-    int euler_timer = 0;
-
     y_combinator([&](auto self, int u, int p) -> void {
         tin[u] = timer++;
-        euler_index[u][0] = euler_timer++;
-        euler_tour.push_back(u);
 
         parent[u] = p;
         deepest[u] = depth[u];
@@ -45,8 +39,6 @@ void rooted_tree_sample(const vector<vector<int>>& adj, int root, vector<int>& a
         }
 
         tout[u] = timer;
-        euler_index[u][1] = euler_timer++;
-        euler_tour.push_back(u);
     })(root, 0);
 
     // Maximum depth of the tree
@@ -54,16 +46,36 @@ void rooted_tree_sample(const vector<vector<int>>& adj, int root, vector<int>& a
     const int Db = D > 1 ? 1 + 8 * sizeof(D) - __builtin_clz(D - 1) : 1;
 
     // Reverse of tin
-    vector<int> reverse_tin(N);
+    assert(timer == N);
+    vector<int> tin_who(N);
     for (int u = 1; u <= N; u++) {
-        reverse_tin[tin[u]] = u;
+        tin_who[tin[u]] = u;
     }
 
+    // ***** Euler Tour
+    vector<array<int, 2>> euler_index(N + 1); // euler tour index, [0]=in [1]=out
+    vector<int> euler_tour;
+    int euler_timer = 0;
+
+    y_combinator([&](auto self, int u, int p) -> void {
+        euler_index[u][0] = euler_timer++;
+        euler_tour.push_back(u);
+
+        for (int v : adj[u]) {
+            if (v != p) {
+                self(v, u);
+            }
+        }
+
+        euler_index[u][1] = euler_timer++;
+        euler_tour.push_back(u);
+    })(root, 0);
+
     // Reverse of euler tour index
-    vector<array<int, 2>> reverse_euler_index(N);
+    vector<int> euler_who(2 * N);
     for (int u = 1; u <= N; u++) {
-        reverse_euler_index[euler_index[u][0]][0] = u;
-        reverse_euler_index[euler_index[u][1]][1] = u;
+        euler_who[euler_index[u][0]] = u;
+        euler_who[euler_index[u][1]] = u;
     }
 
     // ***** LCA sparse table: Compute lca jumps for fast LCA and ancestor jumps
@@ -107,7 +119,7 @@ void rooted_tree_sample(const vector<vector<int>>& adj, int root, vector<int>& a
     vector<int> on_depth_index(N + 1);
 
     for (int i = 0; i < N; i++) {
-        int u = reverse_tin[i];
+        int u = tin_who[i];
         on_depth_index[u] = on_depth[depth[u]].size();
         on_depth[depth[u]].push_back(u);
         on_depth_tin[depth[u]].push_back(i);
@@ -124,23 +136,34 @@ void rooted_tree_sample(const vector<vector<int>>& adj, int root, vector<int>& a
     };
 
     // ***** Bfs-timing-ordered list
-    vector<int> bfs_order(N), rev_bfs_order(N + 1);
+    vector<int> bfs_order(N), bfs_index(N + 1);
 
     for (int i = 0, d = 0; d < D; d++) {
         for (int u : on_depth[d]) {
-            rev_bfs_order[u] = i;
+            bfs_index[u] = i;
             bfs_order[i++] = u;
         }
     }
 
     // ***** Heavy-light decomposition
     vector<int> heavy_head(N + 1);
-    vector<int> heavy_index(N + 1);
+    vector<int> heavy_in(N + 1);
+    vector<int> heavy_out(N + 1);
     int heavy_timer = 0;
+
+    // Trick to allow subtree queries, move heavy[u] to adj[u][0] for all u
+    for (int u = 1; u <= N; u++) {
+        for (int i = 1, U = adj[u].size(); i < U; i++) {
+            if (adj[u][i] == heavy[u]) {
+                swap(adj[u][0], adj[u][i]);
+                break;
+            }
+        }
+    }
 
     y_combinator([&](auto self, int u, int h, int p) -> void {
         heavy_head[u] = h;
-        heavy_index[u] = heavy_timer++;
+        heavy_in[u] = heavy_timer++;
         if (heavy[u]) {
             self(heavy[u], h, u);
         }
@@ -149,6 +172,7 @@ void rooted_tree_sample(const vector<vector<int>>& adj, int root, vector<int>& a
                 self(v, v, u);
             }
         }
+        heavy_out[u] = heavy_timer++;
     })(root, root, 0);
 
     // Build the heavy segtree. Sample without updates.
@@ -190,31 +214,27 @@ void rooted_tree_sample(const vector<vector<int>>& adj, int root, vector<int>& a
             auto qr = self(i << 1 | 1, l, r);
             return ql + qr; // merge
         });
-        AUTO query_root_path = [&](int u, int a) { // O(log^2 N) heavy query
+        AUTO query_path = [&](int u, int v) { // O(log^2 N) heavy query
             int ans = 0;
-            while (u && depth[heavy_head[u]] <= depth[a]) {
-                auto q = query_segtree(1, heavy_index[heavy_head[u]], heavy_index[u]);
-                ans = ans + q; // merge
-                u = parent[heavy_head[u]];
+            while (heavy_head[u] != heavy_head[v]) {
+                if (depth[heavy_head[u]] > depth[heavy_head[v]]) {
+                    auto q = query_segtree(1, heavy_in[heavy_head[u]], heavy_in[u]);
+                    ans = ans + q; // merge
+                    u = parent[heavy_head[u]];
+                } else {
+                    auto q = query_segtree(1, heavy_in[heavy_head[v]], heavy_in[v]);
+                    ans = ans + q; // merge
+                    v = parent[heavy_head[v]];
+                }
             }
-            if (depth[u] >= depth[a]) {
-                auto q = query_segtree(1, heavy_index[a], heavy_index[u]);
+            if (depth[u] > depth[v]) {
+                auto q = query_segtree(1, heavy_in[v], heavy_in[u]);
+                ans = ans + q; // merge
+            } else {
+                auto q = query_segtree(1, heavy_in[u], heavy_in[v]);
                 ans = ans + q; // merge
             }
             return ans;
-        };
-        AUTO query_path = [&](int u, int v) { // O(log^2 N) heavy query
-            int a = get_lca(u, v);
-            if (a == u) {
-                return query_root_path(v, u);
-            } else if (a == v) {
-                return query_root_path(u, v);
-            } else {
-                int b = get_ancestor(v, depth[a] - depth[v] - 1);
-                auto q0 = query_root_path(u, a);
-                auto q1 = query_root_path(v, b);
-                return q0 + q1; // merge
-            }
         };
     }
 

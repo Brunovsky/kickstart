@@ -1,12 +1,8 @@
 #include <bits/stdc++.h>
-
 using namespace std;
+static_assert(sizeof(int) == 4 && sizeof(long) == 8);
 
 int main() {
-    ios::sync_with_stdio(true);
-    setbuf(stdout, nullptr);
-    cout.setf(ios::unitbuf);
-    unsigned T;
-    cin >> T;
+    ios::sync_with_stdio(true), setbuf(stdout, nullptr), cout.setf(ios::unitbuf);
     return 0;
 }

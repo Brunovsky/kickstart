@@ -12,16 +12,18 @@ from pathlib import Path
 def tryinput(str):
     try:
         return input(str).strip()
-    except EOFError as e:
+    except EOFError:
         sys.exit(0)
 
 
 def read_which():
-    which = tryinput("Type (gcpp,gint,cpp,int): ")
-    if ["gcpp", "gint", "cpp", "int"].count(which) == 0:
+    valid = ["cpp", "debug", "int", "debug-int", ""]
+    names = ["cpp", "debug", "int", "debug-int", "cpp"]
+    which = tryinput(f"Type ({','.join(valid)}): ")
+    if valid.count(which) == 0:
         print(f"Bad type name: {which}")
         return read_which()
-    return which
+    return names[valid.index(which)]
 
 
 def read_name():
@@ -53,34 +55,19 @@ def makeprob():
     root = get_repo_root()
     os.makedirs(folder, exist_ok=False)
 
-    if which == "gcpp":
-        shutil.copy(f"{root}/templates/google-cpp/code.cpp", folder)
-        shutil.copy(f"{root}/templates/google-cpp/input.txt", folder)
+    if which == "debug-cpp" or which == "cpp":
+        shutil.copy(f"{root}/templates/{which}/code.cpp", folder)
+        shutil.copy(f"{root}/templates/{which}/input.txt", folder)
         os.symlink(f"../{root}/common/cxx.make", f"{folder}/Makefile")
         subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/input.txt"])
         return
 
-    if which == "cpp":
-        shutil.copy(f"{root}/templates/cpp/code.cpp", folder)
-        shutil.copy(f"{root}/templates/cpp/input.txt", folder)
-        os.symlink(f"../{root}/common/cxx.make", f"{folder}/Makefile")
-        subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/input.txt"])
-        return
-
-    if which == "gint":
-        shutil.copy(f"{root}/templates/google-int/code.cpp", folder)
+    if which == "debug-int" or which == "int":
+        shutil.copy(f"{root}/templates/{which}/code.cpp", folder)
         os.symlink(f"../{root}/common/cxx.make", f"{folder}/Makefile")
         os.symlink(f"../{root}/common/interactive_runner.py",
                    f"{folder}/interactive_runner.py")
         subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/judge.py"])
-        return
-
-    if which == "int":
-        shutil.copy(f"{root}/templates/int/code.cpp", folder)
-        os.symlink(f"../{root}/common/cxx.make", f"{folder}/Makefile")
-        os.symlink(f"../{root}/common/interactive_runner.py",
-                   f"{folder}/interactive_runner.py")
-        subprocess.call(["code", f"{folder}/code.cpp", f"{folder}/judge.cpp"])
         return
 
     assert False
