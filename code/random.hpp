@@ -447,10 +447,10 @@ auto array_sample(const vector<T>& univ) {
  * uniformly at random from [0..i-1] and parent[0] = 0.
  * Complexity: O(n)
  */
-auto parent_sample(int n) {
-    vector<int> parent(n);
-    for (int i = 1; i < n; i++) {
-        intd dist(0, i - 1);
+auto parent_sample(int n, int zero = 0) {
+    vector<int> parent(n + zero, zero);
+    for (int i = 1 + zero; i < n + zero; i++) {
+        intd dist(zero, i - 1);
         parent[i] = dist(mt);
     }
     return parent;

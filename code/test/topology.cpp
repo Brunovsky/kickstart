@@ -63,7 +63,7 @@ void unit_test_heavy_light_decomposition() {
     assert(int(g.size()) == V - 1);
 
     auto tree = make_adjacency_lists_undirected(V, g);
-    auto [parent, depth, head, index] = build_tree_heavy_light_decomposition(tree, 0);
+    auto [parent, depth, head, tin, tout] = build_tree_heavy_light_decomposition(tree, 0);
     for (int u = 0; u < V; u++) {
         cout << (u ? " " : "       ") << setw(2) << u << " \n"[u + 1 == V];
     }
@@ -77,7 +77,10 @@ void unit_test_heavy_light_decomposition() {
         cout << (u ? " " : "  head ") << setw(2) << head[u] << " \n"[u + 1 == V];
     }
     for (int u = 0; u < V; u++) {
-        cout << (u ? " " : " index ") << setw(2) << index[u] << " \n"[u + 1 == V];
+        cout << (u ? " " : "   tin ") << setw(2) << tin[u] << " \n"[u + 1 == V];
+    }
+    for (int u = 0; u < V; u++) {
+        cout << (u ? " " : "  tout ") << setw(2) << tout[u] << " \n"[u + 1 == V];
     }
 }
 
