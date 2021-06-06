@@ -11,6 +11,7 @@ for dir in $(find . -mindepth 1 -maxdepth 4 -type d | sort); do
 		fi
 	done
 	if test "$ok" = 1; then
+		echo "=== $dir"
 		(cd "$dir" && "$@")
 	fi
 done
