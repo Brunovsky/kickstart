@@ -1,4 +1,10 @@
 # C++ template
+COMPILER := gcc
+CC := g++
+CPP_STANDARD := c++17
+EXTRA_CXXFLAGS := -lfmt
+TRACE := '::hack '
+
 export GIT_ROOT := $(shell git rev-parse --show-cdup)
 include $(GIT_ROOT)common/cxxcore.make
 

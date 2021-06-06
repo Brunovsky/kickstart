@@ -1,10 +1,4 @@
 # C++ template
-COMPILER := gcc
-CC := g++
-CPP_STANDARD := c++17
-EXTRA_CXXFLAGS := -lfmt
-TRACE := '::hack '
-
 export GIT_ROOT := $(shell git rev-parse --show-cdup)
 export CXX := $(CC) -std=$(CPP_STANDARD) -pipe -pthread -pedantic -march=native
 export VALGRIND := valgrind --show-leak-kinds=all

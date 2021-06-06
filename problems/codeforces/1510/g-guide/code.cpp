@@ -62,13 +62,13 @@ auto solve() {
     if (K > 0) {
         int i = path.size() - 1;
         while (K > 0) {
-            int u = path[i - 1], w = path[i];
-            for (int v : children[u]) {
+            int s = path[i - 1], w = path[i];
+            for (int v : children[s]) {
                 if (v != w && K != 0) {
                     int can = min(K, subsize[v]);
                     vector<int> subpath;
                     dfs_path(v, can, subpath);
-                    subpath.push_back(u);
+                    subpath.push_back(s);
                     path.insert(begin(path) + i, begin(subpath), end(subpath));
                     K -= can;
                 }
@@ -77,8 +77,8 @@ auto solve() {
         }
     }
     cout << path.size() - 1 << endl;
-    for (int u : path) {
-        cout << u << ' ';
+    for (int v : path) {
+        cout << v << ' ';
     }
     cout << endl;
 }

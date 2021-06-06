@@ -2,7 +2,7 @@
 
 declare -a FILES=('code.cpp' 'Makefile')
 
-for dir in $(find . -mindepth 1 -maxdepth 4 -type d | sort); do
+for dir in $(find * -maxdepth 3 -type d | sort -n); do
 	ok=1
 	for file in "${FILES[@]}"; do
 		if test ! -f "$dir/$file"; then
