@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eu
+
 declare -r CASE='Case #'
 declare -r TRACE='::hack '
 declare -r VALGRIND=(valgrind)
@@ -8,7 +10,7 @@ declare -r ROOT=$(git rev-parse --show-cdup)
 declare -r COMMAND="$1"
 shift
 
-function run_make { make -f "$ROOT/common/Makefile" "$@" ; }
+function run_make { make -f "$ROOT/common/Makefile" "$@" || true ; }
 
 function run_make_solver {
 	if [[ "$COMMAND" == *fast* || "$COMMAND" == *perfm* ]]; then
@@ -27,14 +29,19 @@ function run_input {
 }
 
 function run_plain {
-	"$@" ./solver | tee output.txt
+	./solver | tee output.txt
 }
 
 function run_tests {
 	for input in *.in; do
 		output=${input%in}out
 		if test -f "$output"; then
-			echo "$input" "$output"
+			grep -svP "$TRACE" "$input" | ./solver > output.txt
+			if cmp "$output" "output.txt"; then
+				echo "$input OK"
+			else
+				diff -y --minimal "$output" "output.txt" || true
+			fi
 		fi
 	done
 }
