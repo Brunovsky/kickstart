@@ -3,73 +3,41 @@ COMPILER := gcc
 CC := g++
 CPP_STANDARD := c++17
 EXTRA_CXXFLAGS := -lfmt
-TRACE := '::hack '
 
 export GIT_ROOT := $(shell git rev-parse --show-cdup)
-include $(GIT_ROOT)common/cxxcore.make
+export CXX := $(CC) -std=$(CPP_STANDARD) -pipe -pthread -pedantic -march=native
+export VALGRIND := valgrind --show-leak-kinds=all
 
-# Standard C++ problems with an input file
-.PHONY: run fast valgrind
+export USE_CLANG_LIBCPP := -stdlib=libc++
+export USE_GLIBS_DEBUG := -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
 
-run: debug
-	@grep -svP $(TRACE) input.txt | ./solver | tee output.txt
+include $(GIT_ROOT)common/cxxwarns.make
 
-fast: perfm
-	@grep -svP $(TRACE) input.txt | ./solver | tee output.txt
+export CXXFLAGS := $(WARNS) $(CXXFLAGS) $(EXTRA_CXXFLAGS)
+export OPTIM := -O3 -flto -funroll-loops -ftree-vectorize
+export DEBUG := -g -Og -ggdb $(USE_GLIBS_DEBUG)
 
-valgrind: debug
-	@grep -svP $(TRACE) input.txt | $(VALGRIND) ./solver | tee output.txt
+.PHONY: debug perfm clean dry-debug dry-perfm
 
-# Standard C++ problems without an input file (e.g. testing with kbd input)
-.PHONY: plainrun plainfast plainvalgrind
+debug: MODE := debug
+debug: CXXFLAGS += $(DEBUG)
+debug: ./solver
 
-plain: debug
-	@./solver | tee output.txt
+perfm: MODE := perfm
+perfm: CXXFLAGS += $(OPTIM)
+perfm: ./solver
 
-plainfast: fast
-	@./solver | tee output.txt
+clean::
+	@rm -f solver hacker judger core vgcore.* *.log output.txt answer.txt
 
-plainvalgrind: debug
-	@$(VALGRIND) ./solver | tee output.txt
+./solver: code.cpp
+	@echo CC ${COMPILER} ${MODE} $@
+	@$(CXX) code.cpp $(CXXFLAGS) -o $@
 
-# Interactive problems with a python judge
-.PHONY: intpy fastintpy
+./hacker: hack.cpp
+	@echo CC ${COMPILER} $@
+	@$(CXX) hack.cpp $(CXXFLAGS) $(OPTIM) -o $@
 
-intpy: debug
-	python3 interactive_runner.py ./judge.py $(ARGS) -- ./solver
-
-fastintpy: perfm
-	python3 interactive_runner.py ./judge.py $(ARGS) -- ./solver
-
-# Interactive problems with a C++ judge
-.PHONY: intcxx fastintcxx
-
-intcxx: debug ./judger
-	python3 interactive_runner.py ./judger $(ARGS) -- ./solver
-
-fastintcxx: fast ./judger
-	python3 interactive_runner.py ./judger $(ARGS) -- ./solver
-
-# Interactive problems with a testing tool
-.PHONY: inttest fastinttest
-
-inttest: debug ./judger
-	python3 ./testing_tool.py $(ARGS) ./solver
-
-fastinttest: fast ./judger
-	python3 ./testing_tool.py $(ARGS) ./solver
-
-# Other stuff
-.PHONY: casediff linediff
-
-casediff:
-	@casediff program.txt correct.txt $(ARGS)
-
-sidediff:
-	@diff -y --tabsize=4 --minimal program.txt correct.txt $(ARGS)
-
-diff:
-	@diff --unchanged-line-format="" \
-		  --old-line-format="< %dn: %L" \
-		  --new-line-format="> %dn: %L" \
-		  --minimal program.txt correct.txt $(ARGS)
+./judger: judge.cpp
+	@echo CC ${COMPILER} $@
+	@$(CXX) judge.cpp $(CXXFLAGS) $(OPTIM) -o $@

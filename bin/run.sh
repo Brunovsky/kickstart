@@ -6,30 +6,25 @@ declare -r CASE='Case #'
 declare -r TRACE='::hack '
 declare -r VALGRIND=(valgrind)
 
+declare -r PROG_NAME=$(basename "$0")
 declare -r ROOT=$(git rev-parse --show-cdup)
-declare -r COMMAND="$1"
-shift
+declare -r ACTION="${1:-run}"
+if test $# -gt 0; then shift; fi
 
-function run_make { make -f "$ROOT/common/Makefile" "$@" || true ; }
+function run_make {
+	if test -f Makefile; then # use the Makefile in pwd if there is one
+		make "$@"
+	else
+		make -sf "$ROOT/common/Makefile" "$@"
+	fi
+}
 
 function run_make_solver {
-	if [[ "$COMMAND" == *fast* || "$COMMAND" == *perfm* ]]; then
+	if [[ "$ACTION" == *fast* || "$ACTION" == *perfm* ]]; then
 		run_make perfm "$@"
 	else
 		run_make debug "$@"
 	fi
-}
-
-function run_input {
-	if test -f input.txt; then
-		grep -svP "$TRACE" input.txt | ./solver | tee output.txt
-	else
-		./solver | tee output.txt
-	fi
-}
-
-function run_plain {
-	./solver | tee output.txt
 }
 
 function run_tests {
@@ -46,11 +41,26 @@ function run_tests {
 	done
 }
 
+function run_valgrind_tests {
+	for input in *.in; do
+		output=${input%in}out
+		if test -f "$output"; then
+			grep -svP "$TRACE" "$input" | "${VALGRIND[@]}" ./solver | tee output.txt
+			if cmp "$output" "output.txt"; then
+				echo "$input OK"
+			else
+				diff -y --minimal "$output" "output.txt" || true
+			fi
+		fi
+	done
+}
+
 function main {
-	case "$COMMAND" in
+	case "$ACTION" in
 		*help*)
-			echo "Usage: $0 command [args]..." >&2
+			echo "Usage: $PROG_NAME action [args]..." >&2
 		;;
+		# Pure make commands
 		clean)
 			run_make clean
 		;;
@@ -63,33 +73,37 @@ function main {
 		rebuild)
 			run_make clean && run_make debug
 		;;
-		# Run against input.txt if it exists, or standalone if it doesn't
-		run|fast)
+		# Make and run commands
+		in*)
 			run_make_solver
-			run_input
+			grep -svP "$TRACE" input.txt | ./solver | tee output.txt
 		;;
-		plain*|standalone)
+		run*|fast*)
 			run_make_solver
-			run_plain
+			./solver
 		;;
 		test*)
 			run_make_solver
-			run_tests
+			run_tests "$@"
 		;;
-		# Run under valgrind
+		# Make and run under valgrind
 		valg|valgrind|valgfast)
 			run_make_solver
-			run_input "${VALGRIND[@]}" "$@"
+			grep -svP "$TRACE" input.txt | "${VALGRIND[@]}" ./solver | tee output.txt
 		;;
 		valgplain*)
 			run_make_solver
-			run_plain "${VALGRIND[@]}" "$@"
+			"${VALGRIND[@]}" ./solver | tee output.txt
 		;;
 		valgtest*)
 			run_make_solver
-			run_tests "${VALGRIND[@]}" "$@"
+			run_valgrind_tests
 		;;
 		# Run interactive with judge
+		judgepy*)
+			run_make_solver
+			interactive_runner ./judge.py "$@" -- ./solver
+		;;
 		judge*)
 			run_make_solver
 			interactive_runner ./judge "$@" -- ./solver
@@ -102,6 +116,10 @@ function main {
 		gen*)
 			run_make hacker
 			./hacker "$@" > input.txt
+		;;
+		*)
+			echo "Unknown action '$ACTION'"
+			exit 1
 		;;
 	esac
 }

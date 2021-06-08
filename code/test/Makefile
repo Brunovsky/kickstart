@@ -1,4 +1,5 @@
-include ../../common/cxxcore.make
+include ../../common/Makefile
+# DEBUG += $(SANIT)
 
 BIN_DIR := ./bin
 DEP_DIR := ./dep
@@ -10,7 +11,6 @@ EXE_FILES := $(CXX_FILES:%.cpp=${BIN_DIR}/%)
 DEP_FILES := $(CXX_FILES:%.cpp=${DEP_DIR}/%.d)
 
 -include $(DEP_FILES)
-DEBUG += $(SANIT)
 
 # global build
 
@@ -44,12 +44,3 @@ clean::
 # ---
 
 ./solver: $(HEADERS)
-
-run: debug
-	@./solver
-
-fast: perfm
-	@./solver
-
-valgrind: debug
-	@$(VALGRIND) ./solver

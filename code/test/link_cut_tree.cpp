@@ -64,7 +64,7 @@ auto make_actions(int N, ms runtime, const int arr[END]) {
     vector<UnrootedAction> history;
     size_t Ssum = 0, iterations = 0;
 
-    LOOP_FOR_DURATION_TRACKED(runtime, now) {
+    LOOP_FOR_DURATION_TRACKED (runtime, now) {
         print_time(now, runtime, 50ms, "preparing history (S={})...", slow.S);
 
         auto action = selector(mt);
@@ -185,7 +185,9 @@ auto make_actions(int N, ms runtime, const int arr[END]) {
     return history;
 }
 
-bool stress_verify_link_cut(slow_tree& slow, link_cut_tree_path& tree, int D = 2) {
+template <typename LCTNode>
+bool stress_verify_link_cut(slow_tree& slow, link_cut_tree_path<LCTNode>& tree,
+                            int D = 2) {
     assert(1 <= D && D <= 9);
     int N = slow.N;
 
@@ -206,7 +208,7 @@ bool stress_verify_link_cut(slow_tree& slow, link_cut_tree_path& tree, int D = 2
         shuffle(begin(order), end(order), mt);
         path[d].resize(N + 1);
         for (int u : order) {
-            path[d][u] = tree.query_path(u, above[u]);
+            path[d][u] = tree.access_path(u, above[u]).path;
         }
         if (path[d] != exp_path) {
             if (ok_path) {
@@ -222,7 +224,7 @@ bool stress_verify_link_cut(slow_tree& slow, link_cut_tree_path& tree, int D = 2
         shuffle(begin(order), end(order), mt);
         path_length[d].resize(N + 1);
         for (int u : order) {
-            path_length[d][u] = tree.path_length(u, above[u]);
+            path_length[d][u] = tree.access_path(u, above[u]).path_size;
         }
         if (path_length[d] != exp_path_length) {
             if (ok_path_length) {
@@ -237,7 +239,9 @@ bool stress_verify_link_cut(slow_tree& slow, link_cut_tree_path& tree, int D = 2
     return ok_path && ok_path_length;
 }
 
-bool stress_verify_link_cut(slow_tree& slow, link_cut_tree_subtree& tree, int D = 2) {
+template <typename LCTNode>
+bool stress_verify_link_cut(slow_tree& slow, link_cut_tree_subtree<LCTNode>& tree,
+                            int D = 2) {
     assert(1 <= D && D <= 9);
     int N = slow.N;
 
@@ -258,7 +262,7 @@ bool stress_verify_link_cut(slow_tree& slow, link_cut_tree_subtree& tree, int D 
         shuffle(begin(order), end(order), mt);
         subtree[d].resize(N + 1);
         for (int u : order) {
-            subtree[d][u] = tree.query_subtree(u, above[u]);
+            subtree[d][u] = tree.access_subtree(u, above[u]).subtree();
         }
         if (subtree[d] != exp_subtree) {
             if (ok_subtree) {
@@ -273,7 +277,7 @@ bool stress_verify_link_cut(slow_tree& slow, link_cut_tree_subtree& tree, int D 
         shuffle(begin(order), end(order), mt);
         subtree_size[d].resize(N + 1);
         for (int u : order) {
-            subtree_size[d][u] = tree.subtree_size(u, above[u]);
+            subtree_size[d][u] = tree.access_subtree(u, above[u]).subtree_size();
         }
         if (subtree_size[d] != exp_subtree_size) {
             if (ok_subtree_size) {
@@ -301,7 +305,7 @@ constexpr int stress_path_ratio_arr[END] = {
 
 void stress_test_link_cut_tree_path(int N = 200) {
     slow_tree slow(N);
-    link_cut_tree_path tree(N);
+    link_cut_tree_path<lct_node_path_sum> tree(N);
     auto actions = make_actions(N, 1s, stress_path_ratio_arr);
     deque<tuple<string, string>> states;
     bool ok = true;
@@ -336,21 +340,21 @@ void stress_test_link_cut_tree_path(int N = 200) {
         } break;
         case UPDATE_NODE: {
             slow.update_node(u, val);
-            tree.update_node(u, val);
+            tree.access_node(u).self = val;
             label = format("[{}] UPDATE {}: {}->{}", slow.S, u, slow.query_node(u), val);
         } break;
         case UPDATE_PATH: {
             slow.update_path(u, v, val);
-            tree.update_path(u, v, val);
+            tree.access_path(u, v).lazy += val;
             label = format("[{}] UPDATE PATH {}..{}: {:+}", slow.S, u, v, val);
         } break;
         case QUERY_PATH: {
-            long ans = tree.query_path(u, v);
+            long ans = tree.access_path(u, v).path;
             ok = val == ans;
             label = format("[{}] QUERY PATH {}..{}: {} / {}", slow.S, u, v, val, ans);
         } break;
         case PATH_LENGTH: {
-            long ans = tree.path_length(u, v);
+            long ans = tree.access_path(u, v).path_size;
             ok = val == ans;
             label = format("[{}] PATH LENGTH {}..{}: {} / {}", slow.S, u, v, val, ans);
         } break;
@@ -379,7 +383,7 @@ constexpr int stress_subtree_ratio_arr[END] = {
 
 void stress_test_link_cut_tree_subtree(int N = 200) {
     slow_tree slow(N);
-    link_cut_tree_subtree tree(N);
+    link_cut_tree_subtree<lct_node_subtree_sum> tree(N);
     auto actions = make_actions(N, 1s, stress_subtree_ratio_arr);
     deque<tuple<string, string>> states;
     bool ok = true;
@@ -413,7 +417,7 @@ void stress_test_link_cut_tree_subtree(int N = 200) {
         } break;
         case UPDATE_NODE: {
             slow.update_node(u, val);
-            tree.update_node(u, val);
+            tree.access_node(u).self = val;
             label = format("[{}] UPDATE {}: {}->{}", slow.S, u, slow.query_node(u), val);
         } break;
         // case UPDATE_SUBTREE: {
@@ -423,13 +427,13 @@ void stress_test_link_cut_tree_subtree(int N = 200) {
         // } break;
         case QUERY_SUBTREE: {
             assert(u != 0 && v != 0);
-            long ans = tree.query_subtree(u, v);
+            long ans = tree.access_subtree(u, v).subtree();
             ok = val == ans;
             label = format("[{}] QUERY SUBTREE {}\\{}: {} / {}", slow.S, u, v, val, ans);
         } break;
         case SUBTREE_SIZE: {
             assert(u != 0 && v != 0);
-            long ans = tree.subtree_size(u, v);
+            long ans = tree.access_subtree(u, v).subtree_size();
             ok = val == ans;
             label = format("[{}] SUBTREE SIZE {}\\{}: {} / {}", slow.S, u, v, val, ans);
         } break;
@@ -480,7 +484,7 @@ constexpr int speed_query_heavy[END] = {
 };
 
 void speed_test_link_cut_tree_path(int N, const int arr[END]) {
-    link_cut_tree_path tree(N);
+    link_cut_tree_path<lct_node_path_sum> tree(N);
     auto actions = make_actions(N, 4s, arr);
 
     START(linkcut);
@@ -503,17 +507,17 @@ void speed_test_link_cut_tree_path(int N, const int arr[END]) {
             assert(ans == r);
         } break;
         case UPDATE_NODE: {
-            tree.update_node(u, val);
+            tree.access_node(u).self = val;
         } break;
         case UPDATE_PATH: {
-            tree.update_path(u, v, val);
+            tree.access_path(u, v).lazy += val;
         } break;
         case QUERY_PATH: {
-            int ans = tree.query_path(u, v);
+            int ans = tree.access_path(u, v).path;
             assert(ans == val);
         } break;
         case PATH_LENGTH: {
-            int ans = tree.path_length(u, v);
+            int ans = tree.access_path(u, v).path_size;
             assert(ans == val);
         } break;
         default:

@@ -40,18 +40,18 @@ class CasediffErrors:
     def wrong_caseno_error(file, lineno, caseno, expected_caseno):
         print("casediff: {}:{}: expected case #{} but got #{}".format(
             file, lineno, expected_caseno, caseno),
-              file=sys.stderr)
+            file=sys.stderr)
         sys.exit(2)
 
     def caseno_count_warn(a_file, a_casenos, b_file, b_casenos):
         print("casediff: different number of cases: {} ({}) vs {} ({})".format(
             a_casenos, a_file, b_casenos, b_file),
-              file=sys.stderr)
+            file=sys.stderr)
 
     def no_cases_warn(file_a, file_b):
         print("casediff: no cases found in either {} or {}".format(
             file_a, file_b),
-              file=sys.stderr)
+            file=sys.stderr)
 
 
 class WordSplitter:
@@ -202,8 +202,8 @@ def read_as_one_case(file):
 
 def read_cases(file, pattern):
     caseno, headers, bodies, linenos = 0, [], [], []
-    if not isinstance(pattern, re.Pattern): pattern = re.compile(pattern)
-
+    if not isinstance(pattern, re.Pattern):
+        pattern = re.compile(pattern)
     try:
         with open(file, "r") as f:
             for lineno, line in enumerate(f):
@@ -253,7 +253,8 @@ def equal_lines_word(aline, bline):
 def equal_lines_numeric(aline, bline, epsilon=0):
     a_words, b_words = WordSplitter(aline), WordSplitter(bline)
     return a_words.n == b_words.n and \
-        all(equal_numeric(a[1], b[1], epsilon) for a, b in zip(a_words, b_words))
+        all(equal_numeric(a[1], b[1], epsilon)
+            for a, b in zip(a_words, b_words))
 
 
 def equal_lines(aline, bline, opts):

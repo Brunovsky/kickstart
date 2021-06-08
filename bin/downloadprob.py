@@ -149,16 +149,20 @@ def fillprob(data):
             DownloadErrors.io_error(outfile, err)
 
 
+def notnone(x, default=0):
+    return x if x is not None else default
+
+
 def downloadprob():
     args = docopt(__doc__)
 
     global TIMEOUT, TEMPLATE, ECHO, DRYRUN, NUMBER, BATCHES
-    TIMEOUT = int(args.get('--timeout') or TIMEOUT)
-    TEMPLATE = str(args.get('TEMPLATE') or TEMPLATE)
-    ECHO = bool(args.get('--echo') or False)
-    DRYRUN = bool(args.get('--dryrun') or False)
-    NUMBER = int(args.get('--number') or 0)
-    BATCHES = int(args.get('--batches') or 0)
+    TIMEOUT = int(notnone(args.get('--timeout'), TIMEOUT))
+    TEMPLATE = str(notnone(args.get('TEMPLATE'), TEMPLATE))
+    ECHO = bool(notnone(args.get('--echo'), False))
+    DRYRUN = bool(notnone(args.get('--dryrun'), False))
+    NUMBER = int(notnone(args.get('--number'), 0))
+    BATCHES = int(notnone(args.get('--batches'), 1))
 
     listen_many(fillprob)
 

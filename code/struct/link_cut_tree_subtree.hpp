@@ -4,23 +4,51 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+struct lct_node_subtree_sum {
+    int subt_size = 1; // size of splay tree below u
+    int virt_size = 0; // size of subtree below u
+    long self = 0;     // this node's value
+    long subt = 0;     // subtree aggregate ~= aggregate of splay + virtuals
+    long virt = 0;     // virtual aggregate ~= aggregate of virtuals
+    // subtree query is self + virt / subtree size query is 1 + virt_size
+
+    long subtree() const { return self + virt; }
+    int subtree_size() const { return 1 + virt_size; }
+
+    void pushdown(lct_node_subtree_sum&, lct_node_subtree_sum&) {}
+
+    void pushup(lct_node_subtree_sum& lhs, lct_node_subtree_sum& rhs) {
+        subt_size = 1 + lhs.subt_size + rhs.subt_size + virt_size;
+        subt = self + lhs.subt + rhs.subt + virt;
+    }
+
+    void add_virtual_subtree(lct_node_subtree_sum& child) {
+        virt += child.subt;
+        virt_size += child.subt_size;
+    }
+
+    void rem_virtual_subtree(lct_node_subtree_sum& child) {
+        virt -= child.subt;
+        virt_size -= child.subt_size;
+    }
+
+    void clear() { subt_size = 0; } // for 0 node
+};
+
 /**
  * Unrooted link cut tree: subtree queries + point updates.
  */
+template <typename LCTNode>
 struct link_cut_tree_subtree {
     struct Node {
         int parent = 0, child[2] = {};
-        int8_t flip = 0;   // splay tree is flipped due to reroot
-        int subt_size = 1; // size of splay tree below u
-        int virt_size = 0; // size of subtree below u
-        long self = 0;     // this node's value
-        long subt = 0;     // subtree aggregate ~= aggregate of splay + virtuals
-        long virt = 0;     // virtual aggregate ~= aggregate of virtuals
+        int8_t flip = 0; // splay tree is flipped due to reroot
+        LCTNode node;
     };
 
     vector<Node> t;
 
-    explicit link_cut_tree_subtree(int N = 0) : t(N + 1) { t[0].subt_size = 0; }
+    explicit link_cut_tree_subtree(int N = 0) : t(N + 1) { t[0].node.clear(); }
 
     // ***** Node updates
 
@@ -33,31 +61,22 @@ struct link_cut_tree_subtree {
             t[r].flip ^= 1;
             t[u].flip = 0;
         }
+        t[u].node.pushdown(t[l].node, t[r].node);
     }
 
     // Update node from splay children and virtual updates
     void pushup(int u) {
         auto [l, r] = t[u].child;
         pushdown(l), pushdown(r);
-        t[u].subt_size = 1 + t[l].subt_size + t[r].subt_size + t[u].virt_size;
-        t[u].subt = t[u].self + t[l].subt + t[r].subt + t[u].virt;
-    }
-
-    void add_virtual_subtree(int u, int child) {
-        t[u].virt += t[child].subt;
-        t[u].virt_size += t[child].subt_size;
-    }
-
-    void rem_virtual_subtree(int u, int child) {
-        t[u].virt -= t[child].subt;
-        t[u].virt_size -= t[child].subt_size;
+        t[u].node.pushup(t[l].node, t[r].node);
     }
 
     // ***** Interface
 
     void link(int u, int v) {
         reroot(u), access(v);
-        t[u].parent = v, add_virtual_subtree(v, u);
+        t[u].parent = v;
+        t[v].node.add_virtual_subtree(t[u].node);
     }
 
     void cut(int u, int v) {
@@ -85,26 +104,21 @@ struct link_cut_tree_subtree {
         return t[u].parent ? v : 0;
     }
 
-    void update_node(int u, long value) {
+    LCTNode& access_node(int u) {
         access(u);
-        t[u].self = value;
+        return t[u].node;
     }
-
-    auto query_subtree(int u, int v) {
+    LCTNode& access_subtree(int u, int v) {
         reroot(v), access(u);
-        return t[u].self + t[u].virt; // equivalent
-        // return t[u].subt - t[t[u].child[0]].subt;
+        return t[u].node;
     }
-
-    int subtree_size(int u, int v) {
-        reroot(v), access(u);
-        return 1 + t[u].virt_size; // equivalent
-        // return t[u].subt_size - t[t[u].child[0]].subt_size;
-    }
-
-    auto query_node(int u) {
+    const LCTNode& access_node(int u) const {
         access(u);
-        return t[u].self;
+        return t[u].node;
+    }
+    const LCTNode& access_subtree(int u, int v) const {
+        reroot(v), access(u);
+        return t[u].node;
     }
 
   private:
@@ -147,8 +161,8 @@ struct link_cut_tree_subtree {
         int last = 0, v = u;
         do {
             splay(v);
-            add_virtual_subtree(v, t[v].child[1]);
-            rem_virtual_subtree(v, last);
+            t[v].node.add_virtual_subtree(t[t[v].child[1]].node);
+            t[v].node.rem_virtual_subtree(t[last].node);
             t[v].child[1] = last;
             pushup(v);
             last = v, v = t[v].parent;

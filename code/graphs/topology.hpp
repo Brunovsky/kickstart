@@ -70,7 +70,6 @@ auto find_tree_diameter(const vector<vector<int>>& tree) {
 
     for (int u = 0; u < V; u++) {
         degree[u] = tree[u].size();
-        assert(degree[u] >= 1);
         if (degree[u] == 1) {
             bfs[S++] = u;
         }
@@ -87,7 +86,7 @@ auto find_tree_diameter(const vector<vector<int>>& tree) {
         }
     }
     // up to 2 centers.
-    assert(S == V && (V < 3 || dist[bfs[V - 3]] != dist[bfs[V - 1]]));
+    assert((V == 1 || S == V) && (V < 3 || dist[bfs[V - 3]] != dist[bfs[V - 1]]));
 
     vector<int> diameter;
 

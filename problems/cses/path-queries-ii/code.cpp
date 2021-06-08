@@ -1,62 +1,20 @@
-#ifndef LINK_CUT_TREE_PATH_HPP
-#define LINK_CUT_TREE_PATH_HPP
-
 #include <bits/stdc++.h>
 using namespace std;
+static_assert(sizeof(int) == 4 && sizeof(long) == 8);
 
-struct lct_node_path_sum {
-    int path_size = 1;
-    long self = 0;
-    long path = 0;
-    long lazy = 0;
+#define max3(a, b, c) max(a, max(b, c))
 
-    void pushdown(lct_node_path_sum& lhs, lct_node_path_sum& rhs) {
-        if (lazy) {
-            lhs.lazy += lazy;
-            rhs.lazy += lazy;
-            self += lazy;
-            path += lazy * path_size;
-            lazy = 0;
-        }
-    }
-
-    void pushup(lct_node_path_sum& lhs, lct_node_path_sum& rhs) {
-        path_size = 1 + lhs.path_size + rhs.path_size;
-        path = self + lhs.path + rhs.path;
-    }
-
-    void clear() { lazy = path_size = 0; } // for 0 node
-};
-
-struct lct_node_path_max {
-    int path_size = 1;
-    int self = 0;
-    int path = 0;
-
-    void pushdown(lct_node_path_max&, lct_node_path_max&) {}
-
-    void pushup(lct_node_path_max& lhs, lct_node_path_max& rhs) {
-        path_size = 1 + lhs.path_size + rhs.path_size;
-        path = max(self, max(lhs.path, rhs.path));
-    }
-
-    void clear() { path_size = 0; } // for 0 node
-};
-
-/**
- * Unrooted link cut tree: lazy path queries + path/point updates.
- */
-template <typename LCTNode>
 struct link_cut_tree_path {
     struct Node {
         int parent = 0, child[2] = {};
         int8_t flip = 0; // splay tree is flipped due to reroot
-        LCTNode node;
+        int self = 0;    // this node's value
+        int path = 0;    // path aggregate ~= aggregate of splay tree below u
     };
 
     vector<Node> t;
 
-    explicit link_cut_tree_path(int N = 0) : t(N + 1) { t[0].node.clear(); }
+    explicit link_cut_tree_path(int N = 0) : t(N + 1) {}
 
     // ***** Node updates
 
@@ -69,14 +27,13 @@ struct link_cut_tree_path {
             t[r].flip ^= 1;
             t[u].flip = 0;
         }
-        t[u].node.pushdown(t[l].node, t[r].node);
     }
 
     // Update node from splay children and virtual updates
     void pushup(int u) {
         auto [l, r] = t[u].child;
         pushdown(l), pushdown(r);
-        t[u].node.pushup(t[l].node, t[r].node);
+        t[u].path = max3(t[u].self, t[l].path, t[r].path);
     }
 
     // ***** Interface
@@ -111,21 +68,19 @@ struct link_cut_tree_path {
         return t[u].parent ? v : 0;
     }
 
-    LCTNode& access_node(int u) {
+    void update_node(int u, long value) {
         access(u);
-        return t[u].node;
+        t[u].self = value;
     }
-    LCTNode& access_path(int u, int v) {
+
+    int query_path(int u, int v) {
         reroot(u), access(v);
-        return t[v].node;
+        return t[v].path;
     }
-    const LCTNode& access_node(int u) const {
+
+    int query_node(int u) {
         access(u);
-        return t[u].node;
-    }
-    const LCTNode& access_path(int u, int v) const {
-        reroot(u), access(v);
-        return t[v].node;
+        return t[u].self;
     }
 
   private:
@@ -177,4 +132,37 @@ struct link_cut_tree_path {
     }
 };
 
-#endif // LINK_CUT_TREE_PATH_HPP
+int main() {
+    ios::sync_with_stdio(false);
+    int N, Q;
+    cin >> N >> Q;
+    link_cut_tree_path lct(N);
+    for (int u = 1, value; u <= N; u++) {
+        cin >> value;
+        lct.update_node(u, value);
+    }
+    for (int i = 1; i < N; i++) {
+        int u, v;
+        cin >> u >> v;
+        lct.link(u, v);
+    }
+    vector<int> ans;
+    for (int q = 1; q <= Q; q++) {
+        int type;
+        cin >> type;
+        if (type == 1) {
+            int s, x;
+            cin >> s >> x;
+            lct.update_node(s, x);
+        } else {
+            int a, b;
+            cin >> a >> b;
+            ans.push_back(lct.query_path(a, b));
+        }
+    }
+    int A = ans.size();
+    for (int i = 0; i < A; i++) {
+        cout << ans[i] << " \n"[i + 1 == A];
+    }
+    return 0;
+}
