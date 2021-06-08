@@ -82,7 +82,7 @@ void rooted_tree_sample(vector<vector<int>> adj, int root, vector<int> arr) {
     vector<vector<int>> up(Db, vector<int>(N + 1, 0));
     up[0] = parent;
     for (int b = 1; b < Db; b++) {
-        for (int u = 1; u < N; u++) {
+        for (int u = 1; u <= N; u++) {
             if (up[b - 1][u] != 0) {
                 up[b][u] = up[b - 1][up[b - 1][u]];
             }
@@ -90,7 +90,7 @@ void rooted_tree_sample(vector<vector<int>> adj, int root, vector<int> arr) {
     }
     AUTO get_ancestor = [&](int u, int steps) { // O(log N)
         for (int b = Db - 1; b >= 0; b--) {
-            if (steps & 1 << b) {
+            if (steps & (1 << b)) {
                 u = up[b][u];
             }
         }

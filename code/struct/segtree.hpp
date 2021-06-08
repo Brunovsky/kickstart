@@ -25,50 +25,45 @@ struct segtree {
     template <typename Arr>
     void assign(int L, int R, const Arr& arr) {
         int N = R - L;
-        node.assign(4 * N, Node());
-        update.assign(4 * N, Update());
-        has_lazy.assign(4 * N, false);
-        range.resize(4 * N);
-        build(1, L, R, arr);
+        node.assign(2 * N, Node());
+        update.assign(2 * N, Update());
+        has_lazy.assign(2 * N, false);
+        range.resize(2 * N);
+        int Q = 1 << (N > 1 ? 8 * sizeof(N) - __builtin_clz(N - 1) : 0);
+        for (int i = 0; i < N; i++) {
+            range[i + N] = {L + i, L + i + 1};
+            node[i + N] = Node(arr[L + i]);
+        }
+        rotate(begin(node) + N, begin(node) + (3 * N - Q), end(node));
+        rotate(begin(range) + N, begin(range) + (3 * N - Q), end(range));
+        for (int u = N - 1; u >= 1; u--) {
+            int cl = u << 1, cr = u << 1 | 1;
+            range[u] = {range[cl][0], range[cr][1]};
+            node[u].merge(node[cl], node[cr]);
+        }
     }
 
     void assign(int L, int R) {
         int N = R - L;
-        node.assign(4 * N, Node());
-        update.assign(4 * N, Update());
-        has_lazy.assign(4 * N, false);
-        range.resize(4 * N);
-        build(1, L, R);
+        node.assign(2 * N, Node());
+        update.assign(2 * N, Update());
+        has_lazy.assign(2 * N, false);
+        range.resize(2 * N);
+        int Q = 1 << (N > 1 ? 8 * sizeof(N) - __builtin_clz(N - 1) : 0);
+        for (int i = 0; i < N; i++) {
+            range[i + N] = {L + i, L + i + 1};
+        }
+        rotate(begin(range) + N, begin(range) + (3 * N - Q), end(range));
+        for (int u = N - 1; u >= 1; u--) {
+            int cl = u << 1, cr = u << 1 | 1;
+            range[u] = {range[cl][0], range[cr][1]};
+        }
     }
 
     auto query_range(int L, int R) { return query_range(1, L, R); }
     void update_range(int L, int R, const Update& add) { update_range(1, L, R, add); }
 
   private:
-    template <typename Arr>
-    void build(int u, int L, int R, const Arr& arr) {
-        range[u] = {L, R};
-        if (L + 1 == R) {
-            node[u] = Node(arr[L]);
-        } else {
-            int M = (L + R + 1) / 2;
-            int cl = u << 1, cr = u << 1 | 1;
-            build(cl, L, M, arr);
-            build(cr, M, R, arr);
-            node[u].merge(node[cl], node[cr]);
-        }
-    }
-
-    void build(int u, int L, int R) {
-        range[u] = {L, R};
-        if (L + 1 != R) {
-            int M = (L + R + 1) / 2;
-            int cl = u << 1, cr = u << 1 | 1;
-            build(cl, L, M);
-            build(cr, M, R);
-        }
-    }
-
     void pushdown(int u) {
         if (has_lazy[u]) {
             int cl = u << 1, cr = u << 1 | 1;

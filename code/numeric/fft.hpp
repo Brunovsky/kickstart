@@ -21,10 +21,7 @@ constexpr int DOUBLE_BREAKEVEN = 650;
 inline namespace caches {
 
 template <typename T>
-struct root_of_unity {
-    using type = T;
-    static type get(int) { throw runtime_error("Unimplemented"); }
-};
+struct root_of_unity {};
 
 template <typename D>
 struct root_of_unity<complex<D>> {
