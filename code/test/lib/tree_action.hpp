@@ -44,7 +44,11 @@ enum class UnrootedAT : int {
     END,
 };
 
-const map<UnrootedAT, string> unrooted_action_names = {
+template <typename AT>
+const map<AT, string> action_names;
+
+template <>
+const map<UnrootedAT, string> action_names<UnrootedAT> = {
     {UnrootedAT::LINK, "LINK"},
     {UnrootedAT::CUT, "CUT"},
     {UnrootedAT::LINK_CUT, "LINK_CUT"},
@@ -93,7 +97,8 @@ enum class RootedAT : int {
     END,
 };
 
-const map<RootedAT, string> rooted_action_names = {
+template <>
+const map<RootedAT, string> action_names<RootedAT> = {
     {RootedAT::LINK, "LINK"},
     {RootedAT::CUT, "CUT"},
     {RootedAT::LINK_CUT, "LINK_CUT"},
@@ -118,6 +123,22 @@ auto make_tree_action_selector(const actions_t<Type>& freq) {
     vector<int> arr(int(Type::END) + 1);
     for (auto [key, proportion] : freq) { arr[int(key)] = proportion; }
     return discrete_distribution(begin(arr), end(arr));
+}
+
+template <typename History>
+void print_occurrences(const History& history) {
+    using AT = decltype(history[0].action);
+    vector<int> occ(int(AT::END) + 1);
+    for (int i = 0, H = history.size(); i < H; i++) { occ[int(history[i].action)]++; }
+    string rows = "", line = "occ:";
+    for (int i = 0, F = occ.size(); i < F; i++) {
+        if (occ[i] > 0) {
+            string block = ' ' + action_names<AT>.at(AT(i)) + "=" + to_string(occ[i]);
+            if (line.size() + block.size() > 80) rows += line + '\n', line = "    ";
+            line += block;
+        }
+    }
+    print("{}{}\n", rows, line);
 }
 
 template <typename Type>
@@ -158,7 +179,6 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq)
     auto selector = make_tree_action_selector(freq);
 
     using Action = TreeAction<UnrootedAT>;
-    vector<int> occurrences(int(UnrootedAT::END) + 1);
     vector<Action> history;
     size_t size_sum = 0;
 
@@ -166,7 +186,6 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq)
         print_time(now, runtime, 25ms, "preparing history (S={})...", slow.S);
 
         auto action = UnrootedAT(selector(mt));
-        occurrences[int(action)]++;
 
         switch (action) {
         case UnrootedAT::LINK: {
@@ -273,7 +292,7 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq)
 
     printcl("S avg: {:.2f}\n", 1.0 * size_sum / runs);
     printcl("runs: {}\n", runs);
-    printcl("freq: {}\n", occurrences);
+    print_occurrences(history);
     return history;
 }
 
@@ -288,7 +307,6 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq) {
     auto selector = make_tree_action_selector(freq);
 
     using Action = TreeAction<RootedAT>;
-    vector<int> occurrences(int(RootedAT::END) + 1);
     vector<Action> history;
     size_t size_sum = 0;
 
@@ -296,7 +314,6 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq) {
         print_time(now, runtime, 25ms, "preparing history (S={})...", slow.S);
 
         auto action = RootedAT(selector(mt));
-        occurrences[int(action)]++;
 
         switch (action) {
         case RootedAT::LINK: {
@@ -401,7 +418,7 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq) {
 
     printcl("S avg: {:.2f}\n", 1.0 * size_sum / runs);
     printcl("runs: {}\n", runs);
-    printcl("freq: {}\n", occurrences);
+    print_occurrences(history);
     return history;
 }
 

@@ -1,5 +1,5 @@
 #include "test_utils.hpp"
-#include "../struct/splay_tree.hpp"
+#include "../struct/crtp/splay_tree.hpp"
 
 inline namespace unit_testing_splay_tree {
 
@@ -15,10 +15,8 @@ struct splay_data : splay_order<splay_data> {
     void pushdown() {
         splay_order<splay_data>::pushdown();
         if (lazy) {
-            if (child[0])
-                child[0] += lazy;
-            if (child[1])
-                child[1] += lazy;
+            if (child[0]) child[0] += lazy;
+            if (child[1]) child[1] += lazy;
             self += lazy;
             subt += lazy * size();
             lazy = 0;

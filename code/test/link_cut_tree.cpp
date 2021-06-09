@@ -31,7 +31,7 @@ bool stress_verify_link_cut(slow_tree& slow, lct_path& tree, int D = 2) {
         vector<int> order = nodes;
         shuffle(begin(order), end(order), mt);
         path[d].resize(N + 1);
-        for (int u : order) { path[d][u] = tree.access_path(u, above[u]).path; }
+        for (int u : order) { path[d][u] = tree.access_path(u, above[u])->path; }
         if (path[d] != exp_path) {
             if (ok_path) {
                 ok_path = false;
@@ -46,7 +46,7 @@ bool stress_verify_link_cut(slow_tree& slow, lct_path& tree, int D = 2) {
         shuffle(begin(order), end(order), mt);
         path_length[d].resize(N + 1);
         for (int u : order) {
-            path_length[d][u] = tree.access_path(u, above[u]).path_size;
+            path_length[d][u] = tree.access_path(u, above[u])->path_size;
         }
         if (path_length[d] != exp_path_length) {
             if (ok_path_length) {
@@ -82,7 +82,7 @@ bool stress_verify_link_cut(slow_tree& slow, lct_subtree& tree, int D = 2) {
         shuffle(begin(order), end(order), mt);
         subtree[d].resize(N + 1);
         for (int u : order) {
-            subtree[d][u] = tree.access_subtree(u, above[u]).subtree();
+            subtree[d][u] = tree.access_subtree(u, above[u])->subtree();
         }
         if (subtree[d] != exp_subtree) {
             if (ok_subtree) {
@@ -97,7 +97,7 @@ bool stress_verify_link_cut(slow_tree& slow, lct_subtree& tree, int D = 2) {
         shuffle(begin(order), end(order), mt);
         subtree_size[d].resize(N + 1);
         for (int u : order) {
-            subtree_size[d][u] = tree.access_subtree(u, above[u]).subtree_size();
+            subtree_size[d][u] = tree.access_subtree(u, above[u])->subtree_size();
         }
         if (subtree_size[d] != exp_subtree_size) {
             if (ok_subtree_size) {
@@ -159,29 +159,29 @@ void stress_test_link_cut_tree_path(int N = 200) {
             label = format("[{}] LCA {}..{}, {}: ={} ?{}", slow.S, u, v, r, who, ans);
         } break;
         case UnrootedAT::QUERY_NODE: {
-            long ans = tree.access_node(u).self;
+            long ans = tree.access_node(u)->self;
             ok = val == ans;
             label = format("[{}] QUERY {}: ={} ?{}", slow.S, u, val, ans);
         } break;
         case UnrootedAT::UPDATE_NODE: {
             long init = slow.query_node(u);
             slow.update_node(u, val);
-            tree.access_node(u).self = val;
+            tree.access_node(u)->self = val;
             label = format("[{}] UPDATE {}: {}->{}", slow.S, u, init, val);
         } break;
         case UnrootedAT::QUERY_PATH: {
-            long ans = tree.access_path(u, v).path;
+            long ans = tree.access_path(u, v)->path;
             ok = val == ans;
             label = format("[{}] QUERY PATH {}..{}: ={} ?{}", slow.S, u, v, val, ans);
         } break;
         case UnrootedAT::PATH_LENGTH: {
-            long ans = tree.access_path(u, v).path_size;
+            long ans = tree.access_path(u, v)->path_size;
             ok = val == ans;
             label = format("[{}] PATH LENGTH {}..{}: ={} ?{}", slow.S, u, v, val, ans);
         } break;
         case UnrootedAT::UPDATE_PATH: {
             slow.update_path(u, v, val);
-            tree.access_path(u, v).lazy += val;
+            tree.access_path(u, v)->lazy += val;
             label = format("[{}] UPDATE PATH {}..{}: {:+}", slow.S, u, v, val);
         } break;
         case UnrootedAT::STRESS_TEST: {
@@ -241,23 +241,23 @@ void stress_test_lct_subtree(int N = 200) {
             label = format("[{}] LCA {}..{}, {}: ={} ?{}", slow.S, u, v, r, who, ans);
         } break;
         case UnrootedAT::QUERY_NODE: {
-            long ans = tree.access_node(u).self;
+            long ans = tree.access_node(u)->self;
             ok = val == ans;
             label = format("[{}] QUERY {}: ={} ?{}", slow.S, u, val, ans);
         } break;
         case UnrootedAT::UPDATE_NODE: {
             long init = slow.query_node(u);
             slow.update_node(u, val);
-            tree.access_node(u).self = val;
+            tree.access_node(u)->self = val;
             label = format("[{}] UPDATE {}: {}->{}", slow.S, u, init, val);
         } break;
         case UnrootedAT::QUERY_SUBTREE: {
-            long ans = tree.access_subtree(u, v).subtree();
+            long ans = tree.access_subtree(u, v)->subtree();
             ok = val == ans;
             label = format("[{}] QUERY SUBTREE {}..{}: ={} ?{}", slow.S, u, v, val, ans);
         } break;
         case UnrootedAT::SUBTREE_SIZE: {
-            long ans = tree.access_subtree(u, v).subtree_size();
+            long ans = tree.access_subtree(u, v)->subtree_size();
             ok = val == ans;
             label = format("[{}] SUBTREE SIZE {}..{}: ={} ?{}", slow.S, u, v, val, ans);
         } break;
@@ -328,22 +328,22 @@ void speed_test_lct_path(int N, const actions_t<UnrootedAT>& freq) {
             ok = ans == who;
         } break;
         case UnrootedAT::QUERY_NODE: {
-            long ans = tree.access_node(u).self;
+            long ans = tree.access_node(u)->self;
             ok = val == ans;
         } break;
         case UnrootedAT::UPDATE_NODE: {
-            tree.access_node(u).self = val;
+            tree.access_node(u)->self = val;
         } break;
         case UnrootedAT::QUERY_PATH: {
-            long ans = tree.access_path(u, v).path;
+            long ans = tree.access_path(u, v)->path;
             ok = val == ans;
         } break;
         case UnrootedAT::PATH_LENGTH: {
-            long ans = tree.access_path(u, v).path_size;
+            long ans = tree.access_path(u, v)->path_size;
             ok = val == ans;
         } break;
         case UnrootedAT::UPDATE_PATH: {
-            tree.access_path(u, v).lazy += val;
+            tree.access_path(u, v)->lazy += val;
         } break;
         default:
             throw runtime_error("Unsupported action");

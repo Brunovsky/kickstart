@@ -11,7 +11,6 @@
 inline namespace ett_examples {
 
 struct ett_node_sum : splay_order<ett_node_sum> {
-    static ett_node_sum dummy;
     bool is_first = false;
     int firsts = 0;
     long self = 0;

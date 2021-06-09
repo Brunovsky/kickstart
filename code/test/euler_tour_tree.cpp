@@ -1,5 +1,6 @@
 #include "test_utils.hpp"
-#include "../struct/euler_tour_tree_crtp.hpp"
+// #include "../struct/euler_tour_tree_crtp.hpp"
+#include "../struct/euler_tour_tree.hpp"
 #include "lib/tree_action.hpp"
 
 using ett_subtree = euler_tour_tree<ett_node_sum>;
@@ -59,7 +60,7 @@ bool stress_verify_ett(slow_tree& slow, ett_subtree& tree, int D = 2) {
 inline namespace stress_testing_euler_tour_tree {
 
 actions_t<RootedAT> stress_path_ratio = {
-    {RootedAT::LINK, 2250},           {RootedAT::CUT, 750},
+    {RootedAT::LINK, 2500},           {RootedAT::CUT, 500},
     {RootedAT::LINK_CUT, 2000},       {RootedAT::LCA, 0},
     {RootedAT::FINDROOT, 0},          {RootedAT::LCA_CONN, 0},
     {RootedAT::QUERY_NODE, 2000},     {RootedAT::UPDATE_NODE, 3000},
@@ -188,7 +189,7 @@ void unit_test_euler_tour_tree() {
 inline namespace speed_testing_euler_tour_tree {
 
 actions_t<RootedAT> speed_topo_heavy = {
-    {RootedAT::LINK, 4700},           {RootedAT::CUT, 1300},
+    {RootedAT::LINK, 5000},           {RootedAT::CUT, 1000},
     {RootedAT::LINK_CUT, 4000},       {RootedAT::LCA, 0},
     {RootedAT::FINDROOT, 0},          {RootedAT::LCA_CONN, 0},
     {RootedAT::QUERY_NODE, 2000},     {RootedAT::UPDATE_NODE, 2500},
@@ -196,7 +197,7 @@ actions_t<RootedAT> speed_topo_heavy = {
     {RootedAT::SUBTREE_SIZE, 1500},
 };
 actions_t<RootedAT> speed_update_heavy = {
-    {RootedAT::LINK, 1400},           {RootedAT::CUT, 600},
+    {RootedAT::LINK, 1500},           {RootedAT::CUT, 500},
     {RootedAT::LINK_CUT, 1000},       {RootedAT::LCA, 0},
     {RootedAT::FINDROOT, 0},          {RootedAT::LCA_CONN, 0},
     {RootedAT::QUERY_NODE, 1000},     {RootedAT::UPDATE_NODE, 6000},
@@ -204,7 +205,7 @@ actions_t<RootedAT> speed_update_heavy = {
     {RootedAT::SUBTREE_SIZE, 600},
 };
 actions_t<RootedAT> speed_query_heavy = {
-    {RootedAT::LINK, 1400},           {RootedAT::CUT, 600},
+    {RootedAT::LINK, 1500},           {RootedAT::CUT, 500},
     {RootedAT::LINK_CUT, 1000},       {RootedAT::LCA, 0},
     {RootedAT::FINDROOT, 0},          {RootedAT::LCA_CONN, 0},
     {RootedAT::QUERY_NODE, 5000},     {RootedAT::UPDATE_NODE, 1200},
