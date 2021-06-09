@@ -36,18 +36,6 @@ struct slow_tree {
 
     // ***** UTILS
 
-    string format_debug() const {
-        vector<array<int, 2>> g;
-        for (int u = 1; u <= N; u++) {
-            for (int v : children[u]) {
-                g.push_back({u, v});
-            }
-        }
-        auto node_ann = [&](int u) { return format("label=\"{}\\nv={}\"", u, val[u]); };
-        auto edge_ann = [&](int, int) { return ""s; };
-        return full_dot(g, 1, N, !unrooted, node_ann, edge_ann);
-    }
-
     int random_root() const {
         int V = roots.size();
         assert(V > 0);
@@ -60,23 +48,33 @@ struct slow_tree {
         return *non_roots.find_by_order(intd(0, V - 1)(mt));
     }
 
-    int random_adjacent(int u) const {
+    int random_adjacent(int u) {
         assert(!children[u].empty() || parent[u] != 0);
         vector<int> nodes(begin(children[u]), end(children[u]));
-        if (parent[u] != 0) {
-            nodes.push_back(parent[u]);
-        }
-        int V = nodes.size();
+        if (parent[u] != 0) { children[u].insert(parent[u]); }
+        int V = children[u].size();
         assert(V > 0);
-        return nodes[intd(0, V - 1)(mt)];
+        int v = *children[u].find_by_order(intd(0, V - 1)(mt));
+        if (parent[u] != 0) { children[u].erase(parent[u]); }
+        return v;
     }
 
-    array<int, 2> random_connected() {
+    array<int, 2> random_connected_distinct() {
         int r = findroot(random_non_root());
         auto subtree = get_subtree(r);
         int V = subtree.size();
         assert(V > 1);
         auto [a, b] = different(0, V);
+        return {*next(begin(subtree), a), *next(begin(subtree), b)};
+    }
+
+    array<int, 2> random_connected() {
+        int r = random_root();
+        auto subtree = get_subtree(r);
+        int V = subtree.size();
+        assert(V > 0);
+        int a = intd(0, V - 1)(mt);
+        int b = intd(0, V - 1)(mt);
         return {*next(begin(subtree), a), *next(begin(subtree), b)};
     }
 
@@ -121,9 +119,7 @@ struct slow_tree {
         list<int> available;
         int r = findroot(u);
         for (int v : roots) {
-            if (v != r) {
-                available.splice(end(available), get_subtree(v));
-            }
+            if (v != r) { available.splice(end(available), get_subtree(v)); }
         }
         int V = available.size();
         return *next(begin(available), intd(0, V - 1)(mt));
@@ -161,9 +157,7 @@ struct slow_tree {
 
     list<int> get_path(int u, int v) {
         assert(parent[v] == 0 || unrooted);
-        if (unrooted) {
-            reroot(v);
-        }
+        if (unrooted) { reroot(v); }
         list<int> nodes = {u};
         while (u != v && u) {
             nodes.push_back(u = parent[u]);
@@ -175,9 +169,7 @@ struct slow_tree {
     auto query_node(int u) const { return val[u]; }
 
     void flip_to_child(int u, int c) {
-        if (parent[u]) {
-            flip_to_child(parent[u], u);
-        }
+        if (parent[u]) { flip_to_child(parent[u], u); }
         parent[u] = c;
         children[c].insert(u);
         children[u].erase(c);
@@ -188,23 +180,25 @@ struct slow_tree {
 
     void link(int u, int v) {
         assert(u != v && findroot(u) != findroot(v));
-        assert(unrooted || parent[u] == 0);
-        if (unrooted) {
-            reroot(u);
-        }
-        parent[u] = v, children[v].insert(u);
+        if (unrooted) reroot(u);
+        if (!unrooted && parent[u] != 0) cut(u);
+        parent[u] = v;
+        children[v].insert(u);
         roots.erase(u), non_roots.insert(u);
         S--;
     }
 
+    void cut(int u) {
+        assert(parent[u] != 0);
+        return cut(u, parent[u]);
+    }
+
     void cut(int u, int v) {
         assert(u != v);
-        if (unrooted) {
-            reroot(u);
-        }
-        assert(parent[v] == u);
-        parent[v] = 0, children[u].erase(v);
-        non_roots.erase(v), roots.insert(v);
+        if (unrooted) { reroot(v); }
+        assert(parent[u] == v);
+        parent[u] = 0, children[v].erase(u);
+        non_roots.erase(u), roots.insert(u);
         S++;
     }
 

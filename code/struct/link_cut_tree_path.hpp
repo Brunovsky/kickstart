@@ -4,6 +4,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+inline namespace lct_path_examples {
+
+/**
+ * Maintain sum of paths, with support for path range updates
+ */
 struct lct_node_path_sum {
     int path_size = 1;
     long self = 0;
@@ -20,7 +25,7 @@ struct lct_node_path_sum {
         }
     }
 
-    void pushup(lct_node_path_sum& lhs, lct_node_path_sum& rhs) {
+    void pushup(const lct_node_path_sum& lhs, const lct_node_path_sum& rhs) {
         path_size = 1 + lhs.path_size + rhs.path_size;
         path = self + lhs.path + rhs.path;
     }
@@ -28,6 +33,9 @@ struct lct_node_path_sum {
     void clear() { lazy = path_size = 0; } // for 0 node
 };
 
+/**
+ * Maintain maximum in paths without support for path range updates
+ */
 struct lct_node_path_max {
     int path_size = 1;
     int self = 0;
@@ -35,13 +43,21 @@ struct lct_node_path_max {
 
     void pushdown(lct_node_path_max&, lct_node_path_max&) {}
 
-    void pushup(lct_node_path_max& lhs, lct_node_path_max& rhs) {
+    void pushup(const lct_node_path_max& lhs, const lct_node_path_max& rhs) {
         path_size = 1 + lhs.path_size + rhs.path_size;
         path = max(self, max(lhs.path, rhs.path));
     }
 
     void clear() { path_size = 0; } // for 0 node
 };
+
+struct lct_node_path_empty {
+    void pushdown(lct_node_path_empty&, lct_node_path_empty&) {}
+    void pushup(const lct_node_path_empty&, const lct_node_path_empty&) {}
+    void clear() {}
+};
+
+} // namespace lct_path_examples
 
 /**
  * Unrooted link cut tree: lazy path queries + path/point updates.
@@ -57,9 +73,10 @@ struct link_cut_tree_path {
     vector<Node> t;
 
     explicit link_cut_tree_path(int N = 0) : t(N + 1) { t[0].node.clear(); }
+    link_cut_tree_path(const link_cut_tree_path&) = delete;
 
     // ***** Node updates
-
+  private:
     // Apply lazy updates stored at u and push them to its children
     void pushdown(int u) {
         auto& [l, r] = t[u].child;
@@ -69,7 +86,9 @@ struct link_cut_tree_path {
             t[r].flip ^= 1;
             t[u].flip = 0;
         }
-        t[u].node.pushdown(t[l].node, t[r].node);
+        if (u != 0) {
+            t[u].node.pushdown(t[l].node, t[r].node);
+        }
     }
 
     // Update node from splay children and virtual updates
@@ -80,7 +99,7 @@ struct link_cut_tree_path {
     }
 
     // ***** Interface
-
+  public:
     void link(int u, int v) {
         reroot(u); // no way to detect cycles without doing extra work
         t[u].parent = v;
@@ -116,14 +135,6 @@ struct link_cut_tree_path {
         return t[u].node;
     }
     LCTNode& access_path(int u, int v) {
-        reroot(u), access(v);
-        return t[v].node;
-    }
-    const LCTNode& access_node(int u) const {
-        access(u);
-        return t[u].node;
-    }
-    const LCTNode& access_path(int u, int v) const {
         reroot(u), access(v);
         return t[v].node;
     }

@@ -4,6 +4,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+inline namespace lct_subtree_examples {
+
+/**
+ * Maintain sum and size of subtrees
+ */
 struct lct_node_subtree_sum {
     int subt_size = 1; // size of splay tree below u
     int virt_size = 0; // size of subtree below u
@@ -17,7 +22,7 @@ struct lct_node_subtree_sum {
 
     void pushdown(lct_node_subtree_sum&, lct_node_subtree_sum&) {}
 
-    void pushup(lct_node_subtree_sum& lhs, lct_node_subtree_sum& rhs) {
+    void pushup(const lct_node_subtree_sum& lhs, const lct_node_subtree_sum& rhs) {
         subt_size = 1 + lhs.subt_size + rhs.subt_size + virt_size;
         subt = self + lhs.subt + rhs.subt + virt;
     }
@@ -35,6 +40,16 @@ struct lct_node_subtree_sum {
     void clear() { subt_size = 0; } // for 0 node
 };
 
+struct lct_node_subtree_empty {
+    void pushdown(lct_node_subtree_empty&, lct_node_subtree_empty&) {}
+    void pushup(const lct_node_subtree_empty&, const lct_node_subtree_empty&) {}
+    void add_virtual_subtree(lct_node_subtree_empty&) {}
+    void rem_virtual_subtree(lct_node_subtree_empty&) {}
+    void clear() {}
+};
+
+} // namespace lct_subtree_examples
+
 /**
  * Unrooted link cut tree: subtree queries + point updates.
  */
@@ -49,9 +64,10 @@ struct link_cut_tree_subtree {
     vector<Node> t;
 
     explicit link_cut_tree_subtree(int N = 0) : t(N + 1) { t[0].node.clear(); }
+    link_cut_tree_subtree(const link_cut_tree_subtree&) = delete;
 
     // ***** Node updates
-
+  private:
     // Apply lazy updates stored at u and push them to its children
     void pushdown(int u) {
         auto& [l, r] = t[u].child;
@@ -61,7 +77,9 @@ struct link_cut_tree_subtree {
             t[r].flip ^= 1;
             t[u].flip = 0;
         }
-        t[u].node.pushdown(t[l].node, t[r].node);
+        if (u != 0) {
+            t[u].node.pushdown(t[l].node, t[r].node);
+        }
     }
 
     // Update node from splay children and virtual updates
@@ -72,7 +90,7 @@ struct link_cut_tree_subtree {
     }
 
     // ***** Interface
-
+  public:
     void link(int u, int v) {
         reroot(u), access(v);
         t[u].parent = v;
@@ -109,14 +127,6 @@ struct link_cut_tree_subtree {
         return t[u].node;
     }
     LCTNode& access_subtree(int u, int v) {
-        reroot(v), access(u);
-        return t[u].node;
-    }
-    const LCTNode& access_node(int u) const {
-        access(u);
-        return t[u].node;
-    }
-    const LCTNode& access_subtree(int u, int v) const {
         reroot(v), access(u);
         return t[u].node;
     }
