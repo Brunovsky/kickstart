@@ -34,10 +34,18 @@ struct frac {
 
     friend bool operator==(frac a, frac b) { return a.n == b.n && a.d == b.d; }
     friend bool operator!=(frac a, frac b) { return a.n != b.n || a.d != b.d; }
-    friend bool operator<(frac a, frac b) { return a.n * b.d < b.n * a.d; }
-    friend bool operator>(frac a, frac b) { return a.n * b.d > b.n * a.d; }
-    friend bool operator<=(frac a, frac b) { return a.n * b.d <= b.n * a.d; }
-    friend bool operator>=(frac a, frac b) { return a.n * b.d >= b.n * a.d; }
+    friend bool operator<(frac a, frac b) {
+        return __int128(a.n) * b.d < __int128(b.n) * a.d;
+    }
+    friend bool operator>(frac a, frac b) {
+        return __int128(a.n) * b.d > __int128(b.n) * a.d;
+    }
+    friend bool operator<=(frac a, frac b) {
+        return __int128(a.n) * b.d <= __int128(b.n) * a.d;
+    }
+    friend bool operator>=(frac a, frac b) {
+        return __int128(a.n) * b.d >= __int128(b.n) * a.d;
+    }
 
     friend frac operator+(frac a, frac b) {
         return frac(a.n * b.d + b.n * a.d, a.d * b.d);
@@ -121,17 +129,13 @@ struct hash<frac> {
     }
 };
 
-} // namespace std
-
-namespace std {
-
 template <>
 struct numeric_limits<frac> : numeric_limits<long> {
     using base_t = numeric_limits<long>;
-    static constexpr bool is_specialized = true, is_integer = false, has_infinity = true;
+    static constexpr bool is_specialized = true, is_integral = false, has_infinity = true;
     static constexpr frac min() { return frac(1, base_t::max()); }
     static constexpr frac max() { return frac(base_t::max(), 1); }
-    static constexpr frac lowest() { return frac(base_t::min(), 1); }
+    static constexpr frac lowest() { return frac(base_t::lowest(), 1); }
     static constexpr frac epsilon() { return 0; }
     static constexpr frac infinity() { return frac(1, 0); }
 };

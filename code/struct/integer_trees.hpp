@@ -13,135 +13,93 @@ using namespace std;
  *
  * Let N be the number of existing intervals.
  * You can insert() an interval I, and it will be merged with overlapping ones.
- * 	 Complexity: O(I log N), I=#inserted intervals. O(log N) amortized.
+ * 	 Complexity: O(I log N), I=#deleted intervals. O(log N) amortized.
  *
  * You can exclude() an interval I, which will erase any existing intervals contained in
  * it and splice any intervals otherwise overlapping I (at most 2).
  *   Complexity: O(E log N), E=#deleted intervals. O(log N) amortized.
  *
- * You can toggle() and interval I, which will splice overlapping intervals (at most 2)
+ * You can toggle() an interval I, which will splice overlapping intervals (at most 2)
  * and intuitively "toggle" all of the numbers inside I and its containing intervals.
  *   Complexity: O(T log N), T=#toggled intervals. N increases by at most 1.
  */
 template <typename T>
-struct merging_interval_tree {
+struct merging_interval_tree : set<array<T, 2>> {
     using interval_t = array<T, 2>;
-    set<interval_t> tree;
+    using base_t = set<interval_t>;
 
-    merging_interval_tree() = default;
-
-    void insert(interval_t intv) {
-        assert(intv[0] < intv[1]);
-        // Lower bound
-        auto lo = tree.lower_bound({intv[0], intv[0]});
-        if (lo != tree.end() && intv[0] >= (*lo)[0]) {
+    void add(interval_t intv) {
+        auto& [L, R] = intv;
+        assert(L < R);
+        auto lo = base_t::lower_bound({L, L});
+        if (lo != base_t::end() && L >= (*lo)[0]) {
             ++lo;
         }
-        if (lo != tree.begin() && (*prev(lo))[1] >= intv[0]) {
-            intv[0] = min(intv[0], (*--lo)[0]);
+        if (lo != base_t::begin() && (*prev(lo))[1] >= L) {
+            L = min(L, (*--lo)[0]);
         }
-        // Upper bound
-        auto hi = tree.lower_bound({intv[1], intv[1]});
-        if (hi != tree.end() && intv[1] >= (*hi)[0]) {
+        auto hi = base_t::lower_bound({R, R});
+        if (hi != base_t::end() && R >= (*hi)[0]) {
             ++hi;
         }
-        if (hi != tree.begin()) {
-            intv[1] = max(intv[1], (*prev(hi))[1]);
+        if (hi != base_t::begin()) {
+            R = max(R, (*prev(hi))[1]);
         }
-        tree.erase(lo, hi);
-        tree.insert(intv);
+        base_t::erase(lo, hi);
+        base_t::insert(intv);
     }
 
     void exclude(interval_t intv) {
-        assert(intv[0] < intv[1]);
-        vector<interval_t> out;
-        // Lower bound
-        auto lo = tree.lower_bound({intv[0], intv[0]});
-        if (lo != tree.begin() && (*prev(lo))[1] >= intv[0]) {
-            out.push_back({(*--lo)[0], intv[0]});
+        auto& [L, R] = intv;
+        assert(L < R);
+        vector<interval_t> around;
+        auto lo = base_t::lower_bound({L, L});
+        if (lo != base_t::begin() && (*prev(lo))[1] >= L) {
+            around.push_back({(*--lo)[0], L});
         }
-        // Upper bound
-        auto hi = tree.lower_bound({intv[1], intv[1]});
-        if (hi != tree.begin() && (*prev(hi))[1] > intv[1]) {
-            out.push_back({intv[1], (*prev(hi))[1]});
+        auto hi = base_t::lower_bound({R, R});
+        if (hi != base_t::begin() && (*prev(hi))[1] > R) {
+            around.push_back({R, (*prev(hi))[1]});
         }
-        tree.erase(lo, hi);
-        tree.insert(out.begin(), out.end());
+        base_t::erase(lo, hi);
+        base_t::insert(around.begin(), around.end());
     }
 
-    void toggle(interval_t intv) {
-        assert(intv[0] < intv[1]);
-        vector<interval_t> out, in;
-        // Lower bound
-        auto lo = tree.lower_bound({intv[0], intv[0]});
-        if (lo != tree.begin() && (*prev(lo))[1] >= intv[0]) {
-            out.push_back({(*--lo)[0], intv[0]});
-        }
-        // Upper bound
-        auto hi = tree.lower_bound({intv[1], intv[1]});
-        if (hi != tree.begin() && (*prev(hi))[1] > intv[1]) {
-            out.push_back({intv[1], (*prev(hi))[1]});
-        } else if (hi != tree.end() && (*hi)[0] <= intv[1]) {
-            out.push_back({intv[1], (*hi++)[1]});
-        }
-        // Generate intermediate intervals
-        T cur = intv[0];
-        for (auto it = lo; it != hi; ++it) {
-            auto [a, b] = *it;
-            if (cur < a) {
-                in.push_back({cur, a});
-            }
-            cur = max(cur, b);
-        }
-        if (cur < intv[1]) {
-            in.push_back({cur, intv[1]});
-        }
-        int s = out.size(), t = in.size();
-        if (s && t && out[0][0] <= in[0][0] && in[0][0] <= out[0][1]) {
-            in[0][0] = min(in[0][0], out[0][0]);
-            out.erase(out.begin()), s--;
-        }
-        if (s && t && out[s - 1][0] <= in[t - 1][1] && in[t - 1][1] <= out[s - 1][1]) {
-            in[t - 1][1] = max(in[t - 1][1], out[s - 1][1]);
-            out.erase(out.begin() + (s - 1));
-        }
-        tree.erase(lo, hi);
-        tree.insert(out.begin(), out.end());
-        tree.insert(in.begin(), in.end());
-    }
-
-    bool contains(T num) const {
-        auto it = tree.lower_bound({num, num});
-        if (it != tree.end() && num >= (*it)[0]) {
-            return true;
-        } else if (it != tree.begin()) {
-            return (*prev(it))[0] <= num && num < (*prev(it))[1];
+    optional<interval_t> get_interval(T num) const {
+        auto it = base_t::lower_bound({num, num});
+        if (it != base_t::end() && num >= (*it)[0]) {
+            return *it;
+        } else if (it != base_t::begin() && (*prev(it))[0] <= num &&
+                   num < (*prev(it))[1]) {
+            return *prev(it);
         } else {
-            return false;
+            return nullopt;
         }
+    }
+
+    bool contains(T num) const { return get_interval(num).has_value(); }
+
+    bool contains(interval_t intv) const {
+        auto wrap = get_interval(intv[0]);
+        return wrap.has_value() && (*wrap)[1] >= intv[1];
+    }
+
+    bool overlaps(interval_t intv) const {
+        auto lo = base_t::lower_bound({intv[0], intv[0]});
+        if (lo == base_t::end() || (*lo)[0] >= intv[1]) {
+            if (lo == base_t::begin() || (*--lo)[1] <= intv[0]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     T cover_length() const {
         T sum = 0;
-        for (const auto& [lo, hi] : tree) {
+        for (const auto& [lo, hi] : *this) {
             sum += hi - lo;
         }
         return sum;
-    }
-
-    bool empty() const { return tree.empty(); }
-    int size() const { return tree.size(); }
-
-    auto begin() const { return tree.begin(); }
-    auto end() const { return tree.end(); }
-    auto rbegin() const { return tree.rbegin(); }
-    auto rend() const { return tree.rend(); }
-
-    friend string to_string(const merging_interval_tree& mit) {
-        return to_string(mit.tree);
-    }
-    friend ostream& operator<<(ostream& out, const merging_interval_tree& mit) {
-        return out << mit.tree;
     }
 };
 

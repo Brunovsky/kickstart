@@ -1,5 +1,6 @@
 #include "test_utils.hpp"
 #include "../struct/integer_trees.hpp"
+#include "../struct/dynamic_cht.hpp"
 
 inline namespace detail {
 
@@ -25,6 +26,21 @@ bool verify(const merging_interval_tree<T>& mit) {
 
 inline namespace unit_testing_interval_tree {
 
+void unit_test_dynamic_cht() {
+    dynamic_cht<long> cht;
+    cht.add(2, -3);
+    cht.add(4, -70);
+    cht.add(-20, -500);
+    cht.add(-5, -100);
+    cht.add(-8, -200);
+    cht.add(10, -100);
+    cht.add(-1, 100);
+    cout << cht.size() << endl;
+    for (auto [m, b, end] : cht) {
+        print("({}, {}, {})\n", m, b, end);
+    }
+}
+
 void unit_test_merging_interval_tree() {
     merging_interval_tree<int> tree;
 
@@ -44,21 +60,6 @@ void unit_test_merging_interval_tree() {
     print("tree: {}\n", tree);
     tree.exclude({70, 110});
     print("tree: {}\n", tree);
-    tree.toggle({60, 70});
-    print("tree: {}\n", tree);
-    tree.toggle({135, 140});
-    print("tree: {}\n", tree);
-    tree.toggle({70, 155});
-    print("tree: {}\n", tree);
-
-    tree.toggle({25, 50});
-    print("tree: {}\n", tree);
-    tree.toggle({50, 65});
-    print("tree: {}\n", tree);
-    tree.toggle({65, 70});
-    print("tree: {}\n", tree);
-    tree.toggle({115, 140});
-    print("tree: {}\n", tree);
 
     print("cover: {}\n", tree.cover_length());
 }
@@ -70,13 +71,27 @@ inline namespace stress_testing_interval_tree {
 enum MergingAction {
     INSERT,
     EXCLUDE,
-    TOGGLE,
     CONTAINS,
+    CONTAINS_INTERVAL,
+    OVERLAPS_INTERVAL,
     COVER_LENGTH,
     END,
 };
 
-constexpr int arr[END] = {100, 100, 400, 1000, 200};
+constexpr int arr[END] = {200, 200, 500, 200, 200, 150};
+
+bool set_overlaps(const set<int>& nums, int lo, int hi) {
+    auto it = nums.lower_bound(lo);
+    return it != nums.end() && *it < hi;
+}
+
+bool set_contains(const set<int>& nums, int lo, int hi) {
+    auto it0 = nums.lower_bound(lo);
+    auto it1 = nums.lower_bound(hi - 1);
+    return it0 != nums.end() && *it0 == lo &&     //
+           it1 != nums.end() && *it1 == hi - 1 && //
+           distance(it0, it1) == hi - lo - 1;
+}
 
 void stress_test_merging_interval_tree(int N = 100'000, int k = 200) {
     intd numd(0, N);
@@ -87,8 +102,8 @@ void stress_test_merging_interval_tree(int N = 100'000, int k = 200) {
     set<int> nums;
     merging_interval_tree<int> mit;
 
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED(10s, now, 400'000, runs) {
-        print_time(now, 10s, 50ms, "stress test merging interval tree {:7} {:3}",
+    LOOP_FOR_DURATION_TRACKED_RUNS (4s, now, runs) {
+        print_time(now, 4s, 50ms, "stress test merging interval tree {:7} {:3}",
                    nums.size(), mit.size());
 
         auto action = MergingAction(actiond(mt));
@@ -97,7 +112,7 @@ void stress_test_merging_interval_tree(int N = 100'000, int k = 200) {
         case INSERT: {
             int lo = rang(mt);
             int hi = lo + lend(mt);
-            mit.insert({lo, hi});
+            mit.add({lo, hi});
             auto it = nums.lower_bound(hi);
             for (int n = hi - 1; n >= lo; n--) {
                 it = nums.insert(it, n);
@@ -111,26 +126,19 @@ void stress_test_merging_interval_tree(int N = 100'000, int k = 200) {
             auto it1 = nums.lower_bound(hi);
             nums.erase(it0, it1);
         } break;
-        case TOGGLE: {
-            int lo = rang(mt);
-            int hi = lo + lend(mt);
-            mit.toggle({lo, hi});
-            auto it0 = nums.lower_bound(lo);
-            auto it1 = nums.lower_bound(hi);
-            vector<int> exists(it0, it1);
-            nums.erase(it0, it1);
-            auto it = nums.end();
-            for (int E = exists.size(), i = E - 1, n = hi - 1; n >= lo; n--) {
-                if (i >= 0 && exists[i] == n) {
-                    i--;
-                } else {
-                    it = nums.insert(it, n);
-                }
-            }
-        } break;
         case CONTAINS: {
             int n = numd(mt);
             assert(mit.contains(n) == nums.count(n));
+        } break;
+        case CONTAINS_INTERVAL: {
+            int lo = rang(mt);
+            int hi = lo + lend(mt);
+            assert(mit.contains({lo, hi}) == set_contains(nums, lo, hi));
+        } break;
+        case OVERLAPS_INTERVAL: {
+            int lo = rang(mt);
+            int hi = lo + lend(mt);
+            assert(mit.overlaps({lo, hi}) == set_overlaps(nums, lo, hi));
         } break;
         case COVER_LENGTH: {
             assert(mit.cover_length() == int(nums.size()));
@@ -147,6 +155,7 @@ void stress_test_merging_interval_tree(int N = 100'000, int k = 200) {
 } // namespace stress_testing_interval_tree
 
 int main() {
+    RUN_SHORT(unit_test_dynamic_cht());
     RUN_SHORT(unit_test_merging_interval_tree());
     RUN_BLOCK(stress_test_merging_interval_tree(3000, 50));
     RUN_BLOCK(stress_test_merging_interval_tree(100'000, 500));
