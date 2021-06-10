@@ -71,10 +71,12 @@ actions_t<RootedAT> stress_path_ratio = {
 void stress_test_euler_tour_tree(int N = 200) {
     slow_tree slow(N, true);
     ett_subtree tree(N);
-    auto actions = make_rooted_actions(N, 1s, stress_path_ratio);
+    auto actions = make_rooted_actions(N, 400ms, stress_path_ratio, 9 * N / 10);
     bool ok = true;
 
-    for (const auto& [action, u, v, r, w, val] : actions) {
+    for (int ia = 0, A = actions.size(); ia < A; ia++) {
+        print_regular(ia, A, 1000, "stress test euler tour tree");
+        auto [action, u, v, r, who, val] = actions[ia];
         string label;
 
         switch (action) {
@@ -215,7 +217,7 @@ actions_t<RootedAT> speed_query_heavy = {
 
 void speed_test_euler_tour_tree(int N, const actions_t<RootedAT>& freq) {
     ett_subtree tree(N);
-    auto actions = make_rooted_actions(N, 4s, freq);
+    auto actions = make_rooted_actions(N, 10s, freq, N - 100);
 
     START(ett);
     for (const auto& [action, u, v, r, w, val] : actions) {
@@ -269,8 +271,8 @@ void speed_test_euler_tour_tree(int N, const actions_t<RootedAT>& freq) {
 int main() {
     RUN_SHORT(unit_test_euler_tour_tree());
     RUN_BLOCK(stress_test_euler_tour_tree());
-    RUN_BLOCK(speed_test_euler_tour_tree(2500, speed_query_heavy));
-    RUN_BLOCK(speed_test_euler_tour_tree(2500, speed_update_heavy));
-    RUN_BLOCK(speed_test_euler_tour_tree(2500, speed_topo_heavy));
+    RUN_BLOCK(speed_test_euler_tour_tree(25000, speed_query_heavy));
+    RUN_BLOCK(speed_test_euler_tour_tree(25000, speed_update_heavy));
+    RUN_BLOCK(speed_test_euler_tour_tree(25000, speed_topo_heavy));
     return 0;
 }

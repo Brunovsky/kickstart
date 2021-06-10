@@ -167,7 +167,8 @@ struct TreeAction {
     }
 };
 
-auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq) {
+auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
+                           int initial_links = 0) {
     constexpr long minvalue = 1, maxvalue = 500;
     constexpr long mindelta = -200, maxdelta = 200;
     intd noded(1, N);
@@ -181,6 +182,14 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq)
     using Action = TreeAction<UnrootedAT>;
     vector<Action> history;
     size_t size_sum = 0;
+
+    initial_links = min(initial_links, N - 1);
+    while (initial_links--) {
+        auto [u, v] = slow.random_unconnected();
+        if (coind(mt)) swap(u, v);
+        slow.link(u, v);
+        history.emplace_back(Action::uv(UnrootedAT::LINK, u, v));
+    }
 
     LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
         print_time(now, runtime, 25ms, "preparing history (S={})...", slow.S);
@@ -296,7 +305,8 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq)
     return history;
 }
 
-auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq) {
+auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq,
+                         int initial_links = 0) {
     constexpr long minvalue = 1, maxvalue = 500;
     constexpr long mindelta = -200, maxdelta = 200;
     intd noded(1, N);
@@ -309,6 +319,14 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq) {
     using Action = TreeAction<RootedAT>;
     vector<Action> history;
     size_t size_sum = 0;
+
+    initial_links = min(initial_links, N - 1);
+    while (initial_links--) {
+        auto [u, v] = slow.random_unconnected();
+        u = slow.findroot(u);
+        slow.link(u, v);
+        history.emplace_back(Action::uv(RootedAT::LINK, u, v));
+    }
 
     LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
         print_time(now, runtime, 25ms, "preparing history (S={})...", slow.S);

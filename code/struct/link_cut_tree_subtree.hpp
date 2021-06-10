@@ -112,6 +112,8 @@ struct link_cut_tree_subtree {
         return t[u].parent ? v : 0;
     }
 
+    bool conn(int u, int v) { return lca(u, v) != 0; }
+
     LCTNode* access_node(int u) {
         access(u);
         return &t[u].node;

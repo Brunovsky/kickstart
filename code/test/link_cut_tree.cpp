@@ -116,8 +116,8 @@ bool stress_verify_link_cut(slow_tree& slow, lct_subtree& tree, int D = 2) {
 inline namespace stress_testing {
 
 actions_t<UnrootedAT> stress_path_ratio = {
-    {UnrootedAT::LINK, 2250},        {UnrootedAT::CUT, 750},
-    {UnrootedAT::LINK_CUT, 2000},    {UnrootedAT::FINDROOT, 1000},
+    {UnrootedAT::LINK, 1500},        {UnrootedAT::CUT, 300},
+    {UnrootedAT::LINK_CUT, 1200},    {UnrootedAT::FINDROOT, 1000},
     {UnrootedAT::LCA, 500},          {UnrootedAT::LCA_CONN, 1000},
     {UnrootedAT::QUERY_NODE, 2000},  {UnrootedAT::UPDATE_NODE, 1500},
     {UnrootedAT::UPDATE_PATH, 3500}, {UnrootedAT::QUERY_PATH, 3500},
@@ -127,10 +127,12 @@ actions_t<UnrootedAT> stress_path_ratio = {
 void stress_test_link_cut_tree_path(int N = 200) {
     slow_tree slow(N, false);
     lct_path tree(N);
-    auto actions = make_unrooted_actions(N, 1s, stress_path_ratio);
+    auto actions = make_unrooted_actions(N, 400ms, stress_path_ratio, N - 100);
     bool ok = true;
 
-    for (const auto& [action, u, v, r, who, val] : actions) {
+    for (int ia = 0, A = actions.size(); ia < A; ia++) {
+        print_regular(ia, A, 1000, "stress test lct subtree");
+        auto [action, u, v, r, who, val] = actions[ia];
         string label;
 
         switch (action) {
@@ -198,8 +200,8 @@ void stress_test_link_cut_tree_path(int N = 200) {
 }
 
 actions_t<UnrootedAT> stress_subtree_ratio = {
-    {UnrootedAT::LINK, 2250},         {UnrootedAT::CUT, 750},
-    {UnrootedAT::LINK_CUT, 2000},     {UnrootedAT::FINDROOT, 1000},
+    {UnrootedAT::LINK, 1500},         {UnrootedAT::CUT, 300},
+    {UnrootedAT::LINK_CUT, 1200},     {UnrootedAT::FINDROOT, 1000},
     {UnrootedAT::LCA, 500},           {UnrootedAT::LCA_CONN, 1000},
     {UnrootedAT::QUERY_NODE, 2000},   {UnrootedAT::UPDATE_NODE, 5000},
     {UnrootedAT::UPDATE_SUBTREE, 0},  {UnrootedAT::QUERY_SUBTREE, 3500},
@@ -209,10 +211,12 @@ actions_t<UnrootedAT> stress_subtree_ratio = {
 void stress_test_lct_subtree(int N = 200) {
     slow_tree slow(N, false);
     lct_subtree tree(N);
-    auto actions = make_unrooted_actions(N, 1s, stress_subtree_ratio);
+    auto actions = make_unrooted_actions(N, 400ms, stress_subtree_ratio, 9 * N / 10);
     bool ok = true;
 
-    for (const auto& [action, u, v, r, who, val] : actions) {
+    for (int ia = 0, A = actions.size(); ia < A; ia++) {
+        print_regular(ia, A, 1000, "stress test lct subtree");
+        auto [action, u, v, r, who, val] = actions[ia];
         string label;
 
         switch (action) {
@@ -279,7 +283,7 @@ void stress_test_lct_subtree(int N = 200) {
 inline namespace speed_testing {
 
 actions_t<UnrootedAT> speed_topo_heavy = {
-    {UnrootedAT::LINK, 4700},        {UnrootedAT::CUT, 1300},
+    {UnrootedAT::LINK, 5000},        {UnrootedAT::CUT, 1000},
     {UnrootedAT::LINK_CUT, 4000},    {UnrootedAT::FINDROOT, 1000},
     {UnrootedAT::LCA, 800},          {UnrootedAT::LCA_CONN, 1200},
     {UnrootedAT::QUERY_NODE, 2000},  {UnrootedAT::UPDATE_NODE, 2500},
@@ -287,16 +291,16 @@ actions_t<UnrootedAT> speed_topo_heavy = {
     {UnrootedAT::PATH_LENGTH, 1500},
 };
 actions_t<UnrootedAT> speed_update_heavy = {
-    {UnrootedAT::LINK, 1400},        {UnrootedAT::CUT, 600},
-    {UnrootedAT::LINK_CUT, 1000},    {UnrootedAT::FINDROOT, 1000},
+    {UnrootedAT::LINK, 1500},        {UnrootedAT::CUT, 300},
+    {UnrootedAT::LINK_CUT, 1200},    {UnrootedAT::FINDROOT, 1000},
     {UnrootedAT::LCA, 800},          {UnrootedAT::LCA_CONN, 1200},
     {UnrootedAT::QUERY_NODE, 1000},  {UnrootedAT::UPDATE_NODE, 6000},
     {UnrootedAT::UPDATE_PATH, 8000}, {UnrootedAT::QUERY_PATH, 2400},
     {UnrootedAT::PATH_LENGTH, 600},
 };
 actions_t<UnrootedAT> speed_query_heavy = {
-    {UnrootedAT::LINK, 1400},        {UnrootedAT::CUT, 600},
-    {UnrootedAT::LINK_CUT, 1000},    {UnrootedAT::FINDROOT, 1000},
+    {UnrootedAT::LINK, 1500},        {UnrootedAT::CUT, 300},
+    {UnrootedAT::LINK_CUT, 1200},    {UnrootedAT::FINDROOT, 1000},
     {UnrootedAT::LCA, 800},          {UnrootedAT::LCA_CONN, 1200},
     {UnrootedAT::QUERY_NODE, 5000},  {UnrootedAT::UPDATE_NODE, 1200},
     {UnrootedAT::UPDATE_PATH, 1800}, {UnrootedAT::QUERY_PATH, 10000},
@@ -305,7 +309,7 @@ actions_t<UnrootedAT> speed_query_heavy = {
 
 void speed_test_lct_path(int N, const actions_t<UnrootedAT>& freq) {
     lct_path tree(N);
-    auto actions = make_unrooted_actions(N, 4s, freq);
+    auto actions = make_unrooted_actions(N, 10s, freq, N - 100);
 
     START(linkcut);
     for (const auto& [action, u, v, r, who, val] : actions) {
@@ -360,8 +364,8 @@ int main() {
     setbuf(stdout, nullptr);
     RUN_SHORT(stress_test_lct_subtree());
     RUN_SHORT(stress_test_link_cut_tree_path());
-    RUN_SHORT(speed_test_lct_path(2500, speed_query_heavy));
-    RUN_SHORT(speed_test_lct_path(2500, speed_update_heavy));
-    RUN_SHORT(speed_test_lct_path(2500, speed_topo_heavy));
+    RUN_SHORT(speed_test_lct_path(25000, speed_query_heavy));
+    RUN_SHORT(speed_test_lct_path(25000, speed_update_heavy));
+    RUN_SHORT(speed_test_lct_path(25000, speed_topo_heavy));
     return 0;
 }
