@@ -88,7 +88,6 @@ struct euler_tour_tree {
             root = ett_node::join(root, ett_node::join(&first[u], &last[u]));
         }
     }
-    euler_tour_tree(const euler_tour_tree&) = delete;
 
     // relink u as a child of v. u does not need to be a root (no need to cut it first)
     void link(int u, int v) {

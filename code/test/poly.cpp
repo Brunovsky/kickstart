@@ -49,12 +49,9 @@ void unit_test_2() {
     print("gcd(a, b) = {}\n", gcd(a, b));
 
     poly u(1, 1), v(1, 1), g(1, 1);
-    for (int root : {1, 2, 3, 4, 5, 6})
-        u *= polyroot(root);
-    for (int root : {2, 6, 7, 8})
-        v *= polyroot(root);
-    for (int root : {2, 6})
-        g *= polyroot(root);
+    for (int root : {1, 2, 3, 4, 5, 6}) u *= polyroot(root);
+    for (int root : {2, 6, 7, 8}) v *= polyroot(root);
+    for (int root : {2, 6}) g *= polyroot(root);
 
     print("gcd(u,v) = {}\n", gcd(u, v));
     print("g = {}\n", g);
@@ -68,14 +65,25 @@ void unit_test_2() {
 
 void unit_test_multieval() {
     constexpr int N = 23;
-    poly a = {1, 3, 3, 1}; // (x+1)^3
     vector<num> x(N);
     iota(begin(x), end(x), 0);
 
+    poly a = {1, 3, 3, 1}; // (x+1)^3
+
     auto val = multieval(a, x);
-    for (int i = 0; i < N; i++) {
-        assert(val[i] == eval(a, x[i]));
-    }
+    for (int i = 0; i < N; i++) { assert(val[i] == eval(a, x[i])); }
+}
+
+void unit_test_interpolate() {
+    constexpr int N = 6;
+    vector<num> x(N);
+    iota(begin(x), end(x), 1);
+
+    poly a = {1, 4, 9, 16, 25, 36};
+    print("interpolate({}) = {}\n", a, interpolate(x, a));
+
+    poly b = {1, 8, 27, 64, 125, 216};
+    print("interpolate({}) = {}\n", b, interpolate(x, b));
 }
 
 } // namespace unit_testing_poly
@@ -83,7 +91,7 @@ void unit_test_multieval() {
 inline namespace stress_testing_poly {
 
 void stress_test_division() {
-    LOOP_FOR_DURATION_TRACKED_RUNS(2s, now, runs) {
+    LOOP_FOR_DURATION_TRACKED_RUNS (2s, now, runs) {
         print_time(now, 2s, 50ms, "stress test poly division ({} runs)", runs);
 
         auto [B, A] = different(10, 500);
@@ -114,19 +122,26 @@ void speed_test_multieval() {
         auto tree = build_multieval_tree(x);
 
         START_ACC(multieval);
+        START_ACC(naive);
 
-        LOOP_FOR_DURATION_OR_RUNS_TRACKED(1s, now, 1000, runs) {
+        LOOP_FOR_DURATION_OR_RUNS_TRACKED (1s, now, 1000, runs) {
             print_time(now, 1s, 50ms, "speed test multipoint eval");
 
-            auto a = uniform_gen_many<int, num>(N, 1, 100'000);
+            auto poly = uniform_gen_many<int, num>(N, 1, 100'000);
 
             START(multieval);
-            auto v = multieval(a, tree);
+            auto v = multieval(poly, tree);
             ADD_TIME(multieval);
+
+            START(naive);
+            vector<num> ans(N);
+            for (int i = 0; i < N; i++) ans[i] = eval(poly, x[i]);
+            ADD_TIME(naive);
         }
 
         printcl("multipoint eval N={}\n", N);
         PRINT_EACH_MS(multieval, runs);
+        PRINT_EACH_MS(naive, runs);
     }
 }
 
@@ -136,7 +151,7 @@ void speed_test_inverse_series() {
     for (int N = 8; N <= max_N; N *= 2) {
         START_ACC(inverse);
 
-        LOOP_FOR_DURATION_OR_RUNS_TRACKED(1s, now, 1000, runs) {
+        LOOP_FOR_DURATION_OR_RUNS_TRACKED (1s, now, 1000, runs) {
             print_time(now, 1s, 50ms, "speed test inverse series");
 
             auto a = uniform_gen_many<int, num>(N, 1, 100'000);
@@ -157,6 +172,7 @@ int main() {
     RUN_SHORT(unit_test_1());
     RUN_SHORT(unit_test_2());
     RUN_SHORT(unit_test_multieval());
+    RUN_SHORT(unit_test_interpolate());
     RUN_BLOCK(stress_test_division());
     RUN_BLOCK(speed_test_multieval());
     RUN_BLOCK(speed_test_inverse_series());

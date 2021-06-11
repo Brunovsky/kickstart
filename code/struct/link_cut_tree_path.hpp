@@ -69,7 +69,6 @@ struct link_cut_tree_path {
     vector<Node> t;
 
     explicit link_cut_tree_path(int N = 0) : t(N + 1) { t[0].node.clear(); }
-    link_cut_tree_path(const link_cut_tree_path&) = delete;
 
     // ***** Node updates
   private:
@@ -92,15 +91,18 @@ struct link_cut_tree_path {
 
     // ***** Interface
   public:
-    void link(int u, int v) {
-        reroot(u); // no way to detect cycles without doing extra work
+    bool link(int u, int v) {
+        reroot(u), access(v); // no way to detect cycles without doing extra work
+        if (t[u].parent) return false;
         t[u].parent = v;
+        return true;
     }
 
-    void cut(int u, int v) {
+    bool cut(int u, int v) {
         reroot(u), access(v);
-        assert(t[u].parent == v && !t[u].child[1] && u == t[v].child[0]); // no edge!
+        if (!t[u].parent || t[u].child[1] || u != t[v].child[0]) return false;
         t[u].parent = t[v].child[0] = 0;
+        return true;
     }
 
     void reroot(int u) {

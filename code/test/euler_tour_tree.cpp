@@ -62,7 +62,7 @@ inline namespace stress_testing_euler_tour_tree {
 actions_t<RootedAT> stress_path_ratio = {
     {RootedAT::LINK, 2500},           {RootedAT::CUT, 500},
     {RootedAT::LINK_CUT, 2000},       {RootedAT::LCA, 0},
-    {RootedAT::FINDROOT, 0},          {RootedAT::LCA_CONN, 0},
+    {RootedAT::FINDROOT, 1500},       {RootedAT::LCA_CONN, 0},
     {RootedAT::QUERY_NODE, 2000},     {RootedAT::UPDATE_NODE, 3000},
     {RootedAT::UPDATE_SUBTREE, 3500}, {RootedAT::QUERY_SUBTREE, 3500},
     {RootedAT::SUBTREE_SIZE, 1500},   {RootedAT::STRESS_TEST, 400},
@@ -90,17 +90,15 @@ void stress_test_euler_tour_tree(int N = 200) {
             tree.cut(u);
             label = format("[{}] CUT {}", slow.S, u);
         } break;
-        // case RootedAT::FINDROOT: {
-        //     tree.reroot(r);
-        //     slow.reroot(r);
-        //     int ans = tree.findroot(u);
-        //     ok = ans == r;
-        //     label = format("[{}] FINDROOT {}: ={} ?{}\n", slow.S, u, r, ans);
-        // } break;
+        case RootedAT::FINDROOT: {
+            int ans = tree.findroot(u);
+            ok = ans == who;
+            label = format("[{}] FINDROOT {}: ={} ?{}\n", slow.S, u, who, ans);
+        } break;
         // case RootedAT::LCA: {
         //     int ans = tree.lca(u, v);
-        //     label = format("[{}] LCA {}..{}, {}: ={} ?{}", slow.S, u, v, r, w, ans);
-        //     ok = ans == w;
+        //     ok = who == ans;
+        //     label = format("[{}] LCA {}..{}: ={} ?{}", slow.S, u, v, who, ans);
         // } break;
         case RootedAT::QUERY_NODE: {
             long ans = tree.access_node(u)->self;
@@ -135,7 +133,7 @@ void stress_test_euler_tour_tree(int N = 200) {
         default:
             throw runtime_error("Unsupported action");
         }
-
+        if (!ok) { printcl("Failed action: {}\n", action_names<RootedAT>.at(action)); }
         assert(ok);
     }
 
@@ -149,7 +147,7 @@ inline namespace unit_testing_euler_tour_tree {
 void unit_test_euler_tour_tree() {
     ett_subtree ett(10);
     auto test_in_subtree = [&](int u, int v) {
-        print("in_subtree({},{}): {}\n", u, v, ett.in_subtree(u, v));
+        print("is_descendant({},{}): {}\n", u, v, ett.is_descendant(u, v));
     };
     auto test_subtree = [&](int u) {
         print("subtree({}): {}\n", u, ett.access_subtree(u)->subtree());
@@ -193,7 +191,7 @@ inline namespace speed_testing_euler_tour_tree {
 actions_t<RootedAT> speed_topo_heavy = {
     {RootedAT::LINK, 5000},           {RootedAT::CUT, 1000},
     {RootedAT::LINK_CUT, 4000},       {RootedAT::LCA, 0},
-    {RootedAT::FINDROOT, 0},          {RootedAT::LCA_CONN, 0},
+    {RootedAT::FINDROOT, 1500},       {RootedAT::LCA_CONN, 0},
     {RootedAT::QUERY_NODE, 2000},     {RootedAT::UPDATE_NODE, 2500},
     {RootedAT::UPDATE_SUBTREE, 2500}, {RootedAT::QUERY_SUBTREE, 3500},
     {RootedAT::SUBTREE_SIZE, 1500},
@@ -201,7 +199,7 @@ actions_t<RootedAT> speed_topo_heavy = {
 actions_t<RootedAT> speed_update_heavy = {
     {RootedAT::LINK, 1500},           {RootedAT::CUT, 500},
     {RootedAT::LINK_CUT, 1000},       {RootedAT::LCA, 0},
-    {RootedAT::FINDROOT, 0},          {RootedAT::LCA_CONN, 0},
+    {RootedAT::FINDROOT, 1500},       {RootedAT::LCA_CONN, 0},
     {RootedAT::QUERY_NODE, 1000},     {RootedAT::UPDATE_NODE, 6000},
     {RootedAT::UPDATE_SUBTREE, 8000}, {RootedAT::QUERY_SUBTREE, 2400},
     {RootedAT::SUBTREE_SIZE, 600},
@@ -209,7 +207,7 @@ actions_t<RootedAT> speed_update_heavy = {
 actions_t<RootedAT> speed_query_heavy = {
     {RootedAT::LINK, 1500},           {RootedAT::CUT, 500},
     {RootedAT::LINK_CUT, 1000},       {RootedAT::LCA, 0},
-    {RootedAT::FINDROOT, 0},          {RootedAT::LCA_CONN, 0},
+    {RootedAT::FINDROOT, 1500},       {RootedAT::LCA_CONN, 0},
     {RootedAT::QUERY_NODE, 5000},     {RootedAT::UPDATE_NODE, 1200},
     {RootedAT::UPDATE_SUBTREE, 1800}, {RootedAT::QUERY_SUBTREE, 10000},
     {RootedAT::SUBTREE_SIZE, 4000},
@@ -220,7 +218,7 @@ void speed_test_euler_tour_tree(int N, const actions_t<RootedAT>& freq) {
     auto actions = make_rooted_actions(N, 10s, freq, N - 100);
 
     START(ett);
-    for (const auto& [action, u, v, r, w, val] : actions) {
+    for (const auto& [action, u, v, r, who, val] : actions) {
         bool ok = true;
         switch (action) {
         case RootedAT::LINK: {
@@ -229,15 +227,13 @@ void speed_test_euler_tour_tree(int N, const actions_t<RootedAT>& freq) {
         case RootedAT::CUT: {
             tree.cut(u);
         } break;
+        case RootedAT::FINDROOT: {
+            int ans = tree.findroot(u);
+            ok = who == ans;
+        } break;
         // case RootedAT::LCA: {
-        //     tree.reroot(r);
         //     int ans = tree.lca(u, v);
-        //     assert(ans == w);
-        // } break;
-        // case RootedAT::FINDROOT: {
-        //     tree.reroot(r);
-        //     int ans = tree.findroot(u);
-        //     assert(ans == r);
+        //     ok = who == ans;
         // } break;
         case RootedAT::QUERY_NODE: {
             long ans = tree.access_node(u)->self;
@@ -260,6 +256,7 @@ void speed_test_euler_tour_tree(int N, const actions_t<RootedAT>& freq) {
         default:
             throw runtime_error("Unsupported action");
         }
+        if (!ok) { printcl("Failed action: {}\n", action_names<RootedAT>.at(action)); }
         assert(ok);
     }
     TIME(ett);

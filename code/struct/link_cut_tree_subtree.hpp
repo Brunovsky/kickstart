@@ -60,7 +60,6 @@ struct link_cut_tree_subtree {
     vector<Node> t;
 
     explicit link_cut_tree_subtree(int N = 0) : t(N + 1) { t[0].node.clear(); }
-    link_cut_tree_subtree(const link_cut_tree_subtree&) = delete;
 
     // ***** Node updates
   private:
@@ -83,16 +82,19 @@ struct link_cut_tree_subtree {
 
     // ***** Interface
   public:
-    void link(int u, int v) {
+    bool link(int u, int v) {
         reroot(u), access(v);
+        if (t[u].parent) return false;
         t[u].parent = v;
         t[v].node.add_virtual_subtree(t[u].node);
+        return true;
     }
 
-    void cut(int u, int v) {
+    bool cut(int u, int v) {
         reroot(u), access(v);
-        assert(t[u].parent == v && !t[u].child[1] && u == t[v].child[0]);
+        if (!t[u].parent || t[u].child[1] || u != t[v].child[0]) return false;
         t[u].parent = t[v].child[0] = 0;
+        return true;
     }
 
     void reroot(int u) {
@@ -120,6 +122,10 @@ struct link_cut_tree_subtree {
     }
     LCTNode* access_subtree(int u, int v) {
         reroot(v), access(u);
+        return &t[u].node;
+    }
+    LCTNode* access_subtree(int u) {
+        reroot(u);
         return &t[u].node;
     }
 

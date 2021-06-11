@@ -8,6 +8,7 @@
 /**
  * Polynomial arithmetic operations and other functions
  * Requires FFT (and NTT if using modnum)
+ * If FFT is used, debate whether fft_split_multiply should be used
  * Reference: https://cp-algorithms.com/algebra/polynomial.html
  */
 
@@ -18,10 +19,8 @@ namespace polymath {
 tmpl(T) T binpow(T val, long e) {
     T base = {1};
     while (e > 0) {
-        if (e & 1)
-            base *= val;
-        if (e >>= 1)
-            val *= val;
+        if (e & 1) base *= val;
+        if (e >>= 1) val *= val;
     }
     return base;
 }
@@ -31,8 +30,7 @@ tmpl(T) void trim(vector<T>& a) {
         while (!a.empty() && abs(a.back()) < 30 * numeric_limits<T>::epsilon())
             a.pop_back();
     else
-        while (!a.empty() && a.back() == T())
-            a.pop_back();
+        while (!a.empty() && a.back() == T()) a.pop_back();
 }
 
 tmpl(T) void truncate(vector<T>& v, int size) { v.resize(min(int(v.size()), size)); }
@@ -41,17 +39,14 @@ tmpl(T) auto truncated(vector<T> v, int size) { return truncate(v, size), v; }
 
 tmpl(T) auto eval(const vector<T>& a, T x) {
     T v = 0;
-    for (int A = a.size(), i = A - 1; i >= 0; i--)
-        v = a[i] + v * x;
+    for (int A = a.size(), i = A - 1; i >= 0; i--) v = a[i] + v * x;
     return v;
 }
 
 tmpl(T) void deriv_inplace(vector<T>& a) {
     int N = a.size();
-    for (int i = 0; i + 1 < N; i++)
-        a[i] = T(i + 1) * a[i + 1];
-    if (N > 0)
-        a.pop_back();
+    for (int i = 0; i + 1 < N; i++) a[i] = T(i + 1) * a[i + 1];
+    if (N > 0) a.pop_back();
 }
 
 tmpl(T) auto deriv(vector<T> a) {
@@ -62,8 +57,7 @@ tmpl(T) auto deriv(vector<T> a) {
 tmpl(T) void integr_inplace(vector<T>& a, T c = T()) {
     int N = a.size();
     a.resize(N + 1);
-    for (int i = N; i > 0; i--)
-        a[i] = a[i - 1] / T(i);
+    for (int i = N; i > 0; i--) a[i] = a[i - 1] / T(i);
     a[0] = c;
 }
 
@@ -76,17 +70,11 @@ tmpl(T) auto withroots(const vector<T>& roots) {
     int R = roots.size();
     vector<vector<T>> polys(R);
 
-    for (int i = 0; i < R; i++) {
-        polys[i] = {-roots[i], 1};
-    }
+    for (int i = 0; i < R; i++) { polys[i] = {-roots[i], 1}; }
 
     while (R > 1) {
-        for (int i = 0; i < R / 2; i++) {
-            polys[i] = polys[i << 1] * polys[i << 1 | 1];
-        }
-        if (R & 1) {
-            polys[R / 2] = move(polys[R - 1]);
-        }
+        for (int i = 0; i < R / 2; i++) { polys[i] = polys[i << 1] * polys[i << 1 | 1]; }
+        if (R & 1) { polys[R / 2] = move(polys[R - 1]); }
         R = (R + 1) / 2;
         polys.resize(R);
     }
@@ -95,16 +83,14 @@ tmpl(T) auto withroots(const vector<T>& roots) {
 }
 
 tmpl(T) auto operator-(vector<T> a) {
-    for (int A = a.size(), i = 0; i < A; i++)
-        a[i] = -a[i];
+    for (int A = a.size(), i = 0; i < A; i++) a[i] = -a[i];
     return a;
 }
 
 tmpl(T) auto& operator+=(vector<T>& a, const vector<T>& b) {
     int A = a.size(), B = b.size();
     a.resize(max(A, B));
-    for (int i = 0; i < B; i++)
-        a[i] += b[i];
+    for (int i = 0; i < B; i++) a[i] += b[i];
     trim(a);
     return a;
 }
@@ -114,8 +100,7 @@ tmpl(T) auto operator+(vector<T> a, const vector<T>& b) { return a += b; }
 tmpl(T) auto& operator-=(vector<T>& a, const vector<T>& b) {
     int A = a.size(), B = b.size();
     a.resize(max(A, B));
-    for (int i = 0; i < B; i++)
-        a[i] -= b[i];
+    for (int i = 0; i < B; i++) a[i] -= b[i];
     trim(a);
     return a;
 }
@@ -123,16 +108,14 @@ tmpl(T) auto& operator-=(vector<T>& a, const vector<T>& b) {
 tmpl(T) auto operator-(vector<T> a, const vector<T>& b) { return a -= b; }
 
 tmpl(T) auto& operator*=(vector<T>& a, T constant) {
-    for (int i = 0, A = a.size(); i < A; i++)
-        a[i] *= constant;
+    for (int i = 0, A = a.size(); i < A; i++) a[i] *= constant;
     return a;
 }
 
 tmpl(T) auto operator*(T constant, vector<T> a) { return a *= constant; }
 
 tmpl(T) auto& operator/=(vector<T>& a, T constant) {
-    for (int i = 0, A = a.size(); i < A; i++)
-        a[i] /= constant;
+    for (int i = 0, A = a.size(); i < A; i++) a[i] /= constant;
     return a;
 }
 
@@ -163,8 +146,7 @@ tmpl(T) auto inverse_series(const vector<T>& a, int mod_degree) {
 
 tmpl(T) auto operator/(vector<T> a, vector<T> b) {
     int A = a.size(), B = b.size();
-    if (B > A)
-        return vector<T>();
+    if (B > A) return vector<T>();
 
     reverse(begin(a), end(a));
     reverse(begin(b), end(b));

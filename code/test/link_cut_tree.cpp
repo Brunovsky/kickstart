@@ -193,6 +193,7 @@ void stress_test_link_cut_tree_path(int N = 200) {
         default:
             throw runtime_error("Unsupported action");
         }
+        if (!ok) { printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action)); }
         assert(ok);
     }
 
@@ -272,6 +273,7 @@ void stress_test_lct_subtree(int N = 200) {
         default:
             throw runtime_error("Unsupported action");
         }
+        if (!ok) { printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action)); }
         assert(ok);
     }
 
@@ -352,6 +354,7 @@ void speed_test_lct_path(int N, const actions_t<UnrootedAT>& freq) {
         default:
             throw runtime_error("Unsupported action");
         }
+        if (!ok) { printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action)); }
         assert(ok);
     }
     TIME(linkcut);

@@ -120,9 +120,7 @@ void fft_transform_run(C* a, int N) {
     auto rev = fft_reverse_cache::get(N);
     auto [root, inv] = fft_cache<C>::get_root(N);
     for (int i = 0; i < N; i++) {
-        if (i < rev[i]) {
-            swap(a[i], a[rev[i]]);
-        }
+        if (i < rev[i]) { swap(a[i], a[rev[i]]); }
     }
     for (int k = 1; k < N; k *= 2) {
         for (int i = 0; i < N; i += 2 * k) {
@@ -136,24 +134,19 @@ void fft_transform_run(C* a, int N) {
     }
     if constexpr (inverse) {
         auto inverseN = C(1) / C(N);
-        for (int i = 0; i < N; i++) {
-            a[i] *= inverseN;
-        }
+        for (int i = 0; i < N; i++) { a[i] *= inverseN; }
     }
 }
 
 template <typename Ext, typename C, typename T>
 void fft_inverse_transform_run(T* a, C* c, int N) {
     fft_transform_run<1, C>(c, N);
-    for (int i = 0; i < N; i++) {
-        a[i] = Ext::get(c[i]);
-    }
+    for (int i = 0; i < N; i++) { a[i] = Ext::get(c[i]); }
 }
 
 template <typename Ext, typename C, typename At, typename Bt, typename Ct>
 void fft_multiply_run(At* ia, int A, Bt* ib, int B, Ct* ic) {
-    if (A == 0 || B == 0)
-        return;
+    if (A == 0 || B == 0) return;
     int S = A + B - 1;
     int N = 1 << next_two(S);
     auto [fa, fb] = fft_cache<C>::get_cache(N);
@@ -167,15 +160,12 @@ void fft_multiply_run(At* ia, int A, Bt* ib, int B, Ct* ic) {
         fa[i] = fa[i] * fb[i]; // multiply A = A * B
     }
     fft_transform_run<1, C>(fa, N); // reverse fft A
-    for (int i = 0; i < S; i++) {
-        ic[i] = Ext::get(fa[i]);
-    }
+    for (int i = 0; i < S; i++) { ic[i] = Ext::get(fa[i]); }
 }
 
 template <typename Ext, typename C, typename At, typename Ct>
 void fft_square_run(At* ia, int A, Ct* ic) {
-    if (A == 0)
-        return;
+    if (A == 0) return;
     int S = 2 * A - 1;
     int N = 1 << next_two(S);
     auto [fa, fb] = fft_cache<C>::get_cache(N);
@@ -186,17 +176,14 @@ void fft_square_run(At* ia, int A, Ct* ic) {
         fa[i] = fa[i] * fa[i]; // multiply A = A * A
     }
     fft_transform_run<1, C>(fa, N); // reverse fft A
-    for (int i = 0; i < S; i++) {
-        ic[i] = Ext::get(fa[i]);
-    }
+    for (int i = 0; i < S; i++) { ic[i] = Ext::get(fa[i]); }
 }
 
 } // namespace runners
 
 template <typename T>
 void trim(vector<T>& v) {
-    while (!v.empty() && v.back() == T(0))
-        v.pop_back();
+    while (!v.empty() && v.back() == T(0)) v.pop_back();
 }
 
 inline namespace naive {
@@ -204,18 +191,14 @@ inline namespace naive {
 template <typename At, typename Bt, typename Ct>
 void naive_multiply_run(At* ia, int A, Bt* ib, int B, Ct* ic) {
     for (int i = 0; i < A; i++) {
-        for (int j = 0; j < B; j++) {
-            ic[i + j] += ia[i] * ib[j];
-        }
+        for (int j = 0; j < B; j++) { ic[i + j] += ia[i] * ib[j]; }
     }
 }
 
 template <typename At, typename Ct>
 void naive_square_run(At* ia, int A, Ct* ic) {
     for (int i = 0; i < A; i++) {
-        for (int j = 0; j < A; j++) {
-            ic[i + j] += ia[i] * ia[j];
-        }
+        for (int j = 0; j < A; j++) { ic[i + j] += ia[i] * ia[j]; }
     }
 }
 
@@ -289,8 +272,7 @@ template <typename C = default_complex, typename T>
 auto fft_transform(const vector<T>& a) {
     int A = a.size(), n = next_two(A), N = 1 << n;
     vector<C> c(N);
-    if (A == 0)
-        return c;
+    if (A == 0) return c;
 
     copy_n(a.data(), A, c.data());
     fft_transform_run<0, C>(c.data(), N);
@@ -301,8 +283,7 @@ template <typename T, typename C>
 auto fft_inverse_transform(vector<C> c) {
     int N = c.size();
     vector<T> a(N);
-    if (N == 0)
-        return a;
+    if (N == 0) return a;
 
     if constexpr (is_integral<T>::value) {
         fft_inverse_transform_run<int_ext>(a.data(), c.data(), N);
