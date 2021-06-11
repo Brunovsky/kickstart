@@ -49,9 +49,12 @@ void unit_test_2() {
     print("gcd(a, b) = {}\n", gcd(a, b));
 
     poly u(1, 1), v(1, 1), g(1, 1);
-    for (int root : {1, 2, 3, 4, 5, 6}) u *= polyroot(root);
-    for (int root : {2, 6, 7, 8}) v *= polyroot(root);
-    for (int root : {2, 6}) g *= polyroot(root);
+    for (int root : {1, 2, 3, 4, 5, 6})
+        u *= polyroot(root);
+    for (int root : {2, 6, 7, 8})
+        v *= polyroot(root);
+    for (int root : {2, 6})
+        g *= polyroot(root);
 
     print("gcd(u,v) = {}\n", gcd(u, v));
     print("g = {}\n", g);
@@ -71,7 +74,9 @@ void unit_test_multieval() {
     poly a = {1, 3, 3, 1}; // (x+1)^3
 
     auto val = multieval(a, x);
-    for (int i = 0; i < N; i++) { assert(val[i] == eval(a, x[i])); }
+    for (int i = 0; i < N; i++) {
+        assert(val[i] == eval(a, x[i]));
+    }
 }
 
 void unit_test_interpolate() {
@@ -135,7 +140,8 @@ void speed_test_multieval() {
 
             START(naive);
             vector<num> ans(N);
-            for (int i = 0; i < N; i++) ans[i] = eval(poly, x[i]);
+            for (int i = 0; i < N; i++)
+                ans[i] = eval(poly, x[i]);
             ADD_TIME(naive);
         }
 
@@ -174,7 +180,7 @@ int main() {
     RUN_SHORT(unit_test_multieval());
     RUN_SHORT(unit_test_interpolate());
     RUN_BLOCK(stress_test_division());
-    RUN_BLOCK(speed_test_multieval());
-    RUN_BLOCK(speed_test_inverse_series());
+    // RUN_BLOCK(speed_test_multieval());
+    // RUN_BLOCK(speed_test_inverse_series());
     return 0;
 }

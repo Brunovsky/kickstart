@@ -15,10 +15,10 @@ long count_partitions(int n, int k, int m = 1, int M = INT_MAX) {
         return count_partitions(n - m * k, k, 0, M - m);
     if (n < 0 || k <= 0 || (n + k - 1) / k > M)
         return 0;
-    if (cntpt_memo.count({n, k, M}))
-        return cntpt_memo[{n, k, M}];
     if (k == 1)
-        return cntpt_memo[{n, k, M}] = n <= M;
+        return 1;
+    if (cntpt_memo.count({n, k, M}))
+        return cntpt_memo.at({n, k, M});
 
     long cnt = 0;
     for (int x = M; x >= m; x--) {
