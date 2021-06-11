@@ -19,7 +19,8 @@ struct ett_node_sum {
         if (lazy) {
             lhs.lazy += lazy;
             rhs.lazy += lazy;
-            if (is_open) self += lazy;
+            if (is_open)
+                self += lazy;
             subt += lazy * opens;
             lazy = 0;
         }
@@ -66,13 +67,15 @@ struct euler_tour_tree {
 
     explicit euler_tour_tree(int N = 0) : t(2 * N + 1) {
         t[0].splay_size = 0, t[0].node.clear();
-        for (int u = 1; u <= N; u++) splay_join(first(u), last(u));
+        for (int u = 1; u <= N; u++)
+            splay_join(first(u), last(u));
     }
 
   private:
     void pushdown(int u) {
         auto [l, r] = t[u].child;
-        if (u != 0) t[u].node.pushdown(u & 1, t[l].node, t[r].node);
+        if (u != 0)
+            t[u].node.pushdown(u & 1, t[l].node, t[r].node);
     }
 
     void pushup(int u) {
@@ -95,7 +98,8 @@ struct euler_tour_tree {
     }
 
     bool conn(int u, int v) {
-        if (u == v) return true;
+        if (u == v)
+            return true;
         splay(first(u)), splay(first(v));
         return !is_root(first(u));
     }
@@ -106,8 +110,10 @@ struct euler_tour_tree {
     }
 
     bool is_descendant(int u, int a) {
-        if (u == a) return true;
-        if (!conn(u, a)) return false;
+        if (u == a)
+            return true;
+        if (!conn(u, a))
+            return false;
         int fu = order_of_node(first(u));
         return order_of_node(first(a)) < fu && fu < order_of_node(last(a));
     }
@@ -127,8 +133,10 @@ struct euler_tour_tree {
     int max_node(int u) const { return t[u].child[1] ? max_node(t[u].child[1]) : u; }
 
     void adopt(int parent, int child, int8_t side) {
-        if (side >= 0) t[parent].child[side] = child;
-        if (child) t[child].parent = parent;
+        if (side >= 0)
+            t[parent].child[side] = child;
+        if (child)
+            t[child].parent = parent;
     }
 
     void rotate(int u) {
@@ -148,15 +156,19 @@ struct euler_tour_tree {
             rotate(zigzig ? p : u), rotate(u);
             p = t[u].parent, g = t[p].parent;
         }
-        if (p) { pushdown(p), pushdown(u), rotate(u); }
+        if (p) {
+            pushdown(p), pushdown(u), rotate(u);
+        }
         pushdown(u), pushup(u);
     }
 
     int find_by_order(int u, int order) const {
-        if (order >= t[u].splay_size) return 0;
+        if (order >= t[u].splay_size)
+            return 0;
         while (true) {
             int v = t[u].child[0];
-            if (order == t[v].splay_size) return u;
+            if (order == t[v].splay_size)
+                return u;
             if (order < t[v].splay_size) {
                 u = v;
             } else {
@@ -169,7 +181,8 @@ struct euler_tour_tree {
     int order_of_node(int u) const {
         int order = t[t[u].child[0]].splay_size;
         while (t[u].parent) {
-            if (is_right(u)) order += t[t[u].parent].child[0] + 1;
+            if (is_right(u))
+                order += t[t[u].parent].child[0] + 1;
             u = t[u].parent;
         }
         return order;
@@ -185,7 +198,8 @@ struct euler_tour_tree {
     }
 
     int splay_join(int l, int r) {
-        if (l == 0 || r == 0) return l ? l : r;
+        if (l == 0 || r == 0)
+            return l ? l : r;
         assert(is_root(l) && is_root(r));
         int root = max_node(l);
         splay(root);

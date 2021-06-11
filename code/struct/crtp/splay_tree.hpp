@@ -24,8 +24,10 @@ struct splay_tree_base {
     bool is_left() const { return parent && self() == parent->child[0]; }
     bool is_right() const { return parent && self() == parent->child[1]; }
     static void adopt(Splay* parent, Splay* child, int8_t side) {
-        if (side >= 0) parent->child[side] = child;
-        if (child) child->parent = parent;
+        if (side >= 0)
+            parent->child[side] = child;
+        if (child)
+            child->parent = parent;
     }
 
     void rotate() {
@@ -42,15 +44,19 @@ struct splay_tree_base {
     Splay* min_node() { return child[0] ? child[0]->min_node() : self(); }
     Splay* max_node() { return child[1] ? child[1]->max_node() : self(); }
     Splay* next() {
-        if (child[1]) return child[1]->min_node();
+        if (child[1])
+            return child[1]->min_node();
         Splay* node = self();
-        while (node && !node->is_left()) node = node->parent;
+        while (node && !node->is_left())
+            node = node->parent;
         return node;
     }
     Splay* prev() {
-        if (child[0]) return child[0]->min_node();
+        if (child[0])
+            return child[0]->min_node();
         Splay* node = self();
-        while (node && !node->is_right()) node = node->parent;
+        while (node && !node->is_right())
+            node = node->parent;
         return node;
     }
 
@@ -60,7 +66,9 @@ struct splay_tree_base {
             bool zigzig = is_right() == parent->is_right();
             (zigzig ? parent : self())->rotate(), rotate();
         }
-        if (parent) { parent->pushdown(), self()->pushdown(), rotate(); }
+        if (parent) {
+            parent->pushdown(), self()->pushdown(), rotate();
+        }
         self()->pushdown(), self()->pushup();
     }
 
@@ -117,7 +125,9 @@ struct splay_tree_base {
 
     // L and R must be roots or null
     static Splay* join(Splay* L, Splay* R) {
-        if (!L || !R) { return L ? L : R; }
+        if (!L || !R) {
+            return L ? L : R;
+        }
         assert(L->is_root() && R->is_root());
         Splay* root = L->max_node();
         root->splay();
@@ -131,8 +141,10 @@ struct splay_tree_base {
         Splay *a = u, *b = v;
         while (a != b) {
             a = a->parent, b = b->parent;
-            if (!a) a = v;
-            if (!b) b = u;
+            if (!a)
+                a = v;
+            if (!b)
+                b = u;
         }
         return a;
     }
@@ -156,7 +168,9 @@ struct splay_order : splay_tree_base<Splay> {
 
   public:
     Splay* find_by_order(int order) {
-        if (order >= sz) { return nullptr; }
+        if (order >= sz) {
+            return nullptr;
+        }
         Splay* node = self();
         while (true) {
             if (order == get_size(node->child[0])) {
@@ -175,7 +189,9 @@ struct splay_order : splay_tree_base<Splay> {
         const Splay *node = self(), *parent = node->parent;
         int order = get_size(node->child[0]);
         while (parent) {
-            if (parent->child[1] == node) { order += get_size(parent->child[0]) + 1; }
+            if (parent->child[1] == node) {
+                order += get_size(parent->child[0]) + 1;
+            }
             node = parent, parent = node->parent;
         }
         return order;

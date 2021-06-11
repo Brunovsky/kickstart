@@ -18,25 +18,35 @@ using namespace std;
 template <typename Vec, typename T = typename Vec::value_type>
 auto build_cyclic_shifts(const Vec& s, int A, T first) {
     int N = s.size();
-    if (N == 0) return vector<int>{};
+    if (N == 0)
+        return vector<int>{};
 
     int C = 0, S = 1; // #classes - 1, sorted width
     vector<int> cnt(max(A, N), 0), sa(N, 0), clazz(N, 0), perm(N, 0), clazzn(N, 0);
 
-    for (int i = 0; i < N; i++) cnt[s[i] - first]++;
-    for (int a = 1; a < A; a++) cnt[a] += cnt[a - 1];
-    for (int i = N - 1; i >= 0; i--) sa[--cnt[s[i] - first]] = i;
-    for (int i = 1; i < N; i++) clazz[sa[i]] = C += s[sa[i]] != s[sa[i - 1]];
+    for (int i = 0; i < N; i++)
+        cnt[s[i] - first]++;
+    for (int a = 1; a < A; a++)
+        cnt[a] += cnt[a - 1];
+    for (int i = N - 1; i >= 0; i--)
+        sa[--cnt[s[i] - first]] = i;
+    for (int i = 1; i < N; i++)
+        clazz[sa[i]] = C += s[sa[i]] != s[sa[i - 1]];
 
     while (S < N) {
-        for (int i = 0; i < N; i++) perm[i] = sa[i] - S, perm[i] += perm[i] < 0 ? N : 0;
-        for (int c = 0; c <= C; c++) cnt[c] = 0;
-        for (int i = 0; i < N; i++) cnt[clazz[perm[i]]]++;
-        for (int a = 1; a <= C; a++) cnt[a] += cnt[a - 1];
+        for (int i = 0; i < N; i++)
+            perm[i] = sa[i] - S, perm[i] += perm[i] < 0 ? N : 0;
+        for (int c = 0; c <= C; c++)
+            cnt[c] = 0;
+        for (int i = 0; i < N; i++)
+            cnt[clazz[perm[i]]]++;
+        for (int a = 1; a <= C; a++)
+            cnt[a] += cnt[a - 1];
         for (int i = N - 1; i >= 0; i--) // backwards for stable sort
             sa[--cnt[clazz[perm[i]]]] = perm[i];
 
-        if (2 * S >= N) break;
+        if (2 * S >= N)
+            break;
 
         clazzn[sa[0]] = C = 0;
         for (int i = 1; i < N; i++) {
@@ -64,7 +74,9 @@ template <typename Vec>
 auto build_lcp_array(const Vec& s, const vector<int>& sa) {
     int N = s.size();
     vector<int> rank(N, 0), lcp(N, 0);
-    for (int i = 1; i < N; i++) { rank[sa[i]] = i; }
+    for (int i = 1; i < N; i++) {
+        rank[sa[i]] = i;
+    }
     for (int i = 0, len = 0; i < N; lcp[rank[i++]] = len, len && len--) {
         if (rank[i] + 1 < N) {
             int j = sa[rank[i] + 1] + len;
@@ -96,9 +108,12 @@ auto build_z_function(const Vec& s) {
     int N = s.size();
     vector<int> z(N);
     for (int i = 1, l = 0, r = 0; i < N; i++) {
-        if (i <= r) z[i] = min(r - i + 1, z[i - l]);
-        while (i + z[i] < N && s[z[i]] == s[i + z[i]]) z[i]++;
-        if (i + z[i] > r + 1) l = i, r = i + z[i] - 1;
+        if (i <= r)
+            z[i] = min(r - i + 1, z[i - l]);
+        while (i + z[i] < N && s[z[i]] == s[i + z[i]])
+            z[i]++;
+        if (i + z[i] > r + 1)
+            l = i, r = i + z[i] - 1;
     }
     return z;
 }
@@ -117,8 +132,10 @@ auto build_prefix_function(const Vec& s) {
     vector<int> pf(N);
     for (int i = 1; i < N; i++) {
         int j = pf[i - 1];
-        while (j > 0 && s[i] != s[j]) j = pf[j - 1];
-        if (s[i] == s[j]) j++;
+        while (j > 0 && s[i] != s[j])
+            j = pf[j - 1];
+        if (s[i] == s[j])
+            j++;
         pf[i] = j;
     }
     return pf;
@@ -138,8 +155,10 @@ auto build_lyndon_factorization(const Vec& s) {
     vector<int> words;
     while (i < N) {
         int j = i + 1, k = i;
-        while (j < N && s[k] <= s[j]) s[k] < s[j] ? k = i : k++, j++;
-        while (i <= k) words.push_back(i), i += j - k;
+        while (j < N && s[k] <= s[j])
+            s[k] < s[j] ? k = i : k++, j++;
+        while (i <= k)
+            words.push_back(i), i += j - k;
     }
     return words;
 }
@@ -161,7 +180,9 @@ auto build_manachers(const Vec& s) {
     for (int b : {0, 1}) {
         for (int i = 0, l = 0, r = -1; i < N; i++) {
             int k = (i > r) ? b : min(lp[b][l + r - i + !b], r - i + 1);
-            while (0 <= i - k - !b && i + k < N && s[i - k - !b] == s[i + k]) { k++; }
+            while (0 <= i - k - !b && i + k < N && s[i - k - !b] == s[i + k]) {
+                k++;
+            }
             lp[b][i] = k--;
             if (i + k > r) {
                 l = i - k - !b;
@@ -186,7 +207,9 @@ auto build_border_function(const Vec& s) {
     border[P] = b;
 
     for (int i = P; i > 0; i--) {
-        while (b <= P && s[i - 1] != s[b - 1]) { b = border[b]; }
+        while (b <= P && s[i - 1] != s[b - 1]) {
+            b = border[b];
+        }
         border[i - 1] = --b;
     }
 
@@ -206,7 +229,8 @@ auto build_good_suffix_border_table(const Vec& s, bool extend_zeros = true) {
 
     for (int i = P; i > 0; i--) {
         while (b <= P && s[i - 1] != s[b - 1]) {
-            if (good[b] == 0) good[b] = b - i;
+            if (good[b] == 0)
+                good[b] = b - i;
             b = border[b];
         }
         border[i - 1] = --b;
@@ -214,8 +238,10 @@ auto build_good_suffix_border_table(const Vec& s, bool extend_zeros = true) {
 
     if (extend_zeros) {
         for (int i = 0; i <= P; i++) {
-            if (good[i] == 0) good[i] = b;
-            if (i == b) b = border[b];
+            if (good[i] == 0)
+                good[i] = b;
+            if (i == b)
+                b = border[b];
         }
     }
 
@@ -235,8 +261,10 @@ int min_cyclic_string(Vec s) {
     while (i < N / 2) {
         ans = i;
         int j = i + 1, k = i;
-        while (j < N && s[k] <= s[j]) s[k] < s[j] ? k = i : k++, j++;
-        while (i <= k) i += j - k;
+        while (j < N && s[k] <= s[j])
+            s[k] < s[j] ? k = i : k++, j++;
+        while (i <= k)
+            i += j - k;
     }
     return ans;
 }

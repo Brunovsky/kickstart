@@ -17,7 +17,9 @@ struct disjoint_set {
     bool root(int i) { return find(i) == i; }
 
     int find(int i) {
-        while (i != next[i]) { i = next[i] = next[next[i]]; }
+        while (i != next[i]) {
+            i = next[i] = next[next[i]];
+        }
         return i;
     }
 
@@ -25,7 +27,9 @@ struct disjoint_set {
         i = find(i);
         j = find(j);
         if (i != j) {
-            if (size[i] < size[j]) { swap(i, j); }
+            if (size[i] < size[j]) {
+                swap(i, j);
+            }
             next[j] = i;
             size[i] += size[j];
             S--;
@@ -60,7 +64,9 @@ struct disjoint_set_rollback {
     }
 
     int find(int i) {
-        while (next[i] >= 0) { i = next[i]; }
+        while (next[i] >= 0) {
+            i = next[i];
+        }
         return i;
     }
 
@@ -68,7 +74,9 @@ struct disjoint_set_rollback {
         i = find(i);
         j = find(j);
         if (i != j) {
-            if (size(i) < size(j)) { swap(i, j); }
+            if (size(i) < size(j)) {
+                swap(i, j);
+            }
             history.emplace_back(i, next[i]);
             history.emplace_back(j, next[j]);
             next[i] += next[j];

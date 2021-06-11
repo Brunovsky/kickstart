@@ -6,65 +6,43 @@ namespace fft {
 
 constexpr int SPLITMOD_BREAKEVEN = 200;
 
-template <typename Mod, typename At, typename Bt, typename Ct>
-void fft_split_lower_upper_mod(Mod H, At* ia, int A, Bt* ismall, Ct* ilarge) {
+inline namespace detail {
+
+template <typename Mod, typename T, typename OT>
+void fft_split_lower_upper_mod(Mod H, const T* a, int A, OT* ismall, OT* ilarge) {
     for (int i = 0; i < A; i++) {
-        ismall[i] = ia[i] % H;
-        ilarge[i] = ia[i] / H;
+        ismall[i] = a[i] % H;
+        ilarge[i] = a[i] / H;
     }
 }
 
-inline namespace naive {
-
-template <typename Prom, typename Mod, typename At, typename Bt, typename Ct>
-void naive_multiply_mod_run(Mod mod, At* ia, int A, Bt* ib, int B, Ct* ic) {
-    for (int i = 0; i < A; i++) {
+template <typename Prom, typename Mod, typename T, typename OT>
+void naive_multiply_mod_run(Mod mod, const T* a, int A, const T* b, int B, OT* c) {
+    for (int i = 0; i < A && B; i++) {
         for (int j = 0; j < B; j++) {
-            ic[i + j] += Prom(ia[i]) * Prom(ib[j]) % mod;
-            if (ic[i + j] < 0)
-                ic[i + j] += mod;
-            else if (ic[i + j] >= mod)
-                ic[i + j] -= mod;
+            c[i + j] += Prom(a[i]) * Prom(b[j]) % mod;
+            c[i + j] += c[i + j] < 0 ? mod : c[i + j] >= mod ? -mod : 0;
         }
     }
 }
 
-template <typename Prom, typename Mod, typename At, typename Ct>
-void naive_square_mod_run(Mod mod, At* ia, int A, Ct* ic) {
+template <typename Prom, typename Mod, typename T, typename OT>
+void naive_square_mod_run(Mod mod, const T* a, int A, OT* c) {
     for (int i = 0; i < A; i++) {
         for (int j = 0; j < A; j++) {
-            ic[i + j] += Prom(ia[i]) * Prom(ia[j]) % mod;
-            if (ic[i + j] < 0)
-                ic[i + j] += mod;
-            else if (ic[i + j] >= mod)
-                ic[i + j] -= mod;
+            c[i + j] += Prom(a[i]) * Prom(a[j]) % mod;
+            c[i + j] += c[i + j] < 0 ? mod : c[i + j] >= mod ? -mod : 0;
         }
     }
 }
 
-template <typename Prom = int64_t, typename Mod, typename T>
-auto naive_multiply_mod(Mod mod, const vector<T>& a, const vector<T>& b) {
-    int A = a.size(), B = b.size(), S = A && B ? A + B - 1 : 0;
-    vector<T> c(S);
-    naive_multiply_mod_run<Prom>(mod, a.data(), A, b.data(), B, c.data());
-    return c;
-}
-
-template <typename Prom = int64_t, typename Mod, typename T>
-auto naive_square_mod(Mod mod, const vector<T>& a) {
-    int A = a.size(), S = A ? 2 * A - 1 : 0;
-    vector<T> c(S);
-    naive_square_mod_run<Prom>(mod, a.data(), A, c.data());
-    return c;
-}
-
-} // namespace naive
+} // namespace detail
 
 template <typename Prom = int64_t, typename C = default_complex, typename Mod, typename T>
-auto fft_split_multiply_mod(Mod mod, const vector<T>& a, const vector<T>& b) {
+auto fft_multiply_mod(Mod mod, const vector<T>& a, const vector<T>& b) {
     int A = a.size(), B = b.size(), S = A && B ? A + B - 1 : 0;
     vector<T> c(S);
-    if (A == 0 || B == 0)
+    if (S == 0)
         return c;
 
     if (A <= SPLITMOD_BREAKEVEN || B <= SPLITMOD_BREAKEVEN) {
@@ -89,20 +67,17 @@ auto fft_split_multiply_mod(Mod mod, const vector<T>& a, const vector<T>& b) {
         c[i] = (c[i] + (c10[i] % mod * H % mod)) % mod;
         c[i] = (c[i] + (c01[i] % mod * H % mod)) % mod;
         c[i] = (c[i] + (c11[i] % mod * Q % mod)) % mod;
-        if (c[i] < 0)
-            c[i] += mod;
-        else if (c[i] >= mod)
-            c[i] -= mod;
+        c[i] += c[i] < 0 ? mod : c[i] >= mod ? -mod : 0;
     }
 
     return c;
 }
 
 template <typename Prom = int64_t, typename C = default_complex, typename Mod, typename T>
-auto fft_split_square_mod(Mod mod, const vector<T>& a) {
+auto fft_square_mod(Mod mod, const vector<T>& a) {
     int A = a.size(), S = A ? 2 * A - 1 : 0;
     vector<T> c(S);
-    if (A == 0)
+    if (S == 0)
         return c;
 
     if (A <= SPLITMOD_BREAKEVEN) {
@@ -124,10 +99,7 @@ auto fft_split_square_mod(Mod mod, const vector<T>& a) {
         c[i] = c0[i] % mod;
         c[i] = (c[i] + 2 * (c1[i] % mod * H % mod)) % mod;
         c[i] = (c[i] + (c2[i] % mod * Q % mod)) % mod;
-        if (c[i] < 0)
-            c[i] += mod;
-        else if (c[i] >= mod)
-            c[i] -= mod;
+        c[i] += c[i] < 0 ? mod : c[i] >= mod ? -mod : 0;
     }
 
     return c;

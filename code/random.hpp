@@ -24,7 +24,8 @@ using edges_t = vector<array<int, 2>>;
 
 int different(int u, int v1, int v2) {
     assert(v1 < v2 && (v1 != u || v1 + 1 < v2));
-    if (v1 + 1 == v2) return v1;
+    if (v1 + 1 == v2)
+        return v1;
     intd dist(v1, v2 - 2);
     int v = dist(mt);
     return v + (v >= u);
@@ -62,7 +63,9 @@ void reservoir_sample_inplace(vector<T>& univ, int k) {
     for (int i = k; i < N; i++) {
         intd dist(0, i);
         int j = dist(mt);
-        if (j < k) { univ[j] = univ[i]; }
+        if (j < k) {
+            univ[j] = univ[i];
+        }
     }
     univ.resize(k);
 }
@@ -75,7 +78,8 @@ void reservoir_sample_inplace(vector<T>& univ, int k) {
 template <typename T = int, typename I = int>
 vector<T> int_sample(int k, I a, I b) {
     assert(k <= 100'000'000); // don't try anything crazy
-    if (k == 0 || a >= b) return {};
+    if (k == 0 || a >= b)
+        return {};
 
     using sample_t = vector<T>;
     long univ = b - a;
@@ -107,7 +111,9 @@ vector<T> int_sample(int k, I a, I b) {
         }
         sample_t sample(k);
         for (int i = 0, n = 0; i < k; n++) {
-            if (!unsampled[n]) { sample[i++] = a + n; }
+            if (!unsampled[n]) {
+                sample[i++] = a + n;
+            }
         }
         return sample;
     }
@@ -124,7 +130,9 @@ vector<T> int_sample(int k, I a, I b) {
         }
         sample_t sample(k);
         for (int i = 0, n = 0; i < k; n++) {
-            if (sampled[n]) { sample[i++] = a + n; }
+            if (sampled[n]) {
+                sample[i++] = a + n;
+            }
         }
         return sample;
     }
@@ -132,13 +140,17 @@ vector<T> int_sample(int k, I a, I b) {
     // 5/5 Large sample: run repeated sampling
     sample_t sample(k);
     uniform_int_distribution<I> dist(a, b - 1);
-    for (int i = 0; i < k; i++) { sample[i] = dist(mt); }
+    for (int i = 0; i < k; i++) {
+        sample[i] = dist(mt);
+    }
     sort(begin(sample), end(sample));
     int S = unique(begin(sample), end(sample)) - begin(sample);
     while (S < k) {
         int M = S;
         do {
-            for (int i = M; i < k; i++) { sample[i] = dist(mt); }
+            for (int i = M; i < k; i++) {
+                sample[i] = dist(mt);
+            }
             sort(begin(sample) + M, end(sample));
             inplace_merge(begin(sample) + S, begin(sample) + M, end(sample));
             M = unique(begin(sample) + S, end(sample)) - begin(sample);
@@ -165,7 +177,8 @@ auto int_sample_p(double p, I a, I b) {
 template <typename T = int, typename I>
 vector<array<T, 2>> choose_sample(int k, I a, I b) {
     assert(k <= 50'000'000); // don't try anything crazy
-    if (k == 0 || a >= b - 1) return {};
+    if (k == 0 || a >= b - 1)
+        return {};
 
     using sample_t = vector<array<T, 2>>;
     long univ = 1L * (b - a) * (b - a - 1) / 2;
@@ -185,7 +198,9 @@ vector<array<T, 2>> choose_sample(int k, I a, I b) {
         sample_t whole(univ);
         int i = 0;
         for (I x = a; x < b; x++) {
-            for (I y = x + 1; y < b; y++) { whole[i++] = {x, y}; }
+            for (I y = x + 1; y < b; y++) {
+                whole[i++] = {x, y};
+            }
         }
         return whole;
     }
@@ -203,7 +218,9 @@ vector<array<T, 2>> choose_sample(int k, I a, I b) {
         sample_t sample(k);
         I x = a, y = a + 1;
         for (int i = 0, n = 0; i < k; n++) {
-            if (!unsampled[n]) { sample[i++] = {x, y}; }
+            if (!unsampled[n]) {
+                sample[i++] = {x, y};
+            }
             tie(x, y) = y == b - 1 ? make_pair(x + 1, x + 2) : make_pair(x, y + 1);
         }
         return sample;
@@ -222,7 +239,9 @@ vector<array<T, 2>> choose_sample(int k, I a, I b) {
         sample_t sample(k);
         I x = a, y = a + 1;
         for (int i = 0, n = 0; i < k; n++) {
-            if (sampled[n]) { sample[i++] = {x, y}; }
+            if (sampled[n]) {
+                sample[i++] = {x, y};
+            }
             tie(x, y) = y == b - 1 ? make_pair(x + 1, x + 2) : make_pair(x, y + 1);
         }
         return sample;
@@ -274,7 +293,8 @@ auto choose_sample_p(double p, I a, I b) {
 template <typename T = int, typename I>
 vector<array<T, 2>> pair_sample(int k, I a, I b, I c, I d) {
     assert(k <= 50'000'000); // don't try anything crazy
-    if (k == 0 || a >= b || c >= d) return {};
+    if (k == 0 || a >= b || c >= d)
+        return {};
 
     using sample_t = vector<array<T, 2>>;
     long univ = 1L * (b - a) * (d - c);
@@ -293,7 +313,9 @@ vector<array<T, 2>> pair_sample(int k, I a, I b, I c, I d) {
         sample_t whole(univ);
         int i = 0;
         for (I x = a; x < b; x++) {
-            for (I y = c; y < d; y++) { whole[i++] = {x, y}; }
+            for (I y = c; y < d; y++) {
+                whole[i++] = {x, y};
+            }
         }
         return whole;
     }
@@ -311,7 +333,9 @@ vector<array<T, 2>> pair_sample(int k, I a, I b, I c, I d) {
         sample_t sample(k);
         I x = a, y = c;
         for (int i = 0, n = 0; i < k; n++) {
-            if (!unsampled[n]) { sample[i++] = {x, y}; }
+            if (!unsampled[n]) {
+                sample[i++] = {x, y};
+            }
             tie(x, y) = y == d - 1 ? make_pair(x + 1, c) : make_pair(x, y + 1);
         }
         return sample;
@@ -330,7 +354,9 @@ vector<array<T, 2>> pair_sample(int k, I a, I b, I c, I d) {
         sample_t sample(k);
         I x = a, y = c;
         for (int i = 0, n = 0; i < k; n++) {
-            if (sampled[n]) { sample[i++] = {x, y}; }
+            if (sampled[n]) {
+                sample[i++] = {x, y};
+            }
             tie(x, y) = y == d - 1 ? make_pair(x + 1, c) : make_pair(x, y + 1);
         }
         return sample;
@@ -378,7 +404,8 @@ auto pair_sample_p(double p, I a, I b, I c, I d) {
 template <typename T = int, typename I>
 auto distinct_pair_sample(int k, I a, I b) {
     auto g = pair_sample(k, a, b, a, b - 1);
-    for (auto& [u, v] : g) v += v >= u;
+    for (auto& [u, v] : g)
+        v += v >= u;
     return g;
 }
 
@@ -398,7 +425,8 @@ auto vec_sample(const vector<T>& univ, int k) {
     assert(0 <= k && k <= n);
     vector<int> idx = int_sample(k, 0, n);
     vector<T> sample(k);
-    for (int i = 0; i < k; i++) sample[i] = univ[idx[i]];
+    for (int i = 0; i < k; i++)
+        sample[i] = univ[idx[i]];
     return sample;
 }
 
@@ -408,7 +436,8 @@ auto array_sample(const vector<T>& univ) {
     assert(0 < k && k <= n);
     vector<int> idx = int_sample(k, 0, n);
     array<T, k> sample;
-    for (int i = 0; i < k; i++) sample[i] = univ[idx[i]];
+    for (int i = 0; i < k; i++)
+        sample[i] = univ[idx[i]];
     return sample;
 }
 
@@ -515,8 +544,10 @@ auto supply_sample(int n, int positives, int negatives, I sum, I m = 1) {
     auto neg = partition_sample(sum, negatives, m);
     auto idx = int_sample(positives + negatives, 0, n);
     shuffle(begin(idx), end(idx), mt);
-    for (int i = 0; i < positives; i++) vec[idx[i]] = pos[i];
-    for (int i = 0; i < negatives; i++) vec[idx[i + positives]] = neg[i];
+    for (int i = 0; i < positives; i++)
+        vec[idx[i]] = pos[i];
+    for (int i = 0; i < negatives; i++)
+        vec[idx[i + positives]] = neg[i];
     return vec;
 }
 
@@ -527,14 +558,16 @@ template <typename T = int>
 auto int_gen(int n, T a, T b) {
     vector<T> vec(n);
     uniform_int_distribution<T> dist(a, b);
-    for (int i = 0; i < n; i++) vec[i] = dist(mt);
+    for (int i = 0; i < n; i++)
+        vec[i] = dist(mt);
     return vec;
 }
 template <typename T = int>
 auto real_gen(int n, T a, T b) {
     vector<T> vec(n);
     uniform_real_distribution<T> dist(a, b);
-    for (int i = 0; i < n; i++) vec[i] = dist(mt);
+    for (int i = 0; i < n; i++)
+        vec[i] = dist(mt);
     return vec;
 }
 
@@ -544,7 +577,8 @@ auto real_gen(int n, T a, T b) {
 auto generate_any_string(int m, char a = 'a', char b = 'z') {
     chard distchar(a, b);
     string str(m, 0);
-    for (int j = 0; j < m; j++) str[j] = distchar(mt);
+    for (int j = 0; j < m; j++)
+        str[j] = distchar(mt);
     return str;
 }
 
@@ -554,6 +588,8 @@ auto generate_any_string(int m, char a = 'a', char b = 'z') {
 auto generate_any_strings(int n, int minlen, int maxlen, char a = 'a', char b = 'z') {
     intd distm(minlen, maxlen);
     vector<string> strs(n);
-    for (int i = 0; i < n; i++) { strs[i] = generate_any_string(distm(mt), a, b); }
+    for (int i = 0; i < n; i++) {
+        strs[i] = generate_any_string(distm(mt), a, b);
+    }
     return strs;
 }

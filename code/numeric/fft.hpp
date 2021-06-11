@@ -6,6 +6,33 @@ using namespace std;
 // Reference: https://github.com/ecnerwala/cp-book/blob/master/src/fft.hpp
 // Reference: http://neerc.ifmo.ru/trains/toulouse/2017/fft2.pdf
 
+/**
+ * All FFT variants should include this file first.
+ * Precision: Switch from fft to fft_split when |v|max(v) >= 300'000'000.
+ *
+ * Usage:
+ *
+ * (fft.hpp -> standard FFT, no modulus, small ints or doubles)
+ * vector<int> a = {100, 500, 1000, ...}, b = {1000, 300, ...};
+ * auto c = fft::fft_multiply(a, b);
+ * auto d = fft::fft_square(a);
+ *
+ * (fft_split.hpp -> split-join 4x FFT, no modulus. large ints or doubles)
+ * vector<long> a, b;
+ * auto c = fft::fft_split_multiply(a, b);               // if abs values are very large
+ * auto d = fft::fft_split_square(a);                    // if abs values are very large
+ *
+ * (ntt_split.hpp -> split-join 4x FFT, runtime modulus, ints)
+ * vector<int> a, b = {100000, 300000, ...}, b = {1000000, 7000000, ...};
+ * auto c = fft::fft_multiply_mod(1'000'000'007, a, b);
+ * auto d = fft::fft_square_mod(1'000'000'007, a);
+ *
+ * (ntt.hpp -> standard NTT, compile modulus, modnum)
+ * vector<modnum<998244353>> a, b;
+ * auto c = fft::fft_multiply(a, b);
+ * auto d = fft::fft_square(a),
+ */
+
 namespace fft {
 
 int next_two(int32_t N) { return N > 1 ? 8 * sizeof(N) - __builtin_clz(N - 1) : 0; }
@@ -17,17 +44,16 @@ constexpr int INT4_BREAKEVEN = 1400;
 constexpr int INT8_BREAKEVEN = 350;
 constexpr int DOUBLE_BREAKEVEN = 650;
 
-inline namespace caches {
+inline namespace detail {
 
 template <typename T>
 struct root_of_unity {};
 
 template <typename D>
 struct root_of_unity<complex<D>> {
-    using type = complex<D>;
-    static type get(int n) {
+    static auto get(int n) {
         assert(n > 0);
-        return type(cos(TAU / n), sin(TAU / n));
+        return complex<D>(cos(TAU / n), sin(TAU / n));
     }
 };
 
@@ -40,7 +66,7 @@ struct fft_reverse_cache {
             int R = 1 << r;
             rev.emplace_back(R, 0);
             for (int i = 0; i < R; i++) {
-                rev[r][i] = (rev[r][i >> 1] | ((i & 1) * R)) >> 1;
+                rev[r][i] = (rev[r][i >> 1] | ((i & 1) << r)) >> 1;
             }
         }
         return rev[n].data();
@@ -78,10 +104,6 @@ struct fft_cache {
     }
 };
 
-} // namespace caches
-
-inline namespace ext {
-
 struct int_ext {
     template <typename C>
     static auto get(const C& c) {
@@ -109,10 +131,6 @@ struct exact_ext {
         return c;
     }
 };
-
-} // namespace ext
-
-inline namespace runners {
 
 template <bool inverse, typename C>
 void fft_transform_run(C* a, int N) {
@@ -149,16 +167,13 @@ void fft_inverse_transform_run(T* a, C* c, int N) {
     }
 }
 
-template <typename Ext, typename C, typename At, typename Bt, typename Ct>
-void fft_multiply_run(At* ia, int A, Bt* ib, int B, Ct* ic) {
-    if (A == 0 || B == 0)
-        return;
-    int S = A + B - 1;
-    int N = 1 << next_two(S);
+template <typename Ext, typename C, typename T, typename OT>
+void fft_multiply_run(const T* a, int A, const T* b, int B, OT* c) {
+    int S = A + B - 1, N = 1 << next_two(S);
     auto [fa, fb] = fft_cache<C>::get_cache(N);
-    copy_n(ia, A, fa);
+    copy_n(a, A, fa);
     fill_n(fa + A, N - A, C(0));
-    copy_n(ib, B, fb);
+    copy_n(b, B, fb);
     fill_n(fb + B, N - B, C(0));
     fft_transform_run<0, C>(fa, N); // forward fft A
     fft_transform_run<0, C>(fb, N); // forward fft B
@@ -167,18 +182,15 @@ void fft_multiply_run(At* ia, int A, Bt* ib, int B, Ct* ic) {
     }
     fft_transform_run<1, C>(fa, N); // reverse fft A
     for (int i = 0; i < S; i++) {
-        ic[i] = Ext::get(fa[i]);
+        c[i] = Ext::get(fa[i]);
     }
 }
 
-template <typename Ext, typename C, typename At, typename Ct>
-void fft_square_run(At* ia, int A, Ct* ic) {
-    if (A == 0)
-        return;
-    int S = 2 * A - 1;
-    int N = 1 << next_two(S);
+template <typename Ext, typename C, typename T, typename OT>
+void fft_square_run(const T* a, int A, OT* c) {
+    int S = 2 * A - 1, N = 1 << next_two(S);
     auto [fa, fb] = fft_cache<C>::get_cache(N);
-    copy_n(ia, A, fa);
+    copy_n(a, A, fa);
     fill_n(fa + A, N - A, C(0));
     fft_transform_run<0, C>(fa, N); // forward fft A
     for (int i = 0; i < N; i++) {
@@ -186,60 +198,44 @@ void fft_square_run(At* ia, int A, Ct* ic) {
     }
     fft_transform_run<1, C>(fa, N); // reverse fft A
     for (int i = 0; i < S; i++) {
-        ic[i] = Ext::get(fa[i]);
+        c[i] = Ext::get(fa[i]);
     }
 }
-
-} // namespace runners
 
 template <typename T>
 void trim(vector<T>& v) {
-    while (!v.empty() && v.back() == T(0))
-        v.pop_back();
-}
-
-inline namespace naive {
-
-template <typename At, typename Bt, typename Ct>
-void naive_multiply_run(At* ia, int A, Bt* ib, int B, Ct* ic) {
-    for (int i = 0; i < A; i++) {
-        for (int j = 0; j < B; j++) {
-            ic[i + j] += ia[i] * ib[j];
-        }
-    }
-}
-
-template <typename At, typename Ct>
-void naive_square_run(At* ia, int A, Ct* ic) {
-    for (int i = 0; i < A; i++) {
-        for (int j = 0; j < A; j++) {
-            ic[i + j] += ia[i] * ia[j];
-        }
-    }
+    if constexpr (is_floating_point<T>::value)
+        while (!v.empty() && abs(v.back()) < 30 * numeric_limits<T>::epsilon())
+            v.pop_back();
+    else
+        while (!v.empty() && v.back() == T(0))
+            v.pop_back();
 }
 
 template <typename T>
-auto naive_multiply(const vector<T>& a, const vector<T>& b) {
-    int A = a.size(), B = b.size(), S = A && B ? A + B - 1 : 0;
-    vector<T> c(S);
-    naive_multiply_run(a.data(), A, b.data(), B, c.data());
-    return c;
+void naive_multiply_run(const T* a, int A, const T* b, int B, T* c) {
+    for (int i = 0; i < A && B; i++)
+        for (int j = 0; j < B; j++)
+            c[i + j] += a[i] * b[j];
 }
 
 template <typename T>
-auto naive_square(const vector<T>& a) {
-    int A = a.size(), S = A ? 2 * A - 1 : 0;
-    vector<T> c(S);
-    naive_square_run(a.data(), A, c.data());
-    return c;
+void naive_square_run(const T* a, int A, T* c) {
+    for (int i = 0; i < A; i++)
+        for (int j = 0; j < A; j++)
+            c[i + j] += a[i] * a[j];
 }
 
-} // namespace naive
+} // namespace detail
 
 template <typename C = default_complex, typename T>
 auto fft_multiply(const vector<T>& a, const vector<T>& b) {
     int A = a.size(), B = b.size(), S = A && B ? A + B - 1 : 0;
     vector<T> c(S);
+    if (S == 0)
+        return c;
+
+    static_assert(is_integral<T>::value || is_floating_point<T>::value);
 
     if constexpr (is_integral<T>::value) {
         if (sizeof(T) <= 4 && (A <= INT4_BREAKEVEN || B <= INT4_BREAKEVEN)) {
@@ -264,6 +260,10 @@ template <typename C = default_complex, typename T>
 auto fft_square(const vector<T>& a) {
     int A = a.size(), S = A ? 2 * A - 1 : 0;
     vector<T> c(S);
+    if (S == 0)
+        return c;
+
+    static_assert(is_integral<T>::value || is_floating_point<T>::value);
 
     if constexpr (is_integral<T>::value) {
         if (sizeof(T) <= 4 && A <= INT4_BREAKEVEN) {

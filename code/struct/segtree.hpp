@@ -49,7 +49,9 @@ struct segtree {
         has_lazy.assign(2 * N, false);
         range.resize(2 * N);
         int Q = 1 << (N > 1 ? 8 * sizeof(N) - __builtin_clz(N - 1) : 0);
-        for (int i = 0; i < N; i++) { range[i + N] = {L + i, L + i + 1}; }
+        for (int i = 0; i < N; i++) {
+            range[i + N] = {L + i, L + i + 1};
+        }
         rotate(begin(range) + N, begin(range) + (3 * N - Q), end(range));
         for (int u = N - 1; u >= 1; u--) {
             int cl = u << 1, cr = u << 1 | 1;
@@ -75,7 +77,9 @@ struct segtree {
     }
 
     void update_range(int u, int L, int R, const Update& add) {
-        if (R <= range[u][0] || range[u][1] <= L) { return; }
+        if (R <= range[u][0] || range[u][1] <= L) {
+            return;
+        }
         if (L <= range[u][0] && range[u][1] <= R) {
             add.apply(node[u], range[u]);
             update[u].merge(add, range[u]);
@@ -90,8 +94,12 @@ struct segtree {
     }
 
     auto query_range(int u, int L, int R) {
-        if (R <= range[u][0] || range[u][1] <= L) { return Node(); }
-        if (L <= range[u][0] && range[u][1] <= R) { return node[u]; }
+        if (R <= range[u][0] || range[u][1] <= L) {
+            return Node();
+        }
+        if (L <= range[u][0] && range[u][1] <= R) {
+            return node[u];
+        }
         pushdown(u);
         int cl = u << 1, cr = u << 1 | 1;
         Node ans;

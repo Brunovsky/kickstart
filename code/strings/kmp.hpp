@@ -23,7 +23,9 @@ class KMP {
                 table[j] = table[b];
             } else {
                 table[j] = b;
-                do { b = table[b]; } while (b >= 0 && needle[j] != needle[b]);
+                do {
+                    b = table[b];
+                } while (b >= 0 && needle[j] != needle[b]);
             }
         }
         table[P] = b;
@@ -40,8 +42,12 @@ int kmp_search(const string& text, const KMP& kmp) {
     int i = 0, j = 0;
 
     while (i <= T - P) {
-        while (j < P && text[i + j] == needle[j]) { j++; }
-        if (j == P) { return i; }
+        while (j < P && text[i + j] == needle[j]) {
+            j++;
+        }
+        if (j == P) {
+            return i;
+        }
         i += kmp.shift(j);
         j = kmp.lookup(j);
     }
@@ -56,8 +62,12 @@ vector<int> kmp_search_all(const string& text, const KMP& kmp) {
     vector<int> match;
 
     while (i <= T - P) {
-        while (j < P && text[i + j] == needle[j]) { j++; }
-        if (j == P) { match.push_back(i); }
+        while (j < P && text[i + j] == needle[j]) {
+            j++;
+        }
+        if (j == P) {
+            match.push_back(i);
+        }
         i += kmp.shift(j);
         j = max(0, kmp.lookup(j));
     }

@@ -18,10 +18,14 @@ int z_search(const string& text, const string& needle, char null = '\0') {
         } else {
             L = i;
             R = max(R, i);
-            while (R < S && s[R - L] == s[R]) { R++; }
+            while (R < S && s[R - L] == s[R]) {
+                R++;
+            }
             z[i] = R - L;
         }
-        if (i > P && z[i] == P) { return i - (P + 1); }
+        if (i > P && z[i] == P) {
+            return i - (P + 1);
+        }
     }
     return -1;
 }
@@ -39,10 +43,14 @@ vector<int> z_search_all(const string& text, const string& needle, char null = '
         } else {
             L = i;
             R = max(R, i);
-            while (R < S && s[R - L] == s[R]) { R++; }
+            while (R < S && s[R - L] == s[R]) {
+                R++;
+            }
             z[i] = R - L;
         }
-        if (i > P && z[i] == P) { match.push_back(i - (P + 1)); }
+        if (i > P && z[i] == P) {
+            match.push_back(i - (P + 1));
+        }
     }
     return match;
 }

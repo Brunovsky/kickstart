@@ -5,15 +5,21 @@
 #include "../struct/y_combinator.hpp"
 
 /**
- * Polynomial arithmetic operations and other functions
- * Requires FFT (and NTT if using modnum)
- * If FFT is used, debate whether fft_split_multiply should be used
+ * Elementary polynomial arithmetic operations and other functions
+ * Use either naive multiplication or a variant of FFT.
+ * Fill in the multiplication/square functions below.
  * Reference: https://cp-algorithms.com/algebra/polynomial.html
  */
 
 namespace polymath {
 
 #define tmpl(T) template <typename T>
+
+tmpl(T) auto multiply(const vector<T>& a, const vector<T>& b) {
+    return fft::fft_multiply(a, b);
+}
+
+tmpl(T) auto square(const vector<T>& a) { return fft::fft_square(a); }
 
 tmpl(T) T binpow(T val, long e) {
     T base = {1};
@@ -46,29 +52,21 @@ tmpl(T) auto eval(const vector<T>& a, T x) {
     return v;
 }
 
-tmpl(T) void deriv_inplace(vector<T>& a) {
+tmpl(T) auto deriv(vector<T> a) {
     int N = a.size();
     for (int i = 0; i + 1 < N; i++)
         a[i] = T(i + 1) * a[i + 1];
     if (N > 0)
         a.pop_back();
-}
-
-tmpl(T) auto deriv(vector<T> a) {
-    deriv_inplace(a);
     return a;
 }
 
-tmpl(T) void integr_inplace(vector<T>& a, T c = T()) {
+tmpl(T) auto integr(vector<T> a, T c = T()) {
     int N = a.size();
     a.resize(N + 1);
     for (int i = N; i > 0; i--)
         a[i] = a[i - 1] / T(i);
     a[0] = c;
-}
-
-tmpl(T) auto integr(vector<T> a, T c = T()) {
-    integr_inplace(a, c);
     return a;
 }
 
@@ -77,7 +75,7 @@ tmpl(T) auto withroots(const vector<T>& roots) {
     vector<vector<T>> polys(R);
 
     for (int i = 0; i < R; i++) {
-        polys[i] = {-roots[i], 1};
+        polys[i] = {-roots[i], T(1)};
     }
 
     while (R > 1) {
@@ -93,6 +91,10 @@ tmpl(T) auto withroots(const vector<T>& roots) {
 
     return polys[0];
 }
+
+tmpl(T) auto& operator*=(vector<T>& a, const vector<T>& b) { return a = multiply(a, b); }
+
+tmpl(T) auto operator*(const vector<T>& a, const vector<T>& b) { return multiply(a, b); }
 
 tmpl(T) auto operator-(vector<T> a) {
     for (int A = a.size(), i = 0; i < A; i++)
@@ -138,22 +140,11 @@ tmpl(T) auto& operator/=(vector<T>& a, T constant) {
 
 tmpl(T) auto operator/(vector<T> a, T constant) { return a /= constant; }
 
-tmpl(T) auto& operator*=(vector<T>& a, const vector<T>& b) {
-    return a = fft::fft_multiply(a, b);
-}
-
-tmpl(T) auto operator*(const vector<T>& a, const vector<T>& b) {
-    return fft::fft_multiply(a, b);
-}
-
-tmpl(T) auto square(const vector<T>& a) { return fft::fft_square(a); }
-
 tmpl(T) auto inverse_series(const vector<T>& a, int mod_degree) {
-    assert(a[0]);
+    assert(!a.empty() && a[0]);
     vector<T> b(1, T(1) / a[0]);
 
     for (int len = 1; len < mod_degree; len *= 2) {
-        // compute inverse series modulo x^len
         b += b - truncated(a, 2 * len) * square(b);
         truncate(b, min(2 * len, mod_degree)), trim(b);
     }
@@ -181,8 +172,7 @@ tmpl(T) auto operator%(const vector<T>& a, const vector<T>& b) { return a - b * 
 tmpl(T) auto& operator%=(vector<T>& a, const vector<T>& b) { return a = a % b; }
 
 tmpl(T) auto division_with_remainder(const vector<T>& a, const vector<T>& b) {
-    auto d = a / b;
-    auto r = a - b * d;
+    auto d = a / b, r = a - b * d;
     return make_pair(move(d), move(r));
 }
 

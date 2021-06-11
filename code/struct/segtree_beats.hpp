@@ -99,8 +99,12 @@ struct segtree_beats {
     }
 
     auto query_range(int u, int L, int R) {
-        if (R <= range[u][0] || range[u][1] <= L) { return Node(); }
-        if (L <= range[u][0] && range[u][1] <= R) { return node[u]; }
+        if (R <= range[u][0] || range[u][1] <= L) {
+            return Node();
+        }
+        if (L <= range[u][0] && range[u][1] <= R) {
+            return node[u];
+        }
         pushdown(u);
         int cl = u << 1, cr = u << 1 | 1;
         Node ans;

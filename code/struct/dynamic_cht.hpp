@@ -45,7 +45,9 @@ struct dynamic_cht : multiset<cht_line<T>, less<>> {
         auto z = base_t::insert(cht_line<T>{m, b, 0});
         auto y = z++;
         auto x = y;
-        while (intersect(y, z)) { z = base_t::erase(z); }
+        while (intersect(y, z)) {
+            z = base_t::erase(z);
+        }
         if (x != base_t::begin() && intersect(--x, y)) {
             intersect(x, y = base_t::erase(y));
         }

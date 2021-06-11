@@ -70,7 +70,9 @@ struct link_cut_tree_subtree {
             t[r].flip ^= 1;
             t[u].flip = 0;
         }
-        if (u != 0) { t[u].node.pushdown(t[l].node, t[r].node); }
+        if (u != 0) {
+            t[u].node.pushdown(t[l].node, t[r].node);
+        }
     }
 
     void pushup(int u) {
@@ -83,7 +85,8 @@ struct link_cut_tree_subtree {
   public:
     bool link(int u, int v) {
         reroot(u), access(v);
-        if (t[u].parent) return false;
+        if (t[u].parent)
+            return false;
         t[u].parent = v;
         t[v].node.add_virtual_subtree(t[u].node);
         return true;
@@ -91,7 +94,8 @@ struct link_cut_tree_subtree {
 
     bool cut(int u, int v) {
         reroot(u), access(v);
-        if (!t[u].parent || t[u].child[1] || u != t[v].child[0]) return false;
+        if (!t[u].parent || t[u].child[1] || u != t[v].child[0])
+            return false;
         t[u].parent = t[v].child[0] = 0;
         return true;
     }
@@ -103,12 +107,14 @@ struct link_cut_tree_subtree {
 
     int findroot(int u) {
         access(u);
-        while (t[u].child[0]) u = t[u].child[0], pushdown(u);
+        while (t[u].child[0])
+            u = t[u].child[0], pushdown(u);
         return u;
     }
 
     int lca(int u, int v) {
-        if (u == v) return u;
+        if (u == v)
+            return u;
         access(u), v = access(v);
         return t[u].parent ? v : 0;
     }
@@ -134,8 +140,10 @@ struct link_cut_tree_subtree {
     }
 
     void adopt(int parent, int child, int8_t side) {
-        if (side >= 0) t[parent].child[side] = child;
-        if (child) t[child].parent = parent;
+        if (side >= 0)
+            t[parent].child[side] = child;
+        if (child)
+            t[child].parent = parent;
     }
 
     void rotate(int u) {

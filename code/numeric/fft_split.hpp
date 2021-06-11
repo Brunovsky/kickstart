@@ -6,6 +6,8 @@ namespace fft {
 
 constexpr int SPLIT_BREAKEVEN = 1500;
 
+inline namespace detail {
+
 template <typename T, typename At, typename Bt, typename Ct>
 void fft_split_lower_upper(T H, At* ia, int A, Bt* ismall, Ct* ilarge) {
     for (int i = 0; i < A; i++) {
@@ -13,6 +15,8 @@ void fft_split_lower_upper(T H, At* ia, int A, Bt* ismall, Ct* ilarge) {
         ismall[i] = ia[i] - ilarge[i] * H;
     }
 }
+
+} // namespace detail
 
 template <typename C = default_complex, typename T>
 auto fft_split_multiply(const vector<T>& a, const vector<T>& b) {

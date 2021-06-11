@@ -43,7 +43,8 @@ struct sparse_segtree {
 
     void update_range(int L, int R, const Update& add) {
         pushdown();
-        if (R <= range[0] || range[1] <= L) return;
+        if (R <= range[0] || range[1] <= L)
+            return;
         if (L <= range[0] && range[1] <= R) {
             update.merge(add, range);
             lazy = 1, pushdown();
@@ -57,8 +58,12 @@ struct sparse_segtree {
 
     auto query_range(int L, int R) {
         pushdown();
-        if (R <= range[0] || range[1] <= L) { return Node(); }
-        if (L <= range[0] && range[1] <= R) { return node; }
+        if (R <= range[0] || range[1] <= L) {
+            return Node();
+        }
+        if (L <= range[0] && range[1] <= R) {
+            return node;
+        }
         make_children();
         auto a = link[0]->query_range(L, R);
         auto b = link[1]->query_range(L, R);

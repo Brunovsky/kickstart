@@ -26,7 +26,9 @@ class BoyerMoore {
                 finger[c] = bad.size();
                 bad.emplace_back(P, 0);
             }
-            for (int j = i + 1; j < P; j++) { bad[finger[c]][j] = i; }
+            for (int j = i + 1; j < P; j++) {
+                bad[finger[c]][j] = i;
+            }
         }
 
         // good suffix rule
@@ -35,15 +37,21 @@ class BoyerMoore {
         border[P] = b;
         for (int i = P; i > 0; i--) {
             while (b <= P && needle[i - 1] != needle[b - 1]) {
-                if (good[b] == 0) { good[b] = b - i; }
+                if (good[b] == 0) {
+                    good[b] = b - i;
+                }
                 b = border[b];
             }
             border[i - 1] = --b;
         }
 
         for (int i = 0; i <= P; i++) {
-            if (good[i] == 0) { good[i] = b; }
-            if (i == b) { b = border[b]; }
+            if (good[i] == 0) {
+                good[i] = b;
+            }
+            if (i == b) {
+                b = border[b];
+            }
         }
     }
 
@@ -64,8 +72,12 @@ int boyer_moore_search(const string& text, const BoyerMoore& bm) {
     int i = 0, j = P - 1;
 
     while (i <= T - P) {
-        while ((j >= 0) && (text[i + j] == needle[j])) { --j; }
-        if (j < 0) { return i; }
+        while ((j >= 0) && (text[i + j] == needle[j])) {
+            --j;
+        }
+        if (j < 0) {
+            return i;
+        }
         i += bm.mismatch_shift(j, text[i + j]);
         j = P - 1;
     }
@@ -80,7 +92,9 @@ vector<int> boyer_moore_search_all(const string& text, const BoyerMoore& bm) {
     vector<int> match;
 
     while (i <= T - P) {
-        while (j >= g && text[i + j] == needle[j]) { --j; }
+        while (j >= g && text[i + j] == needle[j]) {
+            --j;
+        }
         if (j < g) {
             match.push_back(i);
             i += bm.match_shift();

@@ -32,10 +32,14 @@ struct dyn_segtree {
     }
 
     auto query(int l, int r) {
-        if (r <= L || R <= l) return Node();
-        if (l <= L && R <= r) return node;
+        if (r <= L || R <= l)
+            return Node();
+        if (l <= L && R <= r)
+            return node;
         Node ans;
-        if (link[0]) { ans.merge(link[0]->query(l, r), link[1]->query(l, r)); }
+        if (link[0]) {
+            ans.merge(link[0]->query(l, r), link[1]->query(l, r));
+        }
         return ans;
     }
 };

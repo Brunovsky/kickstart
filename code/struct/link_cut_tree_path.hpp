@@ -79,7 +79,9 @@ struct link_cut_tree_path {
             t[r].flip ^= 1;
             t[u].flip = 0;
         }
-        if (u != 0) { t[u].node.pushdown(t[l].node, t[r].node); }
+        if (u != 0) {
+            t[u].node.pushdown(t[l].node, t[r].node);
+        }
     }
 
     void pushup(int u) {
@@ -92,14 +94,16 @@ struct link_cut_tree_path {
   public:
     bool link(int u, int v) {
         reroot(u), access(v); // no way to detect cycles without doing extra work
-        if (t[u].parent) return false;
+        if (t[u].parent)
+            return false;
         t[u].parent = v;
         return true;
     }
 
     bool cut(int u, int v) {
         reroot(u), access(v);
-        if (!t[u].parent || t[u].child[1] || u != t[v].child[0]) return false;
+        if (!t[u].parent || t[u].child[1] || u != t[v].child[0])
+            return false;
         t[u].parent = t[v].child[0] = 0;
         return true;
     }
@@ -111,12 +115,14 @@ struct link_cut_tree_path {
 
     int findroot(int u) {
         access(u);
-        while (t[u].child[0]) u = t[u].child[0], pushdown(u);
+        while (t[u].child[0])
+            u = t[u].child[0], pushdown(u);
         return u;
     }
 
     int lca(int u, int v) {
-        if (u == v) return u;
+        if (u == v)
+            return u;
         access(u), v = access(v);
         return t[u].parent ? v : 0;
     }
@@ -138,8 +144,10 @@ struct link_cut_tree_path {
     }
 
     void adopt(int parent, int child, int8_t side) {
-        if (side >= 0) t[parent].child[side] = child;
-        if (child) t[child].parent = parent;
+        if (side >= 0)
+            t[parent].child[side] = child;
+        if (child)
+            t[child].parent = parent;
     }
 
     void rotate(int u) {

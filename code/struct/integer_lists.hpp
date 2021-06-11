@@ -177,10 +177,12 @@ struct linked_lists {
     void splice_front(int l, int b) { assert(l != b), splice_before(head(l), b); }
     void splice_back(int l, int b) { assert(l != b), splice_after(tail(l), b); }
     void splice_before(int i, int b) {
-        if (!empty(b)) meet(prev[i], head(b)), meet(tail(b), i), clear(b);
+        if (!empty(b))
+            meet(prev[i], head(b)), meet(tail(b), i), clear(b);
     }
     void splice_after(int i, int b) {
-        if (!empty(b)) meet(tail(b), next[i]), meet(i, head(b)), clear(b);
+        if (!empty(b))
+            meet(tail(b), next[i]), meet(i, head(b)), clear(b);
     }
 
     void clear() {

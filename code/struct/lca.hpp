@@ -41,7 +41,9 @@ struct lca_tree {
 
     int ancestor(int u, int steps) const {
         for (int b = B - 1; b >= 0; b--) {
-            if (steps & (1 << b)) { u = up[b][u]; }
+            if (steps & (1 << b)) {
+                u = up[b][u];
+            }
         }
         return u;
     }
@@ -55,7 +57,9 @@ struct lca_tree {
             u = ancestor(u, depth[u] - depth[v]);
         }
         for (int k = B - 1; k >= 0; k--) {
-            if (up[k][u] != up[k][v]) { u = up[k][u], v = up[k][v]; }
+            if (up[k][u] != up[k][v]) {
+                u = up[k][u], v = up[k][v];
+            }
         }
         return u == v ? u : up[0][u];
     }

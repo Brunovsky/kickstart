@@ -120,7 +120,9 @@ const map<RootedAT, string> action_names<RootedAT> = {
 template <typename Type>
 auto make_tree_action_selector(const actions_t<Type>& freq) {
     vector<int> arr(int(Type::END) + 1);
-    for (auto [key, proportion] : freq) { arr[int(key)] = proportion; }
+    for (auto [key, proportion] : freq) {
+        arr[int(key)] = proportion;
+    }
     return discrete_distribution(begin(arr), end(arr));
 }
 
@@ -128,12 +130,15 @@ template <typename History>
 void print_occurrences(const History& history) {
     using AT = decltype(history[0].action);
     vector<int> occ(int(AT::END) + 1);
-    for (int i = 0, H = history.size(); i < H; i++) { occ[int(history[i].action)]++; }
+    for (int i = 0, H = history.size(); i < H; i++) {
+        occ[int(history[i].action)]++;
+    }
     string rows = "", line = "occ:";
     for (int i = 0, F = occ.size(); i < F; i++) {
         if (occ[i] > 0) {
             string block = ' ' + action_names<AT>.at(AT(i)) + "=" + to_string(occ[i]);
-            if (line.size() + block.size() > 80) rows += line + '\n', line = "    ";
+            if (line.size() + block.size() > 80)
+                rows += line + '\n', line = "    ";
             line += block;
         }
     }
@@ -185,7 +190,8 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
     initial_links = min(initial_links, N - 1);
     while (initial_links--) {
         auto [u, v] = slow.random_unconnected();
-        if (coind(mt)) swap(u, v);
+        if (coind(mt))
+            swap(u, v);
         slow.link(u, v);
         history.emplace_back(Action::uv(UnrootedAT::LINK, u, v));
     }
@@ -199,7 +205,8 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
         case UnrootedAT::LINK: {
             if (slow.S > 1) {
                 auto [u, v] = slow.random_unconnected();
-                if (coind(mt)) swap(u, v);
+                if (coind(mt))
+                    swap(u, v);
                 slow.link(u, v);
                 history.emplace_back(Action::uv(UnrootedAT::LINK, u, v));
             }
@@ -208,7 +215,8 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
             if (slow.S < N) {
                 int u = slow.random_non_root();
                 int v = slow.parent[u];
-                if (coind(mt)) swap(u, v);
+                if (coind(mt))
+                    swap(u, v);
                 slow.cut(u, v);
                 history.emplace_back(Action::uv(UnrootedAT::CUT, u, v));
             }
@@ -216,12 +224,14 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
         case UnrootedAT::LINK_CUT: {
             int u = noded(mt);
             if (int v = slow.parent[u]; v) {
-                if (coind(mt)) swap(u, v);
+                if (coind(mt))
+                    swap(u, v);
                 slow.cut(u, v);
                 history.emplace_back(Action::uv(UnrootedAT::CUT, u, v));
             } else if (slow.S > 1) {
                 v = slow.random_not_in_subtree(u);
-                if (coind(mt)) swap(u, v);
+                if (coind(mt))
+                    swap(u, v);
                 slow.link(u, v);
                 history.emplace_back(Action::uv(UnrootedAT::LINK, u, v));
             }
