@@ -1,5 +1,4 @@
-#ifndef SPLAY_TREE_HPP
-#define SPLAY_TREE_HPP
+#pragma once
 
 #include <cassert>
 #include <functional>
@@ -400,5 +399,3 @@ struct splay_tree {
         node_count--;
     }
 };
-
-#endif // SPLAY_TREE_HPP

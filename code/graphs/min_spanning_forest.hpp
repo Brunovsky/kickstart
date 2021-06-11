@@ -1,5 +1,4 @@
-#ifndef MIN_SPANNING_FOREST_HPP
-#define MIN_SPANNING_FOREST_HPP
+#pragma once
 
 #include "../struct/disjoint_set.hpp" // disjoint_set
 
@@ -71,5 +70,3 @@ long min_spanning_forest_dense(int V, const vector<vector<long>>& weight) {
     }
     return msf;
 }
-
-#endif // MIN_SPANNING_FOREST_HPP

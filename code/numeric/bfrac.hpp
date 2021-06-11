@@ -1,5 +1,4 @@
-#ifndef BFRAC_HPP
-#define BFRAC_HPP
+#pragma once
 
 #include "bigint.hpp" // bigint
 
@@ -145,5 +144,3 @@ struct hash<bfrac> {
 };
 
 } // namespace std
-
-#endif // BFRAC_HPP

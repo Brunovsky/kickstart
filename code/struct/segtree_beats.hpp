@@ -1,5 +1,4 @@
-#ifndef SEGTREE_BEATS_HPP
-#define SEGTREE_BEATS_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -100,12 +99,8 @@ struct segtree_beats {
     }
 
     auto query_range(int u, int L, int R) {
-        if (R <= range[u][0] || range[u][1] <= L) {
-            return Node();
-        }
-        if (L <= range[u][0] && range[u][1] <= R) {
-            return node[u];
-        }
+        if (R <= range[u][0] || range[u][1] <= L) { return Node(); }
+        if (L <= range[u][0] && range[u][1] <= R) { return node[u]; }
         pushdown(u);
         int cl = u << 1, cr = u << 1 | 1;
         Node ans;
@@ -158,5 +153,3 @@ struct ji_segupdate {
 };
 
 } // namespace sample_jidriver
-
-#endif // SEGTREE_BEATS_HPP

@@ -1,5 +1,4 @@
-#ifndef NTT_SPLIT_HPP
-#define NTT_SPLIT_HPP
+#pragma once
 
 #include "ntt.hpp"
 
@@ -135,5 +134,3 @@ auto fft_split_square_mod(Mod mod, const vector<T>& a) {
 }
 
 } // namespace fft
-
-#endif // NTT_SPLIT_HPP

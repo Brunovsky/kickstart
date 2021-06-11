@@ -1,5 +1,4 @@
-#ifndef SPLAY_TREE_HPP
-#define SPLAY_TREE_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -184,5 +183,3 @@ struct splay_order : splay_tree_base<Splay> {
 
     int size() const { return sz; }
 };
-
-#endif // SPLAY_TREE_HPP

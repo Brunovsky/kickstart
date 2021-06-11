@@ -1,5 +1,4 @@
-#ifndef GRAPH_OPERATIONS_HPP
-#define GRAPH_OPERATIONS_HPP
+#pragma once
 
 #include "../hash.hpp"
 #include "../random.hpp"
@@ -177,5 +176,3 @@ bool is_rooted_directed(const edges_t& g, int V, int s = 0) {
     auto adj = make_adjacency_lists_directed(V, g);
     return count_reachable(adj, s) == V;
 }
-
-#endif // GRAPH_OPERATIONS_HPP

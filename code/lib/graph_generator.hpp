@@ -1,5 +1,4 @@
-#ifndef GRAPH_GENERATOR_HPP
-#define GRAPH_GENERATOR_HPP
+#pragma once
 
 #include "../hash.hpp"
 #include "../numeric/bits.hpp"
@@ -1184,5 +1183,3 @@ auto random_uniform_level_flow(int V, double p, int ranks, int m = 1, bool loop 
     complete_levels_directed(g, R);
     return g;
 }
-
-#endif // GRAPH_GENERATOR_HPP

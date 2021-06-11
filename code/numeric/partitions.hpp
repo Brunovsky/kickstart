@@ -1,5 +1,4 @@
-#ifndef PARTITIONS_HPP
-#define PARTITIONS_HPP
+#pragma once
 
 #include "../hash.hpp"
 #include "../random.hpp"
@@ -74,5 +73,3 @@ vector<int> first_sized_partition(int n, int k) {
     a[k - 1] = n - k + 1;
     return a;
 }
-
-#endif // PARTITIONS_HPP

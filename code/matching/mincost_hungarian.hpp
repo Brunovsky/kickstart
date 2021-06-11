@@ -1,5 +1,4 @@
-#ifndef MINCOST_HUNGARIAN_HPP
-#define MINCOST_HUNGARIAN_HPP
+#pragma once
 
 #include "../struct/integer_heaps.hpp" // pairing_int_heap
 
@@ -163,5 +162,3 @@ struct mincost_hungarian {
         return min_cost;
     }
 };
-
-#endif // MINCOST_HUNGARIAN_HPP

@@ -1,8 +1,6 @@
-#ifndef BITS_HPP
-#define BITS_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 inline void next_lexicographical_mask(unsigned& v) {
@@ -108,5 +106,3 @@ string msbits(unsigned v, unsigned bits = 32) {
             s[bits - n - 1] = '1';
     return s;
 }
-
-#endif // BITS_HPP

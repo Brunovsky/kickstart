@@ -1,8 +1,6 @@
-#ifndef TIDAL_FLOW_HPP
-#define TIDAL_FLOW_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -109,5 +107,3 @@ struct tidal_flow {
     Flow get_flow(int e) const { return edge[2 * e].flow; }
     bool left_of_mincut(int u) const { return level[u] >= 0; }
 };
-
-#endif // TIDAL_FLOW_HPP

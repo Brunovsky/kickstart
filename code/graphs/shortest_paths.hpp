@@ -1,5 +1,4 @@
-#ifndef SHORTEST_PATHS_HPP
-#define SHORTEST_PATHS_HPP
+#pragma once
 
 #include "../struct/pbds.hpp"          // pbds priority queue
 #include "../struct/integer_heaps.hpp" // binary_int_heap
@@ -391,5 +390,3 @@ auto astar(int s, int t, const vector<vector<pair<int, Cost>>>& adj, Fn&& heuris
 
     return dist[t];
 }
-
-#endif // SHORTEST_PATHS_HPP

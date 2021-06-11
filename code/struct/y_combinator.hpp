@@ -1,8 +1,6 @@
-#ifndef Y_COMBINATOR_HPP
-#define Y_COMBINATOR_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -26,5 +24,3 @@ template <typename Fun>
 auto y_combinator(Fun&& fun) {
     return y_combinator_result<std::decay_t<Fun>>(std::forward<Fun>(fun));
 }
-
-#endif // Y_COMBINATOR_HPP

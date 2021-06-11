@@ -1,5 +1,4 @@
-#ifndef TRAVELLING_SALESMAN_HPP
-#define TRAVELLING_SALESMAN_HPP
+#pragma once
 
 #include "../numeric/bits.hpp" // FOR_EACH_MASK, FOR_EACH_BIT
 
@@ -54,5 +53,3 @@ long tsp_held_karp(int V, const vector<vector<int>>& dist, vector<int>* out_path
     *out_path = path;
     return optimum;
 }
-
-#endif // TRAVELLING_SALESMAN_HPP

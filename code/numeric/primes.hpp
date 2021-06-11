@@ -1,5 +1,4 @@
-#ifndef PRIMES_HPP
-#define PRIMES_HPP
+#pragma once
 
 #include "math.hpp"
 
@@ -124,5 +123,3 @@ bool miller_rabin(long n) {
     }
     return true;
 }
-
-#endif // PRIMES_HPP

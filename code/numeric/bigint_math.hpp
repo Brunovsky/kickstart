@@ -1,5 +1,4 @@
-#ifndef BIGINT_MATH_HPP
-#define BIGINT_MATH_HPP
+#pragma once
 
 #include "bigint.hpp"
 
@@ -171,5 +170,3 @@ struct bdmodnum {
     friend bool operator==(bdmodnum lhs, bdmodnum rhs) { return lhs.n == rhs.n; }
     friend bool operator!=(bdmodnum lhs, bdmodnum rhs) { return lhs.n != rhs.n; }
 };
-
-#endif // BIGINT_MATH_HPP

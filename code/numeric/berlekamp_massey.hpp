@@ -1,5 +1,4 @@
-#ifndef BERLEKAMP_MASSEY_HPP
-#define BERLEKAMP_MASSEY_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -25,17 +24,27 @@ auto berlekamp_massey(const vector<T>& values) {
     T b = 1;
     for (int i = 0; i < N; i++, m++) {
         T d = values[i];
-        for (int j = 1; j < L + 1; j++) d += C[j] * values[i - j];
-        if (!d) continue;
+        for (int j = 1; j < L + 1; j++) {
+            d += C[j] * values[i - j];
+        }
+        if (!d) {
+            continue;
+        }
         vector<T> tmp = C;
         T coef = d / b;
-        for (int j = m; j < N; j++) C[j] -= coef * B[j - m];
-        if (2 * L > i) continue;
+        for (int j = m; j < N; j++) {
+            C[j] -= coef * B[j - m];
+        }
+        if (2 * L > i) {
+            continue;
+        }
         L = i + 1 - L, B = move(tmp), b = d, m = 0;
     }
 
     C.resize(L + 1), C.erase(C.begin());
-    for (auto& n : C) n = -n;
+    for (auto& n : C) {
+        n = -n;
+    }
     return C;
 }
 
@@ -52,9 +61,11 @@ auto linear_recurrence(const vector<T>& values, const vector<T>& rec, int64_t k)
     auto combine = [&](vector<T>& a, const vector<T>& b) {
         vector<T> res(2 * N + 1);
         for (int i = 0; i <= N; i++)
-            for (int j = 0; j <= N; j++) res[i + j] += a[i] * b[j];
+            for (int j = 0; j <= N; j++)
+                res[i + j] += a[i] * b[j];
         for (int i = 2 * N; i > N; --i)
-            for (int j = 0; j < N; j++) res[i - 1 - j] += res[i] * rec[j];
+            for (int j = 0; j < N; j++)
+                res[i - 1 - j] += res[i] * rec[j];
         res.resize(N + 1);
         a = move(res);
     };
@@ -64,13 +75,15 @@ auto linear_recurrence(const vector<T>& values, const vector<T>& rec, int64_t k)
 
     k++; // use 1-indexed kth
     while (k > 0) {
-        if (k & 1) combine(pol, e);
-        if (k >>= 1) combine(e, e);
+        if (k & 1)
+            combine(pol, e);
+        if (k >>= 1)
+            combine(e, e);
     }
 
     T res = 0;
-    for (int i = 0; i < N; i++) res += pol[i + 1] * values[i];
+    for (int i = 0; i < N; i++) {
+        res += pol[i + 1] * values[i];
+    }
     return res;
 }
-
-#endif // BERLEKAMP_MASSEY_HPP

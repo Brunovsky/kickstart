@@ -1,8 +1,6 @@
-#ifndef RMQ_HPP
-#define RMQ_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -64,5 +62,3 @@ struct min_rmq_index {
         return min(make_pair(v[l], l), make_pair(v[r], r)).second;
     }
 };
-
-#endif // RMQ_HPP

@@ -1,8 +1,6 @@
-#ifndef FENWICK_HPP
-#define FENWICK_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -175,5 +173,3 @@ struct sparse_fenwick2d {
         }
     }
 };
-
-#endif // FENWICK_HPP

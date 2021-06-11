@@ -1,8 +1,6 @@
-#ifndef SPINLOCK_HPP
-#define SPINLOCK_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -149,5 +147,3 @@ struct concurrent_queue {
         return l < r ? elem = buf[l++], true : false;
     }
 };
-
-#endif // SPINLOCK_HPP

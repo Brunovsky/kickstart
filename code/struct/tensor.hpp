@@ -1,5 +1,4 @@
-#ifndef TENSOR_HPP
-#define TENSOR_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -28,9 +27,7 @@ struct tensor {
     explicit tensor(std::array<int, NDIMS> shape_, const T& t = T()) {
         shape = shape_;
         strides[NDIMS - 1] = 1;
-        for (int i = NDIMS - 1; i > 0; i--) {
-            strides[i - 1] = strides[i] * shape[i];
-        }
+        for (int i = NDIMS - 1; i > 0; i--) { strides[i - 1] = strides[i] * shape[i]; }
         len = strides[0] * shape[0];
         data = new T[len];
         std::fill(data, data + len, t);
@@ -38,9 +35,7 @@ struct tensor {
 
     tensor(const tensor& o)
         : shape(o.shape), strides(o.strides), len(o.len), data(new T[len]) {
-        for (int i = 0; i < len; i++) {
-            data[i] = o.data[i];
-        }
+        for (int i = 0; i < len; i++) { data[i] = o.data[i]; }
     }
 
     tensor& operator=(tensor&& o) noexcept {
@@ -60,9 +55,7 @@ struct tensor {
   protected:
     int flatten_index(std::array<int, NDIMS> idx) const {
         int res = 0;
-        for (int i = 0; i < NDIMS; i++) {
-            res += idx[i] * strides[i];
-        }
+        for (int i = 0; i < NDIMS; i++) { res += idx[i] * strides[i]; }
         return res;
     }
     int flatten_index_checked(std::array<int, NDIMS> idx) const {
@@ -78,5 +71,3 @@ struct tensor {
     T& operator[](std::array<int, NDIMS> idx) const { return data[flatten_index(idx)]; }
     T& at(std::array<int, NDIMS> idx) const { return data[flatten_index_checked(idx)]; }
 };
-
-#endif // TENSOR_HPP

@@ -1,5 +1,4 @@
-#ifndef BIGINT_HPP
-#define BIGINT_HPP
+#pragma once
 
 #include "../hash.hpp" // if necessary
 
@@ -577,5 +576,3 @@ struct hash<bigint> {
 };
 
 } // namespace std
-
-#endif // BIGINT_HPP

@@ -1,8 +1,6 @@
-#ifndef HASH_HPP
-#define HASH_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 struct Hasher {
@@ -107,5 +105,3 @@ struct rolling_hasher {
         return power;
     }
 };
-
-#endif // HASH_HPP

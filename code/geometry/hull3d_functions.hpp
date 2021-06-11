@@ -1,5 +1,4 @@
-#ifndef HULL3D_FUNCTIONS_HPP
-#define HULL3D_FUNCTIONS_HPP
+#pragma once
 
 #include "hull3d.hpp"
 
@@ -37,5 +36,3 @@ D volume_hull(const vector<vector<int>>& hull, const vector<Point3d<T, D>>& poin
     }
     return hull_volume / 6.0;
 }
-
-#endif // HULL3D_FUNCTIONS_HPP

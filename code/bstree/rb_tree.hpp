@@ -1,5 +1,4 @@
-#ifndef RB_TREE_HPP
-#define RB_TREE_HPP
+#pragma once
 
 #include <cassert>
 #include <functional>
@@ -577,5 +576,3 @@ struct rb_tree {
         node_count--;
     }
 };
-
-#endif // RB_TREE_HPP

@@ -1,8 +1,6 @@
-#ifndef MAXIMUM_MATCHING_HPP
-#define MAXIMUM_MATCHING_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 using edges_t = vector<array<int, 2>>;
@@ -65,5 +63,3 @@ struct maximum_matching {
         return matchings;
     }
 };
-
-#endif // MAXIMUM_MATCHING_HPP

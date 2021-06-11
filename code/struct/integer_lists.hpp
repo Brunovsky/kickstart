@@ -1,8 +1,6 @@
-#ifndef INTEGER_LISTS_HPP
-#define INTEGER_LISTS_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -179,12 +177,10 @@ struct linked_lists {
     void splice_front(int l, int b) { assert(l != b), splice_before(head(l), b); }
     void splice_back(int l, int b) { assert(l != b), splice_after(tail(l), b); }
     void splice_before(int i, int b) {
-        if (!empty(b))
-            meet(prev[i], head(b)), meet(tail(b), i), clear(b);
+        if (!empty(b)) meet(prev[i], head(b)), meet(tail(b), i), clear(b);
     }
     void splice_after(int i, int b) {
-        if (!empty(b))
-            meet(tail(b), next[i]), meet(i, head(b)), clear(b);
+        if (!empty(b)) meet(tail(b), next[i]), meet(i, head(b)), clear(b);
     }
 
     void clear() {
@@ -204,5 +200,3 @@ struct linked_lists {
 
 #define FOR_EACH_IN_LINKED_LIST_REVERSE(i, l, lists) \
     for (int z##i = l, i = lists.tail(z##i); i != lists.rep(z##i); i = lists.prev[i])
-
-#endif // INTEGER_LISTS_HPP

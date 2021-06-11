@@ -1,5 +1,4 @@
-#ifndef MODNUM_HPP
-#define MODNUM_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -55,5 +54,3 @@ struct modnum {
         return in >> v.n, v.n = fit(v.n % mod), in;
     }
 };
-
-#endif // MODNUM_HPP

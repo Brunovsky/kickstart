@@ -1,5 +1,4 @@
-#ifndef SLOW_TREE_HPP
-#define SLOW_TREE_HPP
+#pragma once
 
 #include "graph_formats.hpp"
 #include "../random.hpp"
@@ -51,11 +50,15 @@ struct slow_tree {
     int random_adjacent(int u) {
         assert(!children[u].empty() || parent[u] != 0);
         vector<int> nodes(begin(children[u]), end(children[u]));
-        if (parent[u] != 0) { children[u].insert(parent[u]); }
+        if (parent[u] != 0) {
+            children[u].insert(parent[u]);
+        }
         int V = children[u].size();
         assert(V > 0);
         int v = *children[u].find_by_order(intd(0, V - 1)(mt));
-        if (parent[u] != 0) { children[u].erase(parent[u]); }
+        if (parent[u] != 0) {
+            children[u].erase(parent[u]);
+        }
         return v;
     }
 
@@ -119,7 +122,9 @@ struct slow_tree {
         list<int> available;
         int r = findroot(u);
         for (int v : roots) {
-            if (v != r) { available.splice(end(available), get_subtree(v)); }
+            if (v != r) {
+                available.splice(end(available), get_subtree(v));
+            }
         }
         int V = available.size();
         return *next(begin(available), intd(0, V - 1)(mt));
@@ -157,7 +162,9 @@ struct slow_tree {
 
     list<int> get_path(int u, int v) {
         assert(parent[v] == 0 || unrooted);
-        if (unrooted) { reroot(v); }
+        if (unrooted) {
+            reroot(v);
+        }
         list<int> nodes = {u};
         while (u != v && u) {
             nodes.push_back(u = parent[u]);
@@ -169,7 +176,9 @@ struct slow_tree {
     auto query_node(int u) const { return val[u]; }
 
     void flip_to_child(int u, int c) {
-        if (parent[u]) { flip_to_child(parent[u], u); }
+        if (parent[u]) {
+            flip_to_child(parent[u], u);
+        }
         parent[u] = c;
         children[c].insert(u);
         children[u].erase(c);
@@ -180,8 +189,10 @@ struct slow_tree {
 
     void link(int u, int v) {
         assert(u != v && findroot(u) != findroot(v));
-        if (unrooted) reroot(u);
-        if (!unrooted && parent[u] != 0) cut(u);
+        if (unrooted)
+            reroot(u);
+        if (!unrooted && parent[u] != 0)
+            cut(u);
         parent[u] = v;
         children[v].insert(u);
         roots.erase(u), non_roots.insert(u);
@@ -195,7 +206,9 @@ struct slow_tree {
 
     void cut(int u, int v) {
         assert(u != v);
-        if (unrooted) { reroot(v); }
+        if (unrooted) {
+            reroot(v);
+        }
         assert(parent[u] == v);
         parent[u] = 0, children[v].erase(u);
         non_roots.erase(u), roots.insert(u);
@@ -296,5 +309,3 @@ struct slow_tree {
         }
     }
 };
-
-#endif // SLOW_TREE_HPP

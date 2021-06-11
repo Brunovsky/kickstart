@@ -1,5 +1,4 @@
-#ifndef MINCOST_PUSH_RELABEL_HPP
-#define MINCOST_PUSH_RELABEL_HPP
+#pragma once
 
 #include "push_relabel.hpp"
 
@@ -213,5 +212,3 @@ struct mincost_push_relabel {
 
     Flow get_flow(int e) const { return edge[2 * e].flow; }
 };
-
-#endif // MINCOST_PUSH_RELABEL_HPP

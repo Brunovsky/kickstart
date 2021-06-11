@@ -1,8 +1,6 @@
-#ifndef SUFFIX_AUTOMATON_HPP
-#define SUFFIX_AUTOMATON_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -47,9 +45,7 @@ struct suffix_automaton {
     }
 
     void extend(const Vec& s) {
-        for (char c : s) {
-            extend(c);
-        }
+        for (char c : s) { extend(c); }
     }
 
     void extend(T value) {
@@ -83,14 +79,10 @@ struct suffix_automaton {
         vector<int> cnt(node[last].len + 1), pos(V);
         pi.resize(V);
 
-        for (int v = 0; v < V; v++)
-            cnt[node[v].len]++;
-        for (int len = 1; len <= node[last].len; len++)
-            cnt[len] += cnt[len - 1];
-        for (int v = V - 1; v >= 0; v--)
-            pos[v] = --cnt[node[v].len];
-        for (int v = 0; v < V; v++)
-            pi[pos[v]] = v;
+        for (int v = 0; v < V; v++) cnt[node[v].len]++;
+        for (int len = 1; len <= node[last].len; len++) cnt[len] += cnt[len - 1];
+        for (int v = V - 1; v >= 0; v--) pos[v] = --cnt[node[v].len];
+        for (int v = 0; v < V; v++) pi[pos[v]] = v;
 
         // topological order: pi[0], pi[1], pi[2], ...
         // numpos: number of positions where state v can be found.
@@ -102,9 +94,7 @@ struct suffix_automaton {
 
         // terminal: whether a state is terminal (corresponds to a suffix)
         int u = last;
-        do {
-            node[u].terminal = true, u = node[u].link;
-        } while (u > 1);
+        do { node[u].terminal = true, u = node[u].link; } while (u > 1);
     }
 
     int get_state(const Vec& word) const {
@@ -120,9 +110,7 @@ struct suffix_automaton {
         vector<long> dp(V, 1);
         dp[0] = 0;
         for (int i = V - 1; i >= 1; i--) {
-            for (int v = pi[i], c = 0; c < A; c++) {
-                dp[v] += dp[node[v].next[c]];
-            }
+            for (int v = pi[i], c = 0; c < A; c++) { dp[v] += dp[node[v].next[c]]; }
         }
         return dp[1];
     }
@@ -134,9 +122,7 @@ struct suffix_automaton {
     int longest_prefix(const Vec& word) const {
         for (int v = 1, i = 0, W = word.size(); i < W; i++) {
             v = node[v].next[chash(word[i])];
-            if (v == 0) {
-                return i;
-            }
+            if (v == 0) { return i; }
         }
         return word.size();
     }
@@ -144,5 +130,3 @@ struct suffix_automaton {
     // O(W) Number of times that word appears in this text
     int count_matches(const Vec& word) const { return node[get_state(word)].numpos; }
 };
-
-#endif // SUFFIX_AUTOMATON_HPP

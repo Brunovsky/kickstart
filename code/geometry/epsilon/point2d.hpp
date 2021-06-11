@@ -1,8 +1,6 @@
-#ifndef EPSILON_POINT2D_HPP
-#define EPSILON_POINT2D_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -167,5 +165,3 @@ struct Point2d {
     friend ostream& operator<<(ostream& out, const P& a) { return out << to_string(a); }
     friend istream& operator>>(istream& in, P& a) { return in >> a.x >> a.y; }
 };
-
-#endif // EPSILON_POINT2D_HPP

@@ -1,5 +1,4 @@
-#ifndef LINK_CUT_TREE_SUBTREE_HPP
-#define LINK_CUT_TREE_SUBTREE_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -178,5 +177,3 @@ struct link_cut_tree_subtree {
         return last;
     }
 };
-
-#endif // LINK_CUT_TREE_SUBTREE_HPP

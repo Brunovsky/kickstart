@@ -1,8 +1,6 @@
-#ifndef PRIORITY_THREAD_POOL_HPP
-#define PRIORITY_THREAD_POOL_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -177,5 +175,3 @@ struct priority_thread_pool {
     inline unsigned pool_size() const noexcept { return threads.size(); }
     inline bool empty() const noexcept { return pending() == 0; }
 };
-
-#endif // PRIORITY_THREAD_POOL_HPP

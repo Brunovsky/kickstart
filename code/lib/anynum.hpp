@@ -1,5 +1,4 @@
-#ifndef LIB_ANY_NUM
-#define LIB_ANY_NUM
+#pragma once
 
 #include "../numeric/bfrac.hpp"
 #include "../numeric/frac.hpp"
@@ -32,5 +31,3 @@ auto uniform_gen_many(int N, long minv, long maxv, long maxd = 2) {
     }
     return nums;
 }
-
-#endif // LIB_ANY_NUM

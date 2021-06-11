@@ -1,5 +1,4 @@
-#ifndef EPSILON_HULL3D_UTILS_HPP
-#define EPSILON_HULL3D_UTILS_HPP
+#pragma once
 
 #include "../../hash.hpp"
 #include "point3d.hpp" // Point3d, Plane
@@ -65,5 +64,3 @@ optional<array<int, 2>> find_incident(const vector<Point3d>& points) {
 }
 
 } // namespace hull3d_utils
-
-#endif // EPSILON_HULL3D_UTILS_HPP

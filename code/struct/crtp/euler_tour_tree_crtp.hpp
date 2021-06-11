@@ -1,5 +1,4 @@
-#ifndef EULER_TOUR_TREE_CRTP_HPP
-#define EULER_TOUR_TREE_CRTP_HPP
+#pragma once
 
 #include "splay_tree.hpp" // splay_tree_base, splay_order
 
@@ -160,5 +159,3 @@ struct simple_euler_tour_tree {
         return first[a].order_of_node() < fu && fu < last[a].order_of_node();
     }
 };
-
-#endif // EULER_TOUR_TREE_CRTP_HPP

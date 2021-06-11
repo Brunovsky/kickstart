@@ -1,8 +1,6 @@
-#ifndef SORT_HPP
-#define SORT_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -193,5 +191,3 @@ void lsb_radix_sort(vector<T>& v) {
 }
 
 } // namespace inline_radix_sort
-
-#endif // SORT_HPP

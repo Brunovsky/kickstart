@@ -1,5 +1,4 @@
-#ifndef ISOMORPHISM_HPP
-#define ISOMORPHISM_HPP
+#pragma once
 
 #include "../hash.hpp"
 #include "../linear/matrix.hpp"
@@ -44,5 +43,3 @@ size_t hash_graph(int V, const edges_t& g) {
 bool isomorphic(int V, const edges_t& g1, const edges_t& g2) {
     return g1.size() == g2.size() && hash_graph(V, g1) == hash_graph(V, g2);
 }
-
-#endif // ISOMORPHISM_HPP

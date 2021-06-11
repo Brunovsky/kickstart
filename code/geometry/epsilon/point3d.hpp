@@ -1,5 +1,4 @@
-#ifndef EPSILON_POINT3D_HPP
-#define EPSILON_POINT3D_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 
@@ -194,5 +193,3 @@ struct Plane {
     double planedist(const P& p) const { return abs(dot(p, n) + d) / n.norm(); }
     double signed_planedist(const P& p) const { return (dot(p, n) + d) / n.norm(); }
 };
-
-#endif // EPSILON_POINT3D_HPP

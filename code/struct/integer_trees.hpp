@@ -1,5 +1,4 @@
-#ifndef INTEGER_TREES_HPP
-#define INTEGER_TREES_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -32,19 +31,11 @@ struct merging_interval_tree : set<array<T, 2>> {
         auto& [L, R] = intv;
         assert(L < R);
         auto lo = base_t::lower_bound({L, L});
-        if (lo != base_t::end() && L >= (*lo)[0]) {
-            ++lo;
-        }
-        if (lo != base_t::begin() && (*prev(lo))[1] >= L) {
-            L = min(L, (*--lo)[0]);
-        }
+        if (lo != base_t::end() && L >= (*lo)[0]) { ++lo; }
+        if (lo != base_t::begin() && (*prev(lo))[1] >= L) { L = min(L, (*--lo)[0]); }
         auto hi = base_t::lower_bound({R, R});
-        if (hi != base_t::end() && R >= (*hi)[0]) {
-            ++hi;
-        }
-        if (hi != base_t::begin()) {
-            R = max(R, (*prev(hi))[1]);
-        }
+        if (hi != base_t::end() && R >= (*hi)[0]) { ++hi; }
+        if (hi != base_t::begin()) { R = max(R, (*prev(hi))[1]); }
         base_t::erase(lo, hi);
         base_t::insert(intv);
     }
@@ -67,14 +58,11 @@ struct merging_interval_tree : set<array<T, 2>> {
 
     optional<interval_t> get_interval(T num) const {
         auto it = base_t::lower_bound({num, num});
-        if (it != base_t::end() && num >= (*it)[0]) {
-            return *it;
-        } else if (it != base_t::begin() && (*prev(it))[0] <= num &&
-                   num < (*prev(it))[1]) {
+        if (it != base_t::end() && num >= (*it)[0]) return *it;
+        if (it != base_t::begin() && (*prev(it))[0] <= num && num < (*prev(it))[1]) {
             return *prev(it);
-        } else {
-            return nullopt;
         }
+        return nullopt;
     }
 
     bool contains(T num) const { return get_interval(num).has_value(); }
@@ -86,21 +74,13 @@ struct merging_interval_tree : set<array<T, 2>> {
 
     bool overlaps(interval_t intv) const {
         auto lo = base_t::lower_bound({intv[0], intv[0]});
-        if (lo == base_t::end() || (*lo)[0] >= intv[1]) {
-            if (lo == base_t::begin() || (*--lo)[1] <= intv[0]) {
-                return false;
-            }
-        }
-        return true;
+        return !(lo == base_t::end() || (*lo)[0] >= intv[1]) ||
+               !(lo == base_t::begin() || (*--lo)[1] <= intv[0]);
     }
 
     T cover_length() const {
         T sum = 0;
-        for (const auto& [lo, hi] : *this) {
-            sum += hi - lo;
-        }
+        for (const auto& [lo, hi] : *this) sum += hi - lo;
         return sum;
     }
 };
-
-#endif // INTEGER_TREES_HPP

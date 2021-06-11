@@ -1,5 +1,4 @@
-#ifndef POLY_MULTIEVAL_HPP
-#define POLY_MULTIEVAL_HPP
+#pragma once
 
 #include "poly.hpp"
 
@@ -84,5 +83,3 @@ tmpl(T) auto interpolate(const vector<T>& x, const vector<T>& y) {
 #undef tmpl
 
 } // namespace polymath
-
-#endif // POLY_MULTIEVAL_HPP

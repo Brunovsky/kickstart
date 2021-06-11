@@ -1,5 +1,4 @@
-#ifndef GRAPH_FORMATS_HPP
-#define GRAPH_FORMATS_HPP
+#pragma once
 
 #include "../formatting.hpp"
 #include "graph_operations.hpp"
@@ -119,5 +118,3 @@ string to_simple(const edges_t& g, int V, const string& more, bool directed = fa
 }
 
 string to_string(const edges_t& g, int V) { return to_human_undirected(g, V); }
-
-#endif // GRAPH_FORMATS_HPP

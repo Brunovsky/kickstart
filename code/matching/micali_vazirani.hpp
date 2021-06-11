@@ -1,5 +1,4 @@
-#ifndef MICALI_VAZIRANI_HPP
-#define MICALI_VAZIRANI_HPP
+#pragma once
 
 #include "../struct/integer_lists.hpp" // forward_lists, linked_lists
 
@@ -496,5 +495,3 @@ struct micali_vazirani {
         return i == s; // erased all after i?
     }
 };
-
-#endif // MICALI_VAZIRANI_HPP

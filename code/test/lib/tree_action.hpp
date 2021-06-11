@@ -1,5 +1,4 @@
-#ifndef TREE_ACTION_HPP
-#define TREE_ACTION_HPP
+#pragma once
 
 #include "../../lib/slow_tree.hpp"
 #include "test_chrono.hpp"
@@ -441,5 +440,3 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq,
 }
 
 } // namespace tree_testing
-
-#endif // TREE_ACTION_HPP

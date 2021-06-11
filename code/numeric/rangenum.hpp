@@ -1,5 +1,4 @@
-#ifndef RANGENUM_HPP
-#define RANGENUM_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -59,5 +58,3 @@ struct rangenum {
     friend ostream& operator<<(ostream& out, rangenum v) { return out << to_string(v); }
     friend istream& operator>>(istream& in, rangenum& v) { return in >> v[0] >> v[1]; }
 };
-
-#endif // RANGENUM_HPP

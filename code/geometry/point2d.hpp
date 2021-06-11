@@ -1,8 +1,6 @@
-#ifndef POINT2D_HPP
-#define POINT2D_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -165,5 +163,3 @@ template <typename T, typename D>
 struct hash<Point2d<T, D>> : Hasher2d {};
 
 } // namespace std
-
-#endif // POINT2D_HPP

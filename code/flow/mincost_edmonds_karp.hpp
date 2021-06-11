@@ -1,5 +1,4 @@
-#ifndef MINCOST_EDMONDS_KARP_HPP
-#define MINCOST_EDMONDS_KARP_HPP
+#pragma once
 
 #include "../struct/integer_heaps.hpp"
 
@@ -106,5 +105,3 @@ struct mincost_edmonds_karp {
     Flow get_flow(int e) const { return edge[2 * e].flow; }
     bool left_of_mincut(int u) const { return dist[u] < costsuminf; }
 };
-
-#endif // MINCOST_EDMONDS_KARP_HPP

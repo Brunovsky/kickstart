@@ -1,5 +1,4 @@
-#ifndef COMPLEX_HPP
-#define COMPLEX_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -53,5 +52,3 @@ struct my_complex {
 };
 
 } // namespace complex_polyfill
-
-#endif // COMPLEX_HPP

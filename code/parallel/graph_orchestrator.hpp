@@ -1,5 +1,4 @@
-#ifndef GRAPH_ORCHESTRATOR_HPP
-#define GRAPH_ORCHESTRATOR_HPP
+#pragma once
 
 #include "priority_thread_pool.hpp" // priority_thread_pool
 #include "spinlock.hpp"             // concurrent_queue
@@ -81,5 +80,3 @@ struct graph_orchestrator {
         pool.finish();
     }
 };
-
-#endif // GRAPH_ORCHESTRATOR_HPP

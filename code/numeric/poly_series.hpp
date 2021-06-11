@@ -1,5 +1,4 @@
-#ifndef POLY_SERIES_HPP
-#define POLY_SERIES_HPP
+#pragma once
 
 #include "poly.hpp"
 
@@ -15,7 +14,9 @@ auto faulhaber(T upto, int n) {
     }
     vector<T> den = ex;
     den.erase(den.begin());
-    for (auto& d : den) { d = -d; }
+    for (auto& d : den) {
+        d = -d;
+    }
     vector<T> num(n);
     T p = 1;
     for (int i = 0; i < n; i++) {
@@ -32,5 +33,3 @@ auto faulhaber(T upto, int n) {
 }
 
 } // namespace polymath
-
-#endif // POLY_SERIES_HPP

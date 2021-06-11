@@ -1,5 +1,4 @@
-#ifndef FORMATTING_HPP
-#define FORMATTING_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 #include <fmt/format.h>
@@ -228,5 +227,3 @@ ostream& operator<<(ostream& out, const unordered_multimap<K, V, Rs...>& v) {
 }
 
 } // namespace std
-
-#endif // FORMATTING_HPP

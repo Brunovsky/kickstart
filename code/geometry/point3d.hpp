@@ -1,5 +1,4 @@
-#ifndef POINT3D_HPP
-#define POINT3D_HPP
+#pragma once
 
 #include "../hash.hpp"
 
@@ -182,5 +181,3 @@ template <typename T, typename D>
 struct hash<Plane<T, D>> : PlaneHasher {};
 
 } // namespace std
-
-#endif // POINT3D_HPP

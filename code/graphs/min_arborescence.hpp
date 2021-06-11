@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../struct/disjoint_set.hpp"
 #include "../struct/integer_heaps.hpp"
 

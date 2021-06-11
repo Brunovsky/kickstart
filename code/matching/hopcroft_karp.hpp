@@ -1,8 +1,6 @@
-#ifndef HOPCROFT_KARP_HPP
-#define HOPCROFT_KARP_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -93,5 +91,3 @@ struct hopcroft_karp {
         return matching;
     }
 };
-
-#endif // HOPCROFT_KARP_HPP

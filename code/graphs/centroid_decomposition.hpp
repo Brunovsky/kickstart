@@ -1,5 +1,4 @@
-#ifndef CENTROID_DECOMPOSITION_HPP
-#define CENTROID_DECOMPOSITION_HPP
+#pragma once
 
 #include "../struct/y_combinator.hpp"
 
@@ -41,5 +40,3 @@ auto build_tree_centroid_decomposition(const vector<vector<int>>& tree) {
     assert(marked == V);
     return cparent;
 }
-
-#endif // CENTROID_DECOMPOSITION_HPP

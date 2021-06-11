@@ -1,8 +1,6 @@
-#ifndef FRAC_HPP
-#define FRAC_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -141,5 +139,3 @@ struct numeric_limits<frac> : numeric_limits<long> {
 };
 
 } // namespace std
-
-#endif // FRAC_HPP

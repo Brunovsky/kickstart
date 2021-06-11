@@ -1,5 +1,4 @@
-#ifndef TOPOLOGY_HPP
-#define TOPOLOGY_HPP
+#pragma once
 
 #include "../struct/y_combinator.hpp"
 
@@ -266,5 +265,3 @@ auto find_cycle(const vector<vector<int>>& adj) {
     }
     return nodes;
 }
-
-#endif // TOPOLOGY_HPP

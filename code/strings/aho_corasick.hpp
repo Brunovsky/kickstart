@@ -1,8 +1,6 @@
-#ifndef AHO_CORASICK_HPP
-#define AHO_CORASICK_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -53,9 +51,7 @@ struct aho_corasick {
         int s = 0, t = 1;
         while (s < t) {
             int v = bfs[s++], u = node[v].link;
-            if (node[v].escape == 0) {
-                node[v].escape = node[u].escape;
-            }
+            if (node[v].escape == 0) { node[v].escape = node[u].escape; }
             for (int c = 0; c < A; c++) {
                 int& w = node[v].next[c];
                 if (w) {
@@ -109,8 +105,7 @@ struct aho_corasick {
         for (int v = 0, i = 0, N = text.size(); i < N; i++) {
             v = node[v].next[chash(text[i])];
             int w = node[node[v].escape].wordid;
-            if (w != -1 || !skipbad)
-                fn(i, w);
+            if (w != -1 || !skipbad) fn(i, w);
         }
     }
 
@@ -120,8 +115,7 @@ struct aho_corasick {
         for (int v = 0, i = 0, N = text.size(); i < N; i++) {
             v = node[v].next[chash(text[i])];
             int u = node[v].escape;
-            while (u != 0)
-                fn(i, node[u].wordid), u = node[node[u].link].escape;
+            while (u != 0) fn(i, node[u].wordid), u = node[node[u].link].escape;
         }
     }
 
@@ -130,11 +124,8 @@ struct aho_corasick {
         for (int v = 0, i = 0, N = text.size(); i < N; i++) {
             v = node[v].next[chash(text[i])];
             int w = node[node[v].escape].wordid;
-            if (w != 0)
-                return {i, w};
+            if (w != 0) return {i, w};
         }
         return {-1, -1};
     }
 };
-
-#endif // AHO_CORASICK_HPP

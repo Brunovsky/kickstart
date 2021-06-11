@@ -1,5 +1,4 @@
-#ifndef SIMPLEX_UTILS_HPP
-#define SIMPLEX_UTILS_HPP
+#pragma once
 
 #include "../formatting.hpp"
 #include "simplex.hpp"
@@ -234,5 +233,3 @@ bool is_feasible(const simplex<F>& lp, const vector<F>& x) {
            all_of(begin(lp.C), end(lp.C),
                   [&x](const lp_constraint<F>& c) { return is_feasible(c, x); });
 }
-
-#endif // SIMPLEX_UTILS_HPP

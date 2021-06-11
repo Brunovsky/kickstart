@@ -1,5 +1,4 @@
-#ifndef CHRONO_HPP
-#define CHRONO_HPP
+#pragma once
 
 #include <chrono>
 using namespace std;
@@ -54,5 +53,3 @@ using ms = chrono::milliseconds;
 #define LOOP_FOR_DURATION_OR_RUNS_TRACKED(in_duration, out_now, in_max_runs, out_runs) \
     LOOP_FOR_DURATION_OR_RUNS_TRACKED_IMPL(__COUNTER__, in_duration, out_now,          \
                                            in_max_runs, out_runs)
-
-#endif // CHRONO_HPP

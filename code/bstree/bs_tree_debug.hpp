@@ -1,5 +1,4 @@
-#ifndef BS_TREE_DEBUG_HPP
-#define BS_TREE_DEBUG_HPP
+#pragma once
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -199,5 +198,3 @@ template <typename BSTree>
 auto debug_tree(const BSTree& tree) {
     return tree_debugger(tree);
 }
-
-#endif // BS_TREE_DEBUG_HPP

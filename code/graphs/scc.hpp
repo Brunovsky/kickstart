@@ -1,5 +1,4 @@
-#ifndef SCC_HPP
-#define SCC_HPP
+#pragma once
 
 #include "../struct/y_combinator.hpp"
 #include "../hash.hpp"
@@ -73,5 +72,3 @@ auto condensate_scc(const vector<vector<int>>& adj, const vector<int>& cmap) {
     }
     return make_pair(sccout, sccin);
 }
-
-#endif // SCC_HPP

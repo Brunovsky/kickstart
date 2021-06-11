@@ -1,5 +1,4 @@
-#ifndef HULL3D_UTILS_HPP
-#define HULL3D_UTILS_HPP
+#pragma once
 
 #include "../hash.hpp"
 #include "point3d.hpp" // Point3d, Plane
@@ -67,5 +66,3 @@ optional<array<int, 2>> find_incident(const vector<Point3d<T, D>>& points) {
 }
 
 } // namespace hull3d_utils
-
-#endif // HULL3D_UTILS_HPP

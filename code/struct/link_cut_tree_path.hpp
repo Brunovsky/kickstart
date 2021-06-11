@@ -1,5 +1,4 @@
-#ifndef LINK_CUT_TREE_PATH_HPP
-#define LINK_CUT_TREE_PATH_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -179,5 +178,3 @@ struct link_cut_tree_path {
         return last;
     }
 };
-
-#endif // LINK_CUT_TREE_PATH_HPP

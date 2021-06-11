@@ -1,5 +1,4 @@
-#ifndef TREE_ISOMORPHISM_HPP
-#define TREE_ISOMORPHISM_HPP
+#pragma once
 
 #include "../hash.hpp"
 #include "../struct/y_combinator.hpp"
@@ -184,5 +183,3 @@ auto hash_rooted_tree_vertices(int V, const vector<array<int, 2>>& g, int root) 
     hash_subtree(root, -1);
     return hashtable;
 }
-
-#endif // TREE_ISOMORPHISM_HPP

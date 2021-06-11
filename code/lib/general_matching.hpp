@@ -1,5 +1,4 @@
-#ifndef GENERAL_MATCHING_HPP
-#define GENERAL_MATCHING_HPP
+#pragma once
 
 #include "graph_generator.hpp"
 
@@ -69,5 +68,3 @@ auto random_general_matching(int V, int M, double p) {
     int E = max(M, int(distE(mt)));
     return random_general_matching(V, M, E);
 }
-
-#endif // GENERAL_MATCHING_HPP

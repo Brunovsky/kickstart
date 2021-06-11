@@ -1,5 +1,4 @@
-#ifndef HEAVY_LIGHT_DECOMPOSITION
-#define HEAVY_LIGHT_DECOMPOSITION
+#pragma once
 
 #include "../struct/y_combinator.hpp"
 
@@ -48,5 +47,3 @@ auto build_tree_heavy_light_decomposition(vector<vector<int>>& tree, int root) {
 
     return make_tuple(move(parent), move(depth), move(head), move(tin), move(tout));
 }
-
-#endif // HEAVY_LIGHT_DECOMPOSITION

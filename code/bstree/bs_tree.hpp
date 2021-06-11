@@ -1,5 +1,4 @@
-#ifndef BS_TREE_HPP
-#define BS_TREE_HPP
+#pragma once
 
 #include "tree_core.hpp"
 
@@ -1032,5 +1031,3 @@ template <typename BSTree>
 bst_inserter_multi_iterator<BSTree> bst_inserter_multi(BSTree& tree) {
     return bst_inserter_multi_iterator<BSTree>(tree);
 }
-
-#endif // BS_TREE_HPP

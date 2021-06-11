@@ -1,8 +1,6 @@
-#ifndef MATRIX_HPP
-#define MATRIX_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 template <typename T>
@@ -140,5 +138,3 @@ struct mat {
 
     friend ostream& operator<<(ostream& out, const mat& a) { return out << to_string(a); }
 };
-
-#endif // MATRIX_HPP

@@ -1,5 +1,4 @@
-#ifndef BIPARTITE_HPP
-#define BIPARTITE_HPP
+#pragma once
 
 #include "graph_generator.hpp"
 
@@ -102,5 +101,3 @@ auto add_cost_bipartite_graph(bipartite_graph& bg, long mincost, long maxcost) {
 auto add_cost_bipartite_graph(bipartite_graph& bg, long maxcost) {
     return add_cost_bipartite_graph(bg, 1, maxcost);
 }
-
-#endif // BIPARTITE_HPP

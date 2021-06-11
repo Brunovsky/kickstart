@@ -1,5 +1,4 @@
-#ifndef EPSILON_QUICKHULL3D_HPP
-#define EPSILON_QUICKHULL3D_HPP
+#pragma once
 
 #include "point3d.hpp" // Point3d, Plane
 
@@ -490,5 +489,3 @@ auto compute_hull(const vector<Point3d>& points) {
     simplify_hull(hull, points, qh.eps);
     return hull;
 }
-
-#endif // EPSILON_QUICKHULL3D_HPP

@@ -1,8 +1,6 @@
-#ifndef STRING_DISTANCE_HPP
-#define STRING_DISTANCE_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -17,8 +15,7 @@ int levenshtein_distance(const string& a, const string& b, int del, int ins, int
     vector<int> prev(B + 1, 0);
     vector<int> next(B + 1, 0);
 
-    for (int j = 0; j < B; j++)
-        prev[j + 1] = (j + 1) * ins;
+    for (int j = 0; j < B; j++) prev[j + 1] = (j + 1) * ins;
 
     for (int i = 0; i < A; i++) {
         next[0] = (i + 1) * del;
@@ -50,8 +47,7 @@ int simple_damerau_distance(const string& a, const string& b, int del, int ins, 
     vector<int> prev(B + 1, 0);
     vector<int> next(B + 1, 0);
 
-    for (int j = 0; j < B; j++)
-        prev[j + 1] = (j + 1) * ins;
+    for (int j = 0; j < B; j++) prev[j + 1] = (j + 1) * ins;
 
     for (int i = 0; i < A; i++) {
         next[0] = (i + 1) * del;
@@ -92,9 +88,7 @@ int damerau_distance(const string& a, const string& b, int del, int ins, int sub
     fill(begin(dp[0]), end(dp[0]), inf);
 
     dp[1][0] = inf;
-    for (int j = 0; j < B; j++) {
-        dp[1][j + 2] = (j + 1) * ins;
-    }
+    for (int j = 0; j < B; j++) { dp[1][j + 2] = (j + 1) * ins; }
 
     for (int i = 0; i < A; i++) {
         dp[i + 2][0] = inf;
@@ -109,13 +103,10 @@ int damerau_distance(const string& a, const string& b, int del, int ins, int sub
             int sub_dist = eqs + dp[i + 1][j + 1];
             int tra_dist = swp + dp[ip][jp];
             dp[i + 2][j + 2] = min(min(ins_dist, del_dist), min(sub_dist, tra_dist));
-            if (a[i] == b[j])
-                jp = j + 1;
+            if (a[i] == b[j]) jp = j + 1;
         }
         finger[int(a[i])] = i + 1;
     }
 
     return dp[A + 1][B + 1];
 }
-
-#endif // STRING_DISTANCE_HPP

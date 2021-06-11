@@ -1,5 +1,4 @@
-#ifndef TREE_CORE_HPP
-#define TREE_CORE_HPP
+#pragma once
 
 #include "avl_tree.hpp"
 #include "rb_tree.hpp"
@@ -13,5 +12,3 @@ template struct splay_tree<int>;
 
 template <typename T>
 using Tree = rb_tree<T>;
-
-#endif // TREE_CORE_HPP

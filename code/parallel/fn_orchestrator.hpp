@@ -1,5 +1,4 @@
-#ifndef FN_ORCHESTRATOR_HPP
-#define FN_ORCHESTRATOR_HPP
+#pragma once
 
 #include "../struct/integer_lists.hpp" // linked_lists
 #include "priority_thread_pool.hpp"    // priority_thread_pool
@@ -143,5 +142,3 @@ struct fn_orchestrator {
         pool.finish();
     }
 };
-
-#endif // FN_ORCHESTRATOR_HPP

@@ -1,5 +1,4 @@
-#ifndef EPSILON_HULL3D_FUNCTIONS_HPP
-#define EPSILON_HULL3D_FUNCTIONS_HPP
+#pragma once
 
 #include "hull3d.hpp"
 
@@ -35,5 +34,3 @@ double volume_hull(const vector<vector<int>>& hull, const vector<Point3d>& point
     }
     return hull_volume;
 }
-
-#endif // EPSILON_HULL3D_FUNCTIONS_HPP

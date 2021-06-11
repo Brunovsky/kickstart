@@ -1,5 +1,4 @@
-#ifndef FRAC_EXTRA_HPP
-#define FRAC_EXTRA_HPP
+#pragma once
 
 #include "frac.hpp"
 
@@ -80,5 +79,3 @@ frac cf_search(frac lo, frac hi) {
         return fa + inv(cf_search(inv(hi - fa), inv(lo - fa)));
     }
 }
-
-#endif // FRAC_EXTRA_HPP

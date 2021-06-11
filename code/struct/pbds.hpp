@@ -1,5 +1,4 @@
-#ifndef PBDS_HPP
-#define PBDS_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -38,5 +37,3 @@ using hash_map = gnu::gp_hash_table<K, V>;
 
 template <typename K>
 using hash_set = hash_map<K, gnu::null_type>;
-
-#endif // PBDS_HPP

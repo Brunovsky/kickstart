@@ -1,5 +1,4 @@
-#ifndef FLOW_HPP
-#define FLOW_HPP
+#pragma once
 
 #include "graph_generator.hpp"
 
@@ -168,5 +167,3 @@ auto add_cost_flow_network(flow_network& fn, long mincost, long maxcost) {
 auto add_cost_flow_network(flow_network& fn, long maxcost) {
     return add_cost_flow_network(fn, 1, maxcost);
 }
-
-#endif // FLOW_HPP

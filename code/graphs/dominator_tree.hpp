@@ -1,5 +1,4 @@
-#ifndef DOMINATOR_TREE_HPP
-#define DOMINATOR_TREE_HPP
+#pragma once
 
 #include "../struct/y_combinator.hpp"
 
@@ -92,5 +91,3 @@ auto build_dominator_tree(int root, const vector<vector<int>>& out) {
     // might wish to return semi as well
     return make_pair(dom, parent);
 }
-
-#endif // DOMINATOR_TREE_HPP

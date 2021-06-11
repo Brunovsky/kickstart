@@ -1,5 +1,4 @@
-#ifndef AVL_TREE_HPP
-#define AVL_TREE_HPP
+#pragma once
 
 #include <cassert>
 #include <functional>
@@ -563,5 +562,3 @@ struct avl_tree {
         node_count--;
     }
 };
-
-#endif // AVL_TREE_HPP

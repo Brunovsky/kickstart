@@ -1,5 +1,4 @@
-#ifndef BS_SET_HPP
-#define BS_SET_HPP
+#pragma once
 
 #include "bs_tree.hpp"
 
@@ -197,5 +196,3 @@ struct bs_multiset : bs_tree<Key, Compare, set_tag> {
         return bst_inserter_multi<bst>(set);
     }
 };
-
-#endif // BS_SET_HPP

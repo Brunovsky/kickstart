@@ -1,8 +1,6 @@
-#ifndef KNAPSACK_HPP
-#define KNAPSACK_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -150,5 +148,3 @@ auto unit_knapsack(int cap, const vector<int>& weight, const vector<int>& value)
     }
     return make_pair(total, quantity);
 }
-
-#endif // KNAPSACK_HPP

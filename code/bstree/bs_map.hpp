@@ -1,5 +1,4 @@
-#ifndef BS_MAP_HPP
-#define BS_MAP_HPP
+#pragma once
 
 #include "bs_tree.hpp"
 
@@ -272,5 +271,3 @@ struct bs_multimap : bs_tree<std::pair<const Key, Value>, Compare, map_tag> {
         return bst::merge_multi(std::move(src));
     }
 };
-
-#endif // BS_MAP_HPP

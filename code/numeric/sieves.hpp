@@ -1,8 +1,6 @@
-#ifndef SIEVES_HPP
-#define SIEVES_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -287,5 +285,3 @@ auto factor_primes(int n, const vector<int>& lp, const vector<int>& nxt) {
     }
     return primes;
 }
-
-#endif // SIEVES_HPP

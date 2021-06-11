@@ -1,5 +1,4 @@
-#ifndef TEST_CHRONO_HPP
-#define TEST_CHRONO_HPP
+#pragma once
 
 #include "../../numeric/chrono.hpp"
 
@@ -43,5 +42,3 @@
 #define PRINT_EACH_MS(var, runs) printcl(" {:>8.2f}ms -- {}\n", EACH_MS(var, runs), #var)
 #define PRINT_EACH_US(var, runs) printcl(" {:>9.1f}us -- {}\n", EACH_US(var, runs), #var)
 #define PRINT_EACH_NS(var, runs) printcl(" {:>10.1f}ns -- {}\n", EACH_NS(var, runs), #var)
-
-#endif // TEST_CHRONO_HPP

@@ -1,5 +1,4 @@
-#ifndef INTEGER_HEAPS_HPP
-#define INTEGER_HEAPS_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -72,15 +71,12 @@ struct binary_int_heap {
     void push_or_improve(int u) { contains(u) ? improve(u) : push(u); }
     void push_or_decline(int u) { contains(u) ? decline(u) : push(u); }
     void clear() {
-        for (int u : c)
-            id[u] = -1;
+        for (int u : c) id[u] = -1;
         c.clear();
     }
     void fill() {
         for (int u = 0, N = id.size(); u < N; u++) {
-            if (!contains(u)) {
-                push(u);
-            }
+            if (!contains(u)) { push(u); }
         }
     }
 
@@ -154,9 +150,7 @@ struct pairing_int_heap {
     }
     void improve(int u) {
         assert(!empty() && contains(u)), u++;
-        if (u != root && do_comp(u, node[u].parent)) {
-            take(u), root = meld(root, u);
-        }
+        if (u != root && do_comp(u, node[u].parent)) { take(u), root = meld(root, u); }
     }
     void push_or_improve(int u) {
         if (contains(u)) {
@@ -182,15 +176,11 @@ struct pairing_int_heap {
         }
     }
     void clear() {
-        if (!empty()) {
-            clear_rec(root), root = 0;
-        }
+        if (!empty()) { clear_rec(root), root = 0; }
     }
     void fill() {
         for (int u = 1, N = node.size() - 1; u <= N; u++) {
-            if (!contains(u)) {
-                push(u);
-            }
+            if (!contains(u)) { push(u); }
         }
     }
 
@@ -198,8 +188,7 @@ struct pairing_int_heap {
     bool do_comp(int u, int v) const { return comp(u - 1, v - 1); }
     int meld(int u, int v) { return do_comp(u, v) ? splice(u, v) : splice(v, u); }
     int safe_meld(int u, int v) {
-        if (u == 0 || v == 0 || u == v)
-            return u ? u : v;
+        if (u == 0 || v == 0 || u == v) return u ? u : v;
         return meld(u, v);
     }
     int splice(int u, int v) {
@@ -217,8 +206,7 @@ struct pairing_int_heap {
         node[node[u].next].prev = node[u].prev;
     }
     int two_pass_pairing(int n) {
-        if (node[n].child == 0)
-            return 0;
+        if (node[n].child == 0) return 0;
         int u = node[n].child, v = node[u].next, w;
         while (v && node[v].next) {
             w = node[node[v].next].next;
@@ -226,9 +214,7 @@ struct pairing_int_heap {
             v = node[v].next = w;
         }
         u = node[n].child, v = node[u].next;
-        while (v) {
-            w = node[v].next, u = meld(u, v), v = w;
-        }
+        while (v) { w = node[v].next, u = meld(u, v), v = w; }
         return u;
     }
     void clear_rec(int u) {
@@ -327,23 +313,17 @@ struct pairing_int_heaps {
         root[g] = 0, root[h] = r;
     }
     void clear(int h) {
-        if (!empty(h)) {
-            clear_rec(root[h]), root[h] = 0;
-        }
+        if (!empty(h)) { clear_rec(root[h]), root[h] = 0; }
     }
     void fill(int h) {
         for (int u = 1, N = node.size() - 1; u <= N; u++) {
-            if (!contains(u)) {
-                push(h, u);
-            }
+            if (!contains(u)) { push(h, u); }
         }
     }
     void fill_each() {
         assert(root.size() + 1 == node.size());
         for (int h = 0, u = 1, N = node.size() - 1; u <= N; h++, u++) {
-            if (!contains(u)) {
-                push(h, u);
-            }
+            if (!contains(u)) { push(h, u); }
         }
     }
 
@@ -351,8 +331,7 @@ struct pairing_int_heaps {
     bool do_comp(int u, int v) const { return comp(u - 1, v - 1); }
     int meld(int u, int v) { return do_comp(u, v) ? splice(u, v) : splice(v, u); }
     int safe_meld(int u, int v) {
-        if (u == 0 || v == 0 || u == v)
-            return u ? u : v;
+        if (u == 0 || v == 0 || u == v) return u ? u : v;
         return meld(u, v);
     }
     int splice(int u, int v) {
@@ -370,8 +349,7 @@ struct pairing_int_heaps {
         node[node[u].next].prev = node[u].prev;
     }
     int two_pass_pairing(int n) {
-        if (node[n].child == 0)
-            return 0;
+        if (node[n].child == 0) return 0;
         int u = node[n].child, v = node[u].next, w;
         while (v && node[v].next) {
             w = node[node[v].next].next;
@@ -379,9 +357,7 @@ struct pairing_int_heaps {
             v = node[v].next = w;
         }
         u = node[n].child, v = node[u].next;
-        while (v) {
-            w = node[v].next, u = meld(u, v), v = w;
-        }
+        while (v) { w = node[v].next, u = meld(u, v), v = w; }
         return u;
     }
     void clear_rec(int u) {
@@ -454,18 +430,13 @@ struct lazy_skew_int_heaps {
         node[a].lazy = node[0].lazy = 0;
     }
     int safe_meld(int u, int v) {
-        if (u == 0 || v == 0 || u == v)
-            return u ? u : v;
+        if (u == 0 || v == 0 || u == v) return u ? u : v;
         return meld(u, v);
     }
     int meld(int a, int b) {
         pushdown(a), pushdown(b);
-        if (comp(node[b].cost, node[a].cost)) {
-            swap(a, b);
-        }
+        if (comp(node[b].cost, node[a].cost)) { swap(a, b); }
         swap(node[a].child[0], node[a].child[1] = safe_meld(b, node[a].child[1]));
         return a;
     }
 };
-
-#endif // INTEGER_HEAPS_HPP

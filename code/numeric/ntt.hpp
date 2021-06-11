@@ -1,5 +1,4 @@
-#ifndef NTT_HPP
-#define NTT_HPP
+#pragma once
 
 #include "modnum.hpp"
 #include "fft.hpp"
@@ -63,5 +62,3 @@ auto fft_square(const vector<modnum<MOD>>& a) {
 }
 
 } // namespace fft
-
-#endif // NTT_HPP

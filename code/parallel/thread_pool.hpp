@@ -1,8 +1,6 @@
-#ifndef THREAD_POOL_HPP
-#define THREAD_POOL_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -167,5 +165,3 @@ struct thread_pool {
     inline int pool_size() const noexcept { return threads.size(); }
     inline bool empty() const noexcept { return pending() == 0; }
 };
-
-#endif // THREAD_POOL_HPP

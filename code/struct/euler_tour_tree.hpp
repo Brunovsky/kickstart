@@ -1,5 +1,4 @@
-#ifndef EULER_TOUR_TREE_HPP
-#define EULER_TOUR_TREE_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -202,5 +201,3 @@ struct euler_tour_tree {
         return make_pair(l, r); // first(u) is the root
     }
 };
-
-#endif // EULER_TOUR_TREE_HPP

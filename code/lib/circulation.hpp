@@ -1,5 +1,4 @@
-#ifndef CIRCULATION_HPP
-#define CIRCULATION_HPP
+#pragma once
 
 #include "graph_generator.hpp"
 
@@ -171,5 +170,3 @@ auto add_cost_circulation_network(circulation_network& cn, long mincost, long ma
 auto add_cost_circulation_network(circulation_network& cn, long maxcost) {
     return add_cost_circulation_network(cn, 1, maxcost);
 }
-
-#endif // CIRCULATION_HPP

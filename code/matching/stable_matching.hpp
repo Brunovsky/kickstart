@@ -1,5 +1,4 @@
-#ifndef STABLE_MATCHING_HPP
-#define STABLE_MATCHING_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -25,5 +24,3 @@ auto stable_matching(const vector<vector<int>>& u, const vector<vector<int>>& v)
     }
     return make_pair(move(mu), move(mv));
 }
-
-#endif // STABLE_MATCHING_HPP

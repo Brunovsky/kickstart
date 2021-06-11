@@ -1,5 +1,4 @@
-#ifndef BIGINT_UTILS_HPP
-#define BIGINT_UTILS_HPP
+#pragma once
 
 #include "bigint.hpp"
 #include "../random.hpp"
@@ -27,5 +26,3 @@ bigint random_bigint(int digits, int base = 10, double neg_p = 0.0, bool zero = 
 }
 
 bigint bigpow(int n, int base = 10) { return bigint("1" + string(n, '0'), base); }
-
-#endif // BIGINT_UTILS_HPP

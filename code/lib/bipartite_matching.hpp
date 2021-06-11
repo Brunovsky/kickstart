@@ -1,5 +1,4 @@
-#ifndef BIPARTITE_MATCHING_HPP
-#define BIPARTITE_MATCHING_HPP
+#pragma once
 
 #include "graph_generator.hpp"
 
@@ -84,5 +83,3 @@ auto random_bipartite_matching(int U, int V, int M, double p) {
     int E = max(M, int(distE(mt)));
     return random_bipartite_matching(U, V, M, E);
 }
-
-#endif // BIPARTITE_MATCHING_HPP

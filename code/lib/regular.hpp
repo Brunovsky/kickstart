@@ -1,5 +1,4 @@
-#ifndef REGULAR_HPP
-#define REGULAR_HPP
+#pragma once
 
 #include "../hash.hpp"
 #include "../random.hpp"
@@ -164,5 +163,3 @@ edges_t regular_directed_sample(int n, int k) {
     vector<int> R(n, k);
     return degree_directed_sample(n, R, R);
 }
-
-#endif // REGULAR_HPP

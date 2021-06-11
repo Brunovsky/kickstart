@@ -1,5 +1,4 @@
-#ifndef MINCUT_HPP
-#define MINCUT_HPP
+#pragma once
 
 #include "../hash.hpp"
 
@@ -127,5 +126,3 @@ auto stoer_wagner(int V, vector<vector<long>> cost, int a = 0) {
     cut_t cut(best_cut.first, best_cut.second);
     return pair<long, cut_t>{best_cost, cut};
 }
-
-#endif // MINCUT_HPP

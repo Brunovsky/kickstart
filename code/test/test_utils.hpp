@@ -1,5 +1,4 @@
-#ifndef TEST_UTILS_HPP
-#define TEST_UTILS_HPP
+#pragma once
 
 #include "lib/test_chrono.hpp"
 #include "lib/test_progress.hpp"
@@ -48,5 +47,3 @@ mat<string> make_table(const vector<U>& u, const vector<V>& v, string s = "") {
         TIME(runner);                                                    \
         printcl("OK {:>6.2f}s === {}\n", 1e-3 * TIME_MS(runner), #test); \
     } while (0)
-
-#endif // TEST_UTILS_HPP

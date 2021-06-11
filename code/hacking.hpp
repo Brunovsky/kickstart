@@ -1,5 +1,4 @@
-#ifndef HACKING_HPP
-#define HACKING_HPP
+#pragma once
 
 #include "formatting.hpp"
 #include "hash.hpp"
@@ -49,5 +48,3 @@ auto putln(ostream& out, Ts&&... args) {
     return print(out, make_format_string(sizeof...(Ts)) + "\n",
                  std::forward<Ts>(args)...);
 }
-
-#endif // HACKING_HPP

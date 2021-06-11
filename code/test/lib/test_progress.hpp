@@ -1,5 +1,4 @@
-#ifndef TEST_PROGRESS_HPP
-#define TEST_PROGRESS_HPP
+#pragma once
 
 #include <unistd.h>
 #include "test_chrono.hpp"
@@ -87,5 +86,3 @@ template <typename... Ts>
     print("Error: {}", format(forward<Ts>(args)...));
     exit(1);
 }
-
-#endif // TEST_PROGRESS_HPP

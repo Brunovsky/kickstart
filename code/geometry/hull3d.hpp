@@ -1,7 +1,6 @@
-#ifndef QUICKHULL3D_HPP
-#define QUICKHULL3D_HPP
+#pragma once
 
-#include "point3d.hpp" // Point3d, QPlane
+#include "point3d.hpp" // Point3d, Plane
 
 /**
  * 3D Quickhull for exact points.
@@ -478,5 +477,3 @@ auto compute_hull(const vector<Point3d<T, D>>& points) {
     simplify_hull(hull, points);
     return hull;
 }
-
-#endif // QUICKHULL3D_HPP

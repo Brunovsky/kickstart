@@ -1,8 +1,6 @@
-#ifndef DYNAMIC_PROGRAMMING_HPP
-#define DYNAMIC_PROGRAMMING_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -90,5 +88,3 @@ Vec longest_common_subsequence(const Vec& a, const Vec& b) {
     reverse(begin(subsequence), end(subsequence));
     return subsequence;
 }
-
-#endif // DYNAMIC_PROGRAMMING_HPP

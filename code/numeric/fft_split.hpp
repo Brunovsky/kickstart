@@ -1,5 +1,4 @@
-#ifndef FFT_SPLIT_HPP
-#define FFT_SPLIT_HPP
+#pragma once
 
 #include "fft.hpp"
 
@@ -99,5 +98,3 @@ auto fft_split_square(const vector<T>& a) {
 }
 
 } // namespace fft
-
-#endif // FFT_SPLIT_HPP

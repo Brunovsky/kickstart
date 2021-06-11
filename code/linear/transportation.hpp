@@ -1,5 +1,4 @@
-#ifndef TRANSPORTATION_HPP
-#define TRANSPORTATION_HPP
+#pragma once
 
 #include "matrix.hpp"
 
@@ -164,5 +163,3 @@ struct transportation {
         return ans;
     }
 };
-
-#endif // TRANSPORTATION_HPP

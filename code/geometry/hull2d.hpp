@@ -1,5 +1,4 @@
-#ifndef HULL2D_HPP
-#define HULL2D_HPP
+#pragma once
 
 #include "point2d.hpp" // Point2d
 
@@ -33,5 +32,3 @@ vector<P> graham_scan(vector<P> points) {
     }
     return hull;
 }
-
-#endif // HULL2D_HPP

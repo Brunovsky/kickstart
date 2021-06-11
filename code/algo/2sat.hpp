@@ -1,8 +1,6 @@
-#ifndef TWOSAT_HPP
-#define TWOSAT_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -64,8 +62,7 @@ struct twosat_scc {
             do {
                 v = S.top(), S.pop(), onstack[v] = false;
                 cmap[v] = c;
-                if (assignment[v >> 1] == -1)
-                    assignment[v >> 1] = v & 1;
+                if (assignment[v >> 1] == -1) assignment[v >> 1] = v & 1;
             } while (u != v);
         }
     }
@@ -80,18 +77,12 @@ struct twosat_scc {
         depth = 1, C = 0;
 
         for (int u = 0; u < 2 * N; u++) {
-            if (!index[u]) {
-                tarjan(u);
-            }
+            if (!index[u]) tarjan(u);
         }
         for (int u = 0; u < N; u++) {
             assert(assignment[u] >= 0);
-            if (cmap[2 * u] == cmap[2 * u + 1]) {
-                return false;
-            }
+            if (cmap[2 * u] == cmap[2 * u + 1]) return false;
         }
         return true;
     }
 };
-
-#endif // TWOSAT_HPP

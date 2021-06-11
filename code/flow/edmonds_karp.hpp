@@ -1,8 +1,6 @@
-#ifndef EDMONDS_KARP_HPP
-#define EDMONDS_KARP_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -73,5 +71,3 @@ struct edmonds_karp {
     Flow get_flow(int e) const { return edge[2 * e].flow; }
     bool left_of_mincut(int u) const { return pred[u] >= 0; }
 };
-
-#endif // EDMONDS_KARP_HPP

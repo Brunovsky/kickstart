@@ -1,8 +1,6 @@
-#ifndef DINITZ_FLOW_HPP
-#define DINITZ_FLOW_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -84,5 +82,3 @@ struct dinitz_flow {
     Flow get_flow(int e) const { return edge[2 * e].flow; }
     bool left_of_mincut(int u) const { return level[u] >= 0; }
 };
-
-#endif // DINITZ_FLOW_HPP

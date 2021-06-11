@@ -1,5 +1,4 @@
-#ifndef PUSH_RELABEL_HPP
-#define PUSH_RELABEL_HPP
+#pragma once
 
 #include "../struct/integer_lists.hpp" // linked_lists
 
@@ -205,5 +204,3 @@ struct push_relabel {
     Flow get_flow(int e) const { return edge[2 * e].flow; }
     bool left_of_mincut(int u) const { return height[u] >= V; }
 };
-
-#endif // PUSH_RELABEL_HPP

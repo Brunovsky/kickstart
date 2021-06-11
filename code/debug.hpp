@@ -1,5 +1,4 @@
-#ifndef DEBUG_HPP
-#define DEBUG_HPP
+#pragma once
 
 #include <bits/stdc++.h>
 using namespace std;
@@ -95,5 +94,3 @@ ostream& operator<<(ostream& out, const vector<T, Rs...>& v) {
 }
 
 } // namespace std
-
-#endif // DEBUG_HPP

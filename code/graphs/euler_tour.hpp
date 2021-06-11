@@ -1,5 +1,4 @@
-#ifndef EULER_TOUR_HPP
-#define EULER_TOUR_HPP
+#pragma once
 
 #include "../struct/y_combinator.hpp"
 
@@ -100,5 +99,3 @@ auto build_undirected_euler_tour(int s, const vector<array<int, 2>>& edges) {
     reverse(begin(path), end(path));
     return path;
 }
-
-#endif // EULER_TOUR_HPP

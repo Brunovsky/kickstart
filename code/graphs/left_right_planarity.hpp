@@ -1,5 +1,4 @@
-#ifndef LEFT_RIGHT_PLANARITY_HPP
-#define LEFT_RIGHT_PLANARITY_HPP
+#pragma once
 
 #include "../struct/y_combinator.hpp"
 
@@ -475,5 +474,3 @@ bool left_right_is_planar(int V, vector<array<int, 2>> edge) {
 
     return true;
 }
-
-#endif // LEFT_RIGHT_PLANARITY_HPP

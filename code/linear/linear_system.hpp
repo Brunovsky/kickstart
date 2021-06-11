@@ -1,5 +1,4 @@
-#ifndef LINEAR_SYSTEM_HPP
-#define LINEAR_SYSTEM_HPP
+#pragma once
 
 #include "../numeric/bfrac.hpp"
 #include "../numeric/frac.hpp"
@@ -362,5 +361,3 @@ int matrank(matbf a) {
 }
 
 } // namespace system_bfrac
-
-#endif // LINEAR_SYSTEM_HPP

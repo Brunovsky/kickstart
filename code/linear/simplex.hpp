@@ -1,8 +1,6 @@
-#ifndef SIMPLEX_HPP
-#define SIMPLEX_HPP
+#pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 enum LPState { LP_FEASIBLE = 0, LP_OPTIMAL = 1, LP_UNBOUNDED = 2, LP_IMPOSSIBLE = 3 };
@@ -212,5 +210,3 @@ tuple<LPState, T, vector<T>> solve_lp(const vector<T>& objective,
         return {state, value, {}};
     }
 }
-
-#endif // SIMPLEX_HPP
