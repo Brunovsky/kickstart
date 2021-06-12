@@ -16,24 +16,10 @@ namespace polymath {
 #define tmpl(T) template <typename T>
 
 tmpl(T) auto multiply(const vector<T>& a, const vector<T>& b) {
-    // return fft::fft_multiply(a, b);
-    int A = a.size(), B = b.size(), S = A && B ? A + B - 1 : 0;
-    vector<T> c(S);
-    for (int i = 0; i < A && B; i++)
-        for (int j = 0; j < B; j++)
-            c[i + j] += a[i] * b[j];
-    return c;
+    return fft::fft_multiply(a, b);
 }
 
-tmpl(T) auto square(const vector<T>& a) {
-    // return fft::fft_square(a);
-    int A = a.size(), S = A ? 2 * A - 1 : 0;
-    vector<T> c(S);
-    for (int i = 0; i < A; i++)
-        for (int j = 0; j < A; j++)
-            c[i + j] += a[i] * a[j];
-    return c;
-}
+tmpl(T) auto square(const vector<T>& a) { return fft::fft_square(a); }
 
 tmpl(T) T binpow(T val, long e) {
     T base = {1};

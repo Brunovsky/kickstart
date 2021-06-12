@@ -7,10 +7,12 @@ using namespace std;
  * Maintain sum of paths, with support for path range updates
  */
 struct lct_node_path_sum {
-    int path_size = 1;
+    int path_size = 0;
     long self = 0;
     long path = 0;
     long lazy = 0;
+
+    void path_flip() {}
 
     void pushdown(lct_node_path_sum& lhs, lct_node_path_sum& rhs) {
         if (lazy) {
@@ -26,17 +28,17 @@ struct lct_node_path_sum {
         path_size = 1 + lhs.path_size + rhs.path_size;
         path = self + lhs.path + rhs.path;
     }
-
-    void clear() { lazy = path_size = 0; } // for 0 node
 };
 
 /**
  * Maintain maximum in paths without support for path range updates
  */
 struct lct_node_path_max {
-    int path_size = 1;
+    int path_size = 0;
     int self = 0;
     int path = 0;
+
+    void path_flip() {}
 
     void pushdown(lct_node_path_max&, lct_node_path_max&) {}
 
@@ -44,14 +46,12 @@ struct lct_node_path_max {
         path_size = 1 + lhs.path_size + rhs.path_size;
         path = max(self, max(lhs.path, rhs.path));
     }
-
-    void clear() { path_size = 0; } // for 0 node
 };
 
 struct lct_node_path_empty {
+    void path_flip() {}
     void pushdown(lct_node_path_empty&, lct_node_path_empty&) {}
     void pushup(const lct_node_path_empty&, const lct_node_path_empty&) {}
-    void clear() {}
 };
 
 /**
@@ -78,6 +78,7 @@ struct link_cut_tree_path {
             t[l].flip ^= 1;
             t[r].flip ^= 1;
             t[u].flip = 0;
+            t[u].node.path_flip();
         }
         if (u != 0) {
             t[u].node.pushdown(t[l].node, t[r].node);

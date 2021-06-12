@@ -5,7 +5,7 @@
 
 // *****
 
-default_random_engine mt(random_device{}());
+thread_local default_random_engine mt(random_device{}());
 using chard = uniform_int_distribution<char>;
 using intd = uniform_int_distribution<int>;
 using longd = uniform_int_distribution<long>;

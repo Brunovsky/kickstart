@@ -188,7 +188,7 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
     longd deltad(mindelta, maxdelta);
     boold coind(0.5);
 
-    slow_tree slow(N, false);
+    slow_tree<false> slow(N);
     auto selector = make_tree_action_selector(freq);
 
     using Action = TreeAction<UnrootedAT>;
@@ -237,7 +237,7 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
                 slow.cut(u, v);
                 history.emplace_back(Action::uv(UnrootedAT::CUT, u, v));
             } else if (slow.S > 1) {
-                v = slow.random_not_in_subtree(u);
+                v = slow.random_unconnected(u);
                 if (coind(mt))
                     swap(u, v);
                 slow.link(u, v);
@@ -308,21 +308,19 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
         } break;
         case UnrootedAT::QUERY_TREE: {
             int u = noded(mt);
-            slow.reroot(u);
-            long val = slow.query_subtree(u);
+            long val = slow.query_tree(u);
             history.emplace_back(Action::val(UnrootedAT::QUERY_TREE, u, val));
         } break;
         case UnrootedAT::TREE_SIZE: {
             int u = noded(mt);
             slow.reroot(u);
-            long val = slow.subtree_size(u);
+            long val = slow.tree_size(u);
             history.emplace_back(Action::val(UnrootedAT::TREE_SIZE, u, val));
         } break;
         case UnrootedAT::UPDATE_TREE: {
             int u = noded(mt);
             long val = deltad(mt);
-            slow.reroot(u);
-            slow.update_subtree(u, val);
+            slow.update_tree(u, val);
             history.emplace_back(Action::val(UnrootedAT::UPDATE_TREE, u, val));
         } break;
         case UnrootedAT::STRESS_TEST: {
@@ -349,7 +347,7 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq,
     longd vald(minvalue, maxvalue);
     longd deltad(mindelta, maxdelta);
 
-    slow_tree slow(N, true);
+    slow_tree<true> slow(N);
     auto selector = make_tree_action_selector(freq);
 
     using Action = TreeAction<RootedAT>;
@@ -391,7 +389,7 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq,
                 slow.cut(u);
                 history.emplace_back(Action::au(RootedAT::CUT, u));
             } else if (slow.S > 1) {
-                v = slow.random_not_in_subtree(u);
+                v = slow.random_unconnected(u);
                 slow.link(u, v);
                 history.emplace_back(Action::uv(RootedAT::LINK, u, v));
             }

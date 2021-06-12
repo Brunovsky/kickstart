@@ -4,10 +4,59 @@
 using namespace std;
 
 /**
+ * Maintain sum and size of subtrees and paths
+ */
+struct lct_node_complete_sum {
+    int path_size = 0;
+    int subt_size = 0; // size of splay tree below u
+    int virt_size = 0; // size of subtree below u
+    long self = 0;     // this node's value
+    long path = 0;
+    long lazy = 0;
+    long subt = 0; // subtree aggregate ~= aggregate of splay + virtuals
+    long virt = 0; // virtual aggregate ~= aggregate of virtuals
+    // subtree query is self + virt / subtree size query is 1 + virt_size
+
+    long subtree() const { return self + virt; }
+    int subtree_size() const { return 1 + virt_size; }
+    int path_length() const { return path_size; }
+
+    void flip_path() {}
+
+    void pushdown(lct_node_complete_sum& lhs, lct_node_complete_sum& rhs) {
+        if (lazy) {
+            lhs.lazy += lazy;
+            rhs.lazy += lazy;
+            self += lazy;
+            path += lazy * path_size;
+            subt += lazy * path_size;
+            lazy = 0;
+        }
+    }
+
+    void pushup(const lct_node_complete_sum& lhs, const lct_node_complete_sum& rhs) {
+        path_size = 1 + lhs.path_size + rhs.path_size;
+        subt_size = 1 + lhs.subt_size + rhs.subt_size + virt_size;
+        path = self + lhs.path + rhs.path;
+        subt = self + lhs.subt + rhs.subt + virt;
+    }
+
+    void add_virtual_subtree(lct_node_complete_sum& child) {
+        virt += child.subt;
+        virt_size += child.subt_size;
+    }
+
+    void rem_virtual_subtree(lct_node_complete_sum& child) {
+        virt -= child.subt;
+        virt_size -= child.subt_size;
+    }
+};
+
+/**
  * Maintain sum and size of subtrees
  */
 struct lct_node_subtree_sum {
-    int subt_size = 1; // size of splay tree below u
+    int subt_size = 0; // size of splay tree below u
     int virt_size = 0; // size of subtree below u
     long self = 0;     // this node's value
     long subt = 0;     // subtree aggregate ~= aggregate of splay + virtuals
@@ -16,6 +65,8 @@ struct lct_node_subtree_sum {
 
     long subtree() const { return self + virt; }
     int subtree_size() const { return 1 + virt_size; }
+
+    void flip_path() {}
 
     void pushdown(lct_node_subtree_sum&, lct_node_subtree_sum&) {}
 
@@ -33,16 +84,14 @@ struct lct_node_subtree_sum {
         virt -= child.subt;
         virt_size -= child.subt_size;
     }
-
-    void clear() { subt_size = 0; } // for 0 node
 };
 
 struct lct_node_subtree_empty {
+    void flip_path() {}
     void pushdown(lct_node_subtree_empty&, lct_node_subtree_empty&) {}
     void pushup(const lct_node_subtree_empty&, const lct_node_subtree_empty&) {}
     void add_virtual_subtree(lct_node_subtree_empty&) {}
     void rem_virtual_subtree(lct_node_subtree_empty&) {}
-    void clear() {}
 };
 
 /**
@@ -58,7 +107,7 @@ struct link_cut_tree_subtree {
 
     vector<Node> t;
 
-    explicit link_cut_tree_subtree(int N = 0) : t(N + 1) { t[0].node.clear(); }
+    explicit link_cut_tree_subtree(int N = 0) : t(N + 1) {}
 
     // ***** Node updates
   private:
@@ -69,6 +118,7 @@ struct link_cut_tree_subtree {
             t[l].flip ^= 1;
             t[r].flip ^= 1;
             t[u].flip = 0;
+            t[u].node.flip_path();
         }
         if (u != 0) {
             t[u].node.pushdown(t[l].node, t[r].node);
@@ -123,6 +173,10 @@ struct link_cut_tree_subtree {
 
     LCTNode* access_node(int u) {
         access(u);
+        return &t[u].node;
+    }
+    LCTNode* access_path(int u, int v) {
+        reroot(v), access(u);
         return &t[u].node;
     }
     LCTNode* access_subtree(int u, int v) {

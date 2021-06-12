@@ -13,18 +13,18 @@ using ordered_set = gnu::tree<T, gnu::null_type, CompareFn, gnu::rb_tree_tag,
 
 /**
  * An implementation of common link-cut tree mechanics using trivial data structures,
- * along with helpful utilities
+ * along with helpful utilities.
  */
+template <bool rooted>
 struct slow_tree {
     int N, S;
-    bool unrooted;
     vector<long> val;
     vector<int> parent;
     ordered_set<int> roots, non_roots;
     vector<ordered_set<int>> children;
 
-    explicit slow_tree(int N, bool rooted = false)
-        : N(N), S(N), unrooted(!rooted), val(N + 1), parent(N + 1, 0), children(N + 1) {
+    explicit slow_tree(int N)
+        : N(N), S(N), val(N + 1), parent(N + 1, 0), children(N + 1) {
         for (int u = 1; u <= N; u++) {
             roots.insert(u);
         }
@@ -49,7 +49,6 @@ struct slow_tree {
 
     int random_adjacent(int u) {
         assert(!children[u].empty() || parent[u] != 0);
-        vector<int> nodes(begin(children[u]), end(children[u]));
         if (parent[u] != 0) {
             children[u].insert(parent[u]);
         }
@@ -62,30 +61,30 @@ struct slow_tree {
         return v;
     }
 
-    array<int, 2> random_connected_distinct() {
+    auto random_connected_distinct() {
         int r = findroot(random_non_root());
         auto subtree = get_subtree(r);
         int V = subtree.size();
         assert(V > 1);
         auto [a, b] = different(0, V);
-        return {*next(begin(subtree), a), *next(begin(subtree), b)};
+        return make_pair(*next(begin(subtree), a), *next(begin(subtree), b));
     }
 
-    array<int, 2> random_connected() {
+    auto random_connected() {
         int r = random_root();
         auto subtree = get_subtree(r);
         int V = subtree.size();
         assert(V > 0);
         int a = intd(0, V - 1)(mt);
         int b = intd(0, V - 1)(mt);
-        return {*next(begin(subtree), a), *next(begin(subtree), b)};
+        return make_pair(*next(begin(subtree), a), *next(begin(subtree), b));
     }
 
-    array<int, 2> random_unconnected() {
+    auto random_unconnected() {
         assert(S > 1);
         auto [i, j] = different(0, S);
         int u = *roots.find_by_order(i), v = *roots.find_by_order(j);
-        return {random_in_subtree(u), random_in_subtree(v)};
+        return make_pair(random_in_subtree(u), random_in_subtree(v));
     }
 
     int random_in_tree(int u) {
@@ -118,16 +117,13 @@ struct slow_tree {
         return *next(begin(subtree), j);
     }
 
-    int random_not_in_subtree(int u) {
-        list<int> available;
+    int random_unconnected(int u) {
+        int V = roots.size();
+        assert(V > 1);
         int r = findroot(u);
-        for (int v : roots) {
-            if (v != r) {
-                available.splice(end(available), get_subtree(v));
-            }
-        }
-        int V = available.size();
-        return *next(begin(available), intd(0, V - 1)(mt));
+        int i = roots.order_of_key(r);
+        int j = different(i, 0, V);
+        return random_in_subtree(*roots.find_by_order(j));
     }
 
     int random_ancestor(int u) {
@@ -140,8 +136,20 @@ struct slow_tree {
         assert(parent[u] != 0);
         auto nodes = get_root_path(parent[u]);
         int V = nodes.size();
-        assert(V > 0);
         return *next(begin(nodes), intd(0, V - 1)(mt));
+    }
+
+    // ***** GETTERS
+
+    list<int> get_subtree(int u, int v) {
+        static_assert(!rooted);
+        reroot(v);
+        return get_subtree(u);
+    }
+
+    list<int> get_tree(int u) {
+        u = findroot(u);
+        return get_subtree(u);
     }
 
     list<int> get_subtree(int u) {
@@ -161,19 +169,21 @@ struct slow_tree {
     }
 
     list<int> get_path(int u, int v) {
-        assert(parent[v] == 0 || unrooted);
-        if (unrooted) {
-            reroot(v);
+        int c = lca(u, v);
+        list<int> a = {u}, b = {v};
+        while (u != c && u) {
+            a.push_back(u = parent[u]);
         }
-        list<int> nodes = {u};
-        while (u != v && u) {
-            nodes.push_back(u = parent[u]);
+        while (v != c && v) {
+            b.push_front(v = parent[v]);
         }
-        assert(u == v);
-        return nodes;
+        assert(a.back() == b.front());
+        b.pop_front();
+        a.splice(end(a), b);
+        return a;
     }
 
-    auto query_node(int u) const { return val[u]; }
+    // ***** REROOTING
 
     void flip_to_child(int u, int c) {
         if (parent[u]) {
@@ -189,10 +199,11 @@ struct slow_tree {
 
     void link(int u, int v) {
         assert(u != v && findroot(u) != findroot(v));
-        if (unrooted)
+        if constexpr (!rooted)
             reroot(u);
-        if (!unrooted && parent[u] != 0)
-            cut(u);
+        else if constexpr (rooted)
+            if (parent[u] != 0)
+                cut(u);
         parent[u] = v;
         children[v].insert(u);
         roots.erase(u), non_roots.insert(u);
@@ -200,22 +211,23 @@ struct slow_tree {
     }
 
     void cut(int u) {
-        assert(parent[u] != 0);
-        return cut(u, parent[u]);
-    }
-
-    void cut(int u, int v) {
-        assert(u != v);
-        if (unrooted) {
-            reroot(v);
-        }
-        assert(parent[u] == v);
+        static_assert(rooted);
+        int v = parent[u];
+        assert(v != 0);
         parent[u] = 0, children[v].erase(u);
         non_roots.erase(u), roots.insert(u);
         S++;
     }
 
-    void update_node(int u, long new_value) { val[u] = new_value; }
+    void cut(int u, int v) {
+        static_assert(!rooted);
+        assert(u != v);
+        reroot(v);
+        assert(parent[u] == v);
+        parent[u] = 0, children[v].erase(u);
+        non_roots.erase(u), roots.insert(u);
+        S++;
+    }
 
     void reroot(int u) {
         if (u && parent[u]) {
@@ -225,29 +237,52 @@ struct slow_tree {
         }
     }
 
-    int lca(int u, int v) {
-        list<int> unodes = get_root_path(u), vnodes = get_root_path(v);
-        if (unodes.back() != vnodes.back()) {
-            return 0;
-        } else {
-            auto uit = rbegin(unodes), vit = rbegin(vnodes);
-            do {
-                ++uit, ++vit;
-            } while (uit != rend(unodes) && vit != rend(vnodes) && *uit == *vit);
-            return *--uit;
+    int lca(int u, int v) const {
+        int a = u, b = v, ra = 0, rb = 0;
+        while (a != b) {
+            a = parent[a] ? parent[a] : (ra = a, v);
+            b = parent[b] ? parent[b] : (rb = b, u);
+            if (ra != 0 && rb != 0 && ra != rb)
+                return 0; // different trees
         }
+        return a;
     }
 
-    int findroot(int u) {
+    int findroot(int u) const {
         while (parent[u]) {
             u = parent[u];
         }
         return u;
     }
 
-    // ***** SUBTREES
+    // ***** NODE QUERIES
+
+    auto query_node(int u) const { return val[u]; }
+
+    void update_node(int u, long new_value) { val[u] = new_value; }
+
+    // ***** TREES
+
+    auto query_tree(int u) {
+        long sum = 0;
+        for (int w : get_tree(u)) {
+            sum += val[w];
+        }
+        return sum;
+    }
+
+    int tree_size(int u) { return get_tree(u).size(); }
+
+    void update_tree(int u, long value) {
+        for (int w : get_tree(u)) {
+            val[w] += value;
+        }
+    }
+
+    // ***** ROOTED SUBTREES
 
     auto query_subtree(int u) {
+        static_assert(rooted);
         long sum = 0;
         for (int w : get_subtree(u)) {
             sum += val[w];
@@ -255,30 +290,42 @@ struct slow_tree {
         return sum;
     }
 
-    auto query_subtree(int u, int v) {
-        assert(unrooted);
-        reroot(v);
-        return query_subtree(u);
-    }
-
-    int subtree_size(int u) { return get_subtree(u).size(); }
-
-    int subtree_size(int u, int v) {
-        assert(unrooted);
-        reroot(v);
-        return subtree_size(u);
+    int subtree_size(int u) {
+        static_assert(rooted);
+        return get_subtree(u).size();
     }
 
     void update_subtree(int u, long value) {
+        static_assert(rooted);
         for (int w : get_subtree(u)) {
             val[w] += value;
         }
     }
 
-    void update_subtree(int u, int v, long value) {
-        assert(unrooted);
+    // ***** UNROOTED SUBTREES
+
+    auto query_subtree(int u, int v) {
+        static_assert(!rooted);
         reroot(v);
-        return update_subtree(u, value);
+        long sum = 0;
+        for (int w : get_subtree(u)) {
+            sum += val[w];
+        }
+        return sum;
+    }
+
+    int subtree_size(int u, int v) {
+        static_assert(!rooted);
+        reroot(v);
+        return get_subtree(u).size();
+    }
+
+    void update_subtree(int u, int v, long value) {
+        static_assert(!rooted);
+        reroot(v);
+        for (int w : get_subtree(u)) {
+            val[w] += value;
+        }
     }
 
     // ***** PATHS
@@ -291,20 +338,10 @@ struct slow_tree {
         return sum;
     }
 
-    auto query_root_path(int u) { return query_path(u, findroot(u)); }
-
     int path_length(int u, int v) { return get_path(u, v).size(); }
-
-    int root_path_length(int u) { return get_root_path(u).size(); }
 
     void update_path(int u, int v, long value) {
         for (int w : get_path(u, v)) {
-            val[w] += value;
-        }
-    }
-
-    void update_root_path(int u, long value) {
-        for (int w : get_root_path(u)) {
             val[w] += value;
         }
     }
