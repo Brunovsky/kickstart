@@ -16,10 +16,10 @@ using namespace std;
 template <typename T, typename D = double>
 struct Point2d {
     T x, y;
+    // int id = -1;
+
     Point2d() : x(0), y(0) {}
     Point2d(T x, T y) : x(x), y(y) {}
-    Point2d(const array<T, 2>& arr) : x(arr[0]), y(arr[1]) {}
-    Point2d(const pair<T, T>& p) : x(p.first), y(p.second) {}
     template <typename K>
     explicit Point2d(Point2d<K, D> other) : x(other.x), y(other.y) {}
 
@@ -149,17 +149,14 @@ struct Point2d {
     friend istream& operator>>(istream& in, P& p) { return in >> p.x >> p.y; }
 };
 
-struct Hasher2d {
-    template <typename T, typename D>
+namespace std {
+
+template <typename T, typename D>
+struct hash<Point2d<T, D>> {
     size_t operator()(const Point2d<T, D>& p) const noexcept {
         array<T, 2> arr{p[0], p[1]};
         return std::hash<array<T, 2>>{}(arr);
     }
 };
-
-namespace std {
-
-template <typename T, typename D>
-struct hash<Point2d<T, D>> : Hasher2d {};
 
 } // namespace std

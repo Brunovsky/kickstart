@@ -1,33 +1,84 @@
-#pragma once
+#include <bits/stdc++.h>
+using namespace std;
+static_assert(sizeof(int) == 4 && sizeof(long) == 8);
 
-#include "../struct/integer_heaps.hpp" // binary_int_heap
+template <typename Container>
+struct less_container {
+    const Container* cont = nullptr;
+    less_container() = default;
+    less_container(const Container& cont) : cont(&cont) {}
+    inline bool operator()(int u, int v) const {
+        return tie((*cont)[u], u) < tie((*cont)[v], v);
+    }
+};
 
-/**
- * Min-cost perfect bipartite matching (hungarian, dijkstra-based, nonnegative costs)
- * Based on: https://web.stanford.edu/class/cs261/min_cost_bipartite_matching.pdf
- * Complexity: O(EW log E), W=max(U,V).
- *
- * Need binary_int_heap for the internal dijkstra.
- *
- * If the bipartite graph is not balanced (U != V) then it must be padded.
- * Usually the problem you're trying to solve will require a specific type of padding.
- *
- * If the graph is not too imbalanced, or it is actually complete but imbalanced, then
- * pad_complete(w) will add |U-V|W extra edges with cost w (usually w should be 0). There
- * may be quadratically many such edges.
- * If a perfect matching did not exist, it will still not exist.
- *
- * Alternatively, pad_reverse() will set W=U+V and add a flipped copy of the graph to
- * itself plus U+V linking edges. The resulting graph will have a perfect matching, with
- * double the cost.
- * Some linking edges have weight 0 and some have weight inf; this infinity must be
- * sufficiently big for the algorithm to prefer any other path, which might require
- * promoting Cost's type (from int to long).
- *
- * If padding was performed, you should specify if you want the minimum cost to include
- * padding or not in the call to the compute function. In most cases you want to discard
- * this extra cost; if you used pad_complete(w) with w>0 you probably want to keep them.
- */
+template <typename Compare = less<>>
+struct binary_int_heap {
+    vector<int> c, id;
+    Compare comp;
+
+    explicit binary_int_heap(int N = 0, const Compare& comp = Compare())
+        : c(0, 0), id(N, -1), comp(comp) {}
+
+    bool empty() const { return c.empty(); }
+    size_t size() const { return c.size(); }
+    bool contains(int u) const { return id[u] != -1; }
+    int top() const {
+        assert(!empty());
+        return c[0];
+    }
+    void push(int u) {
+        assert(!contains(u));
+        id[u] = c.size(), c.push_back(u);
+        heapify_up(id[u]);
+    }
+    int pop() {
+        assert(!empty());
+        int u = c[0];
+        c[0] = c.back();
+        id[c[0]] = 0, id[u] = -1;
+        c.pop_back();
+        heapify_down(0);
+        return u;
+    }
+    void improve(int u) { assert(contains(u)), heapify_up(id[u]); }
+    void decline(int u) { assert(contains(u)), heapify_down(id[u]); }
+    void push_or_improve(int u) { contains(u) ? improve(u) : push(u); }
+    void push_or_decline(int u) { contains(u) ? decline(u) : push(u); }
+    void clear() {
+        for (int u : c)
+            id[u] = -1;
+        c.clear();
+    }
+    void fill() {
+        for (int u = 0, N = id.size(); u < N; u++) {
+            if (!contains(u)) {
+                push(u);
+            }
+        }
+    }
+
+  private:
+    static int parent(int i) { return (i - 1) >> 1; }
+    static int child(int i) { return i << 1 | 1; }
+    void exchange(int i, int j) { swap(id[c[i]], id[c[j]]), swap(c[i], c[j]); }
+    void heapify_up(int i) {
+        while (i > 0 && comp(c[i], c[parent(i)])) { // while c[i] < c[parent(i)]
+            exchange(i, parent(i)), i = parent(i);
+        }
+    }
+    void heapify_down(int i) {
+        int k, S = c.size();
+        while ((k = child(i)) < S) {
+            if (k + 1 < S && !comp(c[k], c[k + 1])) // if c[rchild(i)] <= c[lchild(i)]
+                k++;
+            if (!comp(c[k], c[i])) // break if c[i] <= c[minchild(i)]
+                break;
+            exchange(i, k), i = k;
+        }
+    }
+};
+
 template <typename Cost = long, typename CostSum = Cost>
 struct mincost_hungarian {
     int U = 0, V = 0, W = 0, E = 0;
@@ -162,3 +213,22 @@ struct mincost_hungarian {
         return min_cost;
     }
 };
+
+int main() {
+    ios::sync_with_stdio(false);
+    int N;
+    cin >> N;
+    mincost_hungarian<int> mcm(N, N);
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            int cost;
+            cin >> cost;
+            mcm.add(i, j, cost);
+        }
+    }
+    cout << mcm.mincost_max_matching() << endl;
+    for (int i = 0; i < N; i++) {
+        cout << i + 1 << ' ' << mcm.m[0][i] + 1 << endl;
+    }
+    return 0;
+}

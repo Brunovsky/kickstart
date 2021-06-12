@@ -29,7 +29,7 @@ struct mincost_edmonds_karp {
 
     vector<CostSum> dist, pi;
     vector<int> prev;
-    pairing_int_heap<less_container<vector<CostSum>>> heap;
+    binary_int_heap<less_container<vector<CostSum>>> heap;
     static inline constexpr Flow flowinf = numeric_limits<Flow>::max() / 2;
     static inline constexpr FlowSum flowsuminf = numeric_limits<FlowSum>::max() / 2;
     static inline constexpr CostSum costsuminf = numeric_limits<CostSum>::max() / 3;
@@ -72,9 +72,9 @@ struct mincost_edmonds_karp {
         return path;
     }
 
-    auto mincost_flow(int s, int t, FlowSum F = flowsuminf) {
+    pair<FlowSum, CostSum> mincost_flow(int s, int t, FlowSum F = flowsuminf) {
         pi.assign(V, 0);
-        heap = pairing_int_heap<less_container<vector<CostSum>>>(V, dist);
+        heap = binary_int_heap<less_container<vector<CostSum>>>(V, dist);
 
         FlowSum sflow = 0;
         while (sflow < F && dijkstra(s, t)) {

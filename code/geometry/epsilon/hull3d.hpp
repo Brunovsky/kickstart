@@ -334,7 +334,7 @@ struct quickhull3d {
 
         eps = 5 * Point3d::deps * (1 + log10(max(maxdist, 1.0)));
 
-        // select v2 such that linedist2(v2, v0, v1) is maximum (furthest from line)
+        // select v2 such that linedist(v2, v0, v1) is maximum (furthest from line)
         maxdist = eps;
         for (int v = 1; v <= N; v++) {
             if (v != v0 && v != v1) {
@@ -348,7 +348,7 @@ struct quickhull3d {
             return false;
         }
 
-        // select v3 such that base.planedist2(v3) is maximum (furthest from plane)
+        // select v3 such that base.planedist(v3) is maximum (furthest from plane)
         Plane base(points[v0], points[v1], points[v2]);
         maxdist = eps;
         for (int v = 1; v <= N; v++) {

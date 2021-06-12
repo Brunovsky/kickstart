@@ -23,6 +23,7 @@ edges_t scan_edges(const string& s, char sep = ',') {
 
 inline namespace unit_testing_lca {
 
+template <typename LCA>
 void unit_test_lca_tree() {
     int V = 20;
     string s = "1,2 1,3 1,4 1,5 2,6 2,7 3,8 3,9 3,10 5,11 5,12 5,13 "
@@ -31,7 +32,7 @@ void unit_test_lca_tree() {
     random_flip_inplace(g);
     auto tree = make_adjacency_lists_undirected(V, g);
 
-    lca_tree lca(tree, 1);
+    LCA lca(tree, 1);
 
     assert(lca.lca(11, 19) == 5);
     assert(lca.lca(9, 15) == 3);
@@ -48,6 +49,8 @@ void unit_test_lca_tree() {
 } // namespace unit_testing_lca
 
 int main() {
-    RUN_SHORT(unit_test_lca_tree());
+    RUN_SHORT(unit_test_lca_tree<lca_binary>());
+    RUN_SHORT(unit_test_lca_tree<lca_rmq>());
+    RUN_SHORT(unit_test_lca_tree<lca_schieber_vishkin>());
     return 0;
 }

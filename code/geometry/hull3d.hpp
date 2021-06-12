@@ -318,7 +318,7 @@ struct quickhull3d {
             return false;
         }
 
-        // select v2 such that linedist2(v2, v0, v1) is maximum (furthest from line)
+        // select v2 such that linedist(v2, v0, v1) is maximum (furthest from line)
         D maxdist = 0;
         for (int v = 1; v <= N; v++) {
             if (v != v0 && v != v1) {
@@ -332,7 +332,7 @@ struct quickhull3d {
             return false;
         }
 
-        // select v3 such that base.planedist2(v3) is maximum (furthest from plane)
+        // select v3 such that base.planedist(v3) is maximum (furthest from plane)
         QPlane base(points[v0], points[v1], points[v2]);
         maxdist = 0;
         for (int v = 1; v <= N; v++) {

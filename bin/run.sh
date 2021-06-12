@@ -45,7 +45,7 @@ function run_valgrind_tests {
 	for input in *.in; do
 		output=${input%in}out
 		if test -f "$output"; then
-			grep -svP "$TRACE" "$input" | "${VALGRIND[@]}" ./solver | tee output.txt
+			grep -svP "$TRACE" "$input" | "${VALGRIND[@]}" "$@" ./solver | tee output.txt
 			if cmp "$output" "output.txt"; then
 				echo "$input OK"
 			else
@@ -73,8 +73,23 @@ function main {
 		rebuild)
 			run_make clean && run_make debug
 		;;
+		# Make and run under valgrind
+		invalg*|valgin*|valgrindin*)
+			run_make_solver
+			echo "grep -svP "$TRACE" input.txt | "${VALGRIND[@]}" "$@" ./solver | tee output.txt"
+			grep -svP "$TRACE" input.txt | "${VALGRIND[@]}" "$@" ./solver | tee output.txt
+		;;
+		valgtest*)
+			run_make_solver
+			echo run_valgrind_tests "$@"
+			run_valgrind_tests "$@"
+		;;
+		valg*)
+			run_make_solver
+			"${VALGRIND[@]}" "$@" ./solver | tee output.txt
+		;;
 		# Make and run commands
-		in*)
+		in*|fastin*)
 			run_make_solver
 			grep -svP "$TRACE" input.txt | ./solver | tee output.txt
 		;;
@@ -85,19 +100,6 @@ function main {
 		test*)
 			run_make_solver
 			run_tests "$@"
-		;;
-		# Make and run under valgrind
-		valg|valgrind|valgfast)
-			run_make_solver
-			grep -svP "$TRACE" input.txt | "${VALGRIND[@]}" ./solver | tee output.txt
-		;;
-		valgplain*)
-			run_make_solver
-			"${VALGRIND[@]}" ./solver | tee output.txt
-		;;
-		valgtest*)
-			run_make_solver
-			run_valgrind_tests
 		;;
 		# Run interactive with judge
 		judgepy*)

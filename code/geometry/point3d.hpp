@@ -15,9 +15,10 @@
 template <typename T, typename D = double>
 struct Point3d {
     T x, y, z;
+    // int id = -1;
+
     Point3d() : x(0), y(0), z(0) {}
     Point3d(T x, T y, T z) : x(x), y(y), z(z) {}
-    Point3d(const array<T, 3>& arr) : x(arr[0]), y(arr[1]), z(arr[2]) {}
     template <typename K>
     explicit Point3d(Point3d<K, D> other) : x(other.x), y(other.y), z(other.z) {}
 
@@ -157,27 +158,21 @@ struct Plane {
     auto planedist(P p) { return abs(signed_planedist(p)); }
 };
 
-struct Hasher3d {
-    template <typename T, typename D>
+namespace std {
+
+template <typename T, typename D>
+struct hash<Point3d<T, D>> {
     size_t operator()(const Point3d<T, D>& p) const noexcept {
         array<T, 3> arr{p[0], p[1], p[2]};
         return std::hash<array<T, 3>>{}(arr);
     }
 };
-
-struct PlaneHasher {
-    template <typename T, typename D>
+template <typename T, typename D>
+struct hash<Plane<T, D>> {
     size_t operator()(const Plane<T, D>& plane) const noexcept {
         array<Point3d<T, D>, 3> arr{plane.a, plane.b, plane.c};
         return std::hash<array<Point3d<T, D>, 3>>(arr);
     }
 };
-
-namespace std {
-
-template <typename T, typename D>
-struct hash<Point3d<T, D>> : Hasher3d {};
-template <typename T, typename D>
-struct hash<Plane<T, D>> : PlaneHasher {};
 
 } // namespace std

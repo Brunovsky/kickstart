@@ -30,7 +30,7 @@ edges_t scan_edges(const string& s, char sep = ',') {
 
 } // namespace detail
 
-inline namespace unit_testing_builders {
+inline namespace unit_testing {
 
 void unit_test_centroid_decomposition() {
     int V = 38;
@@ -198,10 +198,6 @@ void unit_test_undirected_euler_tour(int V = 8, int k = 4) {
     }
 }
 
-} // namespace unit_testing_builders
-
-inline namespace unit_testing_finders {
-
 void unit_test_tree_centers() {
     int V;
     vector<array<int, 2>> g;
@@ -231,11 +227,10 @@ void unit_test_tree_centers() {
     assert(centers.size() == 2 && centers == vi({3, 5}));
 }
 
-} // namespace unit_testing_finders
+} // namespace unit_testing
 
 int main() {
     RUN_SHORT(unit_test_heavy_light_decomposition());
-    RUN_SHORT(unit_test_centroid_decomposition());
     RUN_SHORT(unit_test_scc());
     RUN_SHORT(unit_test_dominator_tree());
     RUN_SHORT(unit_test_tree_centers());
@@ -245,5 +240,6 @@ int main() {
     RUN_SHORT(unit_test_undirected_euler_tour(8, 4));
     RUN_SHORT(unit_test_undirected_euler_tour(20, 6));
     RUN_SHORT(unit_test_undirected_euler_tour(200, 20));
+    RUN_SHORT(unit_test_centroid_decomposition());
     return 0;
 }

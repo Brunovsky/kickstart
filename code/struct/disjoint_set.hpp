@@ -15,6 +15,7 @@ struct disjoint_set {
     bool same(int i, int j) { return find(i) == find(j); }
     bool unit(int i) { return i == next[i] && size[i] == 1; }
     bool root(int i) { return find(i) == i; }
+    void reroot(int u) { next[u] = next[find(u)] = u; }
 
     int find(int i) {
         while (i != next[i]) {

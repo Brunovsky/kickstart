@@ -12,13 +12,13 @@ using namespace std;
 template <typename T>
 struct min_rmq {
     vector<vector<T>> jmp;
-    static constexpr int bits = CHAR_BIT * sizeof(int) - 1;
 
     min_rmq() = default;
     explicit min_rmq(const vector<T>& v) : jmp(1, v) {
-        for (unsigned len = 1, k = 1; len * 2 <= v.size(); len *= 2, ++k) {
-            jmp.emplace_back(v.size() - len * 2 + 1);
-            for (unsigned j = 0; j < jmp[k].size(); j++) {
+        for (int len = 1, k = 1, N = v.size(); 2 * len <= N; len *= 2, ++k) {
+            int J = N - 2 * len + 1;
+            jmp.emplace_back(J);
+            for (int j = 0; j < J; j++) {
                 const auto& l = jmp[k - 1][j];
                 const auto& r = jmp[k - 1][j + len];
                 jmp[k][j] = min(l, r);
@@ -27,10 +27,11 @@ struct min_rmq {
     }
 
     T query(int a, int b) const /* [a,b) */ {
+        static constexpr int BITS = CHAR_BIT * sizeof(int) - 1;
         assert(a < b); // or return inf if a == b
-        int dep = bits - __builtin_clz(b - a);
-        const auto& l = jmp[dep][a];
-        const auto& r = jmp[dep][b - (1 << dep)];
+        int bits = BITS - __builtin_clz(b - a);
+        const auto& l = jmp[bits][a];
+        const auto& r = jmp[bits][b - (1 << bits)];
         return min(l, r);
     }
 };
@@ -39,26 +40,27 @@ template <typename T>
 struct min_rmq_index {
     vector<T> v;
     vector<vector<int>> jmp;
-    static constexpr int bits = CHAR_BIT * sizeof(int) - 1;
 
     min_rmq_index() = default;
     explicit min_rmq_index(const vector<T>& v) : v(v), jmp(1, vector<int>(v.size())) {
         iota(begin(jmp[0]), end(jmp[0]), 0);
-        for (unsigned len = 1, k = 1; len * 2 <= v.size(); len *= 2, ++k) {
-            jmp.emplace_back(v.size() - len * 2 + 1);
-            for (unsigned j = 0; j < jmp[k].size(); j++) {
+        for (int len = 1, k = 1, N = v.size(); 2 * len <= N; len *= 2, ++k) {
+            int J = N - 2 * len + 1;
+            jmp.emplace_back(J);
+            for (int j = 0; j < J; j++) {
                 int l = jmp[k - 1][j];
                 int r = jmp[k - 1][j + len];
-                jmp[k][j] = min(make_pair(v[l], l), make_pair(v[r], r)).second;
+                jmp[k][j] = v[l] < v[r] ? l : r;
             }
         }
     }
 
     int query(int a, int b) const /* [a, b) */ {
+        static constexpr int BITS = CHAR_BIT * sizeof(int) - 1;
         assert(a < b); // or return inf if a == b
-        int dep = bits - __builtin_clz(b - a);
-        int l = jmp[dep][a];
-        int r = jmp[dep][b - (1 << dep)];
-        return min(make_pair(v[l], l), make_pair(v[r], r)).second;
+        int bits = BITS - __builtin_clz(b - a);
+        int l = jmp[bits][a];
+        int r = jmp[bits][b - (1 << bits)];
+        return v[l] < v[r] ? l : r;
     }
 };
