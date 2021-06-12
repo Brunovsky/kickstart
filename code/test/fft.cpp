@@ -100,7 +100,7 @@ void speed_test_fft_multiply() {
 
 template <typename Num>
 void breakeven_test_fft_multiply(int V) {
-    if (fft::INT8_BREAKEVEN || fft::INT4_BREAKEVEN || fft::DOUBLE_BREAKEVEN)
+    if (fft::INT8_BREAKEVEN > 0 || fft::INT4_BREAKEVEN > 0 || fft::DOUBLE_BREAKEVEN > 0)
         return;
 
     vector<size_t> fft_time{1}, naive_time{1};

@@ -2,15 +2,25 @@
 #include "../numeric/fft.hpp"
 #include "../lib/anynum.hpp"
 
+void unit_test_with_modnum() {
+    using num = modnum<1'000'000'007>;
+    vector<num> a = {123412, 315312, 644121};
+    vector<num> b = {123512, 52319023, 123512};
+    auto c0 = fft::fft_multiply(a, b);
+    auto c1 = fft::naive_multiply(a, b);
+    print("c0: {}\n", c0);
+    print("c1: {}\n", c1);
+}
+
 void unit_test_fft_multiply_mod() {
     vector<int> a = {123412, 315312, 644121};
     vector<int> b = {123512, 52319023, 123512};
-    auto c0 = fft::fft_multiply_mod(1'000'000'007, a, b);
-    auto c1 = fft::naive_multiply_mod(1'000'000'007, a, b);
-    auto d0 = fft::fft_multiply_mod(1'479'118'951, a, b);
-    auto d1 = fft::naive_multiply_mod(1'479'118'951, a, b);
-    auto e0 = fft::fft_square_mod(1'000'000'007, a);
-    auto e1 = fft::naive_multiply_mod(1'000'000'007, a, a);
+    auto c0 = fft::fft_multiply(1'000'000'007, a, b);
+    auto c1 = fft::naive_multiply(1'000'000'007, a, b);
+    auto d0 = fft::fft_multiply(1'479'118'951, a, b);
+    auto d1 = fft::naive_multiply(1'479'118'951, a, b);
+    auto e0 = fft::fft_square(1'000'000'007, a);
+    auto e1 = fft::naive_multiply(1'000'000'007, a, a);
     print("c0: {}\n", c0);
     print("c1: {}\n", c1);
     print("d0: {}\n", d0);
@@ -31,8 +41,8 @@ void stress_test_fft_multiply_mod(int N = 10000) {
         int A = distn(mt), B = distn(mt);
         auto a = int_gen<int>(A, 0, V);
         auto b = int_gen<int>(B, 0, V);
-        auto c = fft::fft_multiply_mod(mod, a, b);
-        auto d = fft::naive_multiply_mod(mod, a, b);
+        auto c = fft::fft_multiply(mod, a, b);
+        auto d = fft::naive_multiply(mod, a, b);
 
         errors += c != d;
     }
@@ -54,8 +64,8 @@ void stress_test_fft_square_mod(int N = 10000) {
 
         int A = distn(mt);
         auto a = int_gen<int>(A, 0, V);
-        auto c = fft::fft_square_mod(mod, a);
-        auto d = fft::naive_multiply_mod(mod, a, a);
+        auto c = fft::fft_square(mod, a);
+        auto d = fft::naive_multiply(mod, a, a);
 
         errors += c != d;
     }
@@ -91,11 +101,11 @@ void breakeven_test_fft_multiply_mod() {
             auto b = uniform_gen_many<int>(N, 0, V);
 
             START(fft);
-            auto c = fft::fft_multiply_mod(mod, a, b);
+            auto c = fft::fft_multiply(mod, a, b);
             ADD_TIME(fft);
 
             START(naive);
-            auto d = fft::naive_multiply_mod(mod, a, b);
+            auto d = fft::naive_multiply(mod, a, b);
             ADD_TIME(naive);
         }
 
@@ -113,7 +123,7 @@ void breakeven_test_fft_multiply_mod() {
     printcl("breakeven: N={}\n", N - window / 2);
 }
 
-void speed_test_ntt_split_multiply() {
+void speed_test_fft_multiply_mod() {
     using num = modnum<998244353>;
     constexpr int V = 1000;
     vector<int> As = {10, 30, 100, 300, 1000, 3000, 10000, 30000};
@@ -143,7 +153,7 @@ void speed_test_ntt_split_multiply() {
                 vector<num> d(begin(b), end(b));
 
                 START(ntt_split);
-                auto x = fft::fft_multiply_mod(998244353, a, b);
+                auto x = fft::fft_multiply(998244353, a, b);
                 ADD_TIME(ntt_split);
 
                 START(ntt);
@@ -152,7 +162,7 @@ void speed_test_ntt_split_multiply() {
 
                 START(naive);
                 if (do_naive)
-                    auto z = fft::naive_multiply_mod(998244353, a, b);
+                    auto z = fft::naive_multiply(998244353, a, b);
                 ADD_TIME(naive);
             }
 
@@ -174,10 +184,11 @@ void speed_test_ntt_split_multiply() {
 }
 
 int main() {
-    RUN_BLOCK(unit_test_fft_multiply_mod());
+    RUN_SHORT(unit_test_with_modnum());
+    RUN_SHORT(unit_test_fft_multiply_mod());
     RUN_SHORT(stress_test_fft_square_mod());
     RUN_SHORT(stress_test_fft_multiply_mod());
     RUN_BLOCK(breakeven_test_fft_multiply_mod());
-    RUN_SHORT(speed_test_ntt_split_multiply());
+    RUN_SHORT(speed_test_fft_multiply_mod());
     return 0;
 }

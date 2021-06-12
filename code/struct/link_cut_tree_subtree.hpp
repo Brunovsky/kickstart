@@ -183,7 +183,7 @@ struct link_cut_tree_subtree {
         reroot(v), access(u);
         return &t[u].node;
     }
-    LCTNode* access_subtree(int u) {
+    LCTNode* access_tree(int u) {
         reroot(u);
         return &t[u].node;
     }

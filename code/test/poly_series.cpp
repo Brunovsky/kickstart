@@ -36,24 +36,24 @@ int stir_2nd[10][10] = {
 };
 
 void unit_test_polyseries() {
-    print("faul(20, 5) = {}\n", faulhaber<num>(20, 5));
-    print("faul(30, 5) = {}\n", faulhaber<num>(30, 5));
-    print("falling(10) = {}\n", falling_factorial<long>(10));
-    print("falling(12) = {}\n", falling_factorial<long>(12));
-    print("rising(10) = {}\n", rising_factorial<long>(10));
-    print("rising(12) = {}\n", rising_factorial<long>(12));
+    printcl("falling(10) = {}\n", falling_factorial<num>(10));
+    printcl("falling(12) = {}\n", falling_factorial<num>(12));
+    printcl("rising(10) = {}\n", rising_factorial<num>(10));
+    printcl("rising(12) = {}\n", rising_factorial<num>(12));
     for (int i = 0; i <= 9; i++) {
         int n = i + 1;
-        auto s1 = stirling_1st<int>(i);
-        print("stirling_1st({}) = {}\n", i, s1);
+        auto s1 = stirling_1st<num>(i);
+        printcl("stirling_1st({}) = {}\n", i, s1);
         assert(equal(s1.data(), s1.data() + n, stir_1st[i], stir_1st[i] + n));
     }
     for (int i = 0; i <= 9; i++) {
         int n = i + 1;
         auto s2 = stirling_2nd<num>(i);
-        print("stirling_2nd({}) = {}\n", i, s2);
+        printcl("stirling_2nd({}) = {}\n", i, s2);
         assert(equal(s2.data(), s2.data() + n, stir_2nd[i], stir_2nd[i] + n));
     }
+    printcl("faul(20, 5) = {}\n", faulhaber<num>(20, 5));
+    printcl("faul(30, 5) = {}\n", faulhaber<num>(30, 5));
 }
 
 int main() {

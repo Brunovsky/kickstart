@@ -54,6 +54,10 @@ struct modnum {
     }
 };
 
+/**
+ * Variations of FFT.
+ * For modnums: include modnum + 1st and 2nd namespaces
+ */
 // Base include
 namespace fft {
 
@@ -226,158 +230,95 @@ void fft_transform(vector<T>& a, int N) {
 
 } // namespace fft
 
-// Arbitrary modulus FFT for modnums
+// NTT with modnums
 namespace fft {
 
-int SPLITMODNUM_BREAKEVEN = 80;
+constexpr int MODNUM_BREAKEVEN = 150;
 
-template <typename C, int MOD, typename T = int>
-auto fft_split_lower_upper_mod(T H, const vector<modnum<MOD>>& a, vector<C>& comp) {
-    for (int i = 0, A = a.size(); i < A; i++) {
-        comp[i] = C(T(a[i]) % H, T(a[i]) / H);
+int ntt_primitive_root(int p) {
+    static unordered_map<int, int> cache = {{998244353, 3}};
+    if (cache.count(p)) {
+        return cache.at(p);
     }
+    assert(false && "Sorry, unimplemented");
 }
 
-template <typename C = default_complex, int MOD>
-auto fft_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
+template <int mod>
+struct root_of_unity<modnum<mod>> {
+    using type = modnum<mod>;
+    static type get(int n) {
+        modnum<mod> g = ntt_primitive_root(mod);
+        assert(n > 0 && (mod - 1) % n == 0 && "Modulus cannot handle NTT this large");
+        return modpow(g, (mod - 1) / n);
+    }
+};
+
+template <int MOD>
+auto ntt_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
     using T = modnum<MOD>;
     if (a.empty() || b.empty()) {
         return vector<T>();
     }
     int A = a.size(), B = b.size();
-    if (A <= SPLITMODNUM_BREAKEVEN || B <= SPLITMODNUM_BREAKEVEN) {
+    if (A <= MODNUM_BREAKEVEN || B <= MODNUM_BREAKEVEN) {
         return naive_multiply(a, b);
     }
 
-    int S = A + B - 1, N = 1 << next_two(S);
-    int H = sqrt(MOD), Q = H * H;
-    vector<C> ac(N), bc(N);
-    fft_split_lower_upper_mod(H, a, ac);
-    fft_split_lower_upper_mod(H, b, bc);
-    fft_transform<0, 1>(ac, N);
-    fft_transform<0, 1>(bc, N);
-    vector<C> h0(N), h1(N);
-    for (int i = 0, j = 0; i < N; i++, j = N - i) {
-        auto f_small = (ac[i] + conj(ac[j])) * 0.5;
-        auto f_large = (ac[i] - conj(ac[j])) * -0.5_i;
-        auto g_small = (bc[i] + conj(bc[j])) * 0.5;
-        auto g_large = (bc[i] - conj(bc[j])) * -0.5_i;
-        h0[i] = f_small * g_small + 1.0_i * f_large * g_large;
-        h1[i] = f_small * g_large + f_large * g_small;
+    int C = A + B - 1, N = 1 << next_two(C);
+    vector<T> c = a, d = b;
+    c.resize(N, T(0));
+    d.resize(N, T(0));
+    fft_transform<0, 1>(c, N);
+    fft_transform<0, 1>(d, N);
+    for (int i = 0; i < N; i++) {
+        c[i] = c[i] * d[i];
     }
-    fft_transform<1, 1>(h0, N);
-    fft_transform<1, 1>(h1, N);
-
-    vector<T> c(S);
-    for (int i = 0; i < S; i++) {
-        T c0 = fft_round<int64_t>(h0[i].real()) % MOD;
-        T c1 = fft_round<int64_t>(h1[i].real()) % MOD;
-        T c2 = fft_round<int64_t>(h0[i].imag()) % MOD;
-        c[i] = c0 + c1 * H + c2 * Q;
-    }
+    fft_transform<1, 1>(c, N);
     trim_vector(c);
     return c;
 }
 
-template <typename C = default_complex, int MOD>
-auto fft_square(const vector<modnum<MOD>>& a) {
+template <int MOD>
+auto ntt_square(const vector<modnum<MOD>>& a) {
     using T = modnum<MOD>;
     if (a.empty()) {
         return vector<T>();
     }
     int A = a.size();
-    if (A <= SPLITMODNUM_BREAKEVEN) {
+    if (A <= MODNUM_BREAKEVEN) {
         return naive_multiply(a, a);
     }
 
-    int S = 2 * A - 1, N = 1 << next_two(S);
-    int H = sqrt(MOD), Q = H * H;
-    vector<C> ac(N);
-    fft_split_lower_upper_mod(H, a, ac);
-    fft_transform<0, 1>(ac, N);
-    vector<C> h0(N), h1(N);
-    for (int i = 0, j = 0; i < N; i++, j = N - i) {
-        auto f_small = (ac[i] + conj(ac[j])) * 0.5;
-        auto f_large = (ac[i] - conj(ac[j])) * -0.5_i;
-        h0[i] = f_small * f_small + 1.0_i * f_large * f_large;
-        h1[i] = 2.0 * f_small * f_large;
+    int C = 2 * A - 1, N = 1 << next_two(C);
+    vector<T> c = a;
+    c.resize(N, T(0));
+    fft_transform<0, 1>(c, N);
+    for (int i = 0; i < N; i++) {
+        c[i] = c[i] * c[i];
     }
-    fft_transform<1, 1>(h0, N);
-    fft_transform<1, 1>(h1, N);
-
-    vector<T> c(S);
-    for (int i = 0; i < S; i++) {
-        T c0 = fft_round<int64_t>(h0[i].real()) % MOD;
-        T c1 = fft_round<int64_t>(h1[i].real()) % MOD;
-        T c2 = fft_round<int64_t>(h0[i].imag()) % MOD;
-        c[i] = c0 + c1 * H + c2 * Q;
-    }
+    fft_transform<1, 1>(c, N);
     trim_vector(c);
     return c;
 }
 
 } // namespace fft
 
-constexpr int MOD = 998244353;
-
-template <typename T>
-auto multiply(const vector<T>& a, const vector<T>& b) {
-    return fft::fft_multiply(a, b);
-}
-
-template <typename T>
-auto square(const vector<T>& a) {
-    return fft::fft_square(a);
-}
-
-template <typename T>
-auto& operator*=(vector<T>& a, const vector<T>& b) {
-    return a = multiply(a, b);
-}
-
-template <typename T>
-auto operator*(const vector<T>& a, const vector<T>& b) {
-    return multiply(a, b);
-}
-
-template <typename T>
-auto withroots(const vector<T>& roots) {
-    int R = roots.size();
-    vector<vector<T>> polys(R);
-
-    for (int i = 0; i < R; i++) {
-        polys[i] = {-roots[i], T(1)};
-    }
-
-    while (R > 1) {
-        for (int i = 0; i < R / 2; i++) {
-            polys[i] = polys[i << 1] * polys[i << 1 | 1];
-        }
-        if (R & 1) {
-            polys[R / 2] = move(polys[R - 1]);
-        }
-        R = (R + 1) / 2;
-        polys.resize(R);
-    }
-
-    return R ? polys[0] : vector<T>{T(1)};
-}
-
-template <typename T>
-auto falling_factorial(int n) {
-    vector<T> roots(n);
-    iota(begin(roots), end(roots), T(0));
-    return withroots(roots);
-}
-
 int main() {
     ios::sync_with_stdio(false), cin.tie(nullptr);
     using num = modnum<998244353>;
-    int N;
-    cin >> N;
-    auto p = falling_factorial<num>(N);
-    for (int i = 0; i <= N; i++) {
-        cout << p[i] << " \n"[i == N];
+    int N, M;
+    cin >> N >> M;
+    vector<num> a(N), b(M);
+    for (int i = 0; i < N; i++) {
+        cin >> a[i];
+    }
+    for (int i = 0; i < M; i++) {
+        cin >> b[i];
+    }
+    auto c = fft::ntt_multiply(a, b);
+    c.resize(N + M - 1);
+    for (int i = 0; i < N + M - 1; i++) {
+        cout << c[i] << " \n"[i + 1 == N + M - 1];
     }
     return 0;
 }

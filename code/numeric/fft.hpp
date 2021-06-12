@@ -2,6 +2,10 @@
 
 #include "modnum.hpp"
 
+/**
+ * Variations of FFT.
+ * For modnums: include modnum + 1st and 2nd namespaces
+ */
 // Base include
 namespace fft {
 
@@ -174,6 +178,98 @@ void fft_transform(vector<T>& a, int N) {
 
 } // namespace fft
 
+// Arbitrary modulus FFT for modnums
+namespace fft {
+
+int SPLITMODNUM_BREAKEVEN = 80;
+
+template <typename C, int MOD, typename T = int>
+auto fft_split_lower_upper_mod(T H, const vector<modnum<MOD>>& a, vector<C>& comp) {
+    for (int i = 0, A = a.size(); i < A; i++) {
+        comp[i] = C(T(a[i]) % H, T(a[i]) / H);
+    }
+}
+
+template <typename C = default_complex, int MOD>
+auto fft_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
+    using T = modnum<MOD>;
+    if (a.empty() || b.empty()) {
+        return vector<T>();
+    }
+    int A = a.size(), B = b.size();
+    if (A <= SPLITMODNUM_BREAKEVEN || B <= SPLITMODNUM_BREAKEVEN) {
+        return naive_multiply(a, b);
+    }
+
+    int S = A + B - 1, N = 1 << next_two(S);
+    int H = sqrt(MOD), Q = H * H;
+    vector<C> ac(N), bc(N);
+    fft_split_lower_upper_mod(H, a, ac);
+    fft_split_lower_upper_mod(H, b, bc);
+    fft_transform<0, 1>(ac, N);
+    fft_transform<0, 1>(bc, N);
+    vector<C> h0(N), h1(N);
+    for (int i = 0, j = 0; i < N; i++, j = N - i) {
+        auto f_small = (ac[i] + conj(ac[j])) * 0.5;
+        auto f_large = (ac[i] - conj(ac[j])) * -0.5_i;
+        auto g_small = (bc[i] + conj(bc[j])) * 0.5;
+        auto g_large = (bc[i] - conj(bc[j])) * -0.5_i;
+        h0[i] = f_small * g_small + 1.0_i * f_large * g_large;
+        h1[i] = f_small * g_large + f_large * g_small;
+    }
+    fft_transform<1, 1>(h0, N);
+    fft_transform<1, 1>(h1, N);
+
+    vector<T> c(S);
+    for (int i = 0; i < S; i++) {
+        T c0 = fft_round<int64_t>(h0[i].real()) % MOD;
+        T c1 = fft_round<int64_t>(h1[i].real()) % MOD;
+        T c2 = fft_round<int64_t>(h0[i].imag()) % MOD;
+        c[i] = c0 + c1 * H + c2 * Q;
+    }
+    trim_vector(c);
+    return c;
+}
+
+template <typename C = default_complex, int MOD>
+auto fft_square(const vector<modnum<MOD>>& a) {
+    using T = modnum<MOD>;
+    if (a.empty()) {
+        return vector<T>();
+    }
+    int A = a.size();
+    if (A <= SPLITMODNUM_BREAKEVEN) {
+        return naive_multiply(a, a);
+    }
+
+    int S = 2 * A - 1, N = 1 << next_two(S);
+    int H = sqrt(MOD), Q = H * H;
+    vector<C> ac(N);
+    fft_split_lower_upper_mod(H, a, ac);
+    fft_transform<0, 1>(ac, N);
+    vector<C> h0(N), h1(N);
+    for (int i = 0, j = 0; i < N; i++, j = N - i) {
+        auto f_small = (ac[i] + conj(ac[j])) * 0.5;
+        auto f_large = (ac[i] - conj(ac[j])) * -0.5_i;
+        h0[i] = f_small * f_small + 1.0_i * f_large * f_large;
+        h1[i] = 2.0 * f_small * f_large;
+    }
+    fft_transform<1, 1>(h0, N);
+    fft_transform<1, 1>(h1, N);
+
+    vector<T> c(S);
+    for (int i = 0; i < S; i++) {
+        T c0 = fft_round<int64_t>(h0[i].real()) % MOD;
+        T c1 = fft_round<int64_t>(h1[i].real()) % MOD;
+        T c2 = fft_round<int64_t>(h0[i].imag()) % MOD;
+        c[i] = c0 + c1 * H + c2 * Q;
+    }
+    trim_vector(c);
+    return c;
+}
+
+} // namespace fft
+
 // FFT with complex numbers
 namespace fft {
 
@@ -275,7 +371,7 @@ struct root_of_unity<modnum<mod>> {
 };
 
 template <int MOD>
-auto fft_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
+auto ntt_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
     using T = modnum<MOD>;
     if (a.empty() || b.empty()) {
         return vector<T>();
@@ -300,7 +396,7 @@ auto fft_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
 }
 
 template <int MOD>
-auto fft_square(const vector<modnum<MOD>>& a) {
+auto ntt_square(const vector<modnum<MOD>>& a) {
     using T = modnum<MOD>;
     if (a.empty()) {
         return vector<T>();
@@ -426,29 +522,22 @@ auto fft_split_square(const vector<T>& a) {
 // NTT-SPLIT
 namespace fft {
 
-constexpr int SPLITMOD_BREAKEVEN = 100;
+constexpr int SPLITMOD_BREAKEVEN = 150;
 
 template <typename T, typename O>
 T fitmod(T mod, O val) {
     return val < 0 ? (val + mod) : (val >= mod) ? (val - mod) : val;
 }
 
-template <typename T, typename C>
+template <typename Prom, typename T, typename C>
 void fft_split_lower_upper_mod(T d, const vector<T>& a, vector<C>& comp) {
     for (int i = 0, A = a.size(); i < A; i++) {
         comp[i] = C(a[i] % d, a[i] / d);
     }
 }
-template <typename T, typename O>
-void fft_split_lower_upper_mod(T d, const vector<T>& a, vector<O>& lo, vector<O>& hi) {
-    for (int i = 0, A = a.size(); i < A; i++) {
-        lo[i] = a[i] % d;
-        hi[i] = a[i] / d;
-    }
-}
 
 template <typename Prom = int64_t, typename C = default_complex, typename T>
-vector<T> naive_multiply_mod(T mod, const vector<T>& a, const vector<T>& b) {
+auto naive_multiply(T mod, const vector<T>& a, const vector<T>& b) {
     int A = a.size(), B = b.size(), S = A && B ? A + B - 1 : 0;
     vector<T> c(S);
     for (int i = 0; i < A && B; i++) {
@@ -461,27 +550,27 @@ vector<T> naive_multiply_mod(T mod, const vector<T>& a, const vector<T>& b) {
 }
 
 template <typename Prom = int64_t, typename C = default_complex, typename T>
-vector<T> fft_multiply_mod(T mod, const vector<T>& a, const vector<T>& b) {
+auto fft_multiply(T mod, const vector<T>& a, const vector<T>& b) {
     if (a.empty() || b.empty()) {
         return vector<T>();
     }
     int A = a.size(), B = b.size();
     if (A <= SPLITMOD_BREAKEVEN || B <= SPLITMOD_BREAKEVEN) {
-        return naive_multiply_mod(mod, a, b);
+        return naive_multiply<Prom>(mod, a, b);
     }
 
     int S = A + B - 1, N = 1 << next_two(S);
     T H = sqrt(mod), Q = H * H;
     vector<C> ac(N), bc(N);
-    fft_split_lower_upper_mod(H, a, ac);
-    fft_split_lower_upper_mod(H, b, bc);
+    fft_split_lower_upper_mod<Prom>(H, a, ac);
+    fft_split_lower_upper_mod<Prom>(H, b, bc);
     fft_transform<0, 1>(ac, N);
     fft_transform<0, 1>(bc, N);
     vector<C> h0(N), h1(N);
     for (int i = 0, j = 0; i < N; i++, j = N - i) {
-        auto f_small = (ac[i] + conj(ac[j])) / 0.5;
+        auto f_small = (ac[i] + conj(ac[j])) * 0.5;
         auto f_large = (ac[i] - conj(ac[j])) * -0.5_i;
-        auto g_small = (bc[i] + conj(bc[j])) / 0.5;
+        auto g_small = (bc[i] + conj(bc[j])) * 0.5;
         auto g_large = (bc[i] - conj(bc[j])) * -0.5_i;
         h0[i] = f_small * g_small + 1.0_i * f_large * g_large;
         h1[i] = f_small * g_large + f_large * g_small;
@@ -501,19 +590,19 @@ vector<T> fft_multiply_mod(T mod, const vector<T>& a, const vector<T>& b) {
 }
 
 template <typename Prom = int64_t, typename C = default_complex, typename T>
-vector<T> fft_square_mod(T mod, const vector<T>& a) {
+auto fft_square(T mod, const vector<T>& a) {
     if (a.empty()) {
         return vector<T>();
     }
     int A = a.size();
     if (A <= SPLITMOD_BREAKEVEN) {
-        return naive_multiply_mod(mod, a, a);
+        return naive_multiply<Prom>(mod, a, a);
     }
 
     int S = 2 * A - 1, N = 1 << next_two(S);
     T H = sqrt(mod), Q = H * H;
     vector<C> ac(N);
-    fft_split_lower_upper_mod(H, a, ac);
+    fft_split_lower_upper_mod<Prom>(H, a, ac);
     fft_transform<0, 1>(ac, N);
     vector<C> h0(N), h1(N);
     for (int i = 0, j = 0; i < N; i++, j = N - i) {
