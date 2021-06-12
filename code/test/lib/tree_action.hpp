@@ -39,6 +39,11 @@ enum class UnrootedAT : int {
     SUBTREE_SIZE,   // pick any connected u,v --> subtree_size(u,v) -> val (u below v)
     UPDATE_SUBTREE, // pick any connected u,v --> update_subtree(u,v,val) (u below v)
 
+    // TREE QUERIES
+    QUERY_TREE,  // pick any u --> reroot(u), query_subtree(u) -> val
+    TREE_SIZE,   // pick any u --> reroot(u), subtree_size(u) -> val
+    UPDATE_TREE, // pick any u --> reroot(u), update_subtree(u,val)
+
     STRESS_TEST,
     END,
 };
@@ -62,6 +67,9 @@ const map<UnrootedAT, string> action_names<UnrootedAT> = {
     {UnrootedAT::QUERY_SUBTREE, "QUERY_SUBTREE"},
     {UnrootedAT::UPDATE_SUBTREE, "UPDATE_SUBTREE"},
     {UnrootedAT::SUBTREE_SIZE, "SUBTREE_SIZE"},
+    {UnrootedAT::QUERY_TREE, "QUERY_TREE"},
+    {UnrootedAT::UPDATE_TREE, "UPDATE_TREE"},
+    {UnrootedAT::TREE_SIZE, "TREE_SIZE"},
     {UnrootedAT::STRESS_TEST, "STRESS_TEST"},
     {UnrootedAT::END, "END"},
 };
@@ -297,6 +305,25 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
             long val = deltad(mt);
             slow.update_subtree(u, v, val);
             history.emplace_back(Action::val(UnrootedAT::UPDATE_SUBTREE, u, v, val));
+        } break;
+        case UnrootedAT::QUERY_TREE: {
+            int u = noded(mt);
+            slow.reroot(u);
+            long val = slow.query_subtree(u);
+            history.emplace_back(Action::val(UnrootedAT::QUERY_TREE, u, val));
+        } break;
+        case UnrootedAT::TREE_SIZE: {
+            int u = noded(mt);
+            slow.reroot(u);
+            long val = slow.subtree_size(u);
+            history.emplace_back(Action::val(UnrootedAT::TREE_SIZE, u, val));
+        } break;
+        case UnrootedAT::UPDATE_TREE: {
+            int u = noded(mt);
+            long val = deltad(mt);
+            slow.reroot(u);
+            slow.update_subtree(u, val);
+            history.emplace_back(Action::val(UnrootedAT::UPDATE_TREE, u, val));
         } break;
         case UnrootedAT::STRESS_TEST: {
             history.emplace_back(Action::simple(UnrootedAT::STRESS_TEST));

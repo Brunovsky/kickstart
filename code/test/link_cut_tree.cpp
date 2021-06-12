@@ -31,14 +31,16 @@ bool stress_verify_link_cut(slow_tree& slow, lct_path& tree, int D = 2) {
         vector<int> order = nodes;
         shuffle(begin(order), end(order), mt);
         path[d].resize(N + 1);
-        for (int u : order) { path[d][u] = tree.access_path(u, above[u])->path; }
+        for (int u : order) {
+            path[d][u] = tree.access_path(u, above[u])->path;
+        }
         if (path[d] != exp_path) {
             if (ok_path) {
                 ok_path = false;
-                print("      above: {}\n", above);
-                print("expect_path: {}\n", exp_path);
+                printcl("      above: {}\n", above);
+                printcl("expect_path: {}\n", exp_path);
             }
-            print("got_path[{}]: {}\n", d + 1, path[d]);
+            printcl("got_path[{}]: {}\n", d + 1, path[d]);
         }
     }
     for (int d = 0; d < D; d++) {
@@ -51,10 +53,10 @@ bool stress_verify_link_cut(slow_tree& slow, lct_path& tree, int D = 2) {
         if (path_length[d] != exp_path_length) {
             if (ok_path_length) {
                 ok_path_length = false;
-                print("             above: {}\n", above);
-                print("expect_path_length: {}\n", exp_path_length);
+                printcl("             above: {}\n", above);
+                printcl("expect_path_length: {}\n", exp_path_length);
             }
-            print("got_path_length[{}]: {}\n", d + 1, path_length[d]);
+            printcl("got_path_length[{}]: {}\n", d + 1, path_length[d]);
         }
     }
 
@@ -87,9 +89,9 @@ bool stress_verify_link_cut(slow_tree& slow, lct_subtree& tree, int D = 2) {
         if (subtree[d] != exp_subtree) {
             if (ok_subtree) {
                 ok_subtree = false;
-                print("expect_subtree: {}\n", exp_subtree);
+                printcl("expect_subtree: {}\n", exp_subtree);
             }
-            print("got_subtree[{}]: {}\n", d + 1, subtree[d]);
+            printcl("got_subtree[{}]: {}\n", d + 1, subtree[d]);
         }
     }
     for (int d = 0; d < D; d++) {
@@ -102,9 +104,9 @@ bool stress_verify_link_cut(slow_tree& slow, lct_subtree& tree, int D = 2) {
         if (subtree_size[d] != exp_subtree_size) {
             if (ok_subtree_size) {
                 ok_subtree_size = false;
-                print("expect_subtree_size: {}\n", exp_subtree_size);
+                printcl("expect_subtree_size: {}\n", exp_subtree_size);
             }
-            print("got_subtree_size[{}]: {}\n", d + 1, subtree_size[d]);
+            printcl("got_subtree_size[{}]: {}\n", d + 1, subtree_size[d]);
         }
     }
 
@@ -138,12 +140,14 @@ void stress_test_link_cut_tree_path(int N = 200) {
         switch (action) {
         case UnrootedAT::LINK: {
             slow.link(u, v);
-            tree.link(u, v);
+            bool fine = tree.link(u, v);
+            assert(fine);
             label = format("[{}] LINK {}--{}", slow.S, u, v);
         } break;
         case UnrootedAT::CUT: {
             slow.cut(u, v);
-            tree.cut(u, v);
+            bool fine = tree.cut(u, v);
+            assert(fine);
             label = format("[{}] CUT {}--{}", slow.S, u, v);
         } break;
         case UnrootedAT::FINDROOT: {
@@ -193,7 +197,9 @@ void stress_test_link_cut_tree_path(int N = 200) {
         default:
             throw runtime_error("Unsupported action");
         }
-        if (!ok) { printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action)); }
+        if (!ok) {
+            printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action));
+        }
         assert(ok);
     }
 
@@ -223,12 +229,14 @@ void stress_test_lct_subtree(int N = 200) {
         switch (action) {
         case UnrootedAT::LINK: {
             slow.link(u, v);
-            tree.link(u, v);
+            bool fine = tree.link(u, v);
+            assert(fine);
             label = format("[{}] LINK {}--{}", slow.S, u, v);
         } break;
         case UnrootedAT::CUT: {
             slow.cut(u, v);
-            tree.cut(u, v);
+            bool fine = tree.cut(u, v);
+            assert(fine);
             label = format("[{}] CUT {}--{}", slow.S, u, v);
         } break;
         case UnrootedAT::FINDROOT: {
@@ -273,7 +281,9 @@ void stress_test_lct_subtree(int N = 200) {
         default:
             throw runtime_error("Unsupported action");
         }
-        if (!ok) { printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action)); }
+        if (!ok) {
+            printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action));
+        }
         assert(ok);
     }
 
@@ -282,9 +292,9 @@ void stress_test_lct_subtree(int N = 200) {
 
 } // namespace stress_testing
 
-inline namespace speed_testing {
+inline namespace speed_testing_lct_path {
 
-actions_t<UnrootedAT> speed_topo_heavy = {
+actions_t<UnrootedAT> path_speed_topo_heavy_actions = {
     {UnrootedAT::LINK, 5000},        {UnrootedAT::CUT, 1000},
     {UnrootedAT::LINK_CUT, 4000},    {UnrootedAT::FINDROOT, 1000},
     {UnrootedAT::LCA, 800},          {UnrootedAT::LCA_CONN, 1200},
@@ -292,7 +302,7 @@ actions_t<UnrootedAT> speed_topo_heavy = {
     {UnrootedAT::UPDATE_PATH, 2500}, {UnrootedAT::QUERY_PATH, 3500},
     {UnrootedAT::PATH_LENGTH, 1500},
 };
-actions_t<UnrootedAT> speed_update_heavy = {
+actions_t<UnrootedAT> path_speed_update_heavy_actions = {
     {UnrootedAT::LINK, 1500},        {UnrootedAT::CUT, 300},
     {UnrootedAT::LINK_CUT, 1200},    {UnrootedAT::FINDROOT, 1000},
     {UnrootedAT::LCA, 800},          {UnrootedAT::LCA_CONN, 1200},
@@ -300,7 +310,7 @@ actions_t<UnrootedAT> speed_update_heavy = {
     {UnrootedAT::UPDATE_PATH, 8000}, {UnrootedAT::QUERY_PATH, 2400},
     {UnrootedAT::PATH_LENGTH, 600},
 };
-actions_t<UnrootedAT> speed_query_heavy = {
+actions_t<UnrootedAT> path_speed_query_heavy_actions = {
     {UnrootedAT::LINK, 1500},        {UnrootedAT::CUT, 300},
     {UnrootedAT::LINK_CUT, 1200},    {UnrootedAT::FINDROOT, 1000},
     {UnrootedAT::LCA, 800},          {UnrootedAT::LCA_CONN, 1200},
@@ -354,21 +364,109 @@ void speed_test_lct_path(int N, const actions_t<UnrootedAT>& freq) {
         default:
             throw runtime_error("Unsupported action");
         }
-        if (!ok) { printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action)); }
+        if (!ok) {
+            printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action));
+        }
         assert(ok);
     }
     TIME(linkcut);
     PRINT_EACH_NS(linkcut, actions.size());
 }
 
-} // namespace speed_testing
+} // namespace speed_testing_lct_path
+
+inline namespace speed_testing_lct_subtree {
+
+actions_t<UnrootedAT> subtree_speed_topo_heavy_actions = {
+    {UnrootedAT::LINK, 5000},         {UnrootedAT::CUT, 1000},
+    {UnrootedAT::LINK_CUT, 4000},     {UnrootedAT::FINDROOT, 1000},
+    {UnrootedAT::LCA, 800},           {UnrootedAT::LCA_CONN, 1200},
+    {UnrootedAT::QUERY_NODE, 2000},   {UnrootedAT::UPDATE_NODE, 2500},
+    {UnrootedAT::UPDATE_SUBTREE, 0},  {UnrootedAT::QUERY_SUBTREE, 3500},
+    {UnrootedAT::SUBTREE_SIZE, 1500},
+};
+actions_t<UnrootedAT> subtree_speed_update_heavy_actions = {
+    {UnrootedAT::LINK, 1500},        {UnrootedAT::CUT, 300},
+    {UnrootedAT::LINK_CUT, 1200},    {UnrootedAT::FINDROOT, 1000},
+    {UnrootedAT::LCA, 800},          {UnrootedAT::LCA_CONN, 1200},
+    {UnrootedAT::QUERY_NODE, 1000},  {UnrootedAT::UPDATE_NODE, 6000},
+    {UnrootedAT::UPDATE_SUBTREE, 0}, {UnrootedAT::QUERY_SUBTREE, 2400},
+    {UnrootedAT::SUBTREE_SIZE, 600},
+};
+actions_t<UnrootedAT> subtree_speed_query_heavy_actions = {
+    {UnrootedAT::LINK, 1500},         {UnrootedAT::CUT, 300},
+    {UnrootedAT::LINK_CUT, 1200},     {UnrootedAT::FINDROOT, 1000},
+    {UnrootedAT::LCA, 800},           {UnrootedAT::LCA_CONN, 1200},
+    {UnrootedAT::QUERY_NODE, 5000},   {UnrootedAT::UPDATE_NODE, 1200},
+    {UnrootedAT::UPDATE_SUBTREE, 0},  {UnrootedAT::QUERY_SUBTREE, 10000},
+    {UnrootedAT::SUBTREE_SIZE, 4000},
+};
+
+void speed_test_lct_subtree(int N, const actions_t<UnrootedAT>& freq) {
+    lct_subtree tree(N);
+    auto actions = make_unrooted_actions(N, 10s, freq, N - 100);
+
+    START(linkcut);
+    for (const auto& [action, u, v, r, who, val] : actions) {
+        bool ok = true;
+        switch (action) {
+        case UnrootedAT::LINK: {
+            tree.link(u, v);
+        } break;
+        case UnrootedAT::CUT: {
+            tree.cut(u, v);
+        } break;
+        case UnrootedAT::FINDROOT: {
+            tree.reroot(who);
+            int ans = tree.findroot(u);
+            ok = ans == who;
+        } break;
+        case UnrootedAT::LCA: {
+            tree.reroot(r);
+            int ans = tree.lca(u, v);
+            ok = ans == who;
+        } break;
+        case UnrootedAT::QUERY_NODE: {
+            long ans = tree.access_node(u)->self;
+            ok = val == ans;
+        } break;
+        case UnrootedAT::UPDATE_NODE: {
+            tree.access_node(u)->self = val;
+        } break;
+        case UnrootedAT::QUERY_SUBTREE: {
+            long ans = tree.access_subtree(u, v)->subtree();
+            ok = val == ans;
+        } break;
+        case UnrootedAT::SUBTREE_SIZE: {
+            long ans = tree.access_subtree(u, v)->subtree_size();
+            ok = val == ans;
+        } break;
+        // case UnrootedAT::UPDATE_SUBTREE: {
+        //     tree.access_subtree(u, v)->lazy += val;
+        // } break;
+        default:
+            throw runtime_error("Unsupported action");
+        }
+        if (!ok) {
+            printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action));
+        }
+        assert(ok);
+    }
+    TIME(linkcut);
+    PRINT_EACH_NS(linkcut, actions.size());
+}
+
+} // namespace speed_testing_lct_subtree
 
 int main() {
     setbuf(stdout, nullptr);
     RUN_SHORT(stress_test_lct_subtree());
     RUN_SHORT(stress_test_link_cut_tree_path());
-    RUN_SHORT(speed_test_lct_path(25000, speed_query_heavy));
-    RUN_SHORT(speed_test_lct_path(25000, speed_update_heavy));
-    RUN_SHORT(speed_test_lct_path(25000, speed_topo_heavy));
+    RUN_SHORT(speed_test_lct_path(25000, path_speed_query_heavy_actions));
+    RUN_SHORT(speed_test_lct_path(25000, path_speed_update_heavy_actions));
+    RUN_SHORT(speed_test_lct_path(25000, path_speed_topo_heavy_actions));
+    RUN_SHORT(speed_test_lct_subtree(25000, subtree_speed_query_heavy_actions));
+    RUN_SHORT(speed_test_lct_subtree(25000, subtree_speed_update_heavy_actions));
+    RUN_SHORT(speed_test_lct_subtree(25000, subtree_speed_topo_heavy_actions));
     return 0;
 }

@@ -74,13 +74,15 @@ struct euler_tour_tree {
   private:
     void pushdown(int u) {
         auto [l, r] = t[u].child;
-        if (u != 0)
+        if (u != 0) {
             t[u].node.pushdown(u & 1, t[l].node, t[r].node);
+        }
     }
 
     void pushup(int u) {
         auto [l, r] = t[u].child;
         pushdown(l), pushdown(r);
+        t[u].splay_size = 1 + t[l].splay_size + t[r].splay_size;
         t[u].node.pushup(u & 1, t[l].node, t[r].node);
     }
 
