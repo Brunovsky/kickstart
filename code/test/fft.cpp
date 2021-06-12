@@ -98,7 +98,11 @@ void speed_test_fft_multiply() {
     print("speedup:\n{}", speedup);
 }
 
-void breakeven_test_fft_multiply() {
+template <typename Num>
+void breakeven_test_fft_multiply(int V) {
+    if (fft::INT8_BREAKEVEN || fft::INT4_BREAKEVEN || fft::DOUBLE_BREAKEVEN)
+        return;
+
     vector<size_t> fft_time{1}, naive_time{1};
 
     // add -1 when fft is better, +1 when naive is better, run until delta is stop
@@ -114,8 +118,8 @@ void breakeven_test_fft_multiply() {
         START_ACC(naive);
 
         LOOP_FOR_DURATION_OR_RUNS (50ms, 10000) {
-            auto a = uniform_gen_many<long>(N, 500'000, 10'000'000);
-            auto b = uniform_gen_many<long>(N, 500'000, 10'000'000);
+            auto a = uniform_gen_many<Num>(N, 0, V);
+            auto b = uniform_gen_many<Num>(N, 0, V);
 
             START(fft);
             auto c = fft::fft_multiply(a, b);
@@ -143,7 +147,9 @@ void breakeven_test_fft_multiply() {
 int main() {
     RUN_BLOCK(stress_test_fft_multiply());
     RUN_BLOCK(stress_test_fft_square());
+    RUN_BLOCK(breakeven_test_fft_multiply<long>(500'000));
+    RUN_BLOCK(breakeven_test_fft_multiply<int>(30'000));
+    RUN_BLOCK(breakeven_test_fft_multiply<double>(300'000));
     RUN_BLOCK(speed_test_fft_multiply());
-    RUN_BLOCK(breakeven_test_fft_multiply());
     return 0;
 }

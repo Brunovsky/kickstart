@@ -67,7 +67,6 @@ struct euler_tour_tree {
     vector<int> freelist;
 
     explicit euler_tour_tree(int N = 0) : N(N), F(N), t(3 * N + 3), freelist(N) {
-        t[0].node.clear();
         edgemap.reserve(2 * N);
         for (int i = 0, f = (N | 1) + 1; i < N; i++) {
             freelist[i] = f + 2 * i;

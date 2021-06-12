@@ -52,6 +52,9 @@ void stress_test_fft_split_square() {
 }
 
 void breakeven_test_fft_split_multiply() {
+    if (fft::SPLIT_BREAKEVEN)
+        return;
+
     vector<size_t> fft_time{1}, naive_time{1};
 
     // add -1 when fft is better, +1 when naive is better, run until delta is stop

@@ -67,7 +67,7 @@ struct link_cut_tree_path {
 
     vector<Node> t;
 
-    explicit link_cut_tree_path(int N = 0) : t(N + 1) { t[0].node.clear(); }
+    explicit link_cut_tree_path(int N = 0) : t(N + 1) {}
 
     // ***** Node updates
   private:

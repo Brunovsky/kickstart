@@ -9,15 +9,15 @@
 
 namespace polymath {
 
-#define tmpl(T) template <typename T>
-
-tmpl(T) struct multieval_tree {
+template <typename T>
+struct multieval_tree {
     vector<int> index;
     vector<vector<T>> tree;
     vector<T> x;
 };
 
-tmpl(T) auto build_multieval_tree(const vector<T>& x) {
+template <typename T>
+auto build_multieval_tree(const vector<T>& x) {
     int N = x.size(), M = 1 << fft::next_two(N);
     vector<int> index(N);
     vector<vector<T>> tree(2 * N);
@@ -37,8 +37,9 @@ tmpl(T) auto build_multieval_tree(const vector<T>& x) {
     return multieval_tree<T>{move(index), move(tree), x};
 }
 
-tmpl(T) void multieval_dfs(int i, const vector<T>& poly, vector<T>& value,
-                           const multieval_tree<T>& evaltree) {
+template <typename T>
+void multieval_dfs(int i, const vector<T>& poly, vector<T>& value,
+                   const multieval_tree<T>& evaltree) {
     const auto& [index, tree, x] = evaltree;
     if (int N = x.size(); i >= N) {
         int j = index[i - N];
@@ -50,18 +51,21 @@ tmpl(T) void multieval_dfs(int i, const vector<T>& poly, vector<T>& value,
     }
 }
 
-tmpl(T) auto multieval(const vector<T>& poly, const multieval_tree<T>& evaltree) {
+template <typename T>
+auto multieval(const vector<T>& poly, const multieval_tree<T>& evaltree) {
     vector<T> value(evaltree.x.size());
     multieval_dfs(1, poly % evaltree.tree[1], value, evaltree);
     return value;
 }
 
-tmpl(T) auto multieval(const vector<T>& poly, const vector<T>& x) {
+template <typename T>
+auto multieval(const vector<T>& poly, const vector<T>& x) {
     return multieval(poly, build_multieval_tree(x));
 }
 
-tmpl(T) auto interpolate_dfs(int i, const vector<T>& poly, const vector<T>& y,
-                             const multieval_tree<T>& evaltree) {
+template <typename T>
+auto interpolate_dfs(int i, const vector<T>& poly, const vector<T>& y,
+                     const multieval_tree<T>& evaltree) {
     const auto& [index, tree, x] = evaltree;
     if (int N = x.size(); i >= N) {
         int j = index[i - N];
@@ -74,12 +78,11 @@ tmpl(T) auto interpolate_dfs(int i, const vector<T>& poly, const vector<T>& y,
     }
 }
 
-tmpl(T) auto interpolate(const vector<T>& x, const vector<T>& y) {
+template <typename T>
+auto interpolate(const vector<T>& x, const vector<T>& y) {
     assert(x.size() == y.size());
     auto evaltree = build_multieval_tree(x);
     return interpolate_dfs(1, deriv(evaltree.tree[1]), y, evaltree);
 }
-
-#undef tmpl
 
 } // namespace polymath

@@ -2,14 +2,14 @@
 #include "../numeric/fft.hpp"
 #include "../lib/anynum.hpp"
 
-void unit_test_ntt_split_mod() {
+void unit_test_fft_multiply_mod() {
     vector<int> a = {123412, 315312, 644121};
     vector<int> b = {123512, 52319023, 123512};
-    auto c0 = fft::ntt_multiply_mod(1'000'000'007, a, b);
+    auto c0 = fft::fft_multiply_mod(1'000'000'007, a, b);
     auto c1 = fft::naive_multiply_mod(1'000'000'007, a, b);
-    auto d0 = fft::ntt_multiply_mod(1'479'118'951, a, b);
+    auto d0 = fft::fft_multiply_mod(1'479'118'951, a, b);
     auto d1 = fft::naive_multiply_mod(1'479'118'951, a, b);
-    auto e0 = fft::ntt_square_mod(1'000'000'007, a);
+    auto e0 = fft::fft_square_mod(1'000'000'007, a);
     auto e1 = fft::naive_multiply_mod(1'000'000'007, a, a);
     print("c0: {}\n", c0);
     print("c1: {}\n", c1);
@@ -19,7 +19,7 @@ void unit_test_ntt_split_mod() {
     print("e1: {}\n", e1);
 }
 
-void stress_test_ntt_multiply_mod(int N = 10000) {
+void stress_test_fft_multiply_mod(int N = 10000) {
     constexpr int mod = 1'000'000'007;
     constexpr int V = 1'000'000'000;
     intd distn(0, N);
@@ -31,7 +31,7 @@ void stress_test_ntt_multiply_mod(int N = 10000) {
         int A = distn(mt), B = distn(mt);
         auto a = int_gen<int>(A, 0, V);
         auto b = int_gen<int>(B, 0, V);
-        auto c = fft::ntt_multiply_mod(mod, a, b);
+        auto c = fft::fft_multiply_mod(mod, a, b);
         auto d = fft::naive_multiply_mod(mod, a, b);
 
         errors += c != d;
@@ -43,7 +43,7 @@ void stress_test_ntt_multiply_mod(int N = 10000) {
     }
 }
 
-void stress_test_ntt_square_mod(int N = 10000) {
+void stress_test_fft_square_mod(int N = 10000) {
     constexpr int mod = 1'000'000'007;
     constexpr int V = 1'000'000'000;
     intd distn(0, N);
@@ -54,7 +54,7 @@ void stress_test_ntt_square_mod(int N = 10000) {
 
         int A = distn(mt);
         auto a = int_gen<int>(A, 0, V);
-        auto c = fft::ntt_square_mod(mod, a);
+        auto c = fft::fft_square_mod(mod, a);
         auto d = fft::naive_multiply_mod(mod, a, a);
 
         errors += c != d;
@@ -66,7 +66,10 @@ void stress_test_ntt_square_mod(int N = 10000) {
     }
 }
 
-void breakeven_test_ntt_multiply_mod() {
+void breakeven_test_fft_multiply_mod() {
+    if (fft::SPLITMOD_BREAKEVEN)
+        return;
+
     constexpr int mod = 1'000'000'007;
     constexpr int V = 800'000'000;
     vector<size_t> fft_time{1}, naive_time{1};
@@ -88,7 +91,7 @@ void breakeven_test_ntt_multiply_mod() {
             auto b = uniform_gen_many<int>(N, 0, V);
 
             START(fft);
-            auto c = fft::ntt_multiply_mod(mod, a, b);
+            auto c = fft::fft_multiply_mod(mod, a, b);
             ADD_TIME(fft);
 
             START(naive);
@@ -129,6 +132,8 @@ void speed_test_ntt_split_multiply() {
             START_ACC(ntt);
             START_ACC(naive);
 
+            bool do_naive = A < 10000 && B < 10000;
+
             LOOP_FOR_DURATION_OR_RUNS_TRACKED (2000ms, now, 10000, runs) {
                 print_time(now, 2000ms, 50ms, "speed test fft multiply");
 
@@ -138,22 +143,24 @@ void speed_test_ntt_split_multiply() {
                 vector<num> d(begin(b), end(b));
 
                 START(ntt_split);
-                auto x = fft::ntt_multiply_mod(998244353, a, b);
+                auto x = fft::fft_multiply_mod(998244353, a, b);
                 ADD_TIME(ntt_split);
 
                 START(ntt);
-                auto y = fft::ntt_multiply(c, d);
+                auto y = fft::fft_multiply(c, d);
                 ADD_TIME(ntt);
 
                 START(naive);
-                auto z = fft::naive_multiply_mod(998244353, a, b);
+                if (do_naive)
+                    auto z = fft::naive_multiply_mod(998244353, a, b);
                 ADD_TIME(naive);
             }
 
             printcl(" -- ntt split multiply speed test {}x{} ({} runs)\n", A, B, runs);
             PRINT_TIME_MS(ntt_split);
             PRINT_TIME_MS(ntt);
-            PRINT_TIME_MS(naive);
+            if (do_naive)
+                PRINT_TIME_MS(naive);
 
             splittime[ia][ib] = format("{:.1f}", EACH_US(ntt_split, runs));
             ntttime[ia][ib] = format("{:.1f}", EACH_US(ntt, runs));
@@ -167,10 +174,10 @@ void speed_test_ntt_split_multiply() {
 }
 
 int main() {
-    RUN_BLOCK(unit_test_ntt_split_mod());
-    RUN_SHORT(stress_test_ntt_square_mod());
-    RUN_SHORT(stress_test_ntt_multiply_mod());
+    RUN_BLOCK(unit_test_fft_multiply_mod());
+    RUN_SHORT(stress_test_fft_square_mod());
+    RUN_SHORT(stress_test_fft_multiply_mod());
+    RUN_BLOCK(breakeven_test_fft_multiply_mod());
     RUN_SHORT(speed_test_ntt_split_multiply());
-    RUN_BLOCK(breakeven_test_ntt_multiply_mod());
     return 0;
 }

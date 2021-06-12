@@ -1,5 +1,5 @@
 #include "test_utils.hpp"
-#include "../numeric/ntt.hpp"
+#include "../numeric/fft.hpp"
 #include "../numeric/poly.hpp"
 #include "../numeric/poly_multieval.hpp"
 #include "../numeric/poly_series.hpp"
@@ -36,8 +36,8 @@ int stir_2nd[10][10] = {
 };
 
 void unit_test_polyseries() {
-    print("faul(20, 5) = {}\n", faulhaber<frac>(20, 5));
-    print("faul(30, 5) = {}\n", faulhaber<frac>(30, 5));
+    print("faul(20, 5) = {}\n", faulhaber<num>(20, 5));
+    print("faul(30, 5) = {}\n", faulhaber<num>(30, 5));
     print("falling(10) = {}\n", falling_factorial<long>(10));
     print("falling(12) = {}\n", falling_factorial<long>(12));
     print("rising(10) = {}\n", rising_factorial<long>(10));
@@ -50,7 +50,7 @@ void unit_test_polyseries() {
     }
     for (int i = 0; i <= 9; i++) {
         int n = i + 1;
-        auto s2 = stirling_2nd<frac>(i);
+        auto s2 = stirling_2nd<num>(i);
         print("stirling_2nd({}) = {}\n", i, s2);
         assert(equal(s2.data(), s2.data() + n, stir_2nd[i], stir_2nd[i] + n));
     }

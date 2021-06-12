@@ -1,7 +1,6 @@
 #pragma once
 
 #include "fft.hpp"
-#include "ntt.hpp"
 #include "../struct/y_combinator.hpp"
 
 /**
@@ -13,15 +12,18 @@
 
 namespace polymath {
 
-#define tmpl(T) template <typename T>
-
-tmpl(T) auto multiply(const vector<T>& a, const vector<T>& b) {
+template <typename T>
+auto multiply(const vector<T>& a, const vector<T>& b) {
     return fft::fft_multiply(a, b);
 }
 
-tmpl(T) auto square(const vector<T>& a) { return fft::fft_square(a); }
+template <typename T>
+auto square(const vector<T>& a) {
+    return fft::fft_square(a);
+}
 
-tmpl(T) T binpow(T val, long e) {
+template <typename T>
+T binpow(T val, long e) {
     T base = {1};
     while (e > 0) {
         if (e & 1)
@@ -32,7 +34,8 @@ tmpl(T) T binpow(T val, long e) {
     return base;
 }
 
-tmpl(T) void trim(vector<T>& a) {
+template <typename T>
+void trim(vector<T>& a) {
     if constexpr (is_floating_point<T>::value)
         while (!a.empty() && abs(a.back()) < 30 * numeric_limits<T>::epsilon())
             a.pop_back();
@@ -41,23 +44,26 @@ tmpl(T) void trim(vector<T>& a) {
             a.pop_back();
 }
 
-tmpl(T) void truncate(vector<T>& v, int size) { v.resize(min(int(v.size()), size)); }
+template <typename T>
+void truncate(vector<T>& v, int size) {
+    v.resize(min(int(v.size()), size));
+}
 
-tmpl(T) auto truncated(vector<T> v, int size) { return truncate(v, size), v; }
+template <typename T>
+auto truncated(vector<T> v, int size) {
+    return truncate(v, size), v;
+}
 
-tmpl(T) auto eval(const vector<T>& a, T x) {
+template <typename T>
+auto eval(const vector<T>& a, T x) {
     T v = 0;
     for (int A = a.size(), i = A - 1; i >= 0; i--)
         v = a[i] + v * x;
     return v;
 }
 
-tmpl(T) auto convolve(const vector<T>& a, vector<T> b) {
-    reverse(begin(b), end(b));
-    return a * b;
-}
-
-tmpl(T) auto deriv(vector<T> a) {
+template <typename T>
+auto deriv(vector<T> a) {
     int N = a.size();
     for (int i = 0; i + 1 < N; i++)
         a[i] = T(i + 1) * a[i + 1];
@@ -66,7 +72,8 @@ tmpl(T) auto deriv(vector<T> a) {
     return a;
 }
 
-tmpl(T) auto integr(vector<T> a, T c = T()) {
+template <typename T>
+auto integr(vector<T> a, T c = T()) {
     int N = a.size();
     a.resize(N + 1);
     for (int i = N; i > 0; i--)
@@ -75,7 +82,8 @@ tmpl(T) auto integr(vector<T> a, T c = T()) {
     return a;
 }
 
-tmpl(T) auto withroots(const vector<T>& roots) {
+template <typename T>
+auto withroots(const vector<T>& roots) {
     int R = roots.size();
     vector<vector<T>> polys(R);
 
@@ -97,17 +105,25 @@ tmpl(T) auto withroots(const vector<T>& roots) {
     return R ? polys[0] : vector<T>{T(1)};
 }
 
-tmpl(T) auto& operator*=(vector<T>& a, const vector<T>& b) { return a = multiply(a, b); }
+template <typename T>
+auto& operator*=(vector<T>& a, const vector<T>& b) {
+    return a = multiply(a, b);
+}
 
-tmpl(T) auto operator*(const vector<T>& a, const vector<T>& b) { return multiply(a, b); }
+template <typename T>
+auto operator*(const vector<T>& a, const vector<T>& b) {
+    return multiply(a, b);
+}
 
-tmpl(T) auto operator-(vector<T> a) {
+template <typename T>
+auto operator-(vector<T> a) {
     for (int A = a.size(), i = 0; i < A; i++)
         a[i] = -a[i];
     return a;
 }
 
-tmpl(T) auto& operator+=(vector<T>& a, const vector<T>& b) {
+template <typename T>
+auto& operator+=(vector<T>& a, const vector<T>& b) {
     int A = a.size(), B = b.size();
     a.resize(max(A, B));
     for (int i = 0; i < B; i++)
@@ -116,9 +132,13 @@ tmpl(T) auto& operator+=(vector<T>& a, const vector<T>& b) {
     return a;
 }
 
-tmpl(T) auto operator+(vector<T> a, const vector<T>& b) { return a += b; }
+template <typename T>
+auto operator+(vector<T> a, const vector<T>& b) {
+    return a += b;
+}
 
-tmpl(T) auto& operator-=(vector<T>& a, const vector<T>& b) {
+template <typename T>
+auto& operator-=(vector<T>& a, const vector<T>& b) {
     int A = a.size(), B = b.size();
     a.resize(max(A, B));
     for (int i = 0; i < B; i++)
@@ -127,25 +147,37 @@ tmpl(T) auto& operator-=(vector<T>& a, const vector<T>& b) {
     return a;
 }
 
-tmpl(T) auto operator-(vector<T> a, const vector<T>& b) { return a -= b; }
+template <typename T>
+auto operator-(vector<T> a, const vector<T>& b) {
+    return a -= b;
+}
 
-tmpl(T) auto& operator*=(vector<T>& a, T constant) {
+template <typename T>
+auto& operator*=(vector<T>& a, T constant) {
     for (int i = 0, A = a.size(); i < A; i++)
         a[i] *= constant;
     return a;
 }
 
-tmpl(T) auto operator*(T constant, vector<T> a) { return a *= constant; }
+template <typename T>
+auto operator*(T constant, vector<T> a) {
+    return a *= constant;
+}
 
-tmpl(T) auto& operator/=(vector<T>& a, T constant) {
+template <typename T>
+auto& operator/=(vector<T>& a, T constant) {
     for (int i = 0, A = a.size(); i < A; i++)
         a[i] /= constant;
     return a;
 }
 
-tmpl(T) auto operator/(vector<T> a, T constant) { return a /= constant; }
+template <typename T>
+auto operator/(vector<T> a, T constant) {
+    return a /= constant;
+}
 
-tmpl(T) auto inverse_series(const vector<T>& a, int mod_degree) {
+template <typename T>
+auto inverse_series(const vector<T>& a, int mod_degree) {
     assert(!a.empty() && a[0]);
     vector<T> b(1, T(1) / a[0]);
 
@@ -157,7 +189,8 @@ tmpl(T) auto inverse_series(const vector<T>& a, int mod_degree) {
     return b;
 }
 
-tmpl(T) auto operator/(vector<T> a, vector<T> b) {
+template <typename T>
+auto operator/(vector<T> a, vector<T> b) {
     int A = a.size(), B = b.size();
     if (B > A)
         return vector<T>();
@@ -170,22 +203,34 @@ tmpl(T) auto operator/(vector<T> a, vector<T> b) {
     return d;
 }
 
-tmpl(T) auto& operator/=(vector<T>& a, const vector<T>& b) { return a = a / b; }
+template <typename T>
+auto& operator/=(vector<T>& a, const vector<T>& b) {
+    return a = a / b;
+}
 
-tmpl(T) auto operator%(const vector<T>& a, const vector<T>& b) { return a - b * (a / b); }
+template <typename T>
+auto operator%(const vector<T>& a, const vector<T>& b) {
+    return a - b * (a / b);
+}
 
-tmpl(T) auto& operator%=(vector<T>& a, const vector<T>& b) { return a = a % b; }
+template <typename T>
+auto& operator%=(vector<T>& a, const vector<T>& b) {
+    return a = a % b;
+}
 
-tmpl(T) auto division_with_remainder(const vector<T>& a, const vector<T>& b) {
+template <typename T>
+auto division_with_remainder(const vector<T>& a, const vector<T>& b) {
     auto d = a / b, r = a - b * d;
     return make_pair(move(d), move(r));
 }
 
-tmpl(T) auto gcd(const vector<T>& a, const vector<T>& b) -> vector<T> {
+template <typename T>
+auto gcd(const vector<T>& a, const vector<T>& b) -> vector<T> {
     return b.empty() ? a.empty() ? a : a / a.back() : gcd(b, a % b);
 }
 
-tmpl(T) auto resultant(const vector<T>& a, const vector<T>& b) {
+template <typename T>
+auto resultant(const vector<T>& a, const vector<T>& b) {
     int A = a.size(), B = b.size();
     if (B == 0) {
         return T();
@@ -198,7 +243,5 @@ tmpl(T) auto resultant(const vector<T>& a, const vector<T>& b) {
         return mul * resultant(b, c);
     }
 }
-
-#undef tmpl
 
 } // namespace polymath
