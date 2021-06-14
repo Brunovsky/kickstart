@@ -10,7 +10,7 @@ inline namespace detail {
 
 bool stress_verify_link_cut(slow_tree<false>& slow, lct_path& tree, int D = 2) {
     assert(1 <= D && D <= 9);
-    int N = slow.N;
+    int N = slow.num_nodes();
 
     vector<vector<int>> path(D), path_length(D);
     vector<int> exp_path(N + 1), exp_path_length(N + 1);
@@ -87,57 +87,60 @@ void stress_test_lct_path(int N = 200) {
             slow.link(u, v);
             bool fine = tree.link(u, v);
             assert(fine);
-            label = format("[{}] LINK {}--{}", slow.S, u, v);
+            label = format("[{}] LINK {}--{}", slow.num_trees(), u, v);
         } break;
         case UnrootedAT::CUT: {
             slow.cut(u, v);
             bool fine = tree.cut(u, v);
             assert(fine);
-            label = format("[{}] CUT {}--{}", slow.S, u, v);
+            label = format("[{}] CUT {}--{}", slow.num_trees(), u, v);
         } break;
         case UnrootedAT::FINDROOT: {
             tree.reroot(who);
             slow.reroot(who);
             int ans = tree.findroot(u);
             ok = ans == who;
-            label = format("[{}] FINDROOT {}: ={} ?{}\n", slow.S, u, who, ans);
+            label = format("[{}] FINDROOT {}: ={} ?{}\n", slow.num_trees(), u, who, ans);
         } break;
         case UnrootedAT::LCA: {
             tree.reroot(r);
             slow.reroot(r);
             int ans = tree.lca(u, v);
             ok = ans == who;
-            label = format("[{}] LCA {}..{}, {}: ={} ?{}", slow.S, u, v, r, who, ans);
+            label = format("[{}] LCA {}..{}, {}: ={} ?{}", slow.num_trees(), u, v, r, who,
+                           ans);
         } break;
         case UnrootedAT::QUERY_NODE: {
             long ans = tree.access_node(u)->self;
             ok = val == ans;
-            label = format("[{}] QUERY {}: ={} ?{}", slow.S, u, val, ans);
+            label = format("[{}] QUERY {}: ={} ?{}", slow.num_trees(), u, val, ans);
         } break;
         case UnrootedAT::UPDATE_NODE: {
             long init = slow.query_node(u);
             slow.update_node(u, val);
             tree.access_node(u)->self = val;
-            label = format("[{}] UPDATE {}: {}->{}", slow.S, u, init, val);
+            label = format("[{}] UPDATE {}: {}->{}", slow.num_trees(), u, init, val);
         } break;
         case UnrootedAT::QUERY_PATH: {
             long ans = tree.access_path(u, v)->path;
             ok = val == ans;
-            label = format("[{}] QUERY PATH {}..{}: ={} ?{}", slow.S, u, v, val, ans);
+            label = format("[{}] QUERY PATH {}..{}: ={} ?{}", slow.num_trees(), u, v, val,
+                           ans);
         } break;
         case UnrootedAT::PATH_LENGTH: {
             long ans = tree.access_path(u, v)->path_size;
             ok = val == ans;
-            label = format("[{}] PATH LENGTH {}..{}: ={} ?{}", slow.S, u, v, val, ans);
+            label = format("[{}] PATH LENGTH {}..{}: ={} ?{}", slow.num_trees(), u, v,
+                           val, ans);
         } break;
         case UnrootedAT::UPDATE_PATH: {
             slow.update_path(u, v, val);
             tree.access_path(u, v)->lazy += val;
-            label = format("[{}] UPDATE PATH {}..{}: {:+}", slow.S, u, v, val);
+            label = format("[{}] UPDATE PATH {}..{}: {:+}", slow.num_trees(), u, v, val);
         } break;
         case UnrootedAT::STRESS_TEST: {
             ok = stress_verify_link_cut(slow, tree);
-            label = format("[{}] STRESS TEST", slow.S);
+            label = format("[{}] STRESS TEST", slow.num_trees());
         } break;
         default:
             throw runtime_error("Unsupported action");
@@ -232,8 +235,8 @@ void speed_test_lct_path(int N, const actions_t<UnrootedAT>& freq) {
 
 int main() {
     RUN_SHORT(stress_test_lct_path());
-    RUN_SHORT(speed_test_lct_path(25000, lct_speed_query_heavy_actions));
-    RUN_SHORT(speed_test_lct_path(25000, lct_speed_update_heavy_actions));
-    RUN_SHORT(speed_test_lct_path(25000, lct_speed_topo_heavy_actions));
+    RUN_SHORT(speed_test_lct_path(10000, lct_speed_query_heavy_actions));
+    RUN_SHORT(speed_test_lct_path(10000, lct_speed_update_heavy_actions));
+    RUN_SHORT(speed_test_lct_path(10000, lct_speed_topo_heavy_actions));
     return 0;
 }

@@ -9,7 +9,7 @@ inline namespace detail {
 
 bool stress_verify_ett(slow_tree<false>& slow, ett_subtree& tree, int D = 2) {
     assert(1 <= D && D <= 9);
-    int N = slow.N;
+    int N = slow.num_nodes();
 
     vector<vector<int>> subtree(D), subtree_size(D);
     vector<int> exp_subtree(N + 1), exp_subtree_size(N + 1);
@@ -71,7 +71,7 @@ actions_t<UnrootedAT> ett_stress_actions = {
 void stress_test_ett(int N = 200) {
     slow_tree<false> slow(N);
     ett_subtree tree(N);
-    auto actions = make_unrooted_actions(N, 400ms, ett_stress_actions, 9 * N / 10);
+    auto actions = make_unrooted_actions(N, 1s, ett_stress_actions, 9 * N / 10);
     bool ok = true;
 
     for (int ia = 0, A = actions.size(); ia < A; ia++) {
@@ -83,57 +83,58 @@ void stress_test_ett(int N = 200) {
         case UnrootedAT::LINK: {
             slow.link(u, v);
             ok = tree.link(u, v);
-            label = format("[{}] LINK {}--{}", slow.S, u, v);
+            label = format("[{}] LINK {}--{}", slow.num_trees(), u, v);
         } break;
         case UnrootedAT::CUT: {
             slow.cut(u, v);
             ok = tree.cut(u, v);
-            label = format("[{}] CUT {}--{}", slow.S, u, v);
+            label = format("[{}] CUT {}--{}", slow.num_trees(), u, v);
         } break;
         case UnrootedAT::FINDROOT: {
             tree.reroot(who);
             slow.reroot(who);
             int ans = tree.findroot(u);
             ok = ans == who;
-            label = format("[{}] FINDROOT {}: ={} ?{}", slow.S, u, who, ans);
+            label = format("[{}] FINDROOT {}: ={} ?{}", slow.num_trees(), u, who, ans);
         } break;
         // case UnrootedAT::LCA: {
         //     tree.reroot(r);
         //     slow.reroot(r);
         //     int ans = tree.lca(u, v);
         //     ok = ans == who;
-        //     label = format("[{}] LCA {}..{}, {}: ={} ?{}", slow.S, u, v, r, who, ans);
+        //     label = format("[{}] LCA {}..{}, {}: ={} ?{}", slow.num_trees(), u, v, r,
+        //     who, ans);
         // } break;
         case UnrootedAT::QUERY_NODE: {
             long ans = tree.access_node(u)->self;
             ok = val == ans;
-            label = format("[{}] QUERY {}: ={} ?{}", slow.S, u, val, ans);
+            label = format("[{}] QUERY {}: ={} ?{}", slow.num_trees(), u, val, ans);
         } break;
         case UnrootedAT::UPDATE_NODE: {
             long init = slow.query_node(u);
             slow.update_node(u, val);
             tree.access_node(u)->self = val;
-            label = format("[{}] UPDATE {}: {}->{}", slow.S, u, init, val);
+            label = format("[{}] UPDATE {}: {}->{}", slow.num_trees(), u, init, val);
         } break;
         case UnrootedAT::QUERY_TREE: {
             long ans = tree.access_tree(u)->subtree();
             ok = val == ans;
-            label = format("[{}] QUERY TREE {}: ={} ?{}", slow.S, u, val, ans);
+            label = format("[{}] QUERY TREE {}: ={} ?{}", slow.num_trees(), u, val, ans);
         } break;
         case UnrootedAT::TREE_SIZE: {
             long ans = tree.access_tree(u)->subtree_size();
             ok = val == ans;
-            label = format("[{}] TREE SIZE {}: ={} ?{}", slow.S, u, val, ans);
+            label = format("[{}] TREE SIZE {}: ={} ?{}", slow.num_trees(), u, val, ans);
         } break;
         case UnrootedAT::UPDATE_TREE: {
             slow.reroot(u);
             slow.update_tree(u, val);
             tree.access_tree(u)->lazy += val;
-            label = format("[{}] UPDATE TREE {}: {:+}", slow.S, u, val);
+            label = format("[{}] UPDATE TREE {}: {:+}", slow.num_trees(), u, val);
         } break;
         case UnrootedAT::STRESS_TEST: {
             ok = stress_verify_ett(slow, tree);
-            label = format("[{}] STRESS TEST", slow.S);
+            label = format("[{}] STRESS TEST", slow.num_trees());
         } break;
         default:
             throw runtime_error("Unsupported action");
@@ -143,8 +144,6 @@ void stress_test_ett(int N = 200) {
         }
         assert(ok);
     }
-
-    assert(ok);
 }
 
 actions_t<UnrootedAT> ett_speed_topo_heavy_actions = {

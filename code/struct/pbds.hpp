@@ -37,3 +37,22 @@ using hash_map = gnu::gp_hash_table<K, V>;
 
 template <typename K>
 using hash_set = hash_map<K, gnu::null_type>;
+
+namespace __gnu_pbds {
+
+template <typename T>
+string to_string(const ordered_set<T>& os) {
+    string s = "";
+    for (const auto& elem : os) {
+        using std::to_string;
+        s += to_string(elem) + " ";
+    }
+    return "(" + (s.empty() ? s : (s.pop_back(), s)) + ")";
+}
+
+template <typename T>
+ostream& operator<<(ostream& out, const ordered_set<T>& os) {
+    return out << to_string(os);
+}
+
+} // namespace __gnu_pbds

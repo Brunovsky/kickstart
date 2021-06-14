@@ -9,7 +9,7 @@ inline namespace detail {
 
 bool stress_verify_dft(slow_tree<true>& slow, dft_subtree& tree, int D = 2) {
     assert(1 <= D && D <= 9);
-    int N = slow.N;
+    int N = slow.num_nodes();
 
     vector<vector<int>> subtree(D), subtree_size(D);
     vector<int> exp_subtree(N + 1), exp_subtree_size(N + 1);
@@ -107,7 +107,7 @@ actions_t<RootedAT> dft_stress_actions = {
     {RootedAT::SUBTREE_SIZE, 1500},   {RootedAT::STRESS_TEST, 400},
 };
 
-void stress_test_dft(int N = 200) {
+void stress_test_dft(int N = 300) {
     slow_tree<true> slow(N);
     dft_subtree tree(N);
     auto actions = make_rooted_actions(N, 400ms, dft_stress_actions, 9 * N / 10);
@@ -122,52 +122,55 @@ void stress_test_dft(int N = 200) {
         case RootedAT::LINK: {
             slow.link(u, v);
             tree.link(u, v);
-            label = format("[{}] LINK {}--{}", slow.S, u, v);
+            label = format("[{}] LINK {}--{}", slow.num_trees(), u, v);
         } break;
         case RootedAT::CUT: {
             slow.cut(u);
             tree.cut(u);
-            label = format("[{}] CUT {}", slow.S, u);
+            label = format("[{}] CUT {}", slow.num_trees(), u);
         } break;
         case RootedAT::FINDROOT: {
             int ans = tree.findroot(u);
             ok = ans == who;
-            label = format("[{}] FINDROOT {}: ={} ?{}\n", slow.S, u, who, ans);
+            label = format("[{}] FINDROOT {}: ={} ?{}\n", slow.num_trees(), u, who, ans);
         } break;
         // case RootedAT::LCA: {
         //     int ans = tree.lca(u, v);
         //     ok = who == ans;
-        //     label = format("[{}] LCA {}..{}: ={} ?{}", slow.S, u, v, who, ans);
+        //     label = format("[{}] LCA {}..{}: ={} ?{}", slow.num_trees(), u, v, who,
+        //     ans);
         // } break;
         case RootedAT::QUERY_NODE: {
             long ans = tree.access_node(u)->self;
             ok = val == ans;
-            label = format("[{}] QUERY {}: ={} ?{}", slow.S, u, val, ans);
+            label = format("[{}] QUERY {}: ={} ?{}", slow.num_trees(), u, val, ans);
         } break;
         case RootedAT::UPDATE_NODE: {
             long init = slow.query_node(u);
             slow.update_node(u, val);
             tree.access_node(u)->self = val;
-            label = format("[{}] UPDATE {}: {}->{}", slow.S, u, init, val);
+            label = format("[{}] UPDATE {}: {}->{}", slow.num_trees(), u, init, val);
         } break;
         case RootedAT::UPDATE_SUBTREE: {
             slow.update_subtree(u, val);
             tree.access_subtree(u)->lazy += val;
-            label = format("[{}] UPDATE SUBTREE {}: {:+}", slow.S, u, val);
+            label = format("[{}] UPDATE SUBTREE {}: {:+}", slow.num_trees(), u, val);
         } break;
         case RootedAT::QUERY_SUBTREE: {
             long ans = tree.access_subtree(u)->subtree();
             ok = val == ans;
-            label = format("[{}] QUERY SUBTREE {}: ={} ?{}", slow.S, u, val, ans);
+            label = format("[{}] QUERY SUBTREE {}: ={} ?{}", slow.num_trees(), u, val,
+                           ans);
         } break;
         case RootedAT::SUBTREE_SIZE: {
             long ans = tree.access_subtree(u)->subtree_size();
             ok = val == ans;
-            label = format("[{}] SUBTREE SIZE {}: ={} ?{}", slow.S, u, val, ans);
+            label = format("[{}] SUBTREE SIZE {}: ={} ?{}", slow.num_trees(), u, val,
+                           ans);
         } break;
         case RootedAT::STRESS_TEST: {
             ok = stress_verify_dft(slow, tree);
-            label = format("[{}] STRESS TEST", slow.S);
+            label = format("[{}] STRESS TEST", slow.num_trees());
         } break;
         default:
             throw runtime_error("Unsupported action");

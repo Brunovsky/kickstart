@@ -64,7 +64,7 @@ function main {
 		clean)
 			run_make clean
 		;;
-		make|build|debug)
+		make|build|debug*)
 			run_make debug
 		;;
 		perfm)

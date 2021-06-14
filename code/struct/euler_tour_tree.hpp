@@ -67,7 +67,6 @@ struct euler_tour_tree {
     vector<int> freelist;
 
     explicit euler_tour_tree(int N = 0) : N(N), F(N), t(3 * N + 3), freelist(N) {
-        edgemap.reserve(2 * N);
         for (int i = 0, f = (N | 1) + 1; i < N; i++) {
             freelist[i] = f + 2 * i;
         }
@@ -75,13 +74,13 @@ struct euler_tour_tree {
 
     int get_edge(int u, int v) const {
         auto ituv = edgemap.find(minmax(u, v));
-        return ituv == edgemap.end() ? 0 : u > v ? ituv->second ^ 1 : ituv->second;
+        return ituv == edgemap.end() ? 0 : ituv->second ^ (u > v);
     }
     int add_edge(int u, int v) {
         int uv = freelist[--F], vu = uv ^ 1;
         t[uv] = t[vu] = {};
-        edgemap.emplace(minmax(u, v), uv).second;
-        return u < v ? uv : vu;
+        edgemap.emplace(minmax(u, v), uv ^ (u > v));
+        return uv;
     }
     void rem_edge(int u, int v) {
         auto ituv = edgemap.find(minmax(u, v));
@@ -89,7 +88,6 @@ struct euler_tour_tree {
         edgemap.erase(ituv);
     }
 
-  private:
     void pushdown(int u) {
         auto [l, r] = t[u].child;
         if (u != 0) {
@@ -133,6 +131,8 @@ struct euler_tour_tree {
     }
 
     bool conn(int u, int v) {
+        if (u == v)
+            return true;
         splay(u), splay(v);
         return t[u].parent;
     }

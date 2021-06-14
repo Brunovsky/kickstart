@@ -1,8 +1,8 @@
-# C++ template
+# C++ template (COMPILER=(gcc or clang), CC=(executable name/path, e.g. g++ or clang++))
 COMPILER := gcc
 CC := g++
 CPP_STANDARD := c++17
-EXTRA_CXXFLAGS := -lfmt
+EXTRA_CXXFLAGS := -DLOCAL -lfmt
 
 export GIT_ROOT := $(shell git rev-parse --show-cdup)
 export CXX := $(CC) -std=$(CPP_STANDARD) -pipe -pthread -pedantic -march=native
@@ -24,7 +24,7 @@ debug: CXXFLAGS += $(DEBUG)
 debug: ./solver
 
 perfm: MODE := perfm
-perfm: CXXFLAGS += $(OPTIM)
+perfm: CXXFLAGS += $(OPTIM) -g -ggdb
 perfm: ./solver
 
 clean::

@@ -19,10 +19,10 @@ struct push_relabel {
 
     explicit push_relabel(int V) : V(V), res(V) {}
 
-    void add(int u, int v, Flow capacity, bool bothways = false) {
+    void add(int u, int v, Flow capacity) {
         assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0);
         res[u].push_back(E++), edge.push_back({{u, v}, capacity, 0});
-        res[v].push_back(E++), edge.push_back({{v, u}, bothways ? capacity : 0, 0});
+        res[v].push_back(E++), edge.push_back({{v, u}, 0, 0});
     }
 
     vector<int> height, arc;

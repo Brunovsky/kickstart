@@ -205,13 +205,13 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
     }
 
     LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
-        print_time(now, runtime, 25ms, "preparing history (S={})...", slow.S);
+        print_time(now, runtime, 25ms, "preparing history (T={})...", slow.num_trees());
 
         auto action = UnrootedAT(selector(mt));
 
         switch (action) {
         case UnrootedAT::LINK: {
-            if (slow.S > 1) {
+            if (slow.num_trees() > 1) {
                 auto [u, v] = slow.random_unconnected();
                 if (coind(mt))
                     swap(u, v);
@@ -220,7 +220,7 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
             }
         } break;
         case UnrootedAT::CUT: {
-            if (slow.S < N) {
+            if (slow.num_trees() < N) {
                 int u = slow.random_non_root();
                 int v = slow.parent[u];
                 if (coind(mt))
@@ -236,7 +236,7 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
                     swap(u, v);
                 slow.cut(u, v);
                 history.emplace_back(Action::uv(UnrootedAT::CUT, u, v));
-            } else if (slow.S > 1) {
+            } else if (slow.num_trees() > 1) {
                 v = slow.random_unconnected(u);
                 if (coind(mt))
                     swap(u, v);
@@ -330,7 +330,7 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
             throw runtime_error("Unknown action");
         }
 
-        size_sum += slow.S;
+        size_sum += slow.num_trees();
     }
 
     printcl("S avg: {:.2f}\n", 1.0 * size_sum / runs);
@@ -363,13 +363,13 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq,
     }
 
     LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
-        print_time(now, runtime, 25ms, "preparing history (S={})...", slow.S);
+        print_time(now, runtime, 25ms, "preparing history (T={})...", slow.num_trees());
 
         auto action = RootedAT(selector(mt));
 
         switch (action) {
         case RootedAT::LINK: {
-            if (slow.S > 1) {
+            if (slow.num_trees() > 1) {
                 auto [u, v] = slow.random_unconnected();
                 u = slow.findroot(u);
                 slow.link(u, v);
@@ -377,7 +377,7 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq,
             }
         } break;
         case RootedAT::CUT: {
-            if (slow.S < N) {
+            if (slow.num_trees() < N) {
                 int u = slow.random_non_root();
                 slow.cut(u);
                 history.emplace_back(Action::au(RootedAT::CUT, u));
@@ -388,7 +388,7 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq,
             if (int v = slow.parent[u]; v) {
                 slow.cut(u);
                 history.emplace_back(Action::au(RootedAT::CUT, u));
-            } else if (slow.S > 1) {
+            } else if (slow.num_trees() > 1) {
                 v = slow.random_unconnected(u);
                 slow.link(u, v);
                 history.emplace_back(Action::uv(RootedAT::LINK, u, v));
@@ -465,7 +465,7 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq,
             throw runtime_error("Unknown action");
         }
 
-        size_sum += slow.S;
+        size_sum += slow.num_trees();
     }
 
     printcl("S avg: {:.2f}\n", 1.0 * size_sum / runs);
