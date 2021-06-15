@@ -1,8 +1,5 @@
-#undef NDEBUG
 #include "test_utils.hpp"
 #include "../numeric/bfrac.hpp"
-
-inline namespace unit_testing_bfrac {
 
 void unit_test_gcd() {
     assert(bfrac(93, 31) == bfrac(3, 1));
@@ -42,8 +39,6 @@ void unit_test_ops() {
     assert(bfrac(-29, 9) % bfrac(6, 7) == bfrac(-41, 63));
     assert(bfrac(-29, 9) % bfrac(-6, 7) == bfrac(-41, 63));
 }
-
-} // namespace unit_testing_bfrac
 
 int main() {
     RUN_SHORT(unit_test_gcd());

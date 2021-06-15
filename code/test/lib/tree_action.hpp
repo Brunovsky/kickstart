@@ -135,22 +135,24 @@ auto make_tree_action_selector(const actions_t<Type>& freq) {
 }
 
 template <typename History>
-void print_occurrences(const History& history) {
+auto get_occurrences(const History& history) {
     using AT = decltype(history[0].action);
     vector<int> occ(int(AT::END) + 1);
     for (int i = 0, H = history.size(); i < H; i++) {
         occ[int(history[i].action)]++;
     }
-    string rows = "", line = "occ:";
+    return occ;
+}
+
+template <typename History>
+void print_occurrences(const History& history) {
+    using AT = decltype(history[0].action);
+    auto occ = get_occurrences(history);
     for (int i = 0, F = occ.size(); i < F; i++) {
         if (occ[i] > 0) {
-            string block = ' ' + action_names<AT>.at(AT(i)) + "=" + to_string(occ[i]);
-            if (line.size() + block.size() > 80)
-                rows += line + '\n', line = "    ";
-            line += block;
+            print("\t{}: {}\n", action_names<AT>.at(AT(i)), occ[i]);
         }
     }
-    print("{}{}\n", rows, line);
 }
 
 template <typename Type>
@@ -205,7 +207,7 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
     }
 
     LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
-        print_time(now, runtime, 25ms, "preparing history (T={})...", slow.num_trees());
+        print_time(now, runtime, "preparing history (T={})...", slow.num_trees());
 
         auto action = UnrootedAT(selector(mt));
 
@@ -335,7 +337,6 @@ auto make_unrooted_actions(int N, ms runtime, const actions_t<UnrootedAT>& freq,
 
     printcl("S avg: {:.2f}\n", 1.0 * size_sum / runs);
     printcl("runs: {}\n", runs);
-    print_occurrences(history);
     return history;
 }
 
@@ -363,7 +364,7 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq,
     }
 
     LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
-        print_time(now, runtime, 25ms, "preparing history (T={})...", slow.num_trees());
+        print_time(now, runtime, "preparing history (T={})...", slow.num_trees());
 
         auto action = RootedAT(selector(mt));
 
@@ -468,9 +469,7 @@ auto make_rooted_actions(int N, ms runtime, const actions_t<RootedAT>& freq,
         size_sum += slow.num_trees();
     }
 
-    printcl("S avg: {:.2f}\n", 1.0 * size_sum / runs);
-    printcl("runs: {}\n", runs);
-    print_occurrences(history);
+    printcl("S avg: {:8.2f} actions: {}\n", 1.0 * size_sum / runs, history.size());
     return history;
 }
 

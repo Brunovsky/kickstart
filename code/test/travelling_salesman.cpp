@@ -17,8 +17,6 @@ bool trips_match(const vector<int>& a, vector<int> b) {
 
 } // namespace detail
 
-inline namespace dataset_testing {
-
 struct exact_tsp_dataset_t {
     int V;
     vector<vector<int>> dist;
@@ -64,8 +62,6 @@ void dataset_test_exact_tsp() {
         file >> ws;
     }
 }
-
-} // namespace dataset_testing
 
 int main() {
     RUN_BLOCK(dataset_test_exact_tsp());

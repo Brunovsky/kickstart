@@ -2,6 +2,8 @@
 #include "../numeric/fwht.hpp"
 #include "../numeric/convolution.hpp"
 
+inline namespace detail {
+
 template <int A, int B, int C, int D, bool reverse = true, typename T>
 vector<T> conv_transformed(vector<T> v) {
     conv_transform<A, B, C, D, reverse>(v);
@@ -28,21 +30,12 @@ struct base16 {
 
 constexpr base16 operator""_k(unsigned long long n) { return 1L << (4 * n); }
 
-#define EXPLORE(A, B, C, D, WHAT)                                       \
-    print("=== ({:2},{:2},{:2},{:2}) {}\n", A, B, C, D, #WHAT);         \
-    print("conv_transform(a) = {}\n", conv_transformed<A, B, C, D>(a)); \
-    print("conv_transform(b) = {}\n", conv_transformed<A, B, C, D>(b)); \
+template <int A, int B, int C, int D, typename T>
+void explore(string what, const vector<T>& a, const vector<T>& b) {
+    print("=== ({:2},{:2},{:2},{:2}) {}\n", A, B, C, D, what);
+    print("conv_transform(a) = {}\n", conv_transformed<A, B, C, D>(a));
+    print("conv_transform(b) = {}\n", conv_transformed<A, B, C, D>(b));
     print("multiply(a,b) = {}\n", convolve<A, B, C, D>(a, b));
-
-void unit_test_convolution() {
-    vector<base16> a = {0_k, 1_k, 2_k, 3_k, 4_k, 5_k, 6_k, 7_k};
-    vector<base16> b = {1, 1, 1, 1, 2, 1, 4, 1};
-    print("a=({})  b=({})\n", a, b);
-    print("fwht(a,b) = {}\n", fwht::fwht_convolve(a, b));
-    EXPLORE(0, 1, 1, 1, AND);
-    EXPLORE(1, 1, 1, 0, OR);
-    EXPLORE(1, 1, 1, -1, XOR);
-    EXPLORE(-1, 1, 1, 1, OR);
 }
 
 template <typename T, typename O = T>
@@ -90,6 +83,19 @@ auto naive_subset_convolution(const vector<T>& f, const vector<T>& g) {
         }
     }
     return S;
+}
+
+} // namespace detail
+
+void unit_test_convolution() {
+    vector<base16> a = {0_k, 1_k, 2_k, 3_k, 4_k, 5_k, 6_k, 7_k};
+    vector<base16> b = {1, 1, 1, 1, 2, 1, 4, 1};
+    print("a=({})  b=({})\n", a, b);
+    print("fwht(a,b) = {}\n", fwht::fwht_convolve(a, b));
+    explore<0, 1, 1, 1>("AND", a, b);
+    explore<1, 1, 1, 0>("OR", a, b);
+    explore<1, 1, 1, -1>("XOR", a, b);
+    explore<-1, 1, 1, 1>("REV_XOR", a, b);
 }
 
 void unit_test_sos() {

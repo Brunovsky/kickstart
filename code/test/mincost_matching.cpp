@@ -14,8 +14,6 @@ void add_edges(MCBM& mcbm, const edges_t& g, const Costs& costs) {
 
 } // namespace detail
 
-inline namespace unit_testing_mincost_matching {
-
 void unit_test_mincost_hungarian() {
     edges_t g;
     vector<int> cost;
@@ -43,59 +41,57 @@ void unit_test_mincost_hungarian() {
     assert(c == 407);
 }
 
-} // namespace unit_testing_mincost_matching
-
-inline namespace speed_testing_mincost_matching {
-
-void speed_test_mincost_matching_run(bipartite_graph_kind i, int S) {
-    START_ACC(hungarian);
-    int imperfect = 0;
-    double avg_mc = 0;
-
-    LOOP_FOR_DURATION_TRACKED_RUNS(1s, now, runs) {
-        print_time(now, 1s, 50ms, bipartite_kind_name[i]);
-
-        auto graph = generate_bipartite_graph(i, S);
-        add_cost_bipartite_graph(graph, 10'000'000, 300'000'000);
-
-        START(hungarian);
-        mincost_hungarian<int, long> g0(graph.U, graph.V);
-        add_edges(g0, graph.g, graph.cost);
-        g0.pad_reverse();
-        auto ans0 = g0.mincost_max_matching();
-        ADD_TIME(hungarian);
-
-        auto ans1 = g0.mincost_max_matching(); // again
-
-        mincost_hungarian<long, long> g1(graph.U, graph.V);
-        add_edges(g1, graph.g, graph.cost);
-        g1.pad_reverse();
-        auto ans2 = g1.mincost_max_matching();
-
-        assert(ans0 == ans1 && ans0 == ans2);
-
-        imperfect += ans0 == -1;
-        avg_mc += ans0 == -1 ? 0 : ans0 / (graph.U + graph.V);
-    }
-    avg_mc /= runs;
-
-    double imperfect_percent = 100.0 * imperfect / runs;
-    printcl(" {:>8.2f}ms -- hungarian -- {:14.1f} avg. -- {:5.1f}% imperfect -- {}\n",
-            EACH_MS(hungarian, runs), avg_mc, imperfect_percent, bipartite_kind_name[i]);
-}
-
 void speed_test_mincost_matching() {
     static const vector<int> sizes = {100, 250, 800, 1500, 3000};
+    const auto runtime = 40000ms / (sizes.size() * int(BG_END));
+    map<tuple<string, int, string>, string> table;
 
-    for (int n = 0; n < int(sizes.size()); n++) {
-        print("speed test group S={}\n", sizes[n]);
+    auto run = [&](bipartite_graph_kind i, int S) {
+        string name = bipartite_kind_name[i];
+        int cnt_imperfect = 0;
+        double avg_mc = 0;
+
+        START_ACC(hungarian);
+
+        LOOP_FOR_DURATION_TRACKED_RUNS (1s, now, runs) {
+            print_time(now, 1s, "speed test hungarian S={} {}", S, name);
+
+            auto graph = generate_bipartite_graph(i, S);
+            add_cost_bipartite_graph(graph, 10'000'000, 300'000'000);
+
+            START(hungarian);
+            mincost_hungarian<int, long> g0(graph.U, graph.V);
+            add_edges(g0, graph.g, graph.cost);
+            g0.pad_reverse();
+            auto ans0 = g0.mincost_max_matching();
+            ADD_TIME(hungarian);
+
+            auto ans1 = g0.mincost_max_matching(); // again
+
+            mincost_hungarian<long, long> g1(graph.U, graph.V);
+            add_edges(g1, graph.g, graph.cost);
+            g1.pad_reverse();
+            auto ans2 = g1.mincost_max_matching();
+
+            assert(ans0 == ans1 && ans0 == ans2);
+
+            cnt_imperfect += ans0 == -1;
+            avg_mc += ans0 == -1 ? 0 : ans0 / (graph.U + graph.V);
+        }
+
+        table[{name, S, "hungarian"}] = FORMAT_EACH(hungarian, runs);
+        table[{name, S, "avg size"}] = format("{:10.1f}", avg_mc / runs);
+        table[{name, S, "imperf"}] = format("{:5.1f}%", 100.0 * cnt_imperfect / runs);
+    };
+
+    for (int S : sizes) {
         for (int i = 0; i < int(BG_END); i++) {
-            speed_test_mincost_matching_run(bipartite_graph_kind(i), sizes[n]);
+            run(bipartite_graph_kind(i), S);
         }
     }
-}
 
-} // namespace speed_testing_mincost_matching
+    print_time_table(table, "Hungarian");
+}
 
 int main() {
     RUN_SHORT(unit_test_mincost_hungarian());

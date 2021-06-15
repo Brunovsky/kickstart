@@ -97,9 +97,15 @@ auto generate_lp(int n, int le, int eq, int ge, LPState state = LP_OPTIMAL) {
     return smp;
 }
 
-} // namespace detail
+int num_runs(int lo, int hi, int max_sum) {
+    int runs = 0;
+    for (int i = lo; i <= hi; i += 2)
+        for (int j = lo; j <= hi && i + j <= max_sum; j += 2)
+            runs++;
+    return runs;
+}
 
-inline namespace unit_testing_simplex {
+} // namespace detail
 
 template <typename F>
 void unit_test_simplex() {
@@ -214,106 +220,105 @@ void unit_test_simplex() {
     assert(res == LP_OPTIMAL && optimum == -105);
 }
 
-} // namespace unit_testing_simplex
-
-inline namespace stress_testing_simplex {
-
-template <typename F>
-void stress_test_standardize_run(int n, int m) {
-    int good = 0, unbounded = 0;
-
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED(700ms, now, 1000, runs) {
-        print_time(now, 700ms, 50ms, "simplex standardize test");
-
-        auto parts = partition_sample(m, 3, 0);
-        int le = parts[0], eq = parts[1], ge = parts[2];
-        auto smp = generate_lp<F>(n, le, eq, ge, LP_OPTIMAL);
-        auto std = standardize(smp);
-        auto dual = make_dual(standardize(smp));
-
-        auto [res, opt] = smp.compute();
-        auto [res2, opt2] = std.compute();
-        auto [res3, opt3] = dual.compute();
-
-        auto x1 = smp.extract();
-        auto x2 = std.extract();
-        auto x3 = dual.extract();
-
-        bool ok = true;
-        ok = ok && res == res2;
-        ok = ok && is_feasible(smp, x1) && is_feasible(std, x1);
-        ok = ok && is_feasible(smp, x2) && is_feasible(std, x2);
-        if (res == LP_OPTIMAL) {
-            ok = ok && opt == opt2 && res3 == LP_OPTIMAL && opt == -opt3;
-            ok = ok && is_feasible(dual, x3);
-            ok = ok && complementary_slackness(std, dual);
-        } else if (res == LP_UNBOUNDED) {
-            ok = ok && res3 == LP_IMPOSSIBLE;
-            unbounded++;
-        }
-
-        if (!ok) {
-            printcl("opts: {} {} / {} {} / {} {}\n", res, opt, res2, opt2, res3, opt3);
-            print("  smp, x1 feasible: {}\n", is_feasible(smp, x1));
-            print("  std, x1 feasible: {}\n", is_feasible(std, x1));
-            print("  smp, x2 feasible: {}\n", is_feasible(smp, x2));
-            print("  std, x2 feasible: {}\n", is_feasible(std, x2));
-            print(" dual, x3 feasible: {}\n", is_feasible(dual, x3));
-            print("{}\n", format_simplex(smp));
-            print("{}\n", format_tableau(smp));
-        }
-
-        good += ok;
-    }
-
-    double good_percent = 100.0 * good / runs;
-    double unbounded_percent = 100.0 * unbounded / runs;
-    printcl(" n={:<2} m={:<2} correct: {:5.1f}% | unbounded: {:5.1f}% \n", n, m,
-            good_percent, unbounded_percent);
-}
-
 template <typename F>
 void stress_test_standardize(int lo = 2, int hi = 20, int max_sum = 30) {
-    for (int n = lo; n <= hi; n++) {
-        for (int m = lo; m <= hi && n + m <= max_sum; m++) {
-            stress_test_standardize_run<F>(n, m);
+    const auto runtime = 30000ms / num_runs(lo, hi, max_sum);
+    vector<vector<stringable>> table;
+    table.push_back({"n", "m", "runs", "correct", "unbounded"});
+
+    auto run = [&](int n, int m) {
+        int good = 0, unbounded = 0;
+
+        LOOP_FOR_DURATION_OR_RUNS_TRACKED (runtime, now, 1000, runs) {
+            print_time(now, runtime, "simplex standardize test n,m={},{}", n, m);
+
+            auto parts = partition_sample(m, 3, 0);
+            int le = parts[0], eq = parts[1], ge = parts[2];
+            auto smp = generate_lp<F>(n, le, eq, ge, LP_OPTIMAL);
+            auto std = standardize(smp);
+            auto dual = make_dual(standardize(smp));
+
+            auto [res, opt] = smp.compute();
+            auto [res2, opt2] = std.compute();
+            auto [res3, opt3] = dual.compute();
+
+            auto x1 = smp.extract();
+            auto x2 = std.extract();
+            auto x3 = dual.extract();
+
+            bool ok = true;
+            ok = ok && res == res2;
+            ok = ok && is_feasible(smp, x1) && is_feasible(std, x1);
+            ok = ok && is_feasible(smp, x2) && is_feasible(std, x2);
+            if (res == LP_OPTIMAL) {
+                ok = ok && opt == opt2 && res3 == LP_OPTIMAL && opt == -opt3;
+                ok = ok && is_feasible(dual, x3);
+                ok = ok && complementary_slackness(std, dual);
+            } else if (res == LP_UNBOUNDED) {
+                ok = ok && res3 == LP_IMPOSSIBLE;
+                unbounded++;
+            }
+
+            if (!ok) {
+                printcl("opts: {} {} / {} {} / {} {}\n", res, opt, res2, opt2, res3,
+                        opt3);
+                print("  smp, x1 feasible: {}\n", is_feasible(smp, x1));
+                print("  std, x1 feasible: {}\n", is_feasible(std, x1));
+                print("  smp, x2 feasible: {}\n", is_feasible(smp, x2));
+                print("  std, x2 feasible: {}\n", is_feasible(std, x2));
+                print(" dual, x3 feasible: {}\n", is_feasible(dual, x3));
+                print("{}\n", format_simplex(smp));
+                print("{}\n", format_tableau(smp));
+            }
+
+            good += ok;
+        }
+
+        auto good_str = format("{:5.1f}%", 100.0 * good / runs);
+        auto unbounded_str = format("{:5.1f}%", 100.0 * unbounded / runs);
+        table.push_back({n, m, runs, good_str, unbounded_str});
+    };
+
+    for (int n = lo; n <= hi; n += 2) {
+        for (int m = lo; m <= hi && n + m <= max_sum; m += 2) {
+            run(n, m);
         }
     }
-}
 
-} // namespace stress_testing_simplex
-
-inline namespace speed_testing_simplex {
-
-template <typename F>
-void speed_test_simplex_run(int n, int m, LPState state) {
-    START_ACC(simplex);
-
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED(700ms, now, 1000, runs) {
-        print_time(now, 700ms, 50ms, "simplex speed test");
-
-        auto parts = partition_sample(m, 3, 0);
-        int le = parts[0], eq = parts[1], ge = parts[2];
-        auto smp = generate_lp<F>(n, le, eq, ge, state);
-
-        START(simplex);
-        smp.compute();
-        ADD_TIME(simplex);
-    }
-
-    printcl(" {:>8.2f}us -- x{} n={:<2} m={:<2}\n", EACH_US(simplex, runs), runs, n, m);
+    print_time_table(table, "Simplex success rate");
 }
 
 template <typename F>
 void speed_test_simplex(int lo = 2, int hi = 20, int max_sum = 30) {
-    for (int n = lo; n <= hi; n++) {
-        for (int m = lo; m <= hi && n + m <= max_sum; m++) {
-            speed_test_simplex_run<F>(n, m, LP_OPTIMAL);
+    const auto runtime = 30000ms / num_runs(lo, hi, max_sum);
+    map<pair<int, int>, string> table;
+
+    auto run = [&](int n, int m, LPState state) {
+        START_ACC(simplex);
+
+        LOOP_FOR_DURATION_OR_RUNS_TRACKED (runtime, now, 1000, runs) {
+            print_time(now, runtime, "simplex speed test n,m={},{}", n, m);
+
+            auto parts = partition_sample(m, 3, 0);
+            int le = parts[0], eq = parts[1], ge = parts[2];
+            auto smp = generate_lp<F>(n, le, eq, ge, state);
+
+            START(simplex);
+            smp.compute();
+            ADD_TIME(simplex);
+        }
+
+        table[{n, m}] = FORMAT_EACH(simplex, runs);
+    };
+
+    for (int n = lo; n <= hi; n += 2) {
+        for (int m = lo; m <= hi && n + m <= max_sum; m += 2) {
+            run(n, m, LP_OPTIMAL);
         }
     }
-}
 
-} // namespace speed_testing_simplex
+    print_time_table(table, "Simplex speed");
+}
 
 int main() {
     RUN_SHORT(unit_test_simplex<frac>());

@@ -98,16 +98,17 @@ void unit_test_dft() {
     test_subtree(9);
 }
 
-actions_t<RootedAT> dft_stress_actions = {
-    {RootedAT::LINK, 2500},           {RootedAT::CUT, 500},
-    {RootedAT::LINK_CUT, 2000},       {RootedAT::LCA, 0},
-    {RootedAT::FINDROOT, 1500},       {RootedAT::LCA_CONN, 0},
-    {RootedAT::QUERY_NODE, 2000},     {RootedAT::UPDATE_NODE, 3000},
-    {RootedAT::UPDATE_SUBTREE, 3500}, {RootedAT::QUERY_SUBTREE, 3500},
-    {RootedAT::SUBTREE_SIZE, 1500},   {RootedAT::STRESS_TEST, 400},
-};
+void stress_test_dft() {
+    static actions_t<RootedAT> dft_stress_actions = {
+        {RootedAT::LINK, 2500},           {RootedAT::CUT, 500},
+        {RootedAT::LINK_CUT, 2000},       {RootedAT::LCA, 0},
+        {RootedAT::FINDROOT, 1500},       {RootedAT::LCA_CONN, 0},
+        {RootedAT::QUERY_NODE, 2000},     {RootedAT::UPDATE_NODE, 3000},
+        {RootedAT::UPDATE_SUBTREE, 3500}, {RootedAT::QUERY_SUBTREE, 3500},
+        {RootedAT::SUBTREE_SIZE, 1500},   {RootedAT::STRESS_TEST, 400},
+    };
 
-void stress_test_dft(int N = 300) {
+    const int N = 200;
     slow_tree<true> slow(N);
     dft_subtree tree(N);
     auto actions = make_rooted_actions(N, 400ms, dft_stress_actions, 9 * N / 10);
@@ -184,88 +185,105 @@ void stress_test_dft(int N = 300) {
     assert(ok);
 }
 
-actions_t<RootedAT> dft_speed_topo_heavy_actions = {
-    {RootedAT::LINK, 5000},           {RootedAT::CUT, 1000},
-    {RootedAT::LINK_CUT, 4000},       {RootedAT::LCA, 0},
-    {RootedAT::FINDROOT, 1500},       {RootedAT::LCA_CONN, 0},
-    {RootedAT::QUERY_NODE, 2000},     {RootedAT::UPDATE_NODE, 2500},
-    {RootedAT::UPDATE_SUBTREE, 2500}, {RootedAT::QUERY_SUBTREE, 3500},
-    {RootedAT::SUBTREE_SIZE, 1500},
-};
-actions_t<RootedAT> dft_speed_update_heavy_actions = {
-    {RootedAT::LINK, 1500},           {RootedAT::CUT, 500},
-    {RootedAT::LINK_CUT, 1000},       {RootedAT::LCA, 0},
-    {RootedAT::FINDROOT, 1500},       {RootedAT::LCA_CONN, 0},
-    {RootedAT::QUERY_NODE, 1000},     {RootedAT::UPDATE_NODE, 6000},
-    {RootedAT::UPDATE_SUBTREE, 8000}, {RootedAT::QUERY_SUBTREE, 2400},
-    {RootedAT::SUBTREE_SIZE, 600},
-};
-actions_t<RootedAT> dft_speed_query_heavy_actions = {
-    {RootedAT::LINK, 1500},           {RootedAT::CUT, 500},
-    {RootedAT::LINK_CUT, 1000},       {RootedAT::LCA, 0},
-    {RootedAT::FINDROOT, 1500},       {RootedAT::LCA_CONN, 0},
-    {RootedAT::QUERY_NODE, 5000},     {RootedAT::UPDATE_NODE, 1200},
-    {RootedAT::UPDATE_SUBTREE, 1800}, {RootedAT::QUERY_SUBTREE, 10000},
-    {RootedAT::SUBTREE_SIZE, 4000},
-};
+void speed_test_dft() {
+    static actions_t<RootedAT> dft_speed_topo_heavy_actions = {
+        {RootedAT::LINK, 5000},           {RootedAT::CUT, 1000},
+        {RootedAT::LINK_CUT, 4000},       {RootedAT::LCA, 0},
+        {RootedAT::FINDROOT, 1500},       {RootedAT::LCA_CONN, 0},
+        {RootedAT::QUERY_NODE, 2000},     {RootedAT::UPDATE_NODE, 2500},
+        {RootedAT::UPDATE_SUBTREE, 2500}, {RootedAT::QUERY_SUBTREE, 3500},
+        {RootedAT::SUBTREE_SIZE, 1500},
+    };
+    static actions_t<RootedAT> dft_speed_update_heavy_actions = {
+        {RootedAT::LINK, 1500},           {RootedAT::CUT, 500},
+        {RootedAT::LINK_CUT, 1000},       {RootedAT::LCA, 0},
+        {RootedAT::FINDROOT, 1500},       {RootedAT::LCA_CONN, 0},
+        {RootedAT::QUERY_NODE, 1000},     {RootedAT::UPDATE_NODE, 6000},
+        {RootedAT::UPDATE_SUBTREE, 8000}, {RootedAT::QUERY_SUBTREE, 2400},
+        {RootedAT::SUBTREE_SIZE, 600},
+    };
+    static actions_t<RootedAT> dft_speed_query_heavy_actions = {
+        {RootedAT::LINK, 1500},           {RootedAT::CUT, 500},
+        {RootedAT::LINK_CUT, 1000},       {RootedAT::LCA, 0},
+        {RootedAT::FINDROOT, 1500},       {RootedAT::LCA_CONN, 0},
+        {RootedAT::QUERY_NODE, 5000},     {RootedAT::UPDATE_NODE, 1200},
+        {RootedAT::UPDATE_SUBTREE, 1800}, {RootedAT::QUERY_SUBTREE, 10000},
+        {RootedAT::SUBTREE_SIZE, 4000},
+    };
 
-void speed_test_dft(int N, const actions_t<RootedAT>& freq) {
-    dft_subtree tree(N);
-    auto actions = make_rooted_actions(N, 10s, freq, N - 100);
+    vector<vector<stringable>> table;
+    table.push_back({"N", "name", "#actions", "time"});
 
-    START(dft);
-    for (const auto& [action, u, v, r, who, val] : actions) {
-        bool ok = true;
-        switch (action) {
-        case RootedAT::LINK: {
-            tree.link(u, v);
-        } break;
-        case RootedAT::CUT: {
-            tree.cut(u);
-        } break;
-        case RootedAT::FINDROOT: {
-            int ans = tree.findroot(u);
-            ok = who == ans;
-        } break;
-        // case RootedAT::LCA: {
-        //     int ans = tree.lca(u, v);
-        //     ok = who == ans;
-        // } break;
-        case RootedAT::QUERY_NODE: {
-            long ans = tree.access_node(u)->self;
-            ok = val == ans;
-        } break;
-        case RootedAT::UPDATE_NODE: {
-            tree.access_node(u)->self = val;
-        } break;
-        case RootedAT::UPDATE_SUBTREE: {
-            tree.access_subtree(u)->lazy += val;
-        } break;
-        case RootedAT::QUERY_SUBTREE: {
-            long ans = tree.access_subtree(u)->subtree();
-            ok = val == ans;
-        } break;
-        case RootedAT::SUBTREE_SIZE: {
-            long ans = tree.access_subtree(u)->subtree_size();
-            ok = val == ans;
-        } break;
-        default:
-            throw runtime_error("Unsupported action");
+    auto run = [&](int N, ms generation, const auto& name, const auto& freq) {
+        dft_subtree tree(N);
+        auto actions = make_rooted_actions(N, generation, freq, N - 100);
+        printcl("speed test dft");
+
+        START(dft);
+        for (const auto& [action, u, v, r, who, val] : actions) {
+            bool ok = true;
+            switch (action) {
+            case RootedAT::LINK: {
+                tree.link(u, v);
+            } break;
+            case RootedAT::CUT: {
+                tree.cut(u);
+            } break;
+            case RootedAT::FINDROOT: {
+                int ans = tree.findroot(u);
+                ok = who == ans;
+            } break;
+            // case RootedAT::LCA: {
+            //     int ans = tree.lca(u, v);
+            //     ok = who == ans;
+            // } break;
+            case RootedAT::QUERY_NODE: {
+                long ans = tree.access_node(u)->self;
+                ok = val == ans;
+            } break;
+            case RootedAT::UPDATE_NODE: {
+                tree.access_node(u)->self = val;
+            } break;
+            case RootedAT::UPDATE_SUBTREE: {
+                tree.access_subtree(u)->lazy += val;
+            } break;
+            case RootedAT::QUERY_SUBTREE: {
+                long ans = tree.access_subtree(u)->subtree();
+                ok = val == ans;
+            } break;
+            case RootedAT::SUBTREE_SIZE: {
+                long ans = tree.access_subtree(u)->subtree_size();
+                ok = val == ans;
+            } break;
+            default:
+                throw runtime_error("Unsupported action");
+            }
+            if (!ok) {
+                printcl("Failed action: {}\n", action_names<RootedAT>.at(action));
+            }
+            assert(ok);
         }
-        if (!ok) {
-            printcl("Failed action: {}\n", action_names<RootedAT>.at(action));
-        }
-        assert(ok);
-    }
-    TIME(dft);
-    PRINT_EACH_NS(dft, actions.size());
+        TIME(dft);
+
+        table.push_back({N, name, actions.size(), FORMAT_EACH(dft, actions.size())});
+    };
+
+    run(1000, 1s, "query heavy", dft_speed_query_heavy_actions);
+    run(10000, 3s, "query heavy", dft_speed_query_heavy_actions);
+    run(50000, 6s, "query heavy", dft_speed_query_heavy_actions);
+    run(1000, 1s, "update heavy", dft_speed_update_heavy_actions);
+    run(10000, 3s, "update heavy", dft_speed_update_heavy_actions);
+    run(50000, 6s, "update heavy", dft_speed_update_heavy_actions);
+    run(1000, 1s, "topo heavy", dft_speed_topo_heavy_actions);
+    run(10000, 3s, "topo heavy", dft_speed_topo_heavy_actions);
+    run(50000, 6s, "topo heavy", dft_speed_topo_heavy_actions);
+
+    print_time_table(table, "Depth First Tree");
 }
 
 int main() {
     RUN_SHORT(unit_test_dft());
     RUN_BLOCK(stress_test_dft());
-    RUN_BLOCK(speed_test_dft(10000, dft_speed_query_heavy_actions));
-    RUN_BLOCK(speed_test_dft(10000, dft_speed_update_heavy_actions));
-    RUN_BLOCK(speed_test_dft(10000, dft_speed_topo_heavy_actions));
+    RUN_BLOCK(speed_test_dft());
     return 0;
 }

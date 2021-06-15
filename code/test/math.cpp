@@ -1,28 +1,6 @@
-#undef NDEBUG
 #include "test_utils.hpp"
 #include "../numeric/math.hpp"
 #include "../numeric/modnum.hpp"
-
-inline namespace unit_testing_math {
-
-void unit_test_gcd() {
-    assert(gcd(135, 54) == 27);
-    assert(gcd(135, -54) == 27);
-    assert(gcd(-135, -54) == 27);
-
-    long x, y;
-    assert(gcd(54, 135, x, y) == 27);
-    assert(54 * x + 135 * y == 27);
-    assert(gcd(54, -135, x, y) == 27);
-    assert(54 * x + -135 * y == 27);
-    assert(gcd(-54, 135, x, y) == 27);
-    assert(-54 * x + 135 * y == 27);
-    assert(gcd(-54, -135, x, y) == 27);
-    assert(-54 * x + -135 * y == 27);
-    assert(gcd(13121, 17431, x, y) == 1);
-    assert(invmod(3, 17) == 6);
-    assert(invmod(4, 17) == 13);
-}
 
 void unit_test_others() {
     assert(modpow(3, 17, 5) == 3);
@@ -90,43 +68,9 @@ void unit_test_modsqrt() {
     print("modsqrt: hit: {} | miss: {}  (should be equal)\n", hit, miss);
 }
 
-void unit_test_modnum() {
-    using num = modnum<100>;
-    num n = 20;
-    n += 31;
-    assert(n == 51);
-    n /= 3;
-    assert(n == 17);
-    n /= 7;
-    assert(n == 731);
-    n -= 31;
-    assert(n == 0);
-}
-
-template <int mod = 1'000'000'007>
-void stress_test_modnum() {
-    using num = modnum<mod>;
-
-    for (int n = 1, steps = 100'000; n < mod; n++, steps--) {
-        if (steps == 0) {
-            print_progress(n, mod, "stress test modnum");
-            steps = 100'000;
-        }
-        auto k = num::modinv(n);
-        assert(0 < k && k < mod && num(n) * num(k) == 1);
-    }
-}
-
-} // namespace unit_testing_math
-
 int main() {
-    RUN_SHORT(unit_test_gcd());
     RUN_SHORT(unit_test_others());
     RUN_SHORT(unit_test_modsqrt());
     RUN_SHORT(unit_test_modlog());
-    RUN_SHORT(unit_test_modnum());
-    // ~15 mins...
-    // RUN_SHORT(stress_test_modnum<998'244'353>());
-    // RUN_SHORT(stress_test_modnum<1'000'000'007>());
     return 0;
 }

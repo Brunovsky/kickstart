@@ -1,6 +1,6 @@
 #pragma once
 
-#include <chrono>
+#include <bits/stdc++.h>
 using namespace std;
 
 using ns = chrono::nanoseconds;

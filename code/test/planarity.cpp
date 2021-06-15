@@ -14,8 +14,6 @@ void add_edges(PT& planarity, const edges_t& g) {
 
 } // namespace detail
 
-inline namespace dataset_testing_planarity {
-
 /**
  * Name
  * V E answer                   | answer := planar|nonplanar
@@ -64,8 +62,6 @@ void dataset_test_planarity() {
         file >> ws;
     }
 }
-
-} // namespace dataset_testing_planarity
 
 int main() {
     RUN_BLOCK(dataset_test_planarity());

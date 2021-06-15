@@ -1,8 +1,6 @@
 #include "test_utils.hpp"
 #include "../graphs/min_spanning_forest.hpp"
 
-inline namespace unit_testing_msf {
-
 void unit_test_min_spanning_forest() {
     edges_t g;
     vector<long> weight;
@@ -13,8 +11,6 @@ void unit_test_min_spanning_forest() {
     long w1 = min_spanning_forest_prim(7, g, weight);
     assert(w0 == 16 && w1 == 16);
 }
-
-} // namespace unit_testing_msf
 
 int main() {
     RUN_SHORT(unit_test_min_spanning_forest());

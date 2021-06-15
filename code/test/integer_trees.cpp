@@ -22,52 +22,6 @@ bool verify(const merging_interval_tree<T>& mit) {
     return true;
 }
 
-} // namespace detail
-
-inline namespace unit_testing_interval_tree {
-
-void unit_test_dynamic_cht() {
-    dynamic_cht<long> cht;
-    cht.add(2, -3);
-    cht.add(4, -70);
-    cht.add(-20, -500);
-    cht.add(-5, -100);
-    cht.add(-8, -200);
-    cht.add(10, -100);
-    cht.add(-1, 100);
-    cout << cht.size() << endl;
-    for (auto [m, b, end] : cht) {
-        print("({}, {}, {})\n", m, b, end);
-    }
-}
-
-void unit_test_merging_interval_tree() {
-    merging_interval_tree<int> tree;
-
-    tree.insert({10, 40});
-    print("tree: {}\n", tree);
-    tree.insert({100, 115});
-    print("tree: {}\n", tree);
-    tree.insert({130, 145});
-    print("tree: {}\n", tree);
-    tree.insert({60, 80});
-    print("tree: {}\n", tree);
-    tree.insert({155, 180});
-    print("tree: {}\n", tree);
-    tree.insert({82, 90});
-    print("tree: {}\n", tree);
-    tree.insert({65, 112});
-    print("tree: {}\n", tree);
-    tree.exclude({70, 110});
-    print("tree: {}\n", tree);
-
-    print("cover: {}\n", tree.cover_length());
-}
-
-} // namespace unit_testing_interval_tree
-
-inline namespace stress_testing_interval_tree {
-
 enum MergingAction {
     INSERT,
     EXCLUDE,
@@ -93,7 +47,33 @@ bool set_contains(const set<int>& nums, int lo, int hi) {
            distance(it0, it1) == hi - lo - 1;
 }
 
-void stress_test_merging_interval_tree(int N = 100'000, int k = 200) {
+} // namespace detail
+
+void unit_test_merging_interval_tree() {
+    merging_interval_tree<int> tree;
+
+    tree.insert({10, 40});
+    print("tree: {}\n", tree);
+    tree.insert({100, 115});
+    print("tree: {}\n", tree);
+    tree.insert({130, 145});
+    print("tree: {}\n", tree);
+    tree.insert({60, 80});
+    print("tree: {}\n", tree);
+    tree.insert({155, 180});
+    print("tree: {}\n", tree);
+    tree.insert({82, 90});
+    print("tree: {}\n", tree);
+    tree.insert({65, 112});
+    print("tree: {}\n", tree);
+    tree.exclude({70, 110});
+    print("tree: {}\n", tree);
+
+    print("cover: {}\n", tree.cover_length());
+}
+
+void stress_test_merging_interval_tree(int N, int k) {
+    // ints [0,N], max interval size of k for one op.
     intd numd(0, N);
     intd rang(0, N - k);
     intd lend(1, k);
@@ -103,12 +83,11 @@ void stress_test_merging_interval_tree(int N = 100'000, int k = 200) {
     merging_interval_tree<int> mit;
 
     LOOP_FOR_DURATION_TRACKED_RUNS (4s, now, runs) {
-        print_time(now, 4s, 50ms, "stress test merging interval tree {:7} {:3}",
-                   nums.size(), mit.size());
+        print_time(now, 4s, "stress test MIT {:7} {:3}", nums.size(), mit.size());
 
-        auto action = MergingAction(actiond(mt));
+        auto action = actiond(mt);
 
-        switch (action) {
+        switch (MergingAction(action)) {
         case INSERT: {
             int lo = rang(mt);
             int hi = lo + lend(mt);
@@ -144,7 +123,7 @@ void stress_test_merging_interval_tree(int N = 100'000, int k = 200) {
             assert(mit.cover_length() == int(nums.size()));
         } break;
         default:
-            print("Unsupported action: {}\n", int(action));
+            print("Unsupported action: {}\n", action);
             abort();
         }
 
@@ -152,10 +131,7 @@ void stress_test_merging_interval_tree(int N = 100'000, int k = 200) {
     }
 }
 
-} // namespace stress_testing_interval_tree
-
 int main() {
-    RUN_SHORT(unit_test_dynamic_cht());
     RUN_SHORT(unit_test_merging_interval_tree());
     RUN_BLOCK(stress_test_merging_interval_tree(3000, 50));
     RUN_BLOCK(stress_test_merging_interval_tree(100'000, 500));

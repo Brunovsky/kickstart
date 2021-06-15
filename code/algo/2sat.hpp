@@ -22,7 +22,7 @@ using namespace std;
  */
 struct twosat_scc {
     int N, C = 0; // N is the number of variables
-    vector<unordered_set<int>> adj;
+    vector<vector<int>> adj;
     vector<int> assignment, cmap;
 
     explicit twosat_scc(int N = 0) : N(N), adj(2 * N) {}
@@ -33,8 +33,8 @@ struct twosat_scc {
         u = u < 0 ? 2 * ~u : 2 * u + 1; // remove these lines if you want to input
         v = v < 0 ? 2 * ~v : 2 * v + 1; // 2u and 2u+1 directly, with 2n+1 true, 2n false
         assert(0 <= u && u < 2 * N && 0 <= v && v < 2 * N);
-        adj[u ^ 1].insert(v);
-        adj[v ^ 1].insert(u);
+        adj[u ^ 1].push_back(v);
+        adj[v ^ 1].push_back(u);
     }
 
     void set(int u) { either(u, u); }

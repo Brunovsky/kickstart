@@ -71,8 +71,6 @@ bool close(ld x, ld y = 0, ld eps = 1e6 * numeric_limits<ld>::epsilon()) {
 
 } // namespace detail
 
-inline namespace unit_testing_simplex {
-
 template <typename F>
 void unit_test_simplex() {
     real_simplex<F> smp;
@@ -179,8 +177,6 @@ void unit_test_simplex() {
     print("optimum #9.1: {} {:.6f} | {}\n", res, optimum, to_string(smp.extract()));
     assert(res == LP_OPTIMAL && close(optimum, 105));
 }
-
-} // namespace unit_testing_simplex
 
 int main() {
     RUN_SHORT(unit_test_simplex<ld>());

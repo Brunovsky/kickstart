@@ -9,7 +9,7 @@ void stress_test_ntt_multiply(int N = 1000, int V = 100000) {
     int errors = 0;
 
     LOOP_FOR_DURATION_OR_RUNS_TRACKED (4s, now, 100'000, runs) {
-        print_time(now, 4s, 40ms, "stress test ntt multiply");
+        print_time(now, 4s, "stress test ntt multiply");
 
         int A = distn(mt), B = distn(mt);
         auto a = uniform_gen_many<int, num>(A, 0, V);
@@ -17,35 +17,7 @@ void stress_test_ntt_multiply(int N = 1000, int V = 100000) {
         auto c = fft::ntt_multiply(a, b);
         auto d = fft::naive_multiply(a, b);
 
-        // vector<int> aints(begin(a), end(a));
-        // vector<int> bints(begin(b), end(b));
-        // auto eints = fft::ntt_multiply_mod(998244353, aints, bints);
-        // vector<num> e(begin(eints), end(eints));
-
         errors += c != d;
-        // errors += e != d;
-    }
-
-    if (errors > 0) {
-        double percent = 100.0 * errors / runs;
-        printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
-    }
-}
-
-void stress_test_ntt_square(int N = 1000, int V = 100000) {
-    intd distn(0, N);
-    int errors = 0;
-
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED (4s, now, 100'000, runs) {
-        print_time(now, 4s, 40ms, "stress test ntt square");
-
-        int A = distn(mt);
-        auto a = uniform_gen_many<int, num>(A, 0, V);
-        auto c = fft::ntt_square(a);
-        auto d = fft::naive_multiply(a, a);
-
-        errors += c != d;
-        // errors += e != d;
     }
 
     if (errors > 0) {
@@ -111,8 +83,7 @@ void unit_test_ntt() {
 
 int main() {
     RUN_SHORT(unit_test_ntt());
-    RUN_SHORT(stress_test_ntt_square());
-    RUN_SHORT(stress_test_ntt_multiply());
     RUN_BLOCK(breakeven_test_ntt_multiply());
+    RUN_SHORT(stress_test_ntt_multiply());
     return 0;
 }

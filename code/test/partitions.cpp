@@ -1,8 +1,6 @@
 #include "test_utils.hpp"
 #include "../numeric/partitions.hpp"
 
-inline namespace unit_testing_partitions {
-
 void unit_test_choices() {
     vector<int> partition = first_choice(7, 5);
     do {
@@ -16,8 +14,6 @@ void unit_test_partitions() {
         print("{}\n", partition);
     } while (next_unsized_partition(partition));
 }
-
-} // namespace unit_testing_partitions
 
 int main() {
     RUN_BLOCK(unit_test_choices());

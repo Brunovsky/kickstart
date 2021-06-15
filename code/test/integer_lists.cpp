@@ -1,8 +1,6 @@
 #include "test_utils.hpp"
 #include "../struct/integer_lists.hpp"
 
-inline namespace unit_testing_integer_lists {
-
 void unit_test_dancing_links() {
     dancing_links_matrix dl(6, 6);
     using int2 = array<int, 2>;
@@ -108,10 +106,6 @@ void unit_test_linked_lists() {
     assert(bw[4] == vector<int>({}));
 }
 
-} // namespace unit_testing_integer_lists
-
-inline namespace battle_testing_linked_lists {
-
 void battle_test_linked_lists() {
     constexpr int L = 30, N = 5000;
     intd distL(0, L - 1);
@@ -142,8 +136,8 @@ void battle_test_linked_lists() {
         return true;
     };
 
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED(5s, now, 300'000, runs) {
-        print_time(now, 5s, 50ms, "battle test linked list");
+    LOOP_FOR_DURATION_OR_RUNS_TRACKED (5s, now, 300'000, runs) {
+        print_time(now, 5s, "battle test linked list");
 
         int a = actiond(mt);
         if (a < 40) {
@@ -232,10 +226,6 @@ void battle_test_linked_lists() {
     assert(verify());
 }
 
-} // namespace battle_testing_linked_lists
-
-inline namespace unit_testing_freelist {
-
 void unit_test_freelist() {
     linked_lists ll(6, 20);
     int_freelist fr(20);
@@ -312,8 +302,6 @@ void unit_test_freelist() {
     assert(bw[3] == vector<int>({}));
     assert(bw[4] == vector<int>({}));
 }
-
-} // namespace unit_testing_freelist
 
 int main() {
     RUN_SHORT(unit_test_dancing_links());

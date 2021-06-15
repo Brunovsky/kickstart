@@ -2,11 +2,11 @@
 #include "../algo/dynamic_programming.hpp"
 #include "../algo/knapsack.hpp"
 #include "../strings/string_distance.hpp"
-#include "../numeric/bits.hpp"
 
-inline namespace testing_string_distance {
+inline namespace detail {
 
 using vi = vector<int>;
+
 struct distance_test_t {
     string a, b;
     int ans_levenshtein, ans_simple_damerau, ans_damerau;
@@ -34,30 +34,6 @@ vector<distance_test_t> distance_tests({
 });
 // clang-format on
 
-void unit_test_string_distance() {
-    for (int i = 0, T = distance_tests.size(); i < T; i++) {
-        auto t = distance_tests[i];
-        auto d1 = levenshtein_distance(t.a, t.b, t.ins, t.del, t.sub);
-        auto d2 = simple_damerau_distance(t.a, t.b, t.ins, t.del, t.sub, t.tra);
-        auto d3 = damerau_distance(t.a, t.b, t.ins, t.del, t.sub, t.tra);
-        assert(d1 == t.ans_levenshtein);
-        assert(d2 == t.ans_simple_damerau);
-        assert(d3 == t.ans_damerau);
-    }
-}
-
-} // namespace testing_string_distance
-
-inline namespace testing_subset_sum {
-
-auto generate_nums(int n, int min, int max) {
-    intd numd(min, max);
-    vector<int> nums(n);
-    for (int i = 0; i < n; i++)
-        nums[i] = numd(mt);
-    return nums;
-}
-
 auto all_sums(const vector<int>& nums) {
     vector<int> sums;
     int N = nums.size();
@@ -75,46 +51,50 @@ auto all_sums(const vector<int>& nums) {
     return sums;
 }
 
-void stress_test_subset_sum_run(const vector<int>& nums) {
-    auto sums = all_sums(nums);
-    int min = sums.front(), max = sums.back();
-    for (int i = 0, t = min, S = sums.size(); t <= max; t++) {
-        if (i < S && t == sums[i]) {
-            assert(sparse_subset_sum(nums, t));
-            assert(dense_subset_sum(nums, t));
-            i++;
-        } else {
-            assert(!sparse_subset_sum(nums, t));
-            assert(!dense_subset_sum(nums, t));
-        }
+} // namespace detail
+
+void unit_test_string_distance() {
+    for (int i = 0, T = distance_tests.size(); i < T; i++) {
+        auto t = distance_tests[i];
+        auto d1 = levenshtein_distance(t.a, t.b, t.ins, t.del, t.sub);
+        auto d2 = simple_damerau_distance(t.a, t.b, t.ins, t.del, t.sub, t.tra);
+        auto d3 = damerau_distance(t.a, t.b, t.ins, t.del, t.sub, t.tra);
+        assert(d1 == t.ans_levenshtein);
+        assert(d2 == t.ans_simple_damerau);
+        assert(d3 == t.ans_damerau);
     }
 }
 
-void unit_test_subset_sum() {
-    vector<int> nums = {17, 63, 49, -71, -23, 84};
-    stress_test_subset_sum_run(nums);
-}
-
-void stress_test_subset_sum(int T = 50) {
+void stress_test_subset_sum() {
     static const vector<array<int, 3>> subset_sum_stress_tests = {
         {5, -250, 250},
         {10, -100, 100},
         {15, -60, 60},
         {20, -30, 30},
     };
+    auto run = [&](const vector<int>& nums) {
+        auto sums = all_sums(nums);
+        int min = sums.front(), max = sums.back();
+        for (int i = 0, t = min, S = sums.size(); t <= max; t++) {
+            if (i < S && t == sums[i]) {
+                assert(sparse_subset_sum(nums, t));
+                assert(dense_subset_sum(nums, t));
+                i++;
+            } else {
+                assert(!sparse_subset_sum(nums, t));
+                assert(!dense_subset_sum(nums, t));
+            }
+        }
+    };
     for (auto [n, min, max] : subset_sum_stress_tests) {
         auto label = format("stress test {} {} {}", n, min, max);
-        for (int t = 0; t < T; t++) {
-            print_progress(t, T, label);
-            auto nums = generate_nums(n, min, max);
-            stress_test_subset_sum_run(nums);
+        LOOP_FOR_DURATION_TRACKED (1s, now) {
+            print_time(now, 1s, "stress test subset sum n={} [{},{}]", n, min, max);
+            auto nums = int_gen<int>(n, min, max);
+            run(nums);
         }
     }
 }
-
-} // namespace testing_subset_sum
-
-inline namespace testing_knapsack {
 
 void unit_test_knapsack() {
     auto [v0, qt0] = repeated_knapsack(15, {1, 4, 1, 2, 12}, {2, 10, 1, 2, 4});
@@ -126,10 +106,6 @@ void unit_test_knapsack() {
     assert(v2 == 15 && qt2 == (vector<bool>{1, 1, 1, 1, 0}));
     assert(v3 == 220 && qt3 == (vector<bool>{0, 1, 1}));
 }
-
-} // namespace testing_knapsack
-
-inline namespace testing_longest_subsequences {
 
 void unit_test_longest_common_subsequence() {
     auto sub0 = longest_common_subsequence("AGCAT"s, "GAC"s);
@@ -150,50 +126,11 @@ void unit_test_longest_increasing_subsequence() {
     assert(sub3 == (vi{0, 1}));
 }
 
-void unit_test_sos() {
-    constexpr int N = 3;
-    vector<unsigned> A = {1, 10, 100, 1000, 10'000, 100'000, 1'000'000, 10'000'000};
-
-    vector<unsigned> F = A;
-    for (int i = 0; i < N; i++) {
-        for (int mask = 0; mask < (1 << N); mask++) {
-            if (mask & (1 << i)) {
-                F[mask] += F[mask ^ (1 << i)];
-            }
-        }
-    }
-
-    vector<unsigned> B = A;
-    for (int i = 0; i < N; i++) {
-        for (int mask = 0; mask < (1 << N); mask++) {
-            if (mask & (1 << i)) {
-                B[mask ^ (1 << i)] += B[mask];
-            }
-        }
-    }
-
-    vector<unsigned> C = A;
-    for (int i = 0; i < N; i++) {
-        for (int mask = (1 << N) - 1; mask >= 0; mask--) {
-            if (mask & (1 << i)) {
-                C[mask ^ (1 << i)] += C[mask];
-            }
-        }
-    }
-
-    print("F: {}\n", F);
-    print("B: {}\n", B);
-    print("C: {}\n", C);
-}
-
-} // namespace testing_longest_subsequences
-
 int main() {
-    RUN_SHORT(unit_test_sos());
     RUN_SHORT(unit_test_string_distance());
-    RUN_SHORT(unit_test_subset_sum());
     RUN_BLOCK(stress_test_subset_sum());
     RUN_SHORT(unit_test_knapsack());
+    RUN_SHORT(unit_test_longest_common_subsequence());
     RUN_SHORT(unit_test_longest_increasing_subsequence());
     return 0;
 }

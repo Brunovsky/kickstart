@@ -57,8 +57,6 @@ long count_permutations(const vi& pt) {
 
 } // namespace detail
 
-inline namespace stress_test_uniform {
-
 /**
  * Test normality of count distribution
  */
@@ -153,8 +151,8 @@ void stress_test_vec_sample(int n = 4096, int k = 37) {
     shuffle(begin(univ), end(univ), mt);
     vector<int> cnt(n, 0);
 
-    LOOP_FOR_DURATION_TRACKED(3s, now) {
-        print_time(now, 3s, 50ms, "stress test vec_sample");
+    LOOP_FOR_DURATION_TRACKED (4s, now) {
+        print_time(now, 4s, "stress test vec_sample");
 
         vector<int> sample = vec_sample(univ, k);
         for (int m : sample) {
@@ -167,16 +165,12 @@ void stress_test_vec_sample(int n = 4096, int k = 37) {
     verify_normality(cnt);
 }
 
-} // namespace stress_test_uniform
-
-inline namespace stress_test_int_samplers {
-
 void stress_test_int_sample(int n = 1000) {
     vector<int> cnt(n, 0);
     intd distk(0, n - 1);
 
-    LOOP_FOR_DURATION_TRACKED(10s, now) {
-        print_time(now, 10s, 50ms, "stress test int sample");
+    LOOP_FOR_DURATION_TRACKED (4s, now) {
+        print_time(now, 4s, "stress test int sample");
 
         int k = distk(mt);
         auto nums = int_sample(k, 0, n);
@@ -198,8 +192,8 @@ void stress_test_choose_sample(int n = 45) {
     vector<vector<int>> matcnt(n, vector<int>(n, 0));
     intd distk(0, n * (n - 1) / 2);
 
-    LOOP_FOR_DURATION_TRACKED(10s, now) {
-        print_time(now, 10s, 50ms, "stress test choose sample");
+    LOOP_FOR_DURATION_TRACKED (4s, now) {
+        print_time(now, 4s, "stress test choose sample");
 
         int k = distk(mt);
         auto nums = choose_sample(k, 0, n);
@@ -230,8 +224,8 @@ void stress_test_pair_sample(int n = 31, int m = 31) {
     vector<vector<int>> matcnt(n, vector<int>(m, 0));
     intd distk(0, n * m);
 
-    LOOP_FOR_DURATION_TRACKED(10s, now) {
-        print_time(now, 10s, 50ms, "stress test pair sample");
+    LOOP_FOR_DURATION_TRACKED (4s, now) {
+        print_time(now, 4s, "stress test pair sample");
 
         int k = distk(mt);
         auto nums = pair_sample(k, 0, n, 0, m);
@@ -258,75 +252,69 @@ void stress_test_pair_sample(int n = 31, int m = 31) {
     verify_normality(cnt);
 }
 
-} // namespace stress_test_int_samplers
-
-inline namespace scaling_test_samplers {
-
-void scaling_test_int_sample(long F = 4'000'000) {
+void scaling_test_int_sample() {
+    constexpr long MAX_SAMPLES = 50'000'000;
     static const vector<int> abs = {
         10, 100, 1000, 10'000, 100'000, 1'000'000, 10'000'000, 100'000'000,
     };
-    static const vector<long> sparse = {
+    static const vector<int> sparse = {
         2,     4,     9,     20,     40,     90,     200,     400,     900,
         2'000, 4'000, 9'000, 20'000, 40'000, 90'000, 200'000, 400'000, 900'000,
     };
     static const vector<double> dense = {
         .01, .025, .05, .1, .2, .3, .5, .75, .9, .98,
     };
+    const auto runtime = 20000ms / (abs.size() * (sparse.size() + dense.size()));
 
     intd dista(0, 25000);
+    map<pair<int, int>, string> table_abs;
+    map<pair<int, double>, string> table_dense;
 
-    for (long k : sparse) {
-        printcl(" int sample sparse test x{}\n", k);
-
+    for (int k : sparse) {
         for (int n : abs) {
+            printcl(" int sample sparse test x{} n={}", k, n);
             if (k > n)
                 continue;
 
-            int N = F / k;
-
             START(sampler);
-            for (int i = 0; i < N; i++) {
+            LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
                 int a = dista(mt), b = a + n;
                 auto res = int_sample(k, a, b);
                 assert(int(res.size()) == k);
             }
             TIME(sampler);
 
-            double W = N * k;
-            printcl(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- sparse {:<8}\n",
-                    TIME_MS(sampler), EACH_NS(sampler, W), n, N, k);
+            table_abs[{n, k}] = FORMAT_EACH(sampler, 1.0 * k * runs);
         }
     }
 
     for (double p : dense) {
-        printcl(" int sample dense test p={:5.3f}\n", p);
-
         for (int n : abs) {
-            if (p * n > F)
+            printcl(" int sample dense test p={} n={}", p, n);
+            if (p * n > MAX_SAMPLES)
                 continue;
 
-            int N = F / (p * n);
-
             START(sampler);
-            for (int i = 0; i < N; i++) {
+            LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
                 int a = dista(mt), b = a + n;
                 int_sample_p(p, a, b);
             }
             TIME(sampler);
 
-            double W = p * N * n;
-            printcl(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- dense {:>5.3f}\n",
-                    TIME_MS(sampler), EACH_NS(sampler, W), n, N, p);
+            table_dense[{n, p}] = FORMAT_EACH(sampler, p * n * runs);
         }
     }
+
+    print_time_table(table_abs, "int_sample abs");
+    print_time_table(table_dense, "int_sample dense");
 }
 
-void scaling_test_choose_sample(long F = 4'000'000) {
+void scaling_test_choose_sample() {
+    constexpr long MAX_SAMPLES = 50'000'000;
     static const vector<int> abs_sparse = {
         100, 1000, 10'000, 100'000, 1'000'000,
     };
-    static const vector<long> sparse = {
+    static const vector<int> sparse = {
         10, 40, 90, 400, 900, 4'000, 9'000, 40'000, 90'000, 400'000, 900'000,
     };
     static const vector<int> abs_dense = {
@@ -335,109 +323,113 @@ void scaling_test_choose_sample(long F = 4'000'000) {
     static const vector<double> dense = {
         .01, .025, .05, .1, .2, .3, .5, .75, .9, .98,
     };
+    const auto runtime = 20000ms / (abs_sparse.size() * sparse.size() +
+                                    abs_dense.size() * dense.size());
 
     intd dista(0, 25000);
+    map<pair<int, int>, string> table_abs;
+    map<pair<int, double>, string> table_dense;
 
-    for (long k : sparse) {
-        printcl(" choose sample sparse test x{}\n", k);
-
+    for (int k : sparse) {
         for (int n : abs_sparse) {
+            printcl(" choose sample sparse test x{} n={}", k, n);
             if (k > choose(n, 2))
                 continue;
 
-            int N = F / k;
             START(sampler);
-            for (int i = 0; i < N; i++) {
+            LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
                 int a = dista(mt), b = a + n;
                 auto res = choose_sample(k, a, b);
                 assert(int(res.size()) == k);
             }
             TIME(sampler);
-            double W = N * k;
-            printcl(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- sparse {:>8}\n",
-                    TIME_MS(sampler), EACH_NS(sampler, W), n, N, k);
+
+            table_abs[{n, k}] = FORMAT_EACH(sampler, 1.0 * k * runs);
         }
     }
 
     for (double p : dense) {
-        printcl(" choose sample dense test p={:5.3f}\n", p);
-
         for (int n : abs_dense) {
+            printcl(" choose sample dense test p={} n={}", p, n);
+            if (p * choose(n, 2) > MAX_SAMPLES)
+                continue;
+
             START(sampler);
-            int N = max(1, int(F / (p * choose(n, 2))));
-            for (int i = 0; i < N; i++) {
+            LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
                 int a = dista(mt), b = a + n;
                 choose_sample_p(p, a, b);
             }
             TIME(sampler);
 
-            double W = p * N * n * (n - 1) / 2;
-            printcl(" {:>8}ms -- {:>7.2f}ns/1 -- {:>9}n x{:<8} -- dense {:>5.3f}\n",
-                    TIME_MS(sampler), EACH_NS(sampler, W), n, N, p);
+            table_dense[{n, p}] = FORMAT_EACH(sampler, p * choose(n, 2) * runs);
         }
     }
+
+    print_time_table(table_abs, "choose_sample abs");
+    print_time_table(table_dense, "choose_sample dense");
 }
 
-void scaling_test_pair_sample(long F = 4'000'000) {
+void scaling_test_pair_sample() {
+    constexpr long MAX_SAMPLES = 50'000'000;
     static const vector<array<int, 2>> abs_sparse = {
         {100, 100}, {100, 500},  {300, 300},  {100, 3000},
         {500, 500}, {500, 1000}, {300, 2000}, {1000, 1000},
     };
-    static const vector<long> sparse = {
+    static const vector<int> sparse = {
         10, 40, 90, 400, 900, 4'000, 9'000, 40'000, 90'000, 400'000, 900'000,
     };
     static const vector<array<int, 2>> abs_dense = {
-        {20, 20}, {30, 30}, {20, 50}, {10, 200}, {20, 100}, {50, 50},
+        {20, 20},    {50, 50},     {100, 100},   {500, 500},
+        {100, 1000}, {1000, 1000}, {3000, 3000},
     };
     static const vector<double> dense = {
         .01, .025, .05, .1, .2, .3, .5, .75, .9, .98,
     };
+    const auto runtime = 20000ms / (abs_sparse.size() * sparse.size() +
+                                    abs_dense.size() * dense.size());
 
     intd dista(0, 25000), distc(30000, 35000);
+    map<pair<pair<int, int>, int>, string> table_abs;
+    map<pair<pair<int, int>, double>, string> table_dense;
 
-    for (long k : sparse) {
-        printcl(" pair sample sparse test x{}\n", k);
-
+    for (int k : sparse) {
         for (auto [n, m] : abs_sparse) {
+            printcl(" pair sample sparse test x{} n,m={},{}", k, n, m);
             if (k > n * m)
                 continue;
 
-            int N = F / k;
-
             START(sampler);
-            for (int i = 0; i < N; i++) {
+            LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
                 int a = dista(mt), b = a + n, c = distc(mt), d = c + m;
                 auto res = pair_sample(k, a, b, c, d);
                 assert(int(res.size()) == k);
             }
             TIME(sampler);
 
-            double W = N * k;
-            printcl(" {:>8}ms -- {:>7.2f}ns/1 -- {:>5}x{:<5} x{:<8} -- sparse {:>8}\n",
-                    TIME_MS(sampler), EACH_NS(sampler, W), n, m, N, k);
+            table_abs[{{n, m}, k}] = FORMAT_EACH(sampler, 1.0 * k * runs);
         }
     }
 
     for (double p : dense) {
-        printcl(" pair sample dense test p={:5.3f}\n", p);
-
         for (auto [n, m] : abs_dense) {
+            printcl(" pair sample dense test p={} n,m={},{}", p, n, m);
+            if (p * n * m > MAX_SAMPLES)
+                continue;
+
             START(sampler);
-            int N = max(1, int(F / (p * n * m)));
-            for (int i = 0; i < N; i++) {
+            LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
                 int a = dista(mt), b = a + n, c = distc(mt), d = c + m;
                 pair_sample_p(p, a, b, c, d);
             }
             TIME(sampler);
 
-            double W = p * N * n * m;
-            printcl(" {:>8}ms -- {:>7.2f}ns/1 -- {:>5}x{:<5} x{:<8} -- dense {:>5.3f}\n",
-                    TIME_MS(sampler), EACH_NS(sampler, W), n, m, N, p);
+            table_dense[{{n, m}, p}] = FORMAT_EACH(sampler, p * n * m * runs);
         }
     }
-}
 
-} // namespace scaling_test_samplers
+    print_time_table(table_abs, "pair_sample abs");
+    print_time_table(table_dense, "pair_sample dense");
+}
 
 int main() {
     RUN_BLOCK(stress_test_partition_sample_uniform());

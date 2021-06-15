@@ -1,8 +1,6 @@
 #include "test_utils.hpp"
 #include "../numeric/bits.hpp"
 
-inline namespace unit_testing_bits {
-
 void unit_test_bits() {
     assert(is_power_of_two(2));
     assert(is_power_of_two(32));
@@ -97,8 +95,6 @@ void unit_test_foreach_subset() {
     FOR_EACH_PROPER_SUBSET(subset, mask) { loop.insert(subset); }
     assert(vector<unsigned>(begin(loop), end(loop)) == not_self);
 }
-
-} // namespace unit_testing_bits
 
 int main() {
     RUN_SHORT(unit_test_bits());

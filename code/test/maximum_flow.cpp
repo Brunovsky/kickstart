@@ -18,76 +18,68 @@ void add_edges(MF& mf, const edges_t& g, const Caps& caps) {
 
 } // namespace detail
 
-inline namespace speed_testing_maxflow {
-
-void speed_test_max_flow_run(flow_network_kind i, int S) {
-    START_ACC(generation);
-    START_ACC(dinitz);
-    START_ACC(push_relabel);
-    START_ACC(tidal);
-
-    LOOP_FOR_DURATION_TRACKED_RUNS(1s, now, runs) {
-        print_time(now, 1s, 50ms, flow_kind_name[i]);
-
-        START(generation);
-        auto network = generate_flow_network(i, S);
-        add_cap_flow_network(network, 1, 10'000'000);
-        ADD_TIME(generation);
-
-        vector<long> mf(3);
-
-        START(dinitz);
-        dinitz_flow<int, long> g0(network.V);
-        add_edges(g0, network.g, network.cap);
-        mf[0] = g0.maxflow(network.s, network.t);
-        ADD_TIME(dinitz);
-
-        START(push_relabel);
-        push_relabel<int, long> g1(network.V);
-        add_edges(g1, network.g, network.cap);
-        mf[1] = g1.maxflow(network.s, network.t, true);
-        ADD_TIME(push_relabel);
-
-        START(tidal);
-        tidal_flow<int, long> g2(network.V);
-        add_edges(g2, network.g, network.cap);
-        mf[2] = g2.maxflow(network.s, network.t);
-        ADD_TIME(tidal);
-
-        if (!all_eq(mf)) {
-            fail("Random test failed: {}", fmt::join(mf, " "));
-        }
-    }
-
-    printcl(" speed test {} (S={}, x{}):\n", flow_kind_name[i], S, runs);
-    PRINT_EACH_MS(generation, runs);
-    PRINT_EACH_MS(dinitz, runs);
-    PRINT_EACH_MS(push_relabel, runs);
-    PRINT_EACH_MS(tidal, runs);
-}
-
 void speed_test_max_flow() {
     static const vector<int> sizes = {500, 1800, 6000, 12000, 20000};
+    const auto duration = 20000ms / (sizes.size() * FN_END);
+    map<tuple<string, int, string>, string> table;
 
     for (int n = 0; n < int(sizes.size()); n++) {
-        print("speed test group S={}\n", sizes[n]);
         for (int i = 0; i < int(FN_END); i++) {
-            speed_test_max_flow_run(flow_network_kind(i), sizes[n]);
+            int S = sizes[n];
+            string name = flow_kind_name[i];
+
+            START_ACC4(generation, dinitz, push_relabel, tidal);
+
+            LOOP_FOR_DURATION_TRACKED_RUNS (duration, now, runs) {
+                print_time(now, duration, "{} S={}", name, S);
+
+                START(generation);
+                auto network = generate_flow_network(flow_network_kind(i), S);
+                add_cap_flow_network(network, 1, 10'000'000);
+                ADD_TIME(generation);
+
+                vector<long> mf(3);
+
+                START(dinitz);
+                dinitz_flow<int, long> g0(network.V);
+                add_edges(g0, network.g, network.cap);
+                mf[0] = g0.maxflow(network.s, network.t);
+                ADD_TIME(dinitz);
+
+                START(push_relabel);
+                push_relabel<int, long> g1(network.V);
+                add_edges(g1, network.g, network.cap);
+                mf[1] = g1.maxflow(network.s, network.t, true);
+                ADD_TIME(push_relabel);
+
+                START(tidal);
+                tidal_flow<int, long> g2(network.V);
+                add_edges(g2, network.g, network.cap);
+                mf[2] = g2.maxflow(network.s, network.t);
+                ADD_TIME(tidal);
+
+                if (!all_eq(mf)) {
+                    fail("Random test failed: {}", fmt::join(mf, " "));
+                }
+            }
+
+            table[{name, sizes[n], "gen"}] = FORMAT_EACH(generation, runs);
+            table[{name, sizes[n], "dinitz"}] = FORMAT_EACH(dinitz, runs);
+            table[{name, sizes[n], "push"}] = FORMAT_EACH(push_relabel, runs);
+            table[{name, sizes[n], "tidal"}] = FORMAT_EACH(tidal, runs);
         }
     }
+
+    print_time_table(table, "Maximum flow");
 }
-
-} // namespace speed_testing_maxflow
-
-inline namespace stress_testing_maxflow {
 
 void stress_test_max_flow() {
     intd kindd(0, int(FN_END) - 1);
 
-    LOOP_FOR_DURATION_TRACKED(10s, now) {
-        print_time(now, 10s, 50ms, "stress test max flow");
+    LOOP_FOR_DURATION_TRACKED (3s, now) {
+        print_time(now, 3s, "stress test max flow");
 
-        auto network = generate_flow_network(flow_network_kind(kindd(mt)), 100);
+        auto network = generate_flow_network(flow_network_kind(kindd(mt)), 50);
         add_cap_flow_network(network, 1, 100'000);
         int V = network.V;
 
@@ -115,8 +107,6 @@ void stress_test_max_flow() {
         }
     }
 }
-
-} // namespace stress_testing_maxflow
 
 int main() {
     RUN_BLOCK(stress_test_max_flow());

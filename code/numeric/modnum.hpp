@@ -14,9 +14,15 @@ struct modnum {
     explicit operator bool() const { return n != 0; }
 
     static int fit(int v) { return v >= mod ? v - mod : (v < 0 ? v + mod : v); }
-    static int modinv(int v, int m = mod) {
-        v %= m, assert(v);
-        return v == 1 ? 1 : (m - 1LL * modinv(m, v) * m / v);
+    static int modinv(int x) {
+        int nx = 1, ny = 0, y = mod;
+        while (x) {
+            int k = y / x;
+            y = y % x;
+            ny = ny - k * nx;
+            swap(x, y), swap(nx, ny);
+        }
+        return ny < 0 ? mod + ny : ny;
     }
     friend modnum modpow(modnum b, long e) {
         modnum p = 1;

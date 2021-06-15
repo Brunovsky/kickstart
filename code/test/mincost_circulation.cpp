@@ -16,8 +16,6 @@ void add_edges(MCF& mcc, const edges_t& g, const Caps& caps, const Costs& costs)
 
 } // namespace detail
 
-inline namespace dataset_testing_mincost_circulation {
-
 struct mincost_circulation_dataset_test_t {
     string name, comment;
     int V, E;
@@ -78,8 +76,6 @@ void dataset_test_mincost_circulation() {
         file >> ws;
     }
 }
-
-} // namespace dataset_testing_mincost_circulation
 
 int main() {
     RUN_BLOCK(dataset_test_mincost_circulation());

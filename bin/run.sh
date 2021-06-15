@@ -3,7 +3,7 @@
 set -eu
 
 declare -r CASE='Case #'
-declare -r TRACE='::hack '
+declare -r TRACE='::hack'
 declare -r VALGRIND=(valgrind)
 
 declare -r PROG_NAME=$(basename "$0")
@@ -55,41 +55,39 @@ function run_valgrind_tests {
 	done
 }
 
+# Ugly as fuck, but if it works it ain't broken
 function main {
 	case "$ACTION" in
 		*help*)
 			echo "Usage: $PROG_NAME action [args]..." >&2
 		;;
 		# Pure make commands
-		clean)
-			run_make clean
+		clean|debug|perfm)
+			run_make "$ACTION"
 		;;
-		make|build|debug*)
+		debug)
 			run_make debug
 		;;
-		perfm)
-			run_make perfm
-		;;
-		rebuild)
+		rebuild|remake)
 			run_make clean && run_make debug
 		;;
 		# Make and run under valgrind
-		invalg*|valgin*|valgrindin*)
+		*invalg*|*valgin*|*valgrindin*)
 			run_make_solver
 			echo "grep -svP "$TRACE" input.txt | "${VALGRIND[@]}" "$@" ./solver | tee output.txt"
 			grep -svP "$TRACE" input.txt | "${VALGRIND[@]}" "$@" ./solver | tee output.txt
 		;;
-		valgtest*)
+		*testvalg*|*valgtest*|*valgrindtest*)
 			run_make_solver
 			echo run_valgrind_tests "$@"
 			run_valgrind_tests "$@"
 		;;
-		valg*)
+		*valg*)
 			run_make_solver
-			"${VALGRIND[@]}" "$@" ./solver | tee output.txt
+			"${VALGRIND[@]}" "$@" ./solver
 		;;
 		# Make and run commands
-		in*|fastin*)
+		in*|fastin*|infast*)
 			run_make_solver
 			grep -svP "$TRACE" input.txt | ./solver | tee output.txt
 		;;

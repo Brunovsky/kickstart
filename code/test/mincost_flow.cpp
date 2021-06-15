@@ -16,8 +16,6 @@ void add_edges(MCF& mcf, const edges_t& g, const Caps& caps, const Costs& costs)
 
 } // namespace detail
 
-inline namespace dataset_testing_mincost_flow {
-
 /**
  * # Comment
  * # Comment
@@ -103,52 +101,50 @@ void dataset_test_mincost_flow() {
     }
 }
 
-} // namespace dataset_testing_mincost_flow
-
-inline namespace speed_testing_mincost_flow {
-
-void speed_test_mincost_flow_run(flow_network_kind i, int S) {
-    START_ACC(edmonds);
-
-    LOOP_FOR_DURATION_TRACKED_RUNS(1s, now, runs) {
-        print_time(now, 1s, 50ms, flow_kind_name[i]);
-
-        auto network = generate_flow_network(i, S);
-        add_cap_flow_network(network, 1, 100'000'000);
-        add_cost_flow_network(network, 1, 100'000'000);
-        int s = network.s, t = network.t, V = network.V;
-
-        START(edmonds);
-        mincost_edmonds_karp<int, int, long, long> g0(V);
-        add_edges(g0, network.g, network.cap, network.cost);
-        auto ans1 = g0.mincost_flow(s, t);
-        ADD_TIME(edmonds);
-
-        mincost_edmonds_karp<long, long, long, long> g1(V);
-        add_edges(g1, network.g, network.cap, network.cost);
-        auto ans2 = g1.mincost_flow(s, t);
-        assert(ans1 == ans2);
-
-        g0.clear_flow();
-        auto ans3 = g0.mincost_flow(s, t);
-        assert(ans1 == ans3);
-    }
-
-    printcl(" {:>8.2f}ms -- edmonds -- {}\n", EACH_MS(edmonds, runs), flow_kind_name[i]);
-}
-
 void speed_test_mincost_flow() {
     static const vector<int> sizes = {100, 250, 800, 1500, 3000};
+    const auto runtime = 40000ms / (sizes.size() * int(FN_END));
+    map<pair<string, int>, string> table;
 
-    for (int n = 0; n < int(sizes.size()); n++) {
-        print("speed test group S={}\n", sizes[n]);
+    auto run = [&](flow_network_kind i, int S) {
+        START_ACC(edmonds);
+        auto name = flow_kind_name[i];
+
+        LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
+            print_time(now, runtime, "speed test mincost flow S={} {}", S, name);
+
+            auto network = generate_flow_network(i, S);
+            add_cap_flow_network(network, 1, 100'000'000);
+            add_cost_flow_network(network, 1, 100'000'000);
+            int s = network.s, t = network.t, V = network.V;
+
+            START(edmonds);
+            mincost_edmonds_karp<int, int, long, long> g0(V);
+            add_edges(g0, network.g, network.cap, network.cost);
+            auto ans1 = g0.mincost_flow(s, t);
+            ADD_TIME(edmonds);
+
+            mincost_edmonds_karp<long, long, long, long> g1(V);
+            add_edges(g1, network.g, network.cap, network.cost);
+            auto ans2 = g1.mincost_flow(s, t);
+            assert(ans1 == ans2);
+
+            g0.clear_flow();
+            auto ans3 = g0.mincost_flow(s, t);
+            assert(ans1 == ans3);
+        }
+
+        table[{name, S}] = FORMAT_EACH(edmonds, runs);
+    };
+
+    for (int S : sizes) {
         for (int i = 0; i < int(FN_END); i++) {
-            speed_test_mincost_flow_run(flow_network_kind(i), sizes[n]);
+            run(flow_network_kind(i), S);
         }
     }
-}
 
-} // namespace speed_testing_mincost_flow
+    print_time_table(table, "Mincost maxflow");
+}
 
 int main() {
     RUN_BLOCK(dataset_test_mincost_flow());

@@ -13,7 +13,7 @@ namespace polymath {
 
 template <typename T>
 auto multiply(const vector<T>& a, const vector<T>& b) {
-    return &a == &b ? fft::fft_square(a) : fft::fft_multiply(a, b);
+    return fft::fft_multiply(a, b);
 }
 
 template <typename T>

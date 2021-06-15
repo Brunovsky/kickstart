@@ -1,8 +1,6 @@
 #include "test_utils.hpp"
 #include "../strings/aho_corasick.hpp"
 
-inline namespace unit_testing_aho_cosarick {
-
 struct visitor {
     int cnt = 0;
     const vector<string>& words;
@@ -23,14 +21,12 @@ void unit_test_aho_corasick() {
     aho_corasick aho(words);
     print("states: {}\n", aho.num_nodes());
     print("matches: {}\n", aho.count_matches(text));
-    print("unique matches: {}\n", aho.count_unique_matches(text));
     aho.visit_all(text, visitor(words));
+    print("unique matches: {}\n", aho.count_unique_matches(text));
     aho.visit_longest_each_index(text, visitor(words));
     auto v = aho.longest_each_index(text);
     cout << v << endl;
 }
-
-} // namespace unit_testing_aho_cosarick
 
 int main() {
     RUN_SHORT(unit_test_aho_corasick());

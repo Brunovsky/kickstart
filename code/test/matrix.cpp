@@ -54,8 +54,6 @@ auto generate_gauss_double(int n, double minv, double maxv) {
 
 } // namespace detail
 
-inline namespace unit_testing_gauss {
-
 void unit_test_gauss_frac() {
     matf m;
     vecf b, x;
@@ -126,120 +124,109 @@ void unit_test_inverse_frac() {
     assert(a == m);
 }
 
-} // namespace unit_testing_gauss
-
-inline namespace stress_testing_gauss {
-
 void stress_test_gauss_frac() {
     intd distn(3, 7);
-    int degenerate = 0, infeasible = 0, different = 0;
+    int cnt_degenerate = 0, cnt_infeasible = 0, cnt_different = 0;
 
-    LOOP_FOR_DURATION_TRACKED_RUNS(5s, now, runs) {
-        print_time(now, 5s, 50ms, "stress test gauss frac");
+    LOOP_FOR_DURATION_TRACKED_RUNS (4s, now, runs) {
+        print_time(now, 4s, "stress test gauss frac");
 
         int n = distn(mt);
         auto [a, z] = generate_gauss_frac(n, -8, 8, 4);
         auto b = a * z;
         auto x = gauss(a, b);
 
-        degenerate += !x;
+        cnt_degenerate += !x;
         if (!x)
             continue;
 
         bool ok = a * *x == b;
-        infeasible += !ok;
-        different += ok && *x != z;
+        cnt_infeasible += !ok;
+        cnt_different += ok && *x != z;
     }
 
-    double degenerate_percent = 100.0 * degenerate / runs;
-    double infeasible_percent = 100.0 * infeasible / runs;
-    double different_percent = 100.0 * different / runs;
-    printcl("  {:5.1f}% degenerate  {:5.1f}% infeasible  {:5.1f}% different\n",
-            degenerate_percent, infeasible_percent, different_percent);
+    auto degenerate = format("{:5.1f}%", 100.0 * cnt_degenerate / runs);
+    auto infeasible = format("{:5.1f}%", 100.0 * cnt_infeasible / runs);
+    auto different = format("{:5.1f}%", 100.0 * cnt_different / runs);
+    printcl(" {} degenerate  {} infeasible  {} different\n", degenerate, infeasible,
+            different);
 }
 
 void stress_test_gauss_double() {
     intd distn(5, 100);
-    int degenerate = 0, infeasible = 0, different = 0;
+    int cnt_degenerate = 0, cnt_infeasible = 0, cnt_different = 0;
 
-    LOOP_FOR_DURATION_TRACKED_RUNS(5s, now, runs) {
-        print_time(now, 5s, 50ms, "stress test gauss double");
+    LOOP_FOR_DURATION_TRACKED_RUNS (4s, now, runs) {
+        print_time(now, 4s, "stress test gauss double");
 
         int n = distn(mt);
         auto [a, z] = generate_gauss_double(n, -10, 10);
         auto b = a * z;
         auto x = gauss(a, b);
 
-        degenerate += !x;
+        cnt_degenerate += !x;
         if (!x)
             continue;
 
         bool ok = min_diff(a * *x, b) <= 1e-10;
-        infeasible += !ok;
-        different += ok && !(min_diff(*x, z) <= 1e-12);
+        cnt_infeasible += !ok;
+        cnt_different += ok && !(min_diff(*x, z) <= 1e-12);
     }
 
-    double degenerate_percent = 100.0 * degenerate / runs;
-    double infeasible_percent = 100.0 * infeasible / runs;
-    double different_percent = 100.0 * different / runs;
-    printcl("  {:5.1f}% degenerate  {:5.1f}% infeasible  {:5.1f}% different\n",
-            degenerate_percent, infeasible_percent, different_percent);
+    auto degenerate = format("{:5.1f}%", 100.0 * cnt_degenerate / runs);
+    auto infeasible = format("{:5.1f}%", 100.0 * cnt_infeasible / runs);
+    auto different = format("{:5.1f}%", 100.0 * cnt_different / runs);
+    printcl(" {} degenerate  {} infeasible  {} different\n", degenerate, infeasible,
+            different);
 }
 
 void stress_test_inverse_double() {
     intd distn(5, 100);
-    int degenerate = 0, diff_mul = 0, diff_inv = 0;
+    int cnt_degenerate = 0, cnt_diff_mul = 0, cnt_diff_inv = 0;
 
-    LOOP_FOR_DURATION_TRACKED_RUNS(5s, now, runs) {
-        print_time(now, 5s, 50ms, "stress test inverse double");
+    LOOP_FOR_DURATION_TRACKED_RUNS (5s, now, runs) {
+        print_time(now, 5s, "stress test inverse double");
 
         int n = distn(mt);
         auto [a, z] = generate_gauss_double(n, -10, 10);
 
         auto b = inverse(a);
-        degenerate += !b;
+        cnt_degenerate += !b;
         if (!b)
             continue;
 
         auto c = inverse(*b);
-        degenerate += !c;
+        cnt_degenerate += !c;
         if (!c)
             continue;
 
-        diff_mul += !(min_diff(matd::identity(n), a * *b) <= 1e-16);
-        diff_inv += !(min_diff(a, *c) <= 1e-12);
+        cnt_diff_mul += !(min_diff(matd::identity(n), a * *b) <= 1e-16);
+        cnt_diff_inv += !(min_diff(a, *c) <= 1e-12);
     }
 
-    double degenerate_percent = 100.0 * degenerate / runs;
-    double diff_mul_percent = 100.0 * diff_mul / runs;
-    double diff_inv_percent = 100.0 * diff_inv / runs;
-    printcl("  {:5.1f}% degenerate  {:5.1f}% diff mul  {:5.1f}% diff inv\n",
-            degenerate_percent, diff_mul_percent, diff_inv_percent);
+    auto degenerate = format("{:5.1f}%", 100.0 * cnt_degenerate / runs);
+    auto diff_mul = format("{:5.1f}%", 100.0 * cnt_diff_mul / runs);
+    auto diff_inv = format("{:5.1f}%", 100.0 * cnt_diff_inv / runs);
+    printcl(" {} degenerate  {} diff mul  {} diff inv\n", degenerate, diff_mul, diff_inv);
 }
 
-} // namespace stress_testing_gauss
-
-inline namespace scaling_test_gauss {
-
 void scaling_test_gauss_double() {
-    const int nmin = 5, nmax = 300, ninc = 5;
-    int degenerate = 0;
-    int infeasible = 0;
-    int different = 0;
-    int total_runs = 0;
+    static vector<int> Ns = {5, 10, 20, 40, 70, 100, 150, 200, 300, 500};
+    vector<vector<stringable>> table;
+    table.push_back({"N", "degenerate", "infeasible", "different", "time"});
 
-    for (int n = nmin; n <= nmax; n += ninc) {
-        string label = format("{0}x{0} scaling test gauss double", n);
+    for (int N : Ns) {
+        string label = format("{0}x{0} scaling test gauss double", N);
 
         START_ACC(gauss);
         int run_degenerate = 0;
         int run_infeasible = 0;
         int run_different = 0;
 
-        LOOP_FOR_DURATION_TRACKED_RUNS(800ms, now, runs) {
-            print_time(now, 800ms, 50ms, label);
+        LOOP_FOR_DURATION_TRACKED_RUNS (800ms, now, runs) {
+            print_time(now, 800ms, label);
 
-            auto [a, z] = generate_gauss_double(n, -10, 10);
+            auto [a, z] = generate_gauss_double(N, -10, 10);
             auto b = a * z;
 
             START(gauss);
@@ -255,29 +242,14 @@ void scaling_test_gauss_double() {
             run_different += ok && !(min_diff(*x, z) <= 1e-12);
         }
 
-        double degenerate_percent = 100.0 * run_degenerate / runs;
-        double infeasible_percent = 100.0 * run_infeasible / runs;
-        double different_percent = 100.0 * run_different / runs;
-        printcl(" {:>8.2f}us -- {:>3} -- {:5.1f}% deg {:5.1f}% infeas {:5.1f}% diff\n",
-                EACH_US(gauss, runs), n, degenerate_percent, infeasible_percent,
-                different_percent);
-
-        degenerate += run_degenerate;
-        infeasible += run_infeasible;
-        different += run_different;
-        total_runs += runs;
+        auto degenerate = format("{:.1f}%", 100.0 * run_degenerate / runs);
+        auto infeasible = format("{:.1f}%", 100.0 * run_infeasible / runs);
+        auto different = format("{:.1f}%", 100.0 * run_different / runs);
+        table.push_back({N, degenerate, infeasible, different, FORMAT_EACH(gauss, runs)});
     }
 
-    double degenerate_percent = 100.0 * degenerate / total_runs;
-    double infeasible_percent = 100.0 * infeasible / total_runs;
-    double different_percent = 100.0 * different / total_runs;
-    printcl("  {:5.1f}% degenerate  {:5.1f}% infeasible  {:5.1f}% different\n",
-            degenerate_percent, infeasible_percent, different_percent);
+    print_time_table(table, "Scaling Gauss");
 }
-
-} // namespace scaling_test_gauss
-
-inline namespace unit_testing_mat {
 
 void unit_test_det() {
     vector<vector<vector<int>>> quest = {{
@@ -372,8 +344,6 @@ void unit_test_rank() {
     a = transpose(a);
     print("rank(transpose(a)) = {}\n", matrank(a));
 }
-
-} // namespace unit_testing_mat
 
 int main() {
     RUN_SHORT(unit_test_gauss_frac());

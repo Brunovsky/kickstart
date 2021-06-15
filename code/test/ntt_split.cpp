@@ -19,14 +19,10 @@ void unit_test_fft_multiply_mod() {
     auto c1 = fft::naive_multiply(1'000'000'007, a, b);
     auto d0 = fft::fft_multiply(1'479'118'951, a, b);
     auto d1 = fft::naive_multiply(1'479'118'951, a, b);
-    auto e0 = fft::fft_square(1'000'000'007, a);
-    auto e1 = fft::naive_multiply(1'000'000'007, a, a);
     print("c0: {}\n", c0);
     print("c1: {}\n", c1);
     print("d0: {}\n", d0);
     print("d1: {}\n", d1);
-    print("e0: {}\n", e0);
-    print("e1: {}\n", e1);
 }
 
 void stress_test_fft_multiply_mod(int N = 10000) {
@@ -36,36 +32,13 @@ void stress_test_fft_multiply_mod(int N = 10000) {
     int errors = 0;
 
     LOOP_FOR_DURATION_OR_RUNS_TRACKED (4s, now, 100'000, runs) {
-        print_time(now, 4s, 40ms, "stress test ntt multiply mod");
+        print_time(now, 4s, "stress test ntt multiply mod");
 
         int A = distn(mt), B = distn(mt);
         auto a = int_gen<int>(A, 0, V);
         auto b = int_gen<int>(B, 0, V);
         auto c = fft::fft_multiply(mod, a, b);
         auto d = fft::naive_multiply(mod, a, b);
-
-        errors += c != d;
-    }
-
-    if (errors > 0) {
-        double percent = 100.0 * errors / runs;
-        printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
-    }
-}
-
-void stress_test_fft_square_mod(int N = 10000) {
-    constexpr int mod = 1'000'000'007;
-    constexpr int V = 1'000'000'000;
-    intd distn(0, N);
-    int errors = 0;
-
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED (4s, now, 100'000, runs) {
-        print_time(now, 4s, 40ms, "stress test ntt square mod");
-
-        int A = distn(mt);
-        auto a = int_gen<int>(A, 0, V);
-        auto c = fft::fft_square(mod, a);
-        auto d = fft::naive_multiply(mod, a, a);
 
         errors += c != d;
     }
@@ -125,27 +98,18 @@ void breakeven_test_fft_multiply_mod() {
 
 void speed_test_fft_multiply_mod() {
     using num = modnum<998244353>;
-    constexpr int V = 1000;
-    vector<int> As = {10, 30, 100, 300, 1000, 3000, 10000, 30000};
-    vector<int> Bs = {10, 30, 100, 300, 1000, 3000, 10000, 30000};
+    constexpr int V = 900'000'000;
+    vector<int> As = {10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000};
+    vector<int> Bs = {10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000};
+    const auto duration = 30000ms / (As.size() * Bs.size());
+    map<tuple<int, int, string>, string> table;
 
-    int NAs = As.size(), NBs = Bs.size();
-    mat<string> splittime = make_table(As, Bs);
-    mat<string> ntttime = make_table(As, Bs);
-    mat<string> speedup = make_table(As, Bs);
+    for (int A : As) {
+        for (int B : Bs) {
+            START_ACC2(ntt_split, ntt);
 
-    for (int ia = 1; ia <= NAs; ia++) {
-        for (int ib = 1; ib <= NBs; ib++) {
-            int A = As[ia - 1], B = Bs[ib - 1];
-
-            START_ACC(ntt_split);
-            START_ACC(ntt);
-            START_ACC(naive);
-
-            bool do_naive = A < 10000 && B < 10000;
-
-            LOOP_FOR_DURATION_OR_RUNS_TRACKED (2000ms, now, 10000, runs) {
-                print_time(now, 2000ms, 50ms, "speed test fft multiply");
+            LOOP_FOR_DURATION_OR_RUNS_TRACKED (duration, now, 10000, runs) {
+                print_time(now, duration, "speed test fft multiply A,B={},{}", A, B);
 
                 auto a = uniform_gen_many<int>(A, -V, V);
                 auto b = uniform_gen_many<int>(B, -V, V);
@@ -159,34 +123,19 @@ void speed_test_fft_multiply_mod() {
                 START(ntt);
                 auto y = fft::fft_multiply(c, d);
                 ADD_TIME(ntt);
-
-                START(naive);
-                if (do_naive)
-                    auto z = fft::naive_multiply(998244353, a, b);
-                ADD_TIME(naive);
             }
 
-            printcl(" -- ntt split multiply speed test {}x{} ({} runs)\n", A, B, runs);
-            PRINT_TIME_MS(ntt_split);
-            PRINT_TIME_MS(ntt);
-            if (do_naive)
-                PRINT_TIME_MS(naive);
-
-            splittime[ia][ib] = format("{:.1f}", EACH_US(ntt_split, runs));
-            ntttime[ia][ib] = format("{:.1f}", EACH_US(ntt, runs));
-            speedup[ia][ib] = format("{:.3f}", 1.0 * TIME_US(ntt) / TIME_US(ntt_split));
+            table[{A, B, "ntt"}] = FORMAT_EACH(ntt, runs);
+            table[{A, B, "split"}] = FORMAT_EACH(ntt_split, runs);
         }
     }
 
-    print("splittime:\n{}", splittime);
-    print("ntttime:\n{}", ntttime);
-    print("speedup:\n{}", speedup);
+    print_time_table(table, "FFT time");
 }
 
 int main() {
     RUN_SHORT(unit_test_with_modnum());
     RUN_SHORT(unit_test_fft_multiply_mod());
-    RUN_SHORT(stress_test_fft_square_mod());
     RUN_SHORT(stress_test_fft_multiply_mod());
     RUN_BLOCK(breakeven_test_fft_multiply_mod());
     RUN_SHORT(speed_test_fft_multiply_mod());

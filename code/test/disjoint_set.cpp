@@ -1,8 +1,6 @@
 #include "test_utils.hpp"
 #include "../struct/disjoint_set.hpp"
 
-inline namespace unit_testing_disjoint_set {
-
 void unit_test_dsu_rollback() {
     disjoint_set_rollback dsu(10);
 
@@ -38,8 +36,6 @@ void unit_test_dsu_rollback() {
     assert(dsu.same(1, 2));
     assert(dsu.size(dsu.find(0)) == 2 && dsu.size(dsu.find(2)) == 2);
 }
-
-} // namespace unit_testing_disjoint_set
 
 int main() {
     RUN_SHORT(unit_test_dsu_rollback());

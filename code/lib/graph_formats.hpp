@@ -3,6 +3,21 @@
 #include "../formatting.hpp"
 #include "graph_operations.hpp"
 
+edges_t scan_edges(const string& s, char sep = ',') {
+    edges_t g;
+    stringstream ss(s);
+    while (ss) {
+        int u, v;
+        char dummy;
+        ss >> u >> dummy >> v;
+        if (ss) {
+            g.push_back({u, v});
+            assert(dummy == sep);
+        }
+    }
+    return g;
+}
+
 string adj_matrix_undirected(const edges_t& g, int V) {
     string head = format("V={}, E={} (undirected)", V, g.size());
     string line(V + 2, '.');

@@ -1,8 +1,6 @@
 #include "test_utils.hpp"
 #include "../strings/strings.hpp"
 
-inline namespace unit_testing_string_builders {
-
 void unit_test_good_suffix() {
     string ss[] = {
         "addbddcdd",      // 1 2 3 4 5 6 7 8 9 10
@@ -69,7 +67,20 @@ void unit_test_lyndon() {
     }
 }
 
-} // namespace unit_testing_string_builders
+void unit_test_suffix_array() {
+    using vi = vector<int>;
+    string s;
+    vi sa, lcp;
+
+    s = "abbaacaaabab"s;
+    sa = build_cyclic_shifts(s, 256, '\0');
+    lcp = build_lcp_array(s, sa);
+
+    for (int i = 0, N = s.size(); i < N; i++) {
+        print("{:2}: {}\n", i, s.substr(sa[i]) + s.substr(0, sa[i]));
+    }
+    print(" sa: {}\nlcp: {}\n", sa, lcp);
+}
 
 int main() {
     RUN_SHORT(unit_test_manachers());
@@ -77,5 +88,6 @@ int main() {
     RUN_SHORT(unit_test_z_function());
     RUN_SHORT(unit_test_lyndon());
     RUN_SHORT(unit_test_good_suffix());
+    RUN_SHORT(unit_test_suffix_array());
     return 0;
 }

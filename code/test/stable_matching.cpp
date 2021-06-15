@@ -1,8 +1,6 @@
 #include "test_utils.hpp"
 #include "../matching/stable_matching.hpp"
 
-inline namespace unit_testing_stable_matching {
-
 void unit_test_stable_matching() {
     vector<vector<int>> up, vp;
     up = {{0, 1, 2}, {0, 2, 1}, {1, 0, 2}};
@@ -14,8 +12,6 @@ void unit_test_stable_matching() {
         print("{} -- {}\n", u, mu[u]);
     }
 }
-
-} // namespace unit_testing_stable_matching
 
 int main() {
     RUN_SHORT(unit_test_stable_matching());

@@ -73,7 +73,7 @@ long invmod(long a, long m) {
     long x, y, g = gcd(a, m, x, y);
     (void)g, assert(g == 1);
     x = x % m;
-    return x >= 0 ? x : x + m;
+    return x < 0 ? x + m : x;
 }
 
 /**

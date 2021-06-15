@@ -60,18 +60,19 @@ bool stress_verify_link_cut(slow_tree<false>& slow, lct_subtree& tree, int D = 2
 
 } // namespace detail
 
-actions_t<UnrootedAT> lct_stress_actions = {
-    {UnrootedAT::LINK, 1500},          {UnrootedAT::CUT, 300},
-    {UnrootedAT::LINK_CUT, 1200},      {UnrootedAT::LCA, 500},
-    {UnrootedAT::FINDROOT, 1000},      {UnrootedAT::LCA_CONN, 1000},
-    {UnrootedAT::QUERY_NODE, 2000},    {UnrootedAT::UPDATE_NODE, 5000},
-    {UnrootedAT::QUERY_PATH, 2000},    {UnrootedAT::UPDATE_PATH, 5000},
-    {UnrootedAT::PATH_LENGTH, 1500},   {UnrootedAT::UPDATE_SUBTREE, 0},
-    {UnrootedAT::QUERY_SUBTREE, 3500}, {UnrootedAT::SUBTREE_SIZE, 1500},
-    {UnrootedAT::STRESS_TEST, 400},
-};
+void stress_test_lct_subtree() {
+    static actions_t<UnrootedAT> lct_stress_actions = {
+        {UnrootedAT::LINK, 1500},          {UnrootedAT::CUT, 300},
+        {UnrootedAT::LINK_CUT, 1200},      {UnrootedAT::LCA, 500},
+        {UnrootedAT::FINDROOT, 1000},      {UnrootedAT::LCA_CONN, 1000},
+        {UnrootedAT::QUERY_NODE, 2000},    {UnrootedAT::UPDATE_NODE, 5000},
+        {UnrootedAT::QUERY_PATH, 2000},    {UnrootedAT::UPDATE_PATH, 5000},
+        {UnrootedAT::PATH_LENGTH, 1500},   {UnrootedAT::UPDATE_SUBTREE, 0},
+        {UnrootedAT::QUERY_SUBTREE, 3500}, {UnrootedAT::SUBTREE_SIZE, 1500},
+        {UnrootedAT::STRESS_TEST, 400},
+    };
 
-void stress_test_lct_subtree(int N = 200) {
+    const int N = 200;
     slow_tree<false> slow(N);
     lct_subtree tree(N);
     auto actions = make_unrooted_actions(N, 400ms, lct_stress_actions, 9 * N / 10);
@@ -166,110 +167,127 @@ void stress_test_lct_subtree(int N = 200) {
     assert(ok);
 }
 
-actions_t<UnrootedAT> lct_speed_topo_heavy_actions = {
-    {UnrootedAT::LINK, 5000},
-    {UnrootedAT::CUT, 1000},
-    {UnrootedAT::LINK_CUT, 4000},
-    {UnrootedAT::FINDROOT, 1000},
-    {UnrootedAT::LCA, 800},
-    {UnrootedAT::LCA_CONN, 1200},
-    {UnrootedAT::QUERY_NODE, 2000},
-    {UnrootedAT::UPDATE_NODE, 2500},
-    {UnrootedAT::QUERY_PATH, 2000},
-    {UnrootedAT::UPDATE_PATH, 5000},
-    {UnrootedAT::PATH_LENGTH, 1500},
-    {UnrootedAT::UPDATE_SUBTREE, 0},
-    {UnrootedAT::QUERY_SUBTREE, 3500},
-    {UnrootedAT::SUBTREE_SIZE, 1500},
-};
-actions_t<UnrootedAT> lct_speed_update_heavy_actions = {
-    {UnrootedAT::LINK, 1500},          {UnrootedAT::CUT, 300},
-    {UnrootedAT::LINK_CUT, 1200},      {UnrootedAT::LCA, 800},
-    {UnrootedAT::FINDROOT, 1000},      {UnrootedAT::LCA_CONN, 1200},
-    {UnrootedAT::QUERY_NODE, 1000},    {UnrootedAT::UPDATE_NODE, 6000},
-    {UnrootedAT::QUERY_PATH, 2000},    {UnrootedAT::UPDATE_PATH, 6000},
-    {UnrootedAT::PATH_LENGTH, 1500},   {UnrootedAT::UPDATE_SUBTREE, 0},
-    {UnrootedAT::QUERY_SUBTREE, 2400}, {UnrootedAT::SUBTREE_SIZE, 600},
-};
-actions_t<UnrootedAT> lct_speed_query_heavy_actions = {
-    {UnrootedAT::LINK, 1500},           {UnrootedAT::CUT, 300},
-    {UnrootedAT::LINK_CUT, 1200},       {UnrootedAT::LCA, 800},
-    {UnrootedAT::FINDROOT, 1000},       {UnrootedAT::LCA_CONN, 1200},
-    {UnrootedAT::QUERY_NODE, 5000},     {UnrootedAT::UPDATE_NODE, 1200},
-    {UnrootedAT::QUERY_PATH, 8000},     {UnrootedAT::UPDATE_PATH, 6000},
-    {UnrootedAT::PATH_LENGTH, 3000},    {UnrootedAT::UPDATE_SUBTREE, 0},
-    {UnrootedAT::QUERY_SUBTREE, 10000}, {UnrootedAT::SUBTREE_SIZE, 4000},
-};
+void speed_test_lct_subtree() {
+    static actions_t<UnrootedAT> lct_speed_topo_heavy_actions = {
+        {UnrootedAT::LINK, 5000},
+        {UnrootedAT::CUT, 1000},
+        {UnrootedAT::LINK_CUT, 4000},
+        {UnrootedAT::FINDROOT, 1000},
+        {UnrootedAT::LCA, 800},
+        {UnrootedAT::LCA_CONN, 1200},
+        {UnrootedAT::QUERY_NODE, 2000},
+        {UnrootedAT::UPDATE_NODE, 2500},
+        {UnrootedAT::QUERY_PATH, 2000},
+        {UnrootedAT::UPDATE_PATH, 5000},
+        {UnrootedAT::PATH_LENGTH, 1500},
+        {UnrootedAT::UPDATE_SUBTREE, 0},
+        {UnrootedAT::QUERY_SUBTREE, 3500},
+        {UnrootedAT::SUBTREE_SIZE, 1500},
+    };
+    static actions_t<UnrootedAT> lct_speed_update_heavy_actions = {
+        {UnrootedAT::LINK, 1500},          {UnrootedAT::CUT, 300},
+        {UnrootedAT::LINK_CUT, 1200},      {UnrootedAT::LCA, 800},
+        {UnrootedAT::FINDROOT, 1000},      {UnrootedAT::LCA_CONN, 1200},
+        {UnrootedAT::QUERY_NODE, 1000},    {UnrootedAT::UPDATE_NODE, 6000},
+        {UnrootedAT::QUERY_PATH, 2000},    {UnrootedAT::UPDATE_PATH, 6000},
+        {UnrootedAT::PATH_LENGTH, 1500},   {UnrootedAT::UPDATE_SUBTREE, 0},
+        {UnrootedAT::QUERY_SUBTREE, 2400}, {UnrootedAT::SUBTREE_SIZE, 600},
+    };
+    static actions_t<UnrootedAT> lct_speed_query_heavy_actions = {
+        {UnrootedAT::LINK, 1500},           {UnrootedAT::CUT, 300},
+        {UnrootedAT::LINK_CUT, 1200},       {UnrootedAT::LCA, 800},
+        {UnrootedAT::FINDROOT, 1000},       {UnrootedAT::LCA_CONN, 1200},
+        {UnrootedAT::QUERY_NODE, 5000},     {UnrootedAT::UPDATE_NODE, 1200},
+        {UnrootedAT::QUERY_PATH, 8000},     {UnrootedAT::UPDATE_PATH, 6000},
+        {UnrootedAT::PATH_LENGTH, 3000},    {UnrootedAT::UPDATE_SUBTREE, 0},
+        {UnrootedAT::QUERY_SUBTREE, 10000}, {UnrootedAT::SUBTREE_SIZE, 4000},
+    };
 
-void speed_test_lct_subtree(int N, const actions_t<UnrootedAT>& freq) {
-    lct_subtree tree(N);
-    auto actions = make_unrooted_actions(N, 10s, freq, N - 100);
+    vector<vector<stringable>> table;
+    table.push_back({"N", "name", "#actions", "time"});
 
-    START(linkcut);
-    for (const auto& [action, u, v, r, who, val] : actions) {
-        bool ok = true;
-        switch (action) {
-        case UnrootedAT::LINK: {
-            tree.link(u, v);
-        } break;
-        case UnrootedAT::CUT: {
-            tree.cut(u, v);
-        } break;
-        case UnrootedAT::FINDROOT: {
-            tree.reroot(who);
-            int ans = tree.findroot(u);
-            ok = ans == who;
-        } break;
-        case UnrootedAT::LCA: {
-            tree.reroot(r);
-            int ans = tree.lca(u, v);
-            ok = ans == who;
-        } break;
-        case UnrootedAT::QUERY_NODE: {
-            long ans = tree.access_node(u)->self;
-            ok = val == ans;
-        } break;
-        case UnrootedAT::UPDATE_NODE: {
-            tree.access_node(u)->self = val;
-        } break;
-        case UnrootedAT::QUERY_PATH: {
-            long ans = tree.access_path(u, v)->path;
-            ok = val == ans;
-        } break;
-        case UnrootedAT::PATH_LENGTH: {
-            long ans = tree.access_path(u, v)->path_size;
-            ok = val == ans;
-        } break;
-        case UnrootedAT::UPDATE_PATH: {
-            tree.access_path(u, v)->lazy += val;
-        } break;
-        case UnrootedAT::QUERY_SUBTREE: {
-            long ans = tree.access_subtree(u, v)->subtree();
-            ok = val == ans;
-        } break;
-        case UnrootedAT::SUBTREE_SIZE: {
-            long ans = tree.access_subtree(u, v)->subtree_size();
-            ok = val == ans;
-        } break;
-        // case UnrootedAT::UPDATE_SUBTREE: {
-        //     tree.access_subtree(u, v)->lazy += val;
-        // } break;
-        default:
-            throw runtime_error("Unsupported action");
+    auto run = [&](int N, ms generation, const auto& name, const auto& freq) {
+        lct_subtree tree(N);
+        auto actions = make_unrooted_actions(N, generation, freq, N - 100);
+        printcl("speed test lct subtree");
+
+        START(linkcut);
+        for (const auto& [action, u, v, r, who, val] : actions) {
+            bool ok = true;
+            switch (action) {
+            case UnrootedAT::LINK: {
+                tree.link(u, v);
+            } break;
+            case UnrootedAT::CUT: {
+                tree.cut(u, v);
+            } break;
+            case UnrootedAT::FINDROOT: {
+                tree.reroot(who);
+                int ans = tree.findroot(u);
+                ok = ans == who;
+            } break;
+            case UnrootedAT::LCA: {
+                tree.reroot(r);
+                int ans = tree.lca(u, v);
+                ok = ans == who;
+            } break;
+            case UnrootedAT::QUERY_NODE: {
+                long ans = tree.access_node(u)->self;
+                ok = val == ans;
+            } break;
+            case UnrootedAT::UPDATE_NODE: {
+                tree.access_node(u)->self = val;
+            } break;
+            case UnrootedAT::QUERY_PATH: {
+                long ans = tree.access_path(u, v)->path;
+                ok = val == ans;
+            } break;
+            case UnrootedAT::PATH_LENGTH: {
+                long ans = tree.access_path(u, v)->path_size;
+                ok = val == ans;
+            } break;
+            case UnrootedAT::UPDATE_PATH: {
+                tree.access_path(u, v)->lazy += val;
+            } break;
+            case UnrootedAT::QUERY_SUBTREE: {
+                long ans = tree.access_subtree(u, v)->subtree();
+                ok = val == ans;
+            } break;
+            case UnrootedAT::SUBTREE_SIZE: {
+                long ans = tree.access_subtree(u, v)->subtree_size();
+                ok = val == ans;
+            } break;
+            // case UnrootedAT::UPDATE_SUBTREE: {
+            //     tree.access_subtree(u, v)->lazy += val;
+            // } break;
+            default:
+                throw runtime_error("Unsupported action");
+            }
+            if (!ok) {
+                printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action));
+            }
+            assert(ok);
         }
-        if (!ok) {
-            printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action));
-        }
-        assert(ok);
-    }
-    TIME(linkcut);
-    PRINT_EACH_NS(linkcut, actions.size());
+        TIME(linkcut);
+
+        table.push_back({N, name, actions.size(), FORMAT_EACH(linkcut, actions.size())});
+    };
+
+    run(1000, 1s, "query heavy", lct_speed_query_heavy_actions);
+    run(10000, 3s, "query heavy", lct_speed_query_heavy_actions);
+    run(50000, 6s, "query heavy", lct_speed_query_heavy_actions);
+    run(1000, 1s, "update heavy", lct_speed_update_heavy_actions);
+    run(10000, 3s, "update heavy", lct_speed_update_heavy_actions);
+    run(50000, 6s, "update heavy", lct_speed_update_heavy_actions);
+    run(1000, 1s, "topo heavy", lct_speed_topo_heavy_actions);
+    run(10000, 3s, "topo heavy", lct_speed_topo_heavy_actions);
+    run(50000, 6s, "topo heavy", lct_speed_topo_heavy_actions);
+
+    print_time_table(table, "LCT Subtree");
 }
 
 int main() {
     RUN_SHORT(stress_test_lct_subtree());
-    RUN_SHORT(speed_test_lct_subtree(3000, lct_speed_query_heavy_actions));
-    RUN_SHORT(speed_test_lct_subtree(3000, lct_speed_update_heavy_actions));
-    RUN_SHORT(speed_test_lct_subtree(3000, lct_speed_topo_heavy_actions));
+    RUN_SHORT(speed_test_lct_subtree());
     return 0;
 }

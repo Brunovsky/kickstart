@@ -1,8 +1,6 @@
 #include "test_utils.hpp"
 #include "../struct/rmq.hpp"
 
-inline namespace unit_testing_rmq {
-
 void unit_test_rmq() {
     min_rmq<int> rmq({3, 9, 2, 7, 8, 4, 7, 3, 1, 6, 8, 2});
     assert(rmq.query(0, 12) == 1);
@@ -18,8 +16,6 @@ void unit_test_rmq_index() {
     assert(rmq.query(2, 10) == 8);
     assert(rmq.query(5, 7) == 5);
 }
-
-} // namespace unit_testing_rmq
 
 int main() {
     RUN_SHORT(unit_test_rmq());

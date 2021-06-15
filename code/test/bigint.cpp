@@ -42,8 +42,6 @@ array<bigint, m> random_bigints(array<int, m> ns, int base = 10, double neg_p = 
 
 } // namespace detail
 
-inline namespace unit_testing_bigint {
-
 /**
  * It should be easy and correct to mix up ints and bigints
  * Mixing up long and bigint not so, as bigint replaces long usages.
@@ -224,17 +222,13 @@ void unit_test_sqrt() {
     assert(sqrt(w) == bigpow(6));
 }
 
-} // namespace unit_testing_bigint
-
-inline namespace stress_testing_bigint {
-
 ms stress_runtime = 2s;
 
 void stress_test_sqrt() {
     intd digitsd(10, 500);
 
     LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
-        print_time(now, stress_runtime, 50ms, "stress test sqrt");
+        print_time(now, stress_runtime, "stress test sqrt");
 
         auto n = random_numeric_string(digitsd(mt), 10);
         auto u = sqrt(bigint(n));
@@ -248,7 +242,7 @@ void stress_test_to_string() {
     intd digitsd(10, 500);
 
     LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
-        print_time(now, stress_runtime, 50ms, "stress test base to_string");
+        print_time(now, stress_runtime, "stress test base to_string");
 
         for (int b = 2; b <= 10; b++) {
             auto s = random_numeric_string(digitsd(mt), b, 0.3);
@@ -269,7 +263,7 @@ void stress_test_compare_sort() {
     intd distN(100, 2000);
 
     LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
-        print_time(now, stress_runtime, 50ms, "stress test compare sort");
+        print_time(now, stress_runtime, "stress test compare sort");
 
         int N = distN(mt);
         vector<bigint> ints(N);
@@ -287,7 +281,7 @@ void stress_test_compare_sort() {
 
 void stress_test_add_commutative() {
     LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
-        print_time(now, stress_runtime, 50ms, "stress test add commutative");
+        print_time(now, stress_runtime, "stress test add commutative");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_small));
         bigint c = a + b;
         bigint d = b + a;
@@ -297,7 +291,7 @@ void stress_test_add_commutative() {
 
 void stress_test_add_transitive() {
     LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
-        print_time(now, stress_runtime, 50ms, "stress test add transitive");
+        print_time(now, stress_runtime, "stress test add transitive");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
         bigint d = (a + b) + c;
         bigint e = a + (b + c);
@@ -307,7 +301,7 @@ void stress_test_add_transitive() {
 
 void stress_test_add_sub_reverse() {
     LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
-        print_time(now, stress_runtime, 50ms, "stress test add sub reverse");
+        print_time(now, stress_runtime, "stress test add sub reverse");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_small));
         bigint c = a - b;
         bigint d = b + c;
@@ -317,7 +311,7 @@ void stress_test_add_sub_reverse() {
 
 void stress_test_add_sub_group() {
     LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
-        print_time(now, stress_runtime, 50ms, "stress test add sub group");
+        print_time(now, stress_runtime, "stress test add sub group");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
         bigint d = a - b + c;
         bigint e = a - (b - c);
@@ -329,7 +323,7 @@ void stress_test_add_sub_group() {
 
 void stress_test_mul_commutative() {
     LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
-        print_time(now, stress_runtime, 50ms, "stress test mul commutative");
+        print_time(now, stress_runtime, "stress test mul commutative");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_small));
         bigint c = a * b;
         bigint d = b * a;
@@ -339,7 +333,7 @@ void stress_test_mul_commutative() {
 
 void stress_test_mul_transitive() {
     LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
-        print_time(now, stress_runtime, 50ms, "stress test mul transitive");
+        print_time(now, stress_runtime, "stress test mul transitive");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
         bigint d = (a * b) * c;
         bigint e = a * (b * c);
@@ -349,7 +343,7 @@ void stress_test_mul_transitive() {
 
 void stress_test_mul_distributive() {
     LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
-        print_time(now, stress_runtime, 50ms, "stress test mul distributive");
+        print_time(now, stress_runtime, "stress test mul distributive");
         auto [a, b, c] = random_bigints<3>(random_ints<3>(distn_small));
         bigint d = a * (b + c);
         bigint e = a * b + a * c;
@@ -359,7 +353,7 @@ void stress_test_mul_distributive() {
 
 void stress_test_div_perfect() {
     LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
-        print_time(now, stress_runtime, 50ms, "stress test div perfect");
+        print_time(now, stress_runtime, "stress test div perfect");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_pos), 10, 0.0);
         bigint c = a * b;
         bigint d = c / a;
@@ -369,7 +363,7 @@ void stress_test_div_perfect() {
 
 void stress_test_div_imperfect() {
     LOOP_FOR_DURATION_TRACKED (stress_runtime, now) {
-        print_time(now, stress_runtime, 50ms, "stress test div imperfect");
+        print_time(now, stress_runtime, "stress test div imperfect");
         auto [a, b] = random_bigints<2>(random_ints<2>(distn_pos));
         bigint q = a;
         bigint r = div_mod(q, b);
@@ -377,15 +371,16 @@ void stress_test_div_imperfect() {
     }
 }
 
-} // namespace stress_testing_bigint
+void speed_test_pairwise_mul(int max_scale = 16) {
+    const int RUNS = max_scale;
+    const auto runtime = 30000ms / RUNS;
 
-inline namespace speed_testing_bigint {
+    map<pair<string, int>, stringable> table;
 
-void speed_test_pairwise_mul(int max_scale = 16, ms runtime = 1s) {
     for (int scale = 1; scale <= max_scale; scale++) {
         START_ACC(mul);
         LOOP_FOR_DURATION_OR_RUNS_TRACKED (runtime, now, 10000, runs) {
-            print_time(now, runtime, 50ms, "speed test multiplication scale={}", scale);
+            print_time(now, runtime, "speed test multiplication scale={}", scale);
 
             auto a = random_bigint(1 << scale);
             auto b = random_bigint(1 << scale);
@@ -394,12 +389,13 @@ void speed_test_pairwise_mul(int max_scale = 16, ms runtime = 1s) {
             auto c = a * b;
             ADD_TIME(mul);
         }
-        double each = 1.0 * TIME_US(mul) / runs;
-        printcl(" {:>12.4f}us -- size {:10} x{}\n", each, 1 << scale, runs);
-    }
-}
 
-} // namespace speed_testing_bigint
+        table[{"bigint", 1 << scale}] = FORMAT_EACH(mul, runs);
+        table[{"runs", 1 << scale}] = runs;
+    }
+
+    print_time_table(table, "Bigint multiplication");
+}
 
 int main() {
     RUN_SHORT(minimum_usability_test());
@@ -414,7 +410,6 @@ int main() {
 
     RUN_BLOCK(speed_test_pairwise_mul());
 
-    stress_runtime = 1s;
     RUN_SHORT(stress_test_sqrt());
     RUN_SHORT(stress_test_to_string());
     RUN_SHORT(stress_test_compare_sort());

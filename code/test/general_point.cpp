@@ -37,8 +37,6 @@ frac area(P a, P b, P c) { return a.crossed(b, c) / 2; }
 frac area2(P3 a, P3 b, P3 c) { return a.crossed(b, c).norm2() / 4; }
 double area(P3 a, P3 b, P3 c) { return a.crossed(b, c).norm() / 2; }
 
-inline namespace unit_testing {
-
 void unit_test_point2d() {
     P A(1, 4), B(7, 0), C(6, 8);
     auto a2 = dist2(B, C), b2 = dist2(A, C), c2 = dist2(A, B);
@@ -84,8 +82,6 @@ void unit_test_point3d_3d() {
     assert(a2 == 9 * 9 && b2 == 42 && c2 == 77);
     assert(ha2 == F(2873, 81) && hb2 == F(2873, 42) && hc2 == F(2873, 77));
 }
-
-} // namespace unit_testing
 
 int main() {
     RUN_BLOCK(unit_test_point2d());

@@ -46,22 +46,19 @@ auto convert_to_tensor(const mat<T>& arr) {
 
 } // namespace detail
 
-inline namespace stress_testing_tensor {
-
-void stress_test_tensor_multiply() {
+void speed_test_tensor_multiply() {
     intd distN(150, 200);
 
-    START_ACC(mat);
-    START_ACC(tensor);
+    START_ACC2(mat, tensor);
 
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED(5s, now, 100'000, runs) {
-        print_time(now, 5s, 50ms, "stress test tensor");
+    LOOP_FOR_DURATION_OR_RUNS_TRACKED (5s, now, 100'000, runs) {
+        print_time(now, 5s, "stress test tensor x vvi");
 
         int N = distN(mt), M = distN(mt), K = distN(mt);
-        mat<int> amat = generate_mat<int>(N, M, 1000);
-        mat<int> bmat = generate_mat<int>(M, K, 1000);
-        tensor<int, 2> aten = convert_to_tensor(amat);
-        tensor<int, 2> bten = convert_to_tensor(bmat);
+        mat<unsigned> amat = generate_mat<unsigned>(N, M, 1000000);
+        mat<unsigned> bmat = generate_mat<unsigned>(M, K, 1000000);
+        tensor<unsigned, 2> aten = convert_to_tensor(amat);
+        tensor<unsigned, 2> bten = convert_to_tensor(bmat);
 
         START(mat);
         auto cmat = amat * bmat;
@@ -78,13 +75,11 @@ void stress_test_tensor_multiply() {
         }
     }
 
-    PRINT_EACH_US(mat, runs);
-    PRINT_EACH_US(tensor, runs);
+    PRINT_EACH(mat, runs);
+    PRINT_EACH(tensor, runs);
 }
 
-} // namespace stress_testing_tensor
-
 int main() {
-    RUN_BLOCK(stress_test_tensor_multiply());
+    RUN_BLOCK(speed_test_tensor_multiply());
     return 0;
 }

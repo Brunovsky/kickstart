@@ -22,8 +22,6 @@ ostream& operator<<(ostream& out, binary_int_heap<Compare> heap) {
 
 } // namespace detail
 
-inline namespace stress_testing_int_heap {
-
 template <template <typename> typename Heap, bool adjust = true>
 void stress_test_int_heap(int N = 60) {
     const int K = 100'000;
@@ -60,8 +58,8 @@ void stress_test_int_heap(int N = 60) {
     };
     discrete_distribution<int> actiond({20, 4000, 4000, 2000});
 
-    LOOP_FOR_DURATION_TRACKED_RUNS(3s, now, runs) {
-        print_time(now, 3s, 50ms, "stress heap");
+    LOOP_FOR_DURATION_TRACKED_RUNS (3s, now, runs) {
+        print_time(now, 3s, "stress heap");
         auto action = HeapAction(actiond(mt));
 
         switch (action) {
@@ -113,10 +111,6 @@ void stress_test_int_heap(int N = 60) {
     printcl("average size: {:.2f} ({:.2f}%)\n", avg, 100.0 * avg / N);
 }
 
-} // namespace stress_testing_int_heap
-
-inline namespace unit_testing_pairing_heaps {
-
 void unit_test_pairing_heaps() {
     constexpr int R = 5, N = 15;
 
@@ -167,8 +161,6 @@ void unit_test_pairing_heaps() {
     heaps.push_or_improve(0, 3);
     assert(heaps.top(0) == 3);
 }
-
-} // namespace unit_testing_pairing_heaps
 
 int main() {
     RUN_BLOCK((stress_test_int_heap<binary_int_heap, false>()));

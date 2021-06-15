@@ -17,9 +17,7 @@ inline NumT parse(string s) { return stoll(s); }
 // inline string convert(NumT n) { to_string(n >= 0 ? long(n) : -long(-n)); }
 inline string convert(NumT n) { return to_string(n); }
 
-inline auto compute_ratio(double time, int N) {
-    return format("{:7.1f} ratio", 1e7 * time / (N * log2(N)));
-}
+inline auto compute_ratio(double time, int N) { return 1e7 * time / (N * log2(N)); }
 
 /**
  * Generate N random points inside the sphere of radius R or cube of side 2R
@@ -137,8 +135,6 @@ string format_hull(const hull_t& hull) {
 
 } // namespace detail
 
-inline namespace dataset_testing_hull3d {
-
 struct quickhull3d_dataset_test_t {
     string name, comment;
     vector<P> points;
@@ -214,104 +210,86 @@ void dataset_test_quickhull3d() {
     }
 }
 
-} // namespace dataset_testing_hull3d
-
-inline namespace stress_testing_hull3d {
-
-fs::path tmpfile;
-
-void stress_test_quickhull3d_run(int N, int L, int C, int I, long R = 100) {
-    LOOP_FOR_DURATION_TRACKED (4s, now) {
-        print_time(now, 4s, 50ms, "stress test quickhull3d {} {} {} {}", N, L, C, I);
-
-        auto points = random_points(N, R);
-        add_coplanar_points(L, points, 2 * R);
-        add_collinear_points(C, points, 2 * R);
-        add_incident_points(I, points);
-
-        ofstream out(tmpfile.string());
-        out << format_header(points) << format_points(points);
-
-        auto hull = compute_hull(points);
-        out << format_hull(hull);
-
-        auto counterexample = verify_hull(hull, points);
-        if (counterexample) {
-            auto [v, f, kind] = counterexample.value();
-            printcl("Incorrect convex hull, check file {}\n", tmpfile.string());
-            if (kind == 0) {
-                print("ce: point {} does not lie on plane of face {}\n", v, f);
-            } else if (kind == 1) {
-                print("ce: point {} can see plane of face {}\n", v, f);
-            }
-            exit(1);
-        }
-    }
-}
-
 void stress_test_quickhull3d() {
-    auto tmpdir = fs::temp_directory_path() / fs::path("hull3d");
-    fs::create_directory(tmpdir);
-    tmpfile = tmpdir / fs::path("hull3d-stress.obj");
-    print("Temp file: {}\n", tmpfile);
+    auto run = [&](int N, int L, int C, int I, long R = 100) {
+        LOOP_FOR_DURATION_TRACKED (4s, now) {
+            print_time(now, 4s, "stress test quickhull3d {} {} {} {}", N, L, C, I);
 
-    stress_test_quickhull3d_run(8, 20, 0, 0);
-    stress_test_quickhull3d_run(10, 50, 0, 0);
-    stress_test_quickhull3d_run(25, 0, 0, 0);
-    stress_test_quickhull3d_run(200, 0, 0, 0);
-    stress_test_quickhull3d_run(170, 0, 0, 30);
-    stress_test_quickhull3d_run(90, 100, 10, 0);
-    stress_test_quickhull3d_run(50, 900, 10, 40);
-    stress_test_quickhull3d_run(9900, 0, 0, 100);
-}
+            auto points = random_points(N, R);
+            add_coplanar_points(L, points, 2 * R);
+            add_collinear_points(C, points, 2 * R);
+            add_incident_points(I, points);
 
-} // namespace stress_testing_hull3d
+            auto hull = compute_hull(points);
+            auto counterexample = verify_hull(hull, points);
+            if (counterexample) {
+                auto [v, f, kind] = counterexample.value();
+                if (kind == 0) {
+                    print("ce: point {} does not lie on plane of face {}\n", v, f);
+                } else if (kind == 1) {
+                    print("ce: point {} can see plane of face {}\n", v, f);
+                }
+            }
+            assert(!counterexample);
+        }
+    };
 
-inline namespace scaling_testing_hull3d {
-
-void scaling_test_quickhull3d_run(int N, int L, int C, int I = 0, long R = 200) {
-    START_ACC(hull);
-
-    LOOP_FOR_DURATION_TRACKED_RUNS (2s, now, runs) {
-        print_time(now, 2s, 50ms, "scaling test hull");
-
-        auto points = random_points(N, R);
-        add_coplanar_points(L, points, R);
-        add_collinear_points(C, points, R);
-        assert(points.size() == unsigned(N + L + C + I));
-
-        START(hull);
-        auto hull = compute_hull(points);
-        ADD_TIME(hull);
-    }
-
-    int all = N + L + C + I;
-    printcl(" {:>8.2f}ms/1 -- {} -- x{:<6}  P={:<6} (N={},L={},C={},I={})\n",
-            EACH_MS(hull, runs), compute_ratio(EACH_MS(hull, runs), all), runs, all, N, L,
-            C, I);
+    run(8, 20, 0, 0);
+    run(10, 50, 0, 0);
+    run(25, 0, 0, 0);
+    run(200, 0, 0, 0);
+    run(170, 0, 0, 30);
+    run(90, 100, 10, 0);
+    run(50, 900, 10, 40);
+    run(9900, 0, 0, 100);
 }
 
 void scaling_test_quickhull3d() {
-    scaling_test_quickhull3d_run(400, 50, 50);
-    scaling_test_quickhull3d_run(300, 100, 100);
-    scaling_test_quickhull3d_run(800, 100, 100);
-    scaling_test_quickhull3d_run(600, 200, 200);
-    scaling_test_quickhull3d_run(400, 300, 300);
-    scaling_test_quickhull3d_run(1500, 2500, 2500);
-    scaling_test_quickhull3d_run(1200, 4000, 4000);
-    scaling_test_quickhull3d_run(4500, 2500, 2500);
-    scaling_test_quickhull3d_run(3500, 7500, 7500);
-    scaling_test_quickhull3d_run(9400, 3000, 3000);
-    scaling_test_quickhull3d_run(5000, 2500, 2500);
-    scaling_test_quickhull3d_run(15'000, 2500, 2500);
-    scaling_test_quickhull3d_run(15'000, 2500, 2500);
-    scaling_test_quickhull3d_run(100'000, 0, 0);
-    scaling_test_quickhull3d_run(10'000, 90'000, 0);
-    scaling_test_quickhull3d_run(400'000, 0, 0);
-    scaling_test_quickhull3d_run(10'000, 300'000, 90'000);
-}
+    vector<vector<stringable>> table;
+    table.push_back({"N", "L", "C", "I", "P", "runs", "ratio", "time"});
 
-} // namespace scaling_testing_hull3d
+    auto run = [&](int N, int L, int C, int I = 0, long R = 200) {
+        int P = N + L + C + I;
+        START_ACC(hull);
+
+        LOOP_FOR_DURATION_TRACKED_RUNS (2s, now, runs) {
+            print_time(now, 2s, "scaling test hull P={}", P);
+
+            auto points = random_points(N, R);
+            add_coplanar_points(L, points, R);
+            add_collinear_points(C, points, R);
+            assert(points.size() == unsigned(N + L + C + I));
+
+            START(hull);
+            auto hull = compute_hull(points);
+            ADD_TIME(hull);
+        }
+
+        table.push_back({N, L, C, I, P, runs,
+                         format("{:.2f}", compute_ratio(EACH_MS(hull, runs), P)),
+                         FORMAT_EACH(hull, runs)});
+    };
+
+    run(400, 50, 50);
+    run(300, 100, 100);
+    run(800, 100, 100);
+    run(600, 200, 200);
+    run(400, 300, 300);
+    run(1500, 2500, 2500);
+    run(1200, 4000, 4000);
+    run(4500, 2500, 2500);
+    run(3500, 7500, 7500);
+    run(9400, 3000, 3000);
+    run(5000, 2500, 2500);
+    run(15'000, 2500, 2500);
+    run(15'000, 2500, 2500);
+    run(100'000, 0, 0);
+    run(10'000, 90'000, 0);
+    run(400'000, 0, 0);
+    run(10'000, 300'000, 90'000);
+
+    print_time_table(table, "Quickhull3d");
+}
 
 int main() {
     RUN_BLOCK(dataset_test_quickhull3d());

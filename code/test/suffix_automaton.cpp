@@ -5,20 +5,15 @@
 #include "../strings/sparse_suffix_automaton.hpp"
 #include "../strings/vector_suffix_automaton.hpp"
 
-inline namespace speed_testing_suffix_automaton {
+void speed_test_build(int min_scale = 10, int max_scale = 18) {
+    map<pair<string, int>, string> table;
 
-void speed_test_build(int min_scale = 10, int max_scale = 15) {
     for (int scale = min_scale; scale <= max_scale; scale++) {
-        int len = 1 << scale;
+        START_ACC4(gsa, ssa, msa, vsa);
 
-        START_ACC(gsa);
-        START_ACC(ssa);
-        START_ACC(msa);
-        START_ACC(vsa);
-
-        LOOP_FOR_DURATION_OR_RUNS_TRACKED(2s, now, 10'000, runs) {
-            print_time(now, 2s, 50ms, "speed test build {}/{} {}", scale, max_scale, len);
-            string s = generate_any_string(len, 'a', 'z');
+        LOOP_FOR_DURATION_OR_RUNS_TRACKED (2s, now, 10'000, runs) {
+            print_time(now, 2s, "speed test build {}", 1 << scale);
+            string s = generate_any_string(1 << scale, 'a', 'z');
 
             START(gsa);
             suffix_automaton gsa(s);
@@ -37,32 +32,31 @@ void speed_test_build(int min_scale = 10, int max_scale = 15) {
             ADD_TIME(vsa);
         }
 
-        printcl(" -- speed test SA build len={}\n", len);
-        PRINT_EACH_MS(gsa, runs);
-        PRINT_EACH_MS(ssa, runs);
-        PRINT_EACH_MS(msa, runs);
-        PRINT_EACH_MS(vsa, runs);
+        table[{"gsa", 1 << scale}] = FORMAT_EACH(gsa, runs);
+        table[{"ssa", 1 << scale}] = FORMAT_EACH(ssa, runs);
+        table[{"msa", 1 << scale}] = FORMAT_EACH(msa, runs);
+        table[{"vsa", 1 << scale}] = FORMAT_EACH(vsa, runs);
     }
+
+    print_time_table(table, "Suffix automaton build");
 }
 
 void speed_test_contains(int min_scale = 10, int max_scale = 18) {
+    map<pair<string, int>, string> table;
+
     for (int scale = min_scale; scale <= max_scale; scale++) {
         int len = 1 << scale;
         string s = generate_any_string(len, 'a', 'z');
 
-        START_ACC(gsa);
-        START_ACC(ssa);
-        START_ACC(msa);
-        START_ACC(vsa);
+        START_ACC4(gsa, ssa, msa, vsa);
 
         suffix_automaton gsa(s);
         sparse_suffix_automaton ssa(s);
         map_suffix_automaton msa(s);
         vector_suffix_automaton vsa(s);
 
-        LOOP_FOR_DURATION_OR_RUNS_TRACKED(2s, now, 250'000, runs) {
-            print_time(now, 2s, 50ms, "speed test contains {}/{} {}", scale, max_scale,
-                       len);
+        LOOP_FOR_DURATION_OR_RUNS_TRACKED (2s, now, 250'000, runs) {
+            print_time(now, 2s, "speed test contains {}/{} {}", scale, max_scale, len);
             string pat = generate_any_string(len / 64, 'a', 'z');
 
             START(gsa);
@@ -84,17 +78,14 @@ void speed_test_contains(int min_scale = 10, int max_scale = 18) {
             assert(c0 == c1 && c0 == c2 && c0 == c3);
         }
 
-        printcl(" -- speed test SA contains len={}\n", len);
-        PRINT_EACH_NS(gsa, runs);
-        PRINT_EACH_NS(ssa, runs);
-        PRINT_EACH_NS(msa, runs);
-        PRINT_EACH_NS(vsa, runs);
+        table[{"gsa", 1 << scale}] = FORMAT_EACH(gsa, runs);
+        table[{"ssa", 1 << scale}] = FORMAT_EACH(ssa, runs);
+        table[{"msa", 1 << scale}] = FORMAT_EACH(msa, runs);
+        table[{"vsa", 1 << scale}] = FORMAT_EACH(vsa, runs);
     }
+
+    print_time_table(table, "Suffix automaton count matches");
 }
-
-} // namespace speed_testing_suffix_automaton
-
-inline namespace stress_testing_suffix_automaton {
 
 template <typename SA = suffix_automaton<>>
 void stress_test_suffix_automaton() {
@@ -148,10 +139,6 @@ void stress_test_suffix_automaton() {
     }
 }
 
-} // namespace stress_testing_suffix_automaton
-
-inline namespace unit_testing_suffix_automaton {
-
 void unit_test_suffix_automaton() {
     int errors = 0;
     vector_suffix_automaton sa("aabaababaabab"s);
@@ -167,8 +154,6 @@ void unit_test_suffix_automaton() {
     print("count: {}\n", sa.count_distinct_substrings());
     print("errors: {}\n", errors);
 }
-
-} // namespace unit_testing_suffix_automaton
 
 int main() {
     RUN_SHORT(unit_test_suffix_automaton());

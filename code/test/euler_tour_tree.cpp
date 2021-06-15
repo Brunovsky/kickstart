@@ -59,16 +59,17 @@ bool stress_verify_ett(slow_tree<false>& slow, ett_subtree& tree, int D = 2) {
 
 } // namespace detail
 
-actions_t<UnrootedAT> ett_stress_actions = {
-    {UnrootedAT::LINK, 2500},        {UnrootedAT::CUT, 500},
-    {UnrootedAT::LINK_CUT, 2000},    {UnrootedAT::LCA, 0},
-    {UnrootedAT::FINDROOT, 1500},    {UnrootedAT::LCA_CONN, 0},
-    {UnrootedAT::QUERY_NODE, 2000},  {UnrootedAT::UPDATE_NODE, 3000},
-    {UnrootedAT::UPDATE_TREE, 3500}, {UnrootedAT::QUERY_TREE, 3500},
-    {UnrootedAT::TREE_SIZE, 1500},   {UnrootedAT::STRESS_TEST, 400},
-};
+void stress_test_ett() {
+    static actions_t<UnrootedAT> ett_stress_actions = {
+        {UnrootedAT::LINK, 2500},        {UnrootedAT::CUT, 500},
+        {UnrootedAT::LINK_CUT, 2000},    {UnrootedAT::LCA, 0},
+        {UnrootedAT::FINDROOT, 1500},    {UnrootedAT::LCA_CONN, 0},
+        {UnrootedAT::QUERY_NODE, 2000},  {UnrootedAT::UPDATE_NODE, 3000},
+        {UnrootedAT::UPDATE_TREE, 3500}, {UnrootedAT::QUERY_TREE, 3500},
+        {UnrootedAT::TREE_SIZE, 1500},   {UnrootedAT::STRESS_TEST, 400},
+    };
 
-void stress_test_ett(int N = 200) {
+    const int N = 200;
     slow_tree<false> slow(N);
     ett_subtree tree(N);
     auto actions = make_unrooted_actions(N, 1s, ett_stress_actions, 9 * N / 10);
@@ -146,89 +147,106 @@ void stress_test_ett(int N = 200) {
     }
 }
 
-actions_t<UnrootedAT> ett_speed_topo_heavy_actions = {
-    {UnrootedAT::LINK, 5000},        {UnrootedAT::CUT, 1000},
-    {UnrootedAT::LINK_CUT, 4000},    {UnrootedAT::LCA, 0},
-    {UnrootedAT::FINDROOT, 1000},    {UnrootedAT::LCA_CONN, 0},
-    {UnrootedAT::QUERY_NODE, 2000},  {UnrootedAT::UPDATE_NODE, 2500},
-    {UnrootedAT::UPDATE_TREE, 2500}, {UnrootedAT::QUERY_TREE, 3500},
-    {UnrootedAT::TREE_SIZE, 1500},
-};
-actions_t<UnrootedAT> ett_speed_update_heavy_actions = {
-    {UnrootedAT::LINK, 1500},        {UnrootedAT::CUT, 300},
-    {UnrootedAT::LINK_CUT, 1200},    {UnrootedAT::LCA, 0},
-    {UnrootedAT::FINDROOT, 1000},    {UnrootedAT::LCA_CONN, 0},
-    {UnrootedAT::QUERY_NODE, 1000},  {UnrootedAT::UPDATE_NODE, 6000},
-    {UnrootedAT::UPDATE_TREE, 8000}, {UnrootedAT::QUERY_TREE, 2400},
-    {UnrootedAT::TREE_SIZE, 600},
-};
-actions_t<UnrootedAT> ett_speed_query_heavy_actions = {
-    {UnrootedAT::LINK, 1500},        {UnrootedAT::CUT, 300},
-    {UnrootedAT::LINK_CUT, 1200},    {UnrootedAT::LCA, 0},
-    {UnrootedAT::FINDROOT, 1000},    {UnrootedAT::LCA_CONN, 0},
-    {UnrootedAT::QUERY_NODE, 5000},  {UnrootedAT::UPDATE_NODE, 1200},
-    {UnrootedAT::UPDATE_TREE, 2000}, {UnrootedAT::QUERY_TREE, 10000},
-    {UnrootedAT::TREE_SIZE, 4000},
-};
+void speed_test_ett() {
+    static actions_t<UnrootedAT> ett_speed_topo_heavy_actions = {
+        {UnrootedAT::LINK, 5000},        {UnrootedAT::CUT, 1000},
+        {UnrootedAT::LINK_CUT, 4000},    {UnrootedAT::LCA, 0},
+        {UnrootedAT::FINDROOT, 1000},    {UnrootedAT::LCA_CONN, 0},
+        {UnrootedAT::QUERY_NODE, 2000},  {UnrootedAT::UPDATE_NODE, 2500},
+        {UnrootedAT::UPDATE_TREE, 2500}, {UnrootedAT::QUERY_TREE, 3500},
+        {UnrootedAT::TREE_SIZE, 1500},
+    };
+    static actions_t<UnrootedAT> ett_speed_update_heavy_actions = {
+        {UnrootedAT::LINK, 1500},        {UnrootedAT::CUT, 300},
+        {UnrootedAT::LINK_CUT, 1200},    {UnrootedAT::LCA, 0},
+        {UnrootedAT::FINDROOT, 1000},    {UnrootedAT::LCA_CONN, 0},
+        {UnrootedAT::QUERY_NODE, 1000},  {UnrootedAT::UPDATE_NODE, 6000},
+        {UnrootedAT::UPDATE_TREE, 8000}, {UnrootedAT::QUERY_TREE, 2400},
+        {UnrootedAT::TREE_SIZE, 600},
+    };
+    static actions_t<UnrootedAT> ett_speed_query_heavy_actions = {
+        {UnrootedAT::LINK, 1500},        {UnrootedAT::CUT, 300},
+        {UnrootedAT::LINK_CUT, 1200},    {UnrootedAT::LCA, 0},
+        {UnrootedAT::FINDROOT, 1000},    {UnrootedAT::LCA_CONN, 0},
+        {UnrootedAT::QUERY_NODE, 5000},  {UnrootedAT::UPDATE_NODE, 1200},
+        {UnrootedAT::UPDATE_TREE, 2000}, {UnrootedAT::QUERY_TREE, 10000},
+        {UnrootedAT::TREE_SIZE, 4000},
+    };
 
-void speed_test_ett(int N, const actions_t<UnrootedAT>& freq) {
-    ett_subtree tree(N);
-    auto actions = make_unrooted_actions(N, 10s, freq, N - 100);
+    vector<vector<stringable>> table;
+    table.push_back({"N", "name", "#actions", "time"});
 
-    START(ett);
-    for (const auto& [action, u, v, r, who, val] : actions) {
-        bool ok = true;
-        switch (action) {
-        case UnrootedAT::LINK: {
-            tree.link(u, v);
-        } break;
-        case UnrootedAT::CUT: {
-            tree.cut(u, v);
-        } break;
-        case UnrootedAT::FINDROOT: {
-            tree.reroot(who);
-            int ans = tree.findroot(u);
-            ok = ans == who;
-        } break;
-        // case UnrootedAT::LCA: {
-        //     tree.reroot(r);
-        //     int ans = tree.lca(u, v);
-        //     ok = ans == who;
-        // } break;
-        case UnrootedAT::QUERY_NODE: {
-            long ans = tree.access_node(u)->self;
-            ok = val == ans;
-        } break;
-        case UnrootedAT::UPDATE_NODE: {
-            tree.access_node(u)->self = val;
-        } break;
-        case UnrootedAT::QUERY_TREE: {
-            long ans = tree.access_tree(u)->subtree();
-            ok = val == ans;
-        } break;
-        case UnrootedAT::TREE_SIZE: {
-            long ans = tree.access_tree(u)->subtree_size();
-            ok = val == ans;
-        } break;
-        case UnrootedAT::UPDATE_TREE: {
-            tree.access_tree(u)->lazy += val;
-        } break;
-        default:
-            throw runtime_error("Unsupported action");
+    auto run = [&](int N, ms generation, const auto& name, const auto& freq) {
+        ett_subtree tree(N);
+        auto actions = make_unrooted_actions(N, generation, freq, N - 100);
+        printcl("speed test ett");
+
+        START(ett);
+        for (const auto& [action, u, v, r, who, val] : actions) {
+            bool ok = true;
+            switch (action) {
+            case UnrootedAT::LINK: {
+                tree.link(u, v);
+            } break;
+            case UnrootedAT::CUT: {
+                tree.cut(u, v);
+            } break;
+            case UnrootedAT::FINDROOT: {
+                tree.reroot(who);
+                int ans = tree.findroot(u);
+                ok = ans == who;
+            } break;
+            // case UnrootedAT::LCA: {
+            //     tree.reroot(r);
+            //     int ans = tree.lca(u, v);
+            //     ok = ans == who;
+            // } break;
+            case UnrootedAT::QUERY_NODE: {
+                long ans = tree.access_node(u)->self;
+                ok = val == ans;
+            } break;
+            case UnrootedAT::UPDATE_NODE: {
+                tree.access_node(u)->self = val;
+            } break;
+            case UnrootedAT::QUERY_TREE: {
+                long ans = tree.access_tree(u)->subtree();
+                ok = val == ans;
+            } break;
+            case UnrootedAT::TREE_SIZE: {
+                long ans = tree.access_tree(u)->subtree_size();
+                ok = val == ans;
+            } break;
+            case UnrootedAT::UPDATE_TREE: {
+                tree.access_tree(u)->lazy += val;
+            } break;
+            default:
+                throw runtime_error("Unsupported action");
+            }
+            if (!ok) {
+                printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action));
+            }
+            assert(ok);
         }
-        if (!ok) {
-            printcl("Failed action: {}\n", action_names<UnrootedAT>.at(action));
-        }
-        assert(ok);
-    }
-    TIME(ett);
-    PRINT_EACH_NS(ett, actions.size());
+        TIME(ett);
+
+        table.push_back({N, name, actions.size(), FORMAT_EACH(ett, actions.size())});
+    };
+
+    run(1000, 1s, "query heavy", ett_speed_query_heavy_actions);
+    run(10000, 3s, "query heavy", ett_speed_query_heavy_actions);
+    run(50000, 6s, "query heavy", ett_speed_query_heavy_actions);
+    run(1000, 1s, "update heavy", ett_speed_update_heavy_actions);
+    run(10000, 3s, "update heavy", ett_speed_update_heavy_actions);
+    run(50000, 6s, "update heavy", ett_speed_update_heavy_actions);
+    run(1000, 1s, "topo heavy", ett_speed_topo_heavy_actions);
+    run(10000, 3s, "topo heavy", ett_speed_topo_heavy_actions);
+    run(50000, 6s, "topo heavy", ett_speed_topo_heavy_actions);
+
+    print_time_table(table, "Euler Tour Tree");
 }
 
 int main() {
     RUN_BLOCK(stress_test_ett());
-    RUN_BLOCK(speed_test_ett(10000, ett_speed_query_heavy_actions));
-    RUN_BLOCK(speed_test_ett(10000, ett_speed_update_heavy_actions));
-    RUN_BLOCK(speed_test_ett(10000, ett_speed_topo_heavy_actions));
+    RUN_BLOCK(speed_test_ett());
     return 0;
 }

@@ -13,8 +13,8 @@
  */
 template <int A, int B, int C, int D, bool reverse, typename T>
 void conv_transform(vector<T>& a) {
-    int N = a.size(), n = N > 1 ? 8 * sizeof(N) - __builtin_clz(N - 1) : 0;
-    assert(N == (1 << n));
+    int N = a.size();
+    assert((N & (N - 1)) == 0);
     for (int h = 1; h < N; h *= 2) {
         for (int i = 0; i < N; i += 2 * h) {
             for (int j = i; j < i + h; j++) {
@@ -33,6 +33,7 @@ void conv_transform(vector<T>& a) {
     if constexpr (reverse) {
         static_assert(A * D - B * C != 0);
         T div = 1;
+        int n = N > 1 ? 8 * sizeof(N) - __builtin_clz(N - 1) : 0;
         while (n--) {
             div *= T(A * D - B * C);
         }
@@ -58,11 +59,11 @@ auto convolve(const vector<T>& a, const vector<T>& b) {
     }
     conv_transform<A, B, C, D, 1>(c);
     if constexpr (is_floating_point<T>::value)
-        while (!v.empty() && abs(v.back()) <= 30 * numeric_limits<T>::epsilon())
-            v.pop_back();
+        while (!c.empty() && abs(c.back()) <= 30 * numeric_limits<T>::epsilon())
+            c.pop_back();
     else
-        while (!v.empty() && v.back() == T(0))
-            v.pop_back();
+        while (!c.empty() && c.back() == T(0))
+            c.pop_back();
     return c;
 }
 

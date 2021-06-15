@@ -2,19 +2,18 @@
 #include "../numeric/fft.hpp"
 #include "../lib/anynum.hpp"
 
-void stress_test_fft_multiply() {
-    constexpr int N = 1000;
-    constexpr int V = 1000;
+template <typename Num = int>
+void stress_test_fft_multiply(int N = 1000, Num V = 1000) {
     intd distn(0, N);
     int errors = 0;
-    static_assert(1LL * N * V * V <= INT_MAX);
 
     LOOP_FOR_DURATION_OR_RUNS_TRACKED (4s, now, 100'000, runs) {
-        print_time(now, 4s, 40ms, "stress test fft multiply");
+        print_time(now, 4s, "stress test fft multiply");
 
         int A = distn(mt), B = distn(mt);
-        auto a = int_gen<int>(A, -V, V);
-        auto b = int_gen<int>(B, -V, V);
+        auto a = uniform_gen_many<Num>(A, -V, V);
+        auto b = uniform_gen_many<Num>(B, -V, V);
+
         auto c = fft::fft_multiply(a, b);
         auto d = fft::naive_multiply(a, b);
 
@@ -27,75 +26,43 @@ void stress_test_fft_multiply() {
     }
 }
 
-void stress_test_fft_square() {
-    constexpr int N = 1000;
-    constexpr int V = 1000;
-    intd distn(0, N);
-    int errors = 0;
-    static_assert(1LL * N * V * V <= INT_MAX);
+template <typename Num = int>
+void speed_test_fft_multiply(int V = 1000) {
+    constexpr long naive_threshold = 50'000'000;
+    vector<int> As = {10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000};
+    vector<int> Bs = {10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000};
+    const auto duration = 30000ms / (As.size() * Bs.size());
 
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED (4s, now, 100'000, runs) {
-        print_time(now, 4s, 40ms, "stress test fft square");
+    map<tuple<int, int, string>, string> table;
 
-        int A = distn(mt);
-        auto a = int_gen<int>(A, -V, V);
-        auto c = fft::fft_square(a);
-        auto d = fft::naive_multiply(a, a);
+    for (int A : As) {
+        for (int B : Bs) {
+            bool run_naive = 1LL * A * B <= naive_threshold;
+            START_ACC2(fft, naive);
 
-        errors += c != d;
-    }
+            LOOP_FOR_DURATION_OR_RUNS_TRACKED (200ms, now, 10000, runs) {
+                print_time(now, 200ms, "speed test fft multiply A,B={},{}", A, B);
 
-    if (errors > 0) {
-        double percent = 100.0 * errors / runs;
-        printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
-    }
-}
-
-void speed_test_fft_multiply() {
-    constexpr int V = 1000;
-    vector<int> As = {10, 30, 100, 300, 1000, 3000, 10000, 30000};
-    vector<int> Bs = {10, 30, 100, 300, 1000, 3000, 10000, 30000};
-
-    int NAs = As.size(), NBs = Bs.size();
-    mat<string> ffttime = make_table(As, Bs);
-    mat<string> naivetime = make_table(As, Bs);
-    mat<string> speedup = make_table(As, Bs);
-
-    for (int ia = 1; ia <= NAs; ia++) {
-        for (int ib = 1; ib <= NBs; ib++) {
-            int A = As[ia - 1], B = Bs[ib - 1];
-
-            START_ACC(fft);
-            START_ACC(naive);
-
-            LOOP_FOR_DURATION_OR_RUNS_TRACKED (1500ms, now, 10000, runs) {
-                print_time(now, 1500ms, 50ms, "speed test fft multiply");
-
-                auto a = uniform_gen_many<long>(A, -V, V);
-                auto b = uniform_gen_many<long>(B, -V, V);
+                auto a = uniform_gen_many<Num>(A, -V, V);
+                auto b = uniform_gen_many<Num>(B, -V, V);
 
                 START(fft);
                 auto c = fft::fft_multiply(a, b);
                 ADD_TIME(fft);
 
-                START(naive);
-                auto d = fft::naive_multiply(a, b);
-                ADD_TIME(naive);
+                if (run_naive) {
+                    START(naive);
+                    auto d = fft::naive_multiply(a, b);
+                    ADD_TIME(naive);
+                }
             }
 
-            printcl(" -- fft multiply {}x{}\n", A, B);
-            PRINT_TIME_MS(fft);
-            PRINT_TIME_MS(naive);
-
-            ffttime[ia][ib] = format("{:.1f}", 1.0 * TIME_US(fft) / runs);
-            naivetime[ia][ib] = format("{:.1f}", 1.0 * TIME_US(naive) / runs);
-            speedup[ia][ib] = format("{:.3f}", 1.0 * TIME_US(naive) / TIME_US(fft));
+            table[{A, B, "fft"}] = FORMAT_EACH(fft, runs);
+            table[{A, B, "naive"}] = FORMAT_EACH(naive, runs);
         }
     }
 
-    print("fft:\n{}", ffttime);
-    print("naive:\n{}", naivetime);
-    print("speedup:\n{}", speedup);
+    print_time_table(table, "FFT");
 }
 
 template <typename Num>
@@ -114,8 +81,7 @@ void breakeven_test_fft_multiply(int V) {
         printcl("breakeven fft multiply N={} window={}", N, delta);
         N++;
 
-        START_ACC(fft);
-        START_ACC(naive);
+        START_ACC2(fft, naive);
 
         LOOP_FOR_DURATION_OR_RUNS (50ms, 10000) {
             auto a = uniform_gen_many<Num>(N, 0, V);
@@ -146,9 +112,8 @@ void breakeven_test_fft_multiply(int V) {
 
 int main() {
     RUN_BLOCK(stress_test_fft_multiply());
-    RUN_BLOCK(stress_test_fft_square());
-    RUN_BLOCK(breakeven_test_fft_multiply<long>(500'000));
     RUN_BLOCK(breakeven_test_fft_multiply<int>(30'000));
+    RUN_BLOCK(breakeven_test_fft_multiply<long>(500'000));
     RUN_BLOCK(breakeven_test_fft_multiply<double>(300'000));
     RUN_BLOCK(speed_test_fft_multiply());
     return 0;

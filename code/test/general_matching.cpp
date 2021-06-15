@@ -36,8 +36,6 @@ inline double compute_ratio(double time, int V, int E) {
 
 } // namespace detail
 
-inline namespace dataset_testing_general_matching {
-
 struct general_matching_dataset_test_t {
     string name, comment;
     edges_t g;
@@ -89,17 +87,13 @@ void dataset_test_general_matching() {
     }
 }
 
-} // namespace dataset_testing_general_matching
-
-inline namespace stress_testing_general_matching {
-
 void stress_test_general_matching() {
     intd distV(30, 100);
     reald distMp(0.1, 0.5);
     reald distEp(3.0, 15.0);
 
-    LOOP_FOR_DURATION_TRACKED(4s, now) {
-        print_time(now, 4s, 50ms, "stress test general matching");
+    LOOP_FOR_DURATION_TRACKED (4s, now) {
+        print_time(now, 4s, "stress test general matching");
 
         int V = distV(mt);
         int M = min(V / 2, int(ceil(distMp(mt) * V)));
@@ -121,117 +115,115 @@ void stress_test_general_matching() {
     }
 }
 
-} // namespace stress_testing_general_matching
-
-inline namespace scaling_testing_general_matching {
-
-void scaling_test_general_matching_run(int V, int E) {
-    START_ACC(mv);
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED(1s, now, 1000, runs) {
-        print_time(now, 1s, 50ms, "scaling test general matching");
-
-        edges_t g = relabel(V, random_exact_undirected_connected(V, E));
-
-        START(mv);
-        micali_vazirani vg(V, g);
-        vg.bootstrap();
-        vg.max_matching();
-        ADD_TIME(mv);
-    }
-
-    printcl(" {:>7.1f}ms -- {:7.1f} ratio -- x{:<6}  V={:<6}  E={:<6}\n",
-            EACH_MS(mv, runs), compute_ratio(EACH_MS(mv, runs), V, E), runs, V, E);
-}
-
 void scaling_test_general_matching() {
-    scaling_test_general_matching_run(200, 300);
-    scaling_test_general_matching_run(200, 2'000);
-    scaling_test_general_matching_run(500, 800);
-    scaling_test_general_matching_run(500, 12'000);
-    scaling_test_general_matching_run(1'000, 2'000);
-    scaling_test_general_matching_run(1'000, 8'000);
-    scaling_test_general_matching_run(1'000, 30'000);
-    scaling_test_general_matching_run(5'000, 7'000);
-    scaling_test_general_matching_run(5'000, 16'000);
-    scaling_test_general_matching_run(5'000, 70'000);
-    scaling_test_general_matching_run(5'000, 230'000);
-    scaling_test_general_matching_run(10'000, 15'000);
-    scaling_test_general_matching_run(10'000, 25'000);
-    scaling_test_general_matching_run(10'000, 150'000);
-    scaling_test_general_matching_run(20'000, 30'000);
-    scaling_test_general_matching_run(20'000, 45'000);
-    scaling_test_general_matching_run(20'000, 400'000);
-    scaling_test_general_matching_run(30'000, 50'000);
-    scaling_test_general_matching_run(30'000, 70'000);
-    scaling_test_general_matching_run(30'000, 550'000);
-    scaling_test_general_matching_run(50'000, 80'000);
-    scaling_test_general_matching_run(50'000, 780'000);
-    scaling_test_general_matching_run(100'000, 150'000);
-    scaling_test_general_matching_run(100'000, 250'000);
-    scaling_test_general_matching_run(100'000, 350'000);
-    scaling_test_general_matching_run(100'000, 1'000'000);
-    scaling_test_general_matching_run(200'000, 300'000);
-    scaling_test_general_matching_run(250'000, 300'000);
-}
+    vector<vector<stringable>> table;
+    table.push_back({"V", "E", "runs", "ratio", "time"});
 
-} // namespace scaling_testing_general_matching
+    auto run = [&](int V, int E) {
+        START_ACC(mv);
 
-inline namespace speed_testing_general_matching {
+        LOOP_FOR_DURATION_OR_RUNS_TRACKED (1s, now, 1000, runs) {
+            print_time(now, 1s, "scaling test general matching");
 
-void speed_test_general_matching_run(int V, int E) {
-    print("  speed test  V={:<6}  E={}\n", V, E);
-    START_ACC(boost);
-    START_ACC(mv);
+            edges_t g = relabel(V, random_exact_undirected_connected(V, E));
 
-    LOOP_FOR_DURATION_TRACKED_RUNS(1s, now, runs) {
-        print_time(now, 1s, 50ms, "speed test general matching");
+            START(mv);
+            micali_vazirani vg(V, g);
+            vg.bootstrap();
+            vg.max_matching();
+            ADD_TIME(mv);
+        }
 
-        edges_t g = relabel(V, random_exact_undirected_connected(V, E));
-        auto bg = to_boost(V, g);
+        auto ratio = format("{:.2f}", compute_ratio(EACH_MS(mv, runs), V, E));
+        table.push_back({V, E, runs, ratio, EACH_MS(mv, runs)});
+    };
 
-        START(boost);
-        int ans = boost_matching_size(bg);
-        ADD_TIME(boost);
+    run(200, 300);
+    run(200, 2'000);
+    run(500, 800);
+    run(500, 12'000);
+    run(1'000, 2'000);
+    run(1'000, 8'000);
+    run(1'000, 30'000);
+    run(5'000, 7'000);
+    run(5'000, 16'000);
+    run(5'000, 70'000);
+    run(5'000, 230'000);
+    run(10'000, 15'000);
+    run(10'000, 25'000);
+    run(10'000, 150'000);
+    run(20'000, 30'000);
+    run(20'000, 45'000);
+    run(20'000, 400'000);
+    run(30'000, 50'000);
+    run(30'000, 70'000);
+    run(30'000, 550'000);
+    run(50'000, 80'000);
+    run(50'000, 780'000);
+    run(100'000, 150'000);
+    run(100'000, 250'000);
+    run(100'000, 350'000);
+    run(100'000, 1'000'000);
+    run(200'000, 300'000);
+    run(250'000, 300'000);
 
-        START(mv);
-        micali_vazirani vg(V, g);
-        vg.bootstrap();
-        int M = vg.max_matching();
-        ADD_TIME(mv);
-
-        assert(ans == M);
-    }
-
-    PRINT_EACH_MS(boost, runs);
-    PRINT_EACH_MS(mv, runs);
+    print_time_table(table, "Scaling General matching");
 }
 
 void speed_test_general_matching() {
-    speed_test_general_matching_run(50, 70);
-    speed_test_general_matching_run(100, 150);
-    speed_test_general_matching_run(200, 300);
-    speed_test_general_matching_run(500, 800);
-    speed_test_general_matching_run(500, 3'000);
-    speed_test_general_matching_run(500, 8'000);
-    speed_test_general_matching_run(2'000, 5'000);
-    speed_test_general_matching_run(2'000, 12'000);
-    speed_test_general_matching_run(5'000, 7'000);
-    speed_test_general_matching_run(5'000, 30'000);
-    speed_test_general_matching_run(5'000, 100'000);
-    speed_test_general_matching_run(5'000, 300'000);
-    speed_test_general_matching_run(5'000, 1'000'000);
-    speed_test_general_matching_run(10'000, 15'000);
-    speed_test_general_matching_run(10'000, 25'000);
-    speed_test_general_matching_run(20'000, 30'000);
-    speed_test_general_matching_run(20'000, 45'000);
-    speed_test_general_matching_run(30'000, 50'000);
-    speed_test_general_matching_run(30'000, 80'000);
-    speed_test_general_matching_run(30'000, 300'000);
-    speed_test_general_matching_run(50'000, 100'000);
-    speed_test_general_matching_run(100'000, 150'000);
-}
+    vector<vector<stringable>> table;
+    table.push_back({"V", "E", "runs", "boost", "mv"});
 
-} // namespace speed_testing_general_matching
+    auto run = [&](int V, int E) {
+        START_ACC2(boost, mv);
+
+        LOOP_FOR_DURATION_TRACKED_RUNS (1s, now, runs) {
+            print_time(now, 1s, "speed test general matching V,E={},{}", V, E);
+
+            edges_t g = relabel(V, random_exact_undirected_connected(V, E));
+            auto bg = to_boost(V, g);
+
+            START(boost);
+            int ans = boost_matching_size(bg);
+            ADD_TIME(boost);
+
+            START(mv);
+            micali_vazirani vg(V, g);
+            vg.bootstrap();
+            int M = vg.max_matching();
+            ADD_TIME(mv);
+
+            assert(ans == M);
+        }
+
+        table.push_back({V, E, runs, FORMAT_EACH(boost, runs), FORMAT_EACH(mv, runs)});
+    };
+
+    run(50, 70);
+    run(100, 150);
+    run(200, 300);
+    run(500, 800);
+    run(500, 3'000);
+    run(500, 8'000);
+    run(2'000, 5'000);
+    run(2'000, 12'000);
+    run(5'000, 7'000);
+    run(5'000, 30'000);
+    run(5'000, 100'000);
+    run(5'000, 300'000);
+    run(5'000, 1'000'000);
+    run(10'000, 15'000);
+    run(10'000, 25'000);
+    run(20'000, 30'000);
+    run(20'000, 45'000);
+    run(30'000, 50'000);
+    run(30'000, 80'000);
+    run(30'000, 300'000);
+    run(50'000, 100'000);
+    run(100'000, 150'000);
+
+    print_time_table(table, "General matching");
+}
 
 int main() {
     RUN_BLOCK(dataset_test_general_matching());

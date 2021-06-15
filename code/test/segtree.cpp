@@ -4,8 +4,6 @@
 #include "../struct/sparse_segtree.hpp"
 #include "../struct/segtree_beats.hpp"
 
-inline namespace unit_testing_segtree {
-
 void unit_test_segtree_beats() {
     using namespace sample_jidriver;
 
@@ -73,77 +71,70 @@ void unit_test_sparse_segtree() {
     // assert(tree.query_range(4'000'000, 16'000'000).value == 5'000'000);
 }
 
-} // namespace unit_testing_segtree
-
-inline namespace stress_testing_segtree {
-
-template <typename SegTree>
-void stress_test_segtree_run() {
-    constexpr int N = 200;
-    intd vald(-20, 20);
-    int arr[N] = {};
-    SegTree tree(0, N);
-
-    enum ActionsSegtree {
-        CHECK_ONE,
-        CHECK_ALL,
-        ADD,
-        QUERY,
-    };
-
-    discrete_distribution<int> actiond({50, 10, 5000, 5000});
-
-    LOOP_FOR_DURATION_TRACKED_RUNS(5s, now, runs) {
-        print_time(now, 5s, 50ms, "stress test segtree ({} runs)", runs);
-
-        auto action = ActionsSegtree(actiond(mt));
-
-        switch (action) {
-        case CHECK_ONE: {
-            for (int u = 0; u < N; u++) {
-                assert(tree.query_range(u, u + 1).value == arr[u]);
-            }
-        } break;
-        case CHECK_ALL: {
-            for (int u = 0; u < N; u++) {
-                int sum = 0;
-                for (int v = u + 1; v < N; v++) {
-                    sum += arr[v - 1];
-                    assert(tree.query_range(u, v).value == sum);
-                }
-            }
-        } break;
-        case ADD: {
-            auto [L, R] = different(0, N);
-            assert(L < R);
-            int val = vald(mt);
-            tree.update_range(L, R, val);
-            for (int u = L; u < R; u++) {
-                arr[u] += val;
-            }
-        } break;
-        case QUERY: {
-            auto [L, R] = different(0, N);
-            assert(L < R);
-            auto v0 = tree.query_range(L, R).value;
-            auto v1 = accumulate(arr + L, arr + R, 0);
-            assert(v0 == v1);
-        } break;
-        }
-    }
-
-    printcl("total runs: {}\n", runs);
-}
-
 void stress_test_segtree() {
     namespace st = samples_segtree;
     namespace ss = samples_sparse_segtree;
+    constexpr int N = 200;
+    intd vald(-20, 20);
 
-    stress_test_segtree_run<segtree<st::sum_segnode, st::add_segupdate>>();
-    stress_test_segtree_run<sparse_segtree<ss::sum_segnode, ss::add_segupdate>>();
+    auto run = [&](auto tree) {
+        int arr[N] = {};
+        tree = decltype(tree)(0, N);
+
+        enum ActionsSegtree {
+            CHECK_ONE,
+            CHECK_ALL,
+            ADD,
+            QUERY,
+        };
+
+        discrete_distribution<int> actiond({50, 10, 5000, 5000});
+
+        LOOP_FOR_DURATION_TRACKED_RUNS (5s, now, runs) {
+            print_time(now, 5s, "stress test segtree ({} runs)", runs);
+
+            auto action = ActionsSegtree(actiond(mt));
+
+            switch (action) {
+            case CHECK_ONE: {
+                for (int u = 0; u < N; u++) {
+                    assert(tree.query_range(u, u + 1).value == arr[u]);
+                }
+            } break;
+            case CHECK_ALL: {
+                for (int u = 0; u < N; u++) {
+                    int sum = 0;
+                    for (int v = u + 1; v < N; v++) {
+                        sum += arr[v - 1];
+                        assert(tree.query_range(u, v).value == sum);
+                    }
+                }
+            } break;
+            case ADD: {
+                auto [L, R] = different(0, N);
+                assert(L < R);
+                int val = vald(mt);
+                tree.update_range(L, R, val);
+                for (int u = L; u < R; u++) {
+                    arr[u] += val;
+                }
+            } break;
+            case QUERY: {
+                auto [L, R] = different(0, N);
+                assert(L < R);
+                auto v0 = tree.query_range(L, R).value;
+                auto v1 = accumulate(arr + L, arr + R, 0);
+                assert(v0 == v1);
+            } break;
+            }
+        }
+
+        printcl("total runs: {}\n", runs);
+    };
+
+    run(segtree<st::sum_segnode, st::add_segupdate>{});
+    run(sparse_segtree<ss::sum_segnode, ss::add_segupdate>{});
 }
-
-} // namespace stress_testing_segtree
 
 int main() {
     RUN_SHORT(unit_test_segtree_beats());

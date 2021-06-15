@@ -54,10 +54,10 @@ string mat_to_string(const Mat& v) {
 
 template <typename... Ts>
 void debugger(string_view vars, Ts&&... args) {
-    cout << ">> [" << vars << "]: ";
+    cerr << ">> [" << vars << "]: ";
     const char* delim = "";
-    (..., (cout << delim << args, delim = ", "));
-    cout << endl;
+    (..., (cerr << delim << args, delim = ", "));
+    cerr << endl;
 }
 #define debug(...) debugger(#__VA_ARGS__, __VA_ARGS__)
 

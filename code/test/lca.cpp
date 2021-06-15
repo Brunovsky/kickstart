@@ -1,27 +1,7 @@
 #include "test_utils.hpp"
 #include "../lib/graph_operations.hpp"
+#include "../lib/graph_formats.hpp"
 #include "../struct/lca.hpp"
-
-inline namespace detail {
-
-edges_t scan_edges(const string& s, char sep = ',') {
-    edges_t g;
-    stringstream ss(s);
-    while (ss) {
-        int u, v;
-        char dummy;
-        ss >> u >> dummy >> v;
-        if (ss) {
-            g.push_back({u, v});
-            assert(dummy == sep);
-        }
-    }
-    return g;
-}
-
-} // namespace detail
-
-inline namespace unit_testing_lca {
 
 template <typename LCA>
 void unit_test_lca_tree() {
@@ -45,8 +25,6 @@ void unit_test_lca_tree() {
     assert(lca.dist(3, 3) == 0);
     assert(lca.dist(3, 15) == 2);
 }
-
-} // namespace unit_testing_lca
 
 int main() {
     RUN_SHORT(unit_test_lca_tree<lca_binary>());

@@ -9,7 +9,6 @@ inline namespace detail {
 using vecP = vector<P>;
 using truth_t = unordered_map<array<int, 2>, bool>;
 
-#define Z(x) +format(" " #x "={:6.2f}%", perc(x))
 inline double rndp() { return reald(0, 1)(mt); }
 inline double rndreal(double R) { return reald(-R, R)(mt); }
 P random_point(double R) { return P(rndreal(R), rndreal(R)); }
@@ -22,49 +21,48 @@ vecP random_points(int N, double R) {
 
 } // namespace detail
 
-inline namespace stress_testing_collinear {
+void stress_test_collinear() {
+    const int max_exp = 20;
+    vector<vector<stringable>> table;
+    table.push_back({"N", "R", "in", "around", "out"});
 
-void stress_test_collinear_run(int N, double R) {
-    int in = 0, around = 0, out = 0;
-    for (P a : random_points(N, R)) {
-        for (P b : random_points(N, R)) {
-            P c1 = interpolate(a, b, rndp());
-            P c2 = interpolate(a, b, rndreal(30));
-            P c3 = interpolate(a, b, reald(1.2, 10)(mt));
-            P d = c1 + (a - b).rperp().unit() * R * 10 * P::deps;
+    auto run = [&](int N, double R) {
+        printcl("stress test collinear N,R={},{}", N, R);
+        int in = 0, around = 0, out = 0;
 
-            bool inok, arok, outok;
-            inok = collinear(a, b, c1) && collinear(b, a, c1) && onsegment(a, c1, b) &&
-                   parallel(a - c1, a - b) && parallel(b - c1, b - a) &&
-                   parallel(c1 - a, c1 - b);
-            arok = collinear(a, b, c2) && collinear(b, a, c2) &&
-                   parallel(a - c2, a - b) && parallel(b - c2, b - a) &&
-                   parallel(c2 - a, c2 - b);
-            arok &= collinear(a, b, c3) && collinear(b, a, c3) &&
-                    parallel(a - c3, a - b) && parallel(b - c3, b - a) &&
-                    parallel(c3 - a, c3 - b) && !onsegment(a, c3, b);
-            outok = !collinear(a, b, d) && !collinear(a, d, b) && !onsegment(a, d, b) &&
-                    !parallel(a - d, b - d);
+        for (P a : random_points(N, R)) {
+            for (P b : random_points(N, R)) {
+                P c1 = interpolate(a, b, rndp());
+                P c2 = interpolate(a, b, rndreal(30));
+                P c3 = interpolate(a, b, reald(1.2, 10)(mt));
+                P d = c1 + (a - b).rperp().unit() * R * 10 * P::deps;
 
-            in += inok, around += arok, out += outok;
+                bool inok, arok, outok;
+                inok = collinear(a, b, c1) && collinear(b, a, c1) &&
+                       onsegment(a, c1, b) && parallel(a - c1, a - b) &&
+                       parallel(b - c1, b - a) && parallel(c1 - a, c1 - b);
+                arok = collinear(a, b, c2) && collinear(b, a, c2) &&
+                       parallel(a - c2, a - b) && parallel(b - c2, b - a) &&
+                       parallel(c2 - a, c2 - b);
+                arok &= collinear(a, b, c3) && collinear(b, a, c3) &&
+                        parallel(a - c3, a - b) && parallel(b - c3, b - a) &&
+                        parallel(c3 - a, c3 - b) && !onsegment(a, c3, b);
+                outok = !collinear(a, b, d) && !collinear(a, d, b) &&
+                        !onsegment(a, d, b) && !parallel(a - d, b - d);
+
+                in += inok, around += arok, out += outok;
+            }
         }
+        auto perc = [N](int n) { return format("{:6.2f}%", 100.0 * n / (N * N)); };
+        table.push_back({N, format("{:5.0e}", R), perc(in), perc(around), perc(out)});
+    };
+
+    for (int e = -max_exp; e <= max_exp; e++) {
+        run(100, pow(10, e));
     }
-    auto perc = [N](int n) { return 100.0 * n / (N * N); };
-    printcl("collinear R={:5.0e}:", R);
-    print("" Z(in) Z(around) Z(out) + "\n");
+
+    print_time_table(table, "Collinear test");
 }
-
-void stress_test_collinear(int me = 20) {
-    for (int e = -me, t = 0, T = 2 * me + 1; e <= me; e++, t++) {
-        print_progress(t, T, "stress test coplanar");
-        double R = pow(10, e);
-        stress_test_collinear_run(100, R);
-    }
-}
-
-} // namespace stress_testing_collinear
-
-inline namespace stress_testing_epsilon_table {
 
 void print_tables(const truth_t& expected, const truth_t& actual, int mx, int my) {
     static const char* cs[2][2] = {{"", "\033[31;1m"}, {"", "\033[0m"}};
@@ -131,8 +129,6 @@ void table_test_same(int mx = 20, int my = 20) {
         print("table_test_same wrongs: {}\n", wrongs);
     }
 }
-
-} // namespace stress_testing_epsilon_table
 
 int main() {
     print("Epsilon Point2d: {}\n", P::deps);

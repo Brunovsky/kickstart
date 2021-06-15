@@ -21,11 +21,6 @@ bool boost_test(int V, const edges_t& g1, const edges_t& g2) {
     return boost::isomorphism(bg1, bg2);
 }
 
-auto show(int negatives, int positives, int false_positives) {
-    return format("{:5}n {:5}p {:5}fp ({:.1f}%)", negatives, positives, false_positives,
-                  100.0 * false_positives / max(positives, 1));
-}
-
 auto generator_regular(int V, int kmin, int kmax) {
     return [=]() {
         int m = V % 2 ? 2 : 1;
@@ -37,14 +32,12 @@ auto generator_regular(int V, int kmin, int kmax) {
 
 } // namespace detail
 
-inline namespace stress_testing_isomorphism {
-
 void stress_test_isomorphic_positives() {
     intd distV(10, 50);
     reald distp(0.1, 0.9);
 
-    LOOP_FOR_DURATION_TRACKED(5s, now) {
-        print_time(now, 5s, 50ms, "true test");
+    LOOP_FOR_DURATION_TRACKED (5s, now) {
+        print_time(now, 5s, "true test");
 
         int V = distV(mt);
         auto g1 = random_uniform_undirected_connected(V, distp(mt));
@@ -53,39 +46,41 @@ void stress_test_isomorphic_positives() {
     }
 }
 
-template <typename Gn>
-void fp_test_run(const string& name, Gn&& gn) {
-    int negatives = 0, positives = 0, fps = 0;
-
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED(4s, now, 50'000, runs) {
-        print_time(now, 4s, 50ms, show(negatives, positives, fps));
-
-        auto [V, g1, g2] = gn();
-
-        if (isomorphic(V, g1, g2)) {
-            positives++;
-            fps += !boost_test(V, g1, g2);
-        } else {
-            negatives++;
-            assert(!boost_test(V, g1, g2));
-        }
-    }
-
-    printcl("{:>25} -- x{:<5}  {}\n", name, runs, show(negatives, positives, fps));
-}
-
 void stress_test_isomorphic_false_positives() {
-    print("graph isomorphism false positives test\n");
-    fp_test_run("regular 11V k=2,4", generator_regular(11, 2, 4));
-    fp_test_run("regular 11V k=6,8", generator_regular(11, 6, 8));
-    fp_test_run("regular 12V k=3-5", generator_regular(12, 3, 5));
-    fp_test_run("regular 12V k=6-8", generator_regular(12, 6, 8));
-    for (int k = 10; k <= 11; k++) {
-        fp_test_run("regular 14V k=" + to_string(k), generator_regular(14, k, k));
-    }
-}
+    vector<vector<stringable>> table;
+    table.push_back({"name", "runs", "negatives", "positives", "false pos.", "ratio"});
 
-} // namespace stress_testing_isomorphism
+    auto run = [&](const auto& name, auto&& gn) {
+        int negatives = 0, positives = 0, false_positives = 0;
+
+        LOOP_FOR_DURATION_OR_RUNS_TRACKED (4s, now, 50'000, runs) {
+            print_time(now, 4s, "stress test isomorphism false positives");
+
+            auto [V, g1, g2] = gn();
+
+            if (isomorphic(V, g1, g2)) {
+                positives++;
+                false_positives += !boost_test(V, g1, g2);
+            } else {
+                negatives++;
+                assert(!boost_test(V, g1, g2));
+            }
+        }
+
+        double ratio = 100.0 * false_positives / max(positives, 1);
+        table.push_back({name, runs, negatives, positives, false_positives, ratio});
+    };
+
+    run("regular 11V k=2,4", generator_regular(11, 2, 4));
+    run("regular 11V k=6,8", generator_regular(11, 6, 8));
+    run("regular 12V k=3-5", generator_regular(12, 3, 5));
+    run("regular 12V k=6-8", generator_regular(12, 6, 8));
+    for (int k = 10; k <= 11; k++) {
+        run("regular 14V k=" + to_string(k), generator_regular(14, k, k));
+    }
+
+    print_time_table(table, "Isomorphism false positives");
+}
 
 int main() {
     RUN_BLOCK(stress_test_isomorphic_positives());

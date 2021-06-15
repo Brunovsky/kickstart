@@ -24,15 +24,11 @@ void std_sort(vector<int>& idx, vector<T>& dist) {
 
 } // namespace detail
 
-inline namespace speed_testing_radix_sort {
-
 void speed_test_radix_sort_idx() {
-    START_ACC(lsb);
-    START_ACC(msb);
-    START_ACC(std);
+    START_ACC3(lsb, msb, std);
 
-    LOOP_FOR_DURATION_TRACKED(3s, now) {
-        print_time(now, 3s, 50ms, "speed test radix sort idx");
+    LOOP_FOR_DURATION_TRACKED (3s, now) {
+        print_time(now, 3s, "speed test radix sort idx");
 
         auto dist = int_gen<int>(500'000, 100'000, 100'000'000);
         vector<int> idx[3];
@@ -54,18 +50,14 @@ void speed_test_radix_sort_idx() {
         assert(verify(idx[2], dist));
     }
 
-    PRINT_TIME_MS(lsb);
-    PRINT_TIME_MS(msb);
-    PRINT_TIME_MS(std);
+    PRINT_TIME3(lsb, msb, std);
 }
 
 void speed_test_radix_sort() {
-    START_ACC(lsb);
-    START_ACC(msb);
-    START_ACC(std);
+    START_ACC3(lsb, msb, std);
 
-    LOOP_FOR_DURATION_TRACKED(3s, now) {
-        print_time(now, 3s, 50ms, "speed test radix sort");
+    LOOP_FOR_DURATION_TRACKED (3s, now) {
+        print_time(now, 3s, "speed test radix sort");
 
         auto v0 = int_gen<int>(500'000, 100'000, 100'000'000);
         auto v1 = v0, v2 = v0;
@@ -86,12 +78,8 @@ void speed_test_radix_sort() {
         assert(v1 == v2);
     }
 
-    PRINT_TIME_MS(lsb);
-    PRINT_TIME_MS(msb);
-    PRINT_TIME_MS(std);
+    PRINT_TIME3(lsb, msb, std);
 }
-
-} // namespace speed_testing_radix_sort
 
 int main() {
     RUN_BLOCK(speed_test_radix_sort());

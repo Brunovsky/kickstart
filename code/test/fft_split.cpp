@@ -10,37 +10,13 @@ void stress_test_fft_split_multiply() {
     static_assert(1LL * N * V * V <= LONG_MAX / 8);
 
     LOOP_FOR_DURATION_OR_RUNS_TRACKED (4s, now, 100'000, runs) {
-        print_time(now, 4s, 40ms, "stress test fft split multiply");
+        print_time(now, 4s, "stress test fft split multiply");
 
         int A = distn(mt), B = distn(mt);
         auto a = int_gen<long>(A, -V, V);
         auto b = int_gen<long>(B, -V, V);
         auto c = fft::fft_split_multiply(a, b);
         auto d = fft::naive_multiply(a, b);
-
-        errors += c != d;
-    }
-
-    if (errors > 0) {
-        double percent = 100.0 * errors / runs;
-        printcl("{} ({:.1f}%) ERRORS (N<={},|V|<={})\n", errors, percent, N, V);
-    }
-}
-
-void stress_test_fft_split_square() {
-    constexpr int N = 1000;
-    constexpr int V = 1000000;
-    intd distn(0, N);
-    int errors = 0;
-    static_assert(1LL * N * V * V <= LONG_MAX / 8);
-
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED (4s, now, 100'000, runs) {
-        print_time(now, 4s, 40ms, "stress test fft split square");
-
-        int A = distn(mt);
-        auto a = int_gen<long>(A, -V, V);
-        auto c = fft::fft_split_square(a);
-        auto d = fft::naive_multiply(a, a);
 
         errors += c != d;
     }
@@ -98,7 +74,6 @@ void breakeven_test_fft_split_multiply() {
 
 int main() {
     RUN_BLOCK(stress_test_fft_split_multiply());
-    RUN_BLOCK(stress_test_fft_split_square());
     RUN_BLOCK(breakeven_test_fft_split_multiply());
     return 0;
 }

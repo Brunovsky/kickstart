@@ -6,43 +6,42 @@ inline namespace detail {
 /**
  * Generate a solvable 2sat problem with N variables, E edges.
  * Each variable in the canonical solution is true with probability true_p
+ * Both variables in each edge are true with probability both_p
  */
-edges_t generate_twosat(int N, int E, double true_p = 0.5) {
-    boold distp(true_p), bothd(0.1), coin(0.5);
+edges_t generate_twosat(int N, int E, double true_p = 0.5, double both_p = 0.1) {
+    boold distp(true_p);
+    boold bothd(both_p);
+    boold coind(0.5);
     intd distv(0, N - 1);
-    vector<int> truth(N);
-    for (auto& v : truth) {
+    vector<int> hidden_solution(N);
+    for (auto& v : hidden_solution) {
         v = distp(mt);
     }
     edges_t g(E);
     for (auto& [u, v] : g) {
         u = distv(mt), v = distv(mt);
-        u = truth[u] ? u : ~u; // 'left' node is true
+        u = hidden_solution[u] ? u : ~u; // 'left' node is true
         if (bothd(mt)) {
-            v = truth[v] ? v : ~v;
+            v = hidden_solution[v] ? v : ~v;
         } else {
-            v = truth[v] ? ~v : v;
+            v = hidden_solution[v] ? ~v : v;
         }
-        if (coin(mt))
+        if (coind(mt)) {
             swap(u, v);
+        }
     }
     return g;
 }
 
-bool verify(const edges_t& g, const vector<int>& assignment) {
-    for (auto [u, v] : g) {
-        if ((u >= 0 && assignment[u]) || (v >= 0 && assignment[v]))
-            continue;
-        if ((u < 0 && !assignment[~u]) || (v < 0 && !assignment[~v]))
-            continue;
-        return false;
-    }
-    return true;
+bool verify_twosat(const edges_t& g, const vector<int>& assignment) {
+    return all_of(begin(g), end(g), [&](auto edge) {
+        auto [u, v] = edge;
+        return (u >= 0 && assignment[u]) || (u < 0 && !assignment[~u]) ||
+               (v >= 0 && assignment[v]) || (v < 0 && !assignment[~v]);
+    });
 }
 
 } // namespace detail
-
-inline namespace unit_testing_twosat {
 
 void unit_test_twosat() {
     edges_t g = {{0, 1}, {~1, 2}, {~0, ~1}, {2, 3}, {~2, 4}, {~3, ~4}, {~2, 3}};
@@ -54,39 +53,37 @@ void unit_test_twosat() {
     assert(sat.solve());
 }
 
-} // namespace unit_testing_twosat
-
-inline namespace speed_testing_two_sat {
-
 void speed_test_twosat_positive() {
-    const int min_N = 1000, max_N = 3000;
-    const int min_E = 3000, max_E = 9000;
-    const int avg_N = (min_N + max_N) / 2;
-    const int avg_E = (min_E + max_E) / 2;
-    intd distN(min_N, max_N);
-    intd distE(min_E, max_E);
+    static vector<int> Ns = {1000, 5000, 15000, 40000, 100000};
+    static vector<int> Es = {2, 5, 10, 20, 35};
+    const auto duration = 20000ms / (Ns.size() * Es.size());
+    map<pair<int, int>, string> table;
 
-    START_ACC(sat);
+    for (int N : Ns) {
+        for (int E : Es) {
+            START_ACC(sat);
 
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED(3s, now, 100'000, runs) {
-        print_time(now, 3s, 50ms, "speed test 2-SAT positive");
-        int N = distN(mt), E = distE(mt);
-        auto g = generate_twosat(N, E);
+            LOOP_FOR_DURATION_OR_RUNS_TRACKED (duration, now, 100'000, runs) {
+                print_time(now, duration, "speed test 2-sat N,E={},{}", N, N * E);
 
-        START(sat);
-        twosat_scc sat(N);
-        for (auto [u, v] : g)
-            sat.either(u, v);
-        bool ok = sat.solve();
-        ADD_TIME(sat);
+                auto g = generate_twosat(N, N * E);
 
-        assert(ok && verify(g, sat.assignment));
+                START(sat);
+                twosat_scc sat(N);
+                for (auto [u, v] : g)
+                    sat.either(u, v);
+                bool ok = sat.solve();
+                ADD_TIME(sat);
+
+                assert(ok && verify_twosat(g, sat.assignment));
+            }
+
+            table[{E, N}] = FORMAT_EACH(sat, runs);
+        }
     }
 
-    printcl(" {:>8.2f}ms each -- N={} E={}\n", EACH_MS(sat, runs), avg_N, avg_E);
+    print_time_table(table, "2SAT");
 }
-
-} // namespace speed_testing_two_sat
 
 int main() {
     RUN_SHORT(unit_test_twosat());

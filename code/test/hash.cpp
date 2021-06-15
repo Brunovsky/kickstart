@@ -1,8 +1,6 @@
 #include "test_utils.hpp"
 #include "../hash.hpp"
 
-inline namespace unit_testing_hashers {
-
 void unit_test_rolling_hasher() {
     rolling_hasher hasher(10);
     string s1 = "aababbcacc";
@@ -33,8 +31,6 @@ void unit_test_tuple_hasher() {
     print("hash<0, 2, 0> = {}\n", hasher(make_tuple(0, 2, 0)));
     print("hash<0, 0, 2> = {}\n", hasher(make_tuple(0, 0, 2)));
 }
-
-} // namespace unit_testing_hashers
 
 int main() {
     RUN_SHORT(unit_test_rolling_hasher());

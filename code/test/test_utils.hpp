@@ -1,34 +1,41 @@
 #pragma once
 
-#include "lib/test_chrono.hpp"
-#include "lib/test_progress.hpp"
 #include "../random.hpp"
+#include "lib/test_chrono.hpp"
 #include "../linear/matrix.hpp"
+
+struct stringable {
+    string txt;
+
+    template <typename T>
+    stringable(T&& arg) : txt(to_string(arg)) {}
+    stringable(const char* arg = "") : txt(arg) {}
+    stringable(string&& arg) : txt(move(arg)) {}
+    stringable(const string& arg) : txt(arg) {}
+    stringable(string& arg) : txt(arg) {}
+
+    friend const string& to_string(const stringable& s) { return s.txt; }
+    operator string const &() const { return txt; }
+};
 
 template <typename Container>
 bool all_eq(const Container& v) {
     return v.empty() || equal(next(begin(v)), end(v), begin(v));
 }
 
-template <typename U, typename V>
-mat<string> make_table(const vector<U>& u, const vector<V>& v, string s = "") {
-    int N = u.size(), M = v.size();
-    mat<string> mat(N + 1, M + 1, s);
-    for (int i = 0; i < N; i++) {
-        if constexpr (is_same_v<U, string>) {
-            mat[i + 1][0] = u[i];
-        } else {
-            mat[i + 1][0] = to_string(u[i]);
-        }
-    }
-    for (int j = 0; j < M; j++) {
-        if constexpr (is_same_v<V, string>) {
-            mat[0][j + 1] = v[j];
-        } else {
-            mat[0][j + 1] = to_string(v[j]);
-        }
-    }
-    return mat;
+template <typename U, typename V, typename String>
+void print_time_table(const map<pair<U, V>, String>& times, const string& label) {
+    printcl("===== {}\n{}", label, format_pair_map(times));
+}
+
+template <typename U, typename V, typename W, typename String>
+void print_time_table(const map<tuple<U, V, W>, String>& times, const string& label) {
+    printcl("===== {}\n{}", label, format_tuple_map(times, true));
+}
+
+template <typename U>
+void print_time_table(const vector<vector<U>>& times, const string& label) {
+    printcl("===== {}\n{}", label, mat_to_string(times));
 }
 
 #define RUN_BLOCK(test)                                                  \

@@ -3,8 +3,6 @@
 
 using P = Point2d<long>;
 
-inline namespace unit_testing_hull2d {
-
 void unit_test_convex_hull() {
     vector<P> a = {P(4, 1), P(6, 4), P(12, 5), P(9, 7), P(2, 6)};
     auto hull = graham_scan(a);
@@ -32,8 +30,6 @@ void unit_test_convex_hull() {
     hull = graham_scan(b);
     assert(hull == vector<P>({P(1, 1), P(2, 2), P(3, 3), P(4, 4), P(1, 2)}));
 }
-
-} // namespace unit_testing_hull2d
 
 int main() {
     RUN_SHORT(unit_test_convex_hull());

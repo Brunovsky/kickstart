@@ -2,8 +2,6 @@
 #include "test_utils.hpp"
 #include "../struct/fenwick.hpp"
 
-inline namespace unit_testing_fenwick {
-
 template <template <typename> typename Fenwick>
 void unit_test_1d() {
     Fenwick<int> fw(100);
@@ -47,8 +45,6 @@ void unit_test_2d() {
     assert(fw.sum(80, 94) == 210);
     assert(fw.sum(80, 95) == 270);
 }
-
-} // namespace unit_testing_fenwick
 
 int main() {
     RUN_SHORT(unit_test_1d<fenwick>());

@@ -16,8 +16,8 @@ void insert_test() {
     intd distn(1, 999);
     intd dists(0, 3000);
 
-    LOOP_FOR_DURATION_TRACKED(3s, now) {
-        print_time(now, 3s, 50ms, "insert test");
+    LOOP_FOR_DURATION_TRACKED (3s, now) {
+        print_time(now, 3s, "insert test");
         bs_set<int> tree;
         for (int i = 0, s = dists(mt); i < s; i++) {
             tree.insert(distn(mt));
@@ -30,8 +30,8 @@ void erase_test() {
     intd distn(1, 999);
     intd dists(0, 3000);
 
-    LOOP_FOR_DURATION_TRACKED(3s, now) {
-        print_time(now, 3s, 50ms, "erase test");
+    LOOP_FOR_DURATION_TRACKED (3s, now) {
+        print_time(now, 3s, "erase test");
         bs_set<int> tree;
         vector<int> nums;
         int s = dists(mt);
