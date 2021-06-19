@@ -9,6 +9,7 @@ declare -r VALGRIND=(valgrind)
 declare -r PROG_NAME=$(basename "$0")
 declare -r ROOT=$(git rev-parse --show-cdup)
 declare -r ACTION="${1:-run}"
+declare -r TEMPLATES="$ROOT/templates"
 if test $# -gt 0; then shift; fi
 
 function run_make {
@@ -61,11 +62,18 @@ function main {
 		*help*)
 			echo "Usage: $PROG_NAME action [args]..." >&2
 		;;
+		load)
+			if test $# -gt 0 -a -d "$TEMPLATES/$1"; then
+				cp "$TEMPLATES/$1/"* -r .
+			else
+				echo "'$1' template is not defined or does not exist"
+			fi
+		;;
 		# Pure make commands
 		clean|debug|perfm)
 			run_make "$ACTION"
 		;;
-		debug)
+		make)
 			run_make debug
 		;;
 		rebuild|remake)
