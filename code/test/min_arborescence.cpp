@@ -147,7 +147,7 @@ void stress_test_min_arborescence() {
 
         int V = distV(mt), E = distE(mt);
         auto G = random_exact_directed_connected(V, E);
-        auto cost = int_gen<int>(E, mincost, maxcost);
+        auto cost = rands_unif<int>(E, mincost, maxcost);
         auto K = convert_to_kactl(G, cost);
         int root = intd(0, V - 1)(mt);
 
@@ -185,7 +185,7 @@ void stress_test_min_arborescence() {
 void unit_test_min_arborescence() {
     int V = 20, E = 40, root = 0;
     auto G = random_exact_directed_connected(V, E);
-    auto cost = int_gen<int>(E, 5, 80);
+    auto cost = rands_unif<int>(E, 5, 80);
 
     auto input = convert_to_kactl(G, cost);
 

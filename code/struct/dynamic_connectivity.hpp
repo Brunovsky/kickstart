@@ -1,9 +1,6 @@
 #pragma once
 
 #include "euler_tour_tree.hpp"
-#include "y_combinator.hpp"
-
-// An edge (u,v) lives
 
 struct dynamic_connectivity {
     struct dynconn_node {

@@ -6,129 +6,267 @@ inline namespace detail {
 
 static int si = 1;
 
-void showu(string msg, const edges_t& g, int V) {
-    cout << string(70, '=') << "\n\n";
-    cout << si++ << " # " << msg << "\n\n" << to_human_undirected(g, V) << "\n";
-    cout << string(70, '=') << endl;
+#define SHOW_U(fn)                     \
+    do {                               \
+        auto g = fn;                   \
+        showu(#fn, move(g), get_V(g)); \
+    } while (0);
+
+#define SHOW_D(fn)                     \
+    do {                               \
+        auto g = fn;                   \
+        showd(#fn, move(g), get_V(g)); \
+    } while (0);
+
+#define SHOW_B(fn)                               \
+    do {                                         \
+        auto g = fn;                             \
+        showb(#fn, move(g), get_U(g), get_W(g)); \
+    } while (0);
+
+#define SHOW_F(fn)                           \
+    do {                                     \
+        auto [g, s, t] = fn;                 \
+        showf(#fn, move(g), get_V(g), s, t); \
+    } while (0);
+
+string pad(const string& lines) {
+    stringstream ss(lines);
+    string ans, line;
+    while (getline(ss, line)) {
+        ans += "  " + line + "\n";
+    }
+    return ans;
 }
-void showd(string msg, const edges_t& g, int V) {
-    cout << string(70, '=') << "\n\n";
-    cout << si++ << " # " << msg << "\n\n" << to_human_directed(g, V) << "\n";
-    cout << string(70, '=') << endl;
-}
-void showb(string msg, const edges_t& g, int U, int V) {
-    cout << string(70, '=') << "\n\n";
-    cout << si++ << " # " << msg << "\n\n" << to_human_bipartite(g, U, V) << "\n";
-    cout << string(70, '=') << endl;
-}
-void showu(string msg, const edges_t& g) {
+
+int get_V(const edges_t& g) {
     int V = 0;
     for (auto [u, v] : g)
         V = max(V, 1 + max(u, v));
-    showu(msg, g, V);
+    return V;
 }
-void showd(string msg, const edges_t& g) {
+int get_U(const edges_t& g) {
+    int U = 0;
+    for (auto [u, v] : g)
+        U = max(U, 1 + u);
+    return U;
+}
+int get_W(const edges_t& g) {
     int V = 0;
     for (auto [u, v] : g)
-        V = max(V, 1 + max(u, v));
-    showd(msg, g, V);
+        V = max(V, 1 + v);
+    return V;
 }
-void showb(string msg, const edges_t& g) {
-    int U = 0, V = 0;
-    for (auto [u, v] : g)
-        U = max(U, u + 1), V = max(V, 1 + v);
-    showb(msg, g, U, V);
+
+static string line_separator = string(70, '=');
+
+void showu(string msg, edges_t&& g, int V) {
+    sort(begin(g), end(g));
+    print("{}\n", line_separator);
+    print("{} # {}\n{}\n{}\n", //
+          si++, msg, pad(to_human_undirected(g, V)), simple_dot(g, 0));
+}
+void showd(string msg, edges_t&& g, int V) {
+    sort(begin(g), end(g));
+    print("{}\n", line_separator);
+    print("{} # {}\n{}\n{}\n", //
+          si++, msg, pad(to_human_directed(g, V)), simple_dot(g, 1));
+}
+void showb(string msg, edges_t&& g, int U, int V) {
+    sort(begin(g), end(g));
+    print("{}\n", line_separator);
+    print("{} # {}\n{}\n{}\n", //
+          si++, msg, pad(to_human_bipartite(g, U, V)), simple_dot(g, 2));
+}
+void showf(string msg, edges_t&& g, int V, int s, int t) {
+    sort(begin(g), end(g));
+    print("{}\n", line_separator);
+    print("{} # {} (s={} t={})\n{}\n{}\n", //
+          si++, msg, s, t, pad(to_human_directed(g, V)), simple_dot(g, 1));
 }
 
 } // namespace detail
 
+void stress_test_geometric() {
+    static vector<int> Vs = {50, 100, 200, 400, 600, 1000};
+    static vector<double> ps = {.01, .05, .20, .60};
+    static vector<double> as = {-.95,  -.75, -.40, -.10, -.01, -.001, 0,
+                                +.001, +.01, +.10, +.40, +.75, +.95};
+    const auto runtime = 30000ms / (Vs.size() * ps.size() * as.size());
+    map<tuple<pair<int, double>, double, string>, stringable> times;
+
+    auto run = [&](int V, double p, double alpha) {
+        printcl("stress test geometric V,p,a={},{},{}", V, p, alpha);
+
+        long Esum = 0;
+        double expected = p * V * (V - 1) / 2;
+
+        START(gen);
+        LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
+            auto [g, s, t] = random_geometric_flow_connected(V, p, p / 2, alpha);
+            Esum += g.size();
+        }
+        TIME(gen);
+
+        double actual = 1.0 * Esum / runs;
+
+        times[{{V, alpha}, p, "time"}] = FORMAT_EACH(gen, runs);
+        times[{{V, alpha}, p, "ratio"}] = format("{:.3f}", actual / expected);
+        times[{{V, alpha}, p, "edges"}] = format("{:.3f}", actual);
+        times[{{V, alpha}, p, "runs"}] = runs;
+    };
+
+    for (int V : Vs) {
+        for (double p : ps) {
+            for (double alpha : as) {
+                run(V, p, alpha);
+            }
+        }
+    }
+
+    print_time_table(times, "Undirected geometric");
+}
+
 void visual_test_generators() {
-    showu("Path undirected 10", path_undirected(10));
-    showd("Path directed 10", path_directed(10));
-    showu("Complete undirected 6", complete_undirected(6));
-    showd("Complete directed 6", complete_directed(6));
-    showu("Cycle undirected 6", cycle_undirected(6));
-    showd("Cycle directed 6", cycle_directed(6));
-    showu("Regular ring 9,4", regular_ring(9, 4));
-    showu("Perfect binary tree height 5", perfect_binary_tree_undirected(5));
-    showd("Perfect binary tree height 5 directed", perfect_binary_tree_directed(5));
-    showu("Perfect 3-ary tree height 3", perfect_tree_undirected(3, 3));
-    showu("Multipartite graph 2,3,4,5", complete_multipartite({2, 3, 4, 5}));
+    SHOW_D(random_geometric_tree(40, -0.95));
+    SHOW_D(random_geometric_tree(40, -0.75));
+    SHOW_D(random_geometric_tree(40, -0.50));
+    SHOW_D(random_geometric_tree(40, -0.25));
+    SHOW_D(random_geometric_tree(40, -0.05));
+    SHOW_D(random_geometric_tree(40, 0.05));
+    SHOW_D(random_geometric_tree(40, 0.25));
+    SHOW_D(random_geometric_tree(40, 0.50));
+    SHOW_D(random_geometric_tree(40, 0.75));
+    SHOW_D(random_geometric_tree(40, 0.95));
 
-    showu("Johnson graph (7,2)", johnson(7, 2));
-    showu("Johnson graph (5,3)", johnson(5, 3));
-    showu("Kneser graph (8,3)", kneser(8, 3));
-    showu("Kneser graph (9,4)", kneser(9, 4));
-    showu("Wheel graph 10", wheel(10));
-    showu("Cogwheel graph 5", cogwheel(5));
-    showu("Web graph 6,3", web(6, 3));
-    showu("Turan graph 15,4", turan(15, 4));
-    showu("Circulant graph 14 (2,4,7)", circulant(14, {2, 4, 7}));
-    showu("Sudoku 9x9", sudoku(9));
-    showu("Sudoku 4x4", sudoku(4));
+    SHOW_D(random_geometric_directed(30, 0.15, -0.95));
+    SHOW_D(random_geometric_directed(30, 0.15, -0.75));
+    SHOW_D(random_geometric_directed(30, 0.15, -0.50));
+    SHOW_D(random_geometric_directed(30, 0.15, -0.25));
+    SHOW_D(random_geometric_directed(30, 0.15, -0.12));
+    SHOW_D(random_geometric_directed(30, 0.15, -0.05));
+    SHOW_D(random_geometric_directed(30, 0.15, 0.05));
+    SHOW_D(random_geometric_directed(30, 0.15, 0.12));
+    SHOW_D(random_geometric_directed(30, 0.15, 0.25));
+    SHOW_D(random_geometric_directed(30, 0.15, 0.50));
+    SHOW_D(random_geometric_directed(30, 0.15, 0.75));
+    SHOW_D(random_geometric_directed(30, 0.15, 0.95));
 
-    showu("Random tree undirected 8", random_tree_undirected(8));
-    showd("Random tree directed 8", random_tree_directed(8));
+    SHOW_D(random_geometric_undirected(30, 0.15, -0.95));
+    SHOW_D(random_geometric_undirected(30, 0.15, -0.75));
+    SHOW_D(random_geometric_undirected(30, 0.15, -0.50));
+    SHOW_D(random_geometric_undirected(30, 0.15, -0.25));
+    SHOW_D(random_geometric_undirected(30, 0.15, -0.12));
+    SHOW_D(random_geometric_undirected(30, 0.15, -0.05));
+    SHOW_D(random_geometric_undirected(30, 0.15, 0.05));
+    SHOW_D(random_geometric_undirected(30, 0.15, 0.12));
+    SHOW_D(random_geometric_undirected(30, 0.15, 0.25));
+    SHOW_D(random_geometric_undirected(30, 0.15, 0.50));
+    SHOW_D(random_geometric_undirected(30, 0.15, 0.75));
+    SHOW_D(random_geometric_undirected(30, 0.15, 0.95));
 
-    showu("Random uniform undirected 11,0.3", random_uniform_undirected(11, 0.3));
-    showu("Random uniform undirected 11,0.7", random_uniform_undirected(11, 0.7));
-    showd("Random uniform directed 9,0.2", random_uniform_directed(9, 0.2));
-    showd("Random uniform directed 9,0.8", random_uniform_directed(9, 0.8));
-    showu("Random exact undirected 12,26", random_exact_undirected(12, 26));
-    showd("Random exact directed 12,26", random_exact_directed(12, 26));
+    SHOW_D(random_geometric_undirected_connected(30, 0.2, -0.95));
+    SHOW_D(random_geometric_undirected_connected(30, 0.2, -0.75));
+    SHOW_D(random_geometric_undirected_connected(30, 0.2, -0.50));
+    SHOW_D(random_geometric_undirected_connected(30, 0.2, -0.25));
+    SHOW_D(random_geometric_undirected_connected(30, 0.2, -0.05));
+    SHOW_D(random_geometric_undirected_connected(30, 0.2, 0.05));
+    SHOW_D(random_geometric_undirected_connected(30, 0.2, 0.25));
+    SHOW_D(random_geometric_undirected_connected(30, 0.2, 0.50));
+    SHOW_D(random_geometric_undirected_connected(30, 0.2, 0.75));
+    SHOW_D(random_geometric_undirected_connected(30, 0.2, 0.95));
 
-    showu("Random uniform undirected connected 11,0.3",
-          random_uniform_undirected_connected(11, 0.3));
-    showu("Random uniform undirected connected 11,0.7",
-          random_uniform_undirected_connected(11, 0.7));
-    showd("Random uniform rooted dag connected 9,0.2",
-          random_uniform_rooted_dag_connected(9, 0.2));
-    showd("Random uniform rooted dag connected 9,0.8",
-          random_uniform_rooted_dag_connected(9, 0.8));
-    showd("Random uniform directed connected 10,0.2",
-          random_uniform_directed_connected(10, 0.2));
-    showd("Random uniform directed connected 10,0.8",
-          random_uniform_directed_connected(10, 0.8));
-    showu("Random exact undirected connected 12,26",
-          random_exact_undirected_connected(12, 26));
-    showd("Random exact rooted dag connected 12,26",
-          random_exact_rooted_dag_connected(12, 26));
-    showd("Random exact directed connected 12,26",
-          random_exact_directed_connected(12, 26));
+    SHOW_D(path_graph(10));
+    SHOW_D(cycle_graph(10));
+    SHOW_D(regular_ring_graph(9, 4));
+    SHOW_D(regular_ring_graph(10, 6));
+    SHOW_D(perfect_binary_tree(5));
+    SHOW_D(perfect_tree(3, 3));
 
-    showu("Random regular 15,6", random_regular(15, 6));
-    showu("Random regular 16,4 connected", random_regular_connected(16, 4));
-    showb("Random regular bipartite 10,25,5", random_regular_bipartite(10, 25, 5));
+    SHOW_D(complete_graph(6));
+    SHOW_D(complete2_graph(6));
+    SHOW_D(complete_multipartite_graph({2, 3, 4, 5}));
 
-    showu("Disjoint K4 x5", disjoint_complete_undirected(5, 4));
-    showu("One-connected K4 x5", one_connected_complete_undirected(5, 4));
-    showu("Tri-connected K4 x5", k_connected_complete_undirected(5, 4));
+    SHOW_D(grid_graph(6, 5));
+    SHOW_D(circular_grid_graph(6, 5));
+    SHOW_D(grid3_graph(3, 4, 3));
+    SHOW_D(circular_grid3_graph(3, 4, 3));
 
-    showu("Random full level 5 ranks V=20", random_full_level(20, 5, 2));
-    showd("Random full level dag 5 ranks V=20", random_full_level_dag(20, 5, 2));
-    showd("Random full level flow 7 ranks V=20", random_full_level_flow(20, 7, 2));
-    showu("Random uniform level 5 ranks V=30", random_uniform_level(30, 0.4, 5, 2));
-    showd("Random uniform level dag 5 ranks V=30",
-          random_uniform_level_dag(30, 0.4, 5, 2));
-    showd("Random uniform level flow 7 ranks V=30",
-          random_uniform_level_flow(30, 0.4, 7, 2));
+    SHOW_U(johnson_graph(7, 2));
+    SHOW_U(johnson_graph(5, 3));
+    SHOW_U(kneser_graph(8, 3));
+    SHOW_U(kneser_graph(9, 4));
+    SHOW_U(peterson_graph());
+    SHOW_U(star_graph(10));
+    SHOW_U(stacked_book_graph(4, 6));
+    SHOW_U(wheel_graph(10));
+    SHOW_U(cogwheel_graph(5));
+    SHOW_U(web_graph(6, 3));
+    SHOW_U(turan_graph(15, 4));
+    SHOW_U(circulant_graph(14, {2, 4, 7}));
+    SHOW_U(sudoku_graph(4));
 
-    showb("Random uniform bipartite 10,20,0.3", random_uniform_bipartite(10, 20, 0.3));
-    showb("Random uniform bipartite 10,20,0.7", random_uniform_bipartite(10, 20, 0.7));
-    showb("Random exact bipartite 10,20,73", random_exact_bipartite(10, 20, 73));
-    showb("Random exact bipartite 10,25,43", random_exact_bipartite(10, 25, 43));
+    SHOW_D(random_tree(40));
+    SHOW_D(random_forest(50, 4));
+    SHOW_D(random_geometric_tree(40, -0.85));
+    SHOW_D(random_geometric_tree(40, -0.50));
+    SHOW_D(random_geometric_tree(40, 0.50));
+    SHOW_D(random_geometric_tree(40, 0.85));
 
-    showu("Grid undirected 6x5", grid_undirected(6, 5));
-    showd("Grid directed 6x5", grid_directed(6, 5));
-    showu("Grid circular undirected 6x5", circular_grid_undirected(6, 5));
-    showd("Grid circular directed 6x5", circular_grid_directed(6, 5));
-    showu("Grid3 undirected 3x4x3", grid3_undirected(3, 4, 3));
-    showd("Grid3 directed 3x4x3", grid3_directed(3, 4, 3));
-    showu("Grid3 circular undirected 3x4x3", circular_grid3_undirected(3, 4, 3));
-    showd("Grid3 circular directed 3x4x3", circular_grid3_directed(3, 4, 3));
+    SHOW_D(disjoint_complete_graph(5, 4));
+    SHOW_D(disjoint_complete2_graph(5, 4));
+    SHOW_D(one_connected_complete_graph(5, 4));
+    SHOW_D(one_connected_complete2_graph(5, 4));
+    SHOW_D(k_connected_complete_graph(6, 4, 2));
+    SHOW_D(k_connected_complete2_graph(6, 4, 2));
+
+    SHOW_U(random_regular(15, 6));
+    SHOW_U(random_regular_connected(16, 4));
+    SHOW_B(random_regular_bipartite(10, 25, 5));
+
+    SHOW_U(random_uniform_undirected(25, 0.07));
+    SHOW_D(random_uniform_directed(25, 0.035));
+    SHOW_B(random_uniform_bipartite(10, 20, 0.07));
+    SHOW_B(random_exact_bipartite(10, 20, 35));
+    SHOW_U(random_exact_undirected(25, 40));
+    SHOW_D(random_exact_directed(25, 40));
+
+    SHOW_U(random_uniform_undirected_total(25, 0.05));
+    SHOW_D(random_uniform_directed_total_in(25, 0.025));
+    SHOW_D(random_uniform_directed_total_out(25, 0.025));
+    SHOW_B(random_uniform_bipartite_total(10, 20, 0.05));
+
+    SHOW_U(random_uniform_undirected_connected(25, 0.05));
+    SHOW_D(random_uniform_directed_connected(25, 0.05));
+    SHOW_U(random_exact_undirected_connected(25, 35));
+    SHOW_D(random_exact_rooted_dag_connected(25, 35));
+    SHOW_D(random_exact_directed_connected(25, 50));
+
+    SHOW_F(random_uniform_flow_dag_connected(20, 0.03));
+    SHOW_F(random_uniform_flow_connected(20, 0.03, 0.06));
+    SHOW_F(random_geometric_flow_dag_connected(25, 0.12, +.8));
+    SHOW_F(random_geometric_flow_dag_connected(25, 0.12, +.3));
+    SHOW_F(random_geometric_flow_dag_connected(25, 0.12, +.05));
+    SHOW_F(random_geometric_flow_dag_connected(25, 0.12, -.05));
+    SHOW_F(random_geometric_flow_dag_connected(25, 0.12, -.3));
+    SHOW_F(random_geometric_flow_dag_connected(25, 0.12, -.8));
+    SHOW_F(random_geometric_flow_connected(25, 0.12, 0.06, +.8));
+    SHOW_F(random_geometric_flow_connected(25, 0.12, 0.06, +.3));
+    SHOW_F(random_geometric_flow_connected(25, 0.12, 0.06, +.05));
+    SHOW_F(random_geometric_flow_connected(25, 0.12, 0.06, -.05));
+    SHOW_F(random_geometric_flow_connected(25, 0.12, 0.06, -.3));
+    SHOW_F(random_geometric_flow_connected(25, 0.12, 0.06, -.8));
+
+    SHOW_D(random_full_level(20, 5, 2));
+    SHOW_D(random_full_level_dag(20, 5, 2));
+    SHOW_D(random_full_level_flow(20, 7, 2));
+    SHOW_D(random_uniform_level(30, 0.4, 5, 2));
+    SHOW_D(random_uniform_level_dag(30, 0.4, 5, 2));
+    SHOW_D(random_uniform_level_flow(30, 0.4, 7, 2));
 }
 
 int main() {
     RUN_BLOCK(visual_test_generators());
+    RUN_BLOCK(stress_test_geometric());
     return 0;
 }

@@ -2,31 +2,6 @@
 
 #include "../hash.hpp"
 
-struct ett_node_sum {
-    int subt_size = 0;
-    long self = 0;
-    long subt = 0;
-    long lazy = 0;
-
-    long subtree() const { return subt; }
-    int subtree_size() const { return subt_size; }
-
-    void pushdown(bool is_node, bool, ett_node_sum& lhs, ett_node_sum& rhs) {
-        if (lazy) {
-            lhs.lazy += lazy;
-            rhs.lazy += lazy;
-            if (is_node)
-                self += lazy;
-            subt += lazy * subt_size;
-            lazy = 0;
-        }
-    }
-    void pushup(bool is_node, bool, const ett_node_sum& lhs, const ett_node_sum& rhs) {
-        subt_size = is_node + lhs.subt_size + rhs.subt_size;
-        subt = self + lhs.subt + rhs.subt;
-    }
-};
-
 struct ett_node_empty {
     void pushdown(bool, bool, ett_node_empty&, ett_node_empty&) {}
     void pushup(bool, bool, ett_node_empty&, ett_node_empty&) {}
@@ -222,4 +197,29 @@ struct euler_tour_tree {
 
     void shift_to_front(int u) { splay_join(u, splay_split<0>(u)), splay(u); }
     void shift_to_back(int u) { splay_join(splay_split<1>(u), u), splay(u); }
+};
+
+struct ett_node_sum {
+    int subt_size = 0;
+    long self = 0;
+    long subt = 0;
+    long lazy = 0;
+
+    long subtree() const { return subt; }
+    int subtree_size() const { return subt_size; }
+
+    void pushdown(bool is_node, bool, ett_node_sum& lhs, ett_node_sum& rhs) {
+        if (lazy) {
+            lhs.lazy += lazy;
+            rhs.lazy += lazy;
+            if (is_node)
+                self += lazy;
+            subt += lazy * subt_size;
+            lazy = 0;
+        }
+    }
+    void pushup(bool is_node, bool, const ett_node_sum& lhs, const ett_node_sum& rhs) {
+        subt_size = is_node + lhs.subt_size + rhs.subt_size;
+        subt = self + lhs.subt + rhs.subt;
+    }
 };

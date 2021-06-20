@@ -150,6 +150,8 @@ void msb_radix_sort(vector<T>& v) {
     int N = v.size(), maxd = 0;
     if (N <= 1)
         return;
+    if (N <= 30)
+        return sort(begin(v), end(v));
 
     auto max = *max_element(begin(v), end(v));
     while (max > 0)
@@ -173,6 +175,8 @@ void lsb_radix_sort(vector<T>& v) {
     int N = v.size(), maxd = 0;
     if (N <= 1)
         return;
+    if (N <= 30)
+        return sort(begin(v), end(v));
 
     auto max = *max_element(begin(v), end(v));
     while (max > 0)

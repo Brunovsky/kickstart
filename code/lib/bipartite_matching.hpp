@@ -43,19 +43,19 @@ auto bipartite_matching_group_sizes(int U, int V, int M, int E) {
     int m = intd(0, lo + M - hi + 1)(mt);
     m += (m > lo) * (hi - lo - 1);
 
-    long A = 1L * m * m - m;                   // m already matched
-    long B = 1L * (M - m) * (M - m) - (M - m); // M - m already matched
-    long C = 1L * m * (V - M);
-    long D = 1L * (M - m) * (U - M);
+    int A = min(1L * INT_MAX, 1L * m * m - m);                   // m already matched
+    int B = min(1L * INT_MAX, 1L * (M - m) * (M - m) - (M - m)); // M - m already matched
+    int C = min(1L * INT_MAX, 1L * m * (V - M));
+    int D = min(1L * INT_MAX, 1L * (M - m) * (U - M));
 
-    auto s = partition_sample<long>(E - M, 4, {0, 0, 0, 0}, {A, B, C, D});
+    auto s = partition_sample_balanced(E - M, 4, {0, 0, 0, 0}, {A, B, C, D});
     int a = s[0], b = s[1], c = s[2], d = s[3];
     return array<int, 5>{m, a, b, c, d};
 }
 
 auto bipartite_matching_hide_topology(int U, int V, edges_t& g) {
     shuffle(begin(g), end(g), mt);
-    relabel_inplace(U, V, g);
+    random_relabel_graph_inplace(U, V, g);
 }
 
 auto random_bipartite_matching(int U, int V, int M, int E) {
@@ -74,12 +74,11 @@ auto random_bipartite_matching(int U, int V, int M, int E) {
     for (auto [u, v] : pair_sample(d, M, U, m, M))
         g.push_back({u, v});
 
-    assert(verify_edges_bipartite(g, U, V, E));
     return g;
 }
 
 auto random_bipartite_matching(int U, int V, int M, double p) {
-    binomd distE(bipartite_matching_max_edges(U, V, M), min(p, 1.0));
+    binomd distE(bipartite_matching_max_edges(U, V, M), clamp(p, 0.0, 1.0));
     int E = max(M, int(distE(mt)));
     return random_bipartite_matching(U, V, M, E);
 }

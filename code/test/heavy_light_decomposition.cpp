@@ -1,5 +1,6 @@
 #include "test_utils.hpp"
 #include "../lib/graph_formats.hpp"
+#include "../lib/graph_generator.hpp"
 #include "../graphs/heavy_light_decomposition.hpp"
 
 void unit_test_heavy_light_decomposition() {
@@ -9,7 +10,7 @@ void unit_test_heavy_light_decomposition() {
                     "12,31 13,18 13,19 14,24 14,25 14,26 14,27 15,21 15,23 21,22";
 
     edges_t g = scan_edges(sedges);
-    random_flip_inplace(g);
+    random_flip_graph_inplace(g);
     assert(int(g.size()) == V - 1);
 
     auto tree = make_adjacency_lists_undirected(V, g);

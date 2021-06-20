@@ -1,6 +1,5 @@
 #include "test_utils.hpp"
 #include "../matching/maximum_matching.hpp"
-#include "../lib/bipartite.hpp"
 #include "../lib/bipartite_matching.hpp"
 #include "../matching/hopcroft_karp.hpp"
 
@@ -44,42 +43,46 @@ void stress_test_maximum_matching() {
 }
 
 void speed_test_maximum_matching() {
-    static const vector<int> sizes = {1000, 2500, 8000, 15000, 30000};
-    const auto runtime = 20000ms / (sizes.size() * int(BG_END));
-    map<tuple<string, int, string>, string> table;
+    static vector<int> Vs = {1000, 2500, 8000, 15000, 30000};
+    static vector<double> pVs = {5.0, 15.0, 50.0, 120.0};
+    static vector<double> Ms = {.01, .05, .25, .50, .75, .99, 1.0};
+    const auto runtime = 30000ms / (Vs.size() * pVs.size() * Ms.size());
+    map<tuple<pair<int, int>, double, string>, string> table;
 
-    auto run = [&](bipartite_graph_kind i, int S) {
+    auto run = [&](int V, double p, double M) {
         START_ACC3(gen, mm, hopcroft);
-        auto name = bipartite_kind_name[i];
 
         LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
-            print_time(now, runtime, "speed test maximum matching S={} {}", S, name);
+            print_time(now, runtime, "speed test maximum matching V,M={},{}", V, V * M);
 
             START(gen);
-            auto network = generate_bipartite_graph(i, S);
+            auto g = random_bipartite_matching(V, V, M * V, p / V);
+            bipartite_matching_hide_topology(V, V, g);
             ADD_TIME(gen);
 
             START(mm);
-            maximum_matching mm(network.U, network.V, network.g);
+            maximum_matching mm(V, V, g);
             int m0 = mm.compute();
             ADD_TIME(mm);
 
             START(hopcroft);
-            hopcroft_karp hk(network.U, network.V, network.g);
+            hopcroft_karp hk(V, V, g);
             int m1 = hk.compute();
             ADD_TIME(hopcroft);
 
             assert(m0 == m1);
         }
 
-        table[{name, S, "gen"}] = FORMAT_EACH(gen, runs);
-        table[{name, S, "mm"}] = FORMAT_EACH(mm, runs);
-        table[{name, S, "hopcroft"}] = FORMAT_EACH(hopcroft, runs);
+        table[{{V, p}, M, "gen"}] = FORMAT_EACH(gen, runs);
+        table[{{V, p}, M, "mm"}] = FORMAT_EACH(mm, runs);
+        table[{{V, p}, M, "hopcroft"}] = FORMAT_EACH(hopcroft, runs);
     };
 
-    for (int S : sizes) {
-        for (int i = 0; i < int(BG_END); i++) {
-            run(bipartite_graph_kind(i), S);
+    for (int V : Vs) {
+        for (double p : pVs) {
+            for (double M : Ms) {
+                run(V, p, M);
+            }
         }
     }
 

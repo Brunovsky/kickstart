@@ -431,7 +431,13 @@ void scaling_test_pair_sample() {
     print_time_table(table_dense, "pair_sample dense");
 }
 
+void unit_test_samplers() {
+    print("supply: {}\n", supply_sample(10, 4, 3, 100));
+    print("supply: {}\n", supply_sample(20, 7, 9, 1000));
+}
+
 int main() {
+    RUN_SHORT(unit_test_samplers());
     RUN_BLOCK(stress_test_partition_sample_uniform());
     RUN_BLOCK(stress_test_vec_sample());
     RUN_BLOCK(stress_test_int_sample());

@@ -23,17 +23,17 @@ void stress_test_unrooted_tree_isomorphism() {
     LOOP_FOR_DURATION_TRACKED (3s, now) {
         print_time(now, 3s, "stress test unrooted tree isomorphism");
 
-        auto g = random_tree_undirected(V);
-        relabel_inplace(V, g);
-        random_flip_inplace(g);
+        auto g = random_tree(V);
+        random_relabel_graph_inplace(V, g);
+        random_flip_graph_inplace(g);
         auto ghash = hash_unrooted_tree(V, g);
         auto gvhash = hash_unrooted_tree_vertices(V, g);
         sort(begin(gvhash), end(gvhash));
 
         LOOP_FOR_DURATION (50ms) {
             auto h = g;
-            relabel_inplace(V, h);
-            random_flip_inplace(h);
+            random_relabel_graph_inplace(V, h);
+            random_flip_graph_inplace(h);
             auto hhash = hash_unrooted_tree(V, h);
             auto hvhash = hash_unrooted_tree_vertices(V, h);
             sort(begin(hvhash), end(hvhash));
@@ -54,9 +54,9 @@ void stress_test_rooted_tree_isomorphism() {
     LOOP_FOR_DURATION_TRACKED (3s, now) {
         print_time(now, 3s, "stress test rooted tree isomorphism");
 
-        auto g = random_tree_undirected(V);
+        auto g = random_tree(V);
         relabel_nonroot_inplace(V, g);
-        random_flip_inplace(g);
+        random_flip_graph_inplace(g);
         auto ghash = hash_rooted_tree(V, g, 0);
         auto gvhash = hash_rooted_tree_vertices(V, g, 0);
         sort(begin(gvhash), end(gvhash));
@@ -64,7 +64,7 @@ void stress_test_rooted_tree_isomorphism() {
         LOOP_FOR_DURATION (50ms) {
             auto h = g;
             relabel_nonroot_inplace(V, h);
-            random_flip_inplace(h);
+            random_flip_graph_inplace(h);
             auto hhash = hash_rooted_tree(V, h, 0);
             auto hvhash = hash_rooted_tree_vertices(V, h, 0);
             sort(begin(hvhash), end(hvhash));

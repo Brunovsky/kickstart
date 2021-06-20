@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../random.hpp"
-#include "lib/test_chrono.hpp"
-#include "../linear/matrix.hpp"
+#include "../lib/test_chrono.hpp"
+#include "../lib/test_progress.hpp"
 
 struct stringable {
     string txt;

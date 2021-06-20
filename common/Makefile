@@ -15,7 +15,8 @@ export USE_CLANG_LIBCPP := -stdlib=libc++
 export USE_GLIBS_DEBUG := -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
 export USE_GCH := -I$(GCH_ROOT)
 
-export CXXFLAGS := $(WARNS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(LIBS)
+export INCLUDES := -I$(GIT_ROOT)
+export CXXFLAGS := $(WARNS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(LIBS) $(INCLUDES)
 export OPTIM := -g -ggdb -O3 -flto -funroll-loops -ftree-vectorize
 export DEBUG := -g -Og -ggdb $(USE_GLIBS_DEBUG)
 

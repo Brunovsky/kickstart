@@ -10,7 +10,8 @@ inline namespace detail {
 
 using mat_t = mat<unsigned>;
 
-mat_t makemat(int n, default_random_engine& rnd) {
+template <typename RNG>
+mat_t makemat(int n, RNG& rnd) {
     uniform_int_distribution<unsigned> distv(0, 1'000'000);
     mat_t mat(n, n);
     for (int i = 0; i < n; i++)

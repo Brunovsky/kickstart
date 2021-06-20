@@ -3,76 +3,7 @@
 #include "../hash.hpp"
 #include "../random.hpp"
 
-/**
- * Generate a permutation pi of [0...V) and replace u with pi(u) for all u.
- */
-auto relabel_inplace(int V, edges_t& g) {
-    vector<int> label(V);
-    iota(begin(label), end(label), 0);
-    shuffle(begin(label), end(label), mt);
-    for (auto& [u, v] : g)
-        u = label[u], v = label[v];
-}
-
-auto relabel(int V, const edges_t& g) {
-    auto h = g;
-    return relabel_inplace(V, h), h;
-}
-
-auto relabel_inplace(int U, int V, edges_t& g) {
-    vector<int> ulabel(U), vlabel(V);
-    iota(begin(ulabel), end(ulabel), 0);
-    iota(begin(vlabel), end(vlabel), 0);
-    shuffle(begin(ulabel), end(ulabel), mt);
-    shuffle(begin(vlabel), end(vlabel), mt);
-    for (auto& [u, v] : g)
-        u = ulabel[u], v = vlabel[v];
-}
-
-auto relabel(int U, int V, const edges_t& g) {
-    auto h = g;
-    return relabel_inplace(U, V, h), h;
-}
-
-/**
- * Randomly flip some edges with probability p
- */
-auto random_flip_inplace(edges_t& g, double p = 0.5) {
-    if (p <= 0.25) {
-        for (int e : int_sample_p(p, 0, int(g.size())))
-            swap(g[e][0], g[e][1]);
-    } else {
-        boold flipd(p);
-        for (auto& [u, v] : g)
-            if (flipd(mt))
-                swap(u, v);
-    }
-}
-
-auto random_flip(const edges_t& g, double p = 0.5) {
-    auto h = g;
-    return random_flip_inplace(h, p), h;
-}
-
-/**
- * Reverse the edges of the graph, and return a new graph.
- */
-auto reverse(const edges_t& g) {
-    edges_t h;
-    h.reserve(g.size());
-    for (auto [u, v] : g)
-        h.push_back({v, u});
-    return h;
-}
-
-/**
- * Join two graphs together.
- * The new graph has the two graphs joined as disconnected subgraphs.
- */
-auto& join(edges_t& g, const edges_t& h) {
-    g.insert(end(g), begin(h), end(h));
-    return g;
-}
+// Generate a permutation pi of [0...V) and replace u with pi(u) for all u.
 
 /**
  * Construct adjacency lists
@@ -101,7 +32,7 @@ auto make_adjacency_lists_reverse(int V, const edges_t& g) {
 auto make_adjacency_set_undirected(const edges_t& g) {
     unordered_set<array<int, 2>> adj;
     for (auto [u, v] : g)
-        adj.insert({u, v}), adj.insert({v, u});
+        u < v ? adj.insert({u, v}) : adj.insert({v, u});
     return adj;
 }
 

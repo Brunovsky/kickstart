@@ -11,7 +11,7 @@ using namespace std;
  * Complexity: O(AS+M) construction, O(AS) space, O(N) for main queries.
  * Reference: https://github.com/indy256/codelibrary
  */
-template <typename Vec = string, typename T = typename Vec::value_type>
+template <typename T = char>
 struct aho_corasick {
     static constexpr int A = 26;
     static constexpr int chash(T value) { return value - 'a'; }
@@ -28,6 +28,8 @@ struct aho_corasick {
     vector<Node> node;
 
     aho_corasick() = default;
+
+    template <typename Vec>
     explicit aho_corasick(const vector<Vec>& words) : node(1) {
         for (int i = 0, W = words.size(); i < W; i++) {
             assert(!words[i].empty());
@@ -72,6 +74,7 @@ struct aho_corasick {
     int num_nodes() const { return node.size(); }
 
     // Count number of distinct indices where words end.
+    template <typename Vec>
     int count_unique_matches(const Vec& text) const {
         int matches = 0;
         for (int v = 0, i = 0, N = text.size(); i < N; i++) {
@@ -82,6 +85,7 @@ struct aho_corasick {
     }
 
     // Count total number of matches across all words and indices
+    template <typename Vec>
     long count_matches(const Vec& text) const {
         long matches = 0;
         for (int v = 0, i = 0, N = text.size(); i < N; i++) {
@@ -92,6 +96,7 @@ struct aho_corasick {
     }
 
     // For each index i, find the longest dictionary word ending at text[i] (inclusive)
+    template <typename Vec>
     vector<int> longest_each_index(const Vec& text) const {
         vector<int> longest(text.size(), -1);
         for (int v = 0, i = 0, N = text.size(); i < N; i++) {
@@ -102,7 +107,7 @@ struct aho_corasick {
     }
 
     // Call fn(i, wordid) for every match <i, longest wordid>
-    template <typename Fn>
+    template <typename Fn, typename Vec>
     void visit_longest_each_index(const Vec& text, Fn&& fn, bool skipbad = true) const {
         for (int v = 0, i = 0, N = text.size(); i < N; i++) {
             v = node[v].next[chash(text[i])];
@@ -113,7 +118,7 @@ struct aho_corasick {
     }
 
     // Call fn(i, wordid) for every match <i, wordid>
-    template <typename Fn>
+    template <typename Fn, typename Vec>
     void visit_all(const Vec& text, Fn&& fn) const {
         for (int v = 0, i = 0, N = text.size(); i < N; i++) {
             v = node[v].next[chash(text[i])];
@@ -124,6 +129,7 @@ struct aho_corasick {
     }
 
     // Find first occurrence of any dictionary word in text. Returns <i, longest wordid>
+    template <typename Vec>
     pair<int, int> find_first(const Vec& text) const {
         for (int v = 0, i = 0, N = text.size(); i < N; i++) {
             v = node[v].next[chash(text[i])];

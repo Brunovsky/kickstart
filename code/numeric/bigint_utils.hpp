@@ -8,7 +8,7 @@ string random_numeric_string(int digits, int base = 10, double neg_p = 0.0,
     static boold signd(0.3);
     boold negd(neg_p);
 
-    string s = generate_any_string(digits, '0', '0' + base - 1);
+    string s = rand_string(digits, '0', '0' + base - 1);
     auto i = s.find_first_not_of('0');
     if (i == string::npos)
         return zero ? "0" : "1";

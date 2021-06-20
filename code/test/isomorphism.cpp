@@ -41,7 +41,7 @@ void stress_test_isomorphic_positives() {
 
         int V = distV(mt);
         auto g1 = random_uniform_undirected_connected(V, distp(mt));
-        auto g2 = relabel(V, g1);
+        auto g2 = random_relabel_graph(V, g1);
         assert(isomorphic(V, g1, g2));
     }
 }

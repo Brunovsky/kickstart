@@ -125,7 +125,8 @@ void scaling_test_general_matching() {
         LOOP_FOR_DURATION_OR_RUNS_TRACKED (1s, now, 1000, runs) {
             print_time(now, 1s, "scaling test general matching");
 
-            edges_t g = relabel(V, random_exact_undirected_connected(V, E));
+            edges_t g = random_exact_undirected_connected(V, E);
+            random_relabel_graph_inplace(V, g);
 
             START(mv);
             micali_vazirani vg(V, g);
@@ -180,7 +181,8 @@ void speed_test_general_matching() {
         LOOP_FOR_DURATION_TRACKED_RUNS (1s, now, runs) {
             print_time(now, 1s, "speed test general matching V,E={},{}", V, E);
 
-            edges_t g = relabel(V, random_exact_undirected_connected(V, E));
+            edges_t g = random_exact_undirected_connected(V, E);
+            random_relabel_graph_inplace(V, g);
             auto bg = to_boost(V, g);
 
             START(boost);

@@ -40,7 +40,7 @@ void unit_test_add_segtree() {
 }
 
 void unit_test_dyn_segtree() {
-    using namespace samples_dyn_segtree;
+    using namespace samples_segtree;
 
     dyn_segtree<sum_segnode> tree(10, 30);
 
@@ -58,7 +58,7 @@ void unit_test_dyn_segtree() {
 }
 
 void unit_test_sparse_segtree() {
-    using namespace samples_sparse_segtree;
+    using namespace samples_segtree;
 
     sparse_segtree<sum_segnode, add_segupdate> tree(1, 300'000'000);
 
@@ -72,8 +72,7 @@ void unit_test_sparse_segtree() {
 }
 
 void stress_test_segtree() {
-    namespace st = samples_segtree;
-    namespace ss = samples_sparse_segtree;
+    using namespace samples_segtree;
     constexpr int N = 200;
     intd vald(-20, 20);
 
@@ -132,8 +131,8 @@ void stress_test_segtree() {
         printcl("total runs: {}\n", runs);
     };
 
-    run(segtree<st::sum_segnode, st::add_segupdate>{});
-    run(sparse_segtree<ss::sum_segnode, ss::add_segupdate>{});
+    run(segtree<sum_segnode, add_segupdate>{});
+    run(sparse_segtree<sum_segnode, add_segupdate>{});
 }
 
 int main() {

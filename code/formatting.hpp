@@ -54,7 +54,7 @@ string mat_to_string(const Mat& v) {
 template <typename Mat>
 string mat_to_string_indices(const Mat& v) {
     vector<vector<string>> string_matrix(1);
-    size_t M = 0;
+    int M = 0;
     for (const auto& row : v) {
         string_matrix.emplace_back();
         string_matrix.back().push_back(std::to_string(string_matrix.size() - 1));
@@ -66,7 +66,7 @@ string mat_to_string_indices(const Mat& v) {
                 string_matrix.back().push_back(to_string(col));
             }
         }
-        M = max(M, string_matrix.size());
+        M = max(M, int(string_matrix.size()));
     }
     for (int i = 1; i < M; i++) {
         string_matrix[0].push_back(std::to_string(i - 1));
@@ -203,7 +203,18 @@ string format_tuple_map(const map<tuple<U, V, W>, String>& times, bool label_row
     return align_string_matrix(string_matrix);
 }
 
+template <typename... Ts>
+void debugger(string_view vars, Ts&&... args) {
+    cerr << ">> [" << vars << "]: ";
+    const char* delim = "";
+    (..., (cerr << delim << args, delim = ", "));
+    cerr << endl;
+}
+#define debug(...) debugger(#__VA_ARGS__, __VA_ARGS__)
+
 namespace std {
+
+const string& to_string(const string& s) { return s; }
 
 template <typename U, typename V>
 string to_string(const pair<U, V>& uv) {

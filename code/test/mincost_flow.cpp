@@ -1,6 +1,6 @@
 #include "test_utils.hpp"
 #include "../flow/mincost_edmonds_karp.hpp"
-#include "../lib/flow.hpp"
+#include "../lib/graph_generator.hpp"
 
 const string DATASET_FILE = "datasets/mincost_flow.txt";
 
@@ -102,30 +102,37 @@ void dataset_test_mincost_flow() {
 }
 
 void speed_test_mincost_flow() {
-    static const vector<int> sizes = {100, 250, 800, 1500, 3000};
-    const auto runtime = 40000ms / (sizes.size() * int(FN_END));
-    map<pair<string, int>, string> table;
+    static vector<int> Vs = {30, 60, 100, 200, 300, 500};
+    static vector<double> pVs = {1.5, 3.0, 7.0, 15.0, 30.0};
+    static vector<double> as = {-.35,  -.15, -.05, -.01, -.001, 0,
+                                +.001, +.01, +.05, +.15, +.35};
+    const auto runtime = 60000ms / (Vs.size() * pVs.size() * as.size());
+    map<tuple<pair<int, double>, double, string>, stringable> table;
 
-    auto run = [&](flow_network_kind i, int S) {
-        START_ACC(edmonds);
-        auto name = flow_kind_name[i];
+    auto run = [&](int V, double pV, double alpha) {
+        START_ACC2(edmonds, gen);
+        double p = min(1.0, pV / V);
+        long Esum = 0;
 
         LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
-            print_time(now, runtime, "speed test mincost flow S={} {}", S, name);
+            print_time(now, runtime, "speed test mincostflow V,p,a={},{:.1e},{}", V, p,
+                       alpha);
 
-            auto network = generate_flow_network(i, S);
-            add_cap_flow_network(network, 1, 100'000'000);
-            add_cost_flow_network(network, 1, 100'000'000);
-            int s = network.s, t = network.t, V = network.V;
+            START(gen);
+            auto [g, s, t] = random_geometric_flow_connected(V, p, p / 2, alpha);
+            auto cap = rands_wide<int>(g.size(), 1, 100'000'000, -5);
+            auto cost = rands_wide<int>(g.size(), 1, 100'000'000, -5);
+            Esum += g.size();
+            ADD_TIME(gen);
 
             START(edmonds);
             mincost_edmonds_karp<int, int, long, long> g0(V);
-            add_edges(g0, network.g, network.cap, network.cost);
+            add_edges(g0, g, cap, cost);
             auto ans1 = g0.mincost_flow(s, t);
             ADD_TIME(edmonds);
 
             mincost_edmonds_karp<long, long, long, long> g1(V);
-            add_edges(g1, network.g, network.cap, network.cost);
+            add_edges(g1, g, cap, cost);
             auto ans2 = g1.mincost_flow(s, t);
             assert(ans1 == ans2);
 
@@ -134,12 +141,15 @@ void speed_test_mincost_flow() {
             assert(ans1 == ans3);
         }
 
-        table[{name, S}] = FORMAT_EACH(edmonds, runs);
+        table[{{V, alpha}, pV, "gen"}] = FORMAT_EACH(gen, runs);
+        table[{{V, alpha}, pV, "edmonds"}] = FORMAT_EACH(edmonds, runs);
     };
 
-    for (int S : sizes) {
-        for (int i = 0; i < int(FN_END); i++) {
-            run(flow_network_kind(i), S);
+    for (int V : Vs) {
+        for (double pV : pVs) {
+            for (double alpha : as) {
+                run(V, pV, alpha);
+            }
         }
     }
 

@@ -35,8 +35,8 @@ void stress_test_fft_multiply_mod(int N = 10000) {
         print_time(now, 4s, "stress test ntt multiply mod");
 
         int A = distn(mt), B = distn(mt);
-        auto a = int_gen<int>(A, 0, V);
-        auto b = int_gen<int>(B, 0, V);
+        auto a = rands_unif<int>(A, 0, V);
+        auto b = rands_unif<int>(B, 0, V);
         auto c = fft::fft_multiply(mod, a, b);
         auto d = fft::naive_multiply(mod, a, b);
 
@@ -70,8 +70,8 @@ void breakeven_test_fft_multiply_mod() {
         START_ACC(naive);
 
         LOOP_FOR_DURATION_OR_RUNS (30ms, 10000) {
-            auto a = uniform_gen_many<int>(N, 0, V);
-            auto b = uniform_gen_many<int>(N, 0, V);
+            auto a = rands_unif<int>(N, 0, V);
+            auto b = rands_unif<int>(N, 0, V);
 
             START(fft);
             auto c = fft::fft_multiply(mod, a, b);
@@ -111,8 +111,8 @@ void speed_test_fft_multiply_mod() {
             LOOP_FOR_DURATION_OR_RUNS_TRACKED (duration, now, 10000, runs) {
                 print_time(now, duration, "speed test fft multiply A,B={},{}", A, B);
 
-                auto a = uniform_gen_many<int>(A, -V, V);
-                auto b = uniform_gen_many<int>(B, -V, V);
+                auto a = rands_unif<int>(A, -V, V);
+                auto b = rands_unif<int>(B, -V, V);
                 vector<num> c(begin(a), end(a));
                 vector<num> d(begin(b), end(b));
 

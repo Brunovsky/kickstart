@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../lib/slow_tree.hpp"
+#include "slow_tree.hpp"
 #include "test_chrono.hpp"
 #include "test_progress.hpp"
 
@@ -8,7 +8,6 @@
  * For battle testing link cut trees, euler tour trees and top trees.
  * Tree may be rooted (ETT) or unrooted (LCT). The semantics of the actions changes.
  */
-
 namespace tree_testing {
 
 template <typename Type>

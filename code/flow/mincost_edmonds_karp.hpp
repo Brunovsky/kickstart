@@ -72,26 +72,32 @@ struct mincost_edmonds_karp {
         return path;
     }
 
-    pair<FlowSum, CostSum> mincost_flow(int s, int t, FlowSum F = flowsuminf) {
+    pair<FlowSum, CostSum> mincost_flow(int s, int t, FlowSum F = flowsuminf,
+                                        CostSum C = costsuminf) {
         pi.assign(V, 0);
         heap = binary_int_heap<less_container<vector<CostSum>>>(V, dist);
 
         FlowSum sflow = 0;
+        CostSum scost = 0;
         while (sflow < F && dijkstra(s, t)) {
             auto augmenting_path = path(t);
             Flow df = min(F - sflow, FlowSum(flowinf));
+            CostSum dc = 0;
             for (int e : augmenting_path) {
                 df = min(df, edge[e].cap - edge[e].flow);
+                dc += edge[e].cost;
+            }
+            if (dc > 0 && df > (C - scost) / dc) {
+                df = (C - scost) / dc;
+                if (df == 0)
+                    break;
             }
             sflow += df;
+            scost += df * dc;
             for (int e : augmenting_path) {
                 edge[e].flow += df;
                 edge[e ^ 1].flow -= df;
             }
-        }
-        CostSum scost = 0;
-        for (int e = 0; e < E; e += 2) {
-            scost += FlowSum(edge[e].flow) * CostSum(edge[e].cost);
         }
         return make_pair(sflow, scost);
     }

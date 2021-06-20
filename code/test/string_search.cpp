@@ -40,14 +40,14 @@ auto naive_search_all(const string& haystack, const string& needle) {
     return indices;
 }
 
-inline void add(vector<string>& strs, const vector<string>& more) {
-    strs.insert(strs.end(), begin(more), end(more));
-}
-
 } // namespace detail
 
 void stress_test_string_searchers() {
     vector<string> needles, haystacks;
+
+    auto add = [&](vector<string>& strs, vector<string>&& more) {
+        strs.insert(end(strs), begin(more), end(more));
+    };
 
     add(needles, generate_all_strings(1, 6, 'a', 'c'));
     add(needles, {"abab", "ababa", "ababab", "abababab", "abba", "abbaab", "abbaabba"});
@@ -55,15 +55,15 @@ void stress_test_string_searchers() {
     add(needles, {"aabaa", "aaaab", "baaaa", "ababa", "bcabcaabc"});
     add(needles, {"accbcc", "accbccacbc", "accbccaccbcc", "acbcacbc"});
     add(needles, {".", ",!?#:", "aa.bb", "a,", ",a"});
-    add(needles, generate_any_strings(37, 7, 15, 'a', 'c'));
-    add(needles, generate_any_strings(20, 16, 40, 'a', 'c'));
+    add(needles, rand_strings(37, 7, 15, 'a', 'c'));
+    add(needles, rand_strings(20, 16, 40, 'a', 'c'));
 
     add(haystacks, {"...", "#?!", "?!", "!?", "   ", "abcdabc", ",bab,", ",aba,"});
     add(haystacks, generate_all_strings(0, 7, 'a', 'c'));
-    add(haystacks, generate_any_strings(3'000, 8, 15, 'a', 'c'));
-    add(haystacks, generate_any_strings(1'000, 16, 70, 'a', 'c'));
-    add(haystacks, generate_any_strings(100, 71, 1000, 'a', 'c'));
-    add(haystacks, generate_any_strings(20, 1001, 10000, 'a', 'c'));
+    add(haystacks, rand_strings(3'000, 8, 15, 'a', 'c'));
+    add(haystacks, rand_strings(1'000, 16, 70, 'a', 'c'));
+    add(haystacks, rand_strings(100, 71, 1000, 'a', 'c'));
+    add(haystacks, rand_strings(20, 1001, 10000, 'a', 'c'));
 
     int N = needles.size(), H = haystacks.size();
     print(" no. needles: {}\n", N);

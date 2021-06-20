@@ -4,15 +4,6 @@
 #include "hash.hpp"
 #include "random.hpp"
 
-template <typename T = int>
-auto randint(T a, T b) {
-    return uniform_int_distribution<T>(a, b)(mt);
-}
-template <typename T = double>
-auto randreal(T a, T b) {
-    return uniform_real_distribution<T>(a, b)(mt);
-}
-
 string repeat(int n, const string& pat) {
     string s;
     for (int i = 0; i < n; i++)

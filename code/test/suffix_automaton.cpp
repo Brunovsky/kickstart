@@ -1,7 +1,6 @@
 #include "test_utils.hpp"
 #include "../linear/matrix.hpp"
 #include "../strings/suffix_automaton.hpp"
-#include "../strings/map_suffix_automaton.hpp"
 #include "../strings/sparse_suffix_automaton.hpp"
 #include "../strings/vector_suffix_automaton.hpp"
 
@@ -9,11 +8,11 @@ void speed_test_build(int min_scale = 10, int max_scale = 18) {
     map<pair<string, int>, string> table;
 
     for (int scale = min_scale; scale <= max_scale; scale++) {
-        START_ACC4(gsa, ssa, msa, vsa);
+        START_ACC3(gsa, ssa, vsa);
 
         LOOP_FOR_DURATION_OR_RUNS_TRACKED (2s, now, 10'000, runs) {
             print_time(now, 2s, "speed test build {}", 1 << scale);
-            string s = generate_any_string(1 << scale, 'a', 'z');
+            string s = rand_string(1 << scale, 'a', 'z');
 
             START(gsa);
             suffix_automaton gsa(s);
@@ -23,10 +22,6 @@ void speed_test_build(int min_scale = 10, int max_scale = 18) {
             sparse_suffix_automaton ssa(s);
             ADD_TIME(ssa);
 
-            START(msa);
-            map_suffix_automaton msa(s);
-            ADD_TIME(msa);
-
             START(vsa);
             vector_suffix_automaton vsa(s);
             ADD_TIME(vsa);
@@ -34,7 +29,6 @@ void speed_test_build(int min_scale = 10, int max_scale = 18) {
 
         table[{"gsa", 1 << scale}] = FORMAT_EACH(gsa, runs);
         table[{"ssa", 1 << scale}] = FORMAT_EACH(ssa, runs);
-        table[{"msa", 1 << scale}] = FORMAT_EACH(msa, runs);
         table[{"vsa", 1 << scale}] = FORMAT_EACH(vsa, runs);
     }
 
@@ -46,18 +40,17 @@ void speed_test_contains(int min_scale = 10, int max_scale = 18) {
 
     for (int scale = min_scale; scale <= max_scale; scale++) {
         int len = 1 << scale;
-        string s = generate_any_string(len, 'a', 'z');
+        string s = rand_string(len, 'a', 'z');
 
-        START_ACC4(gsa, ssa, msa, vsa);
+        START_ACC3(gsa, ssa, vsa);
 
         suffix_automaton gsa(s);
         sparse_suffix_automaton ssa(s);
-        map_suffix_automaton msa(s);
         vector_suffix_automaton vsa(s);
 
         LOOP_FOR_DURATION_OR_RUNS_TRACKED (2s, now, 250'000, runs) {
             print_time(now, 2s, "speed test contains {}/{} {}", scale, max_scale, len);
-            string pat = generate_any_string(len / 64, 'a', 'z');
+            string pat = rand_string(len / 64, 'a', 'z');
 
             START(gsa);
             auto c0 = gsa.count_matches(pat);
@@ -67,20 +60,15 @@ void speed_test_contains(int min_scale = 10, int max_scale = 18) {
             auto c1 = ssa.count_matches(pat);
             ADD_TIME(ssa);
 
-            START(msa);
-            auto c2 = msa.count_matches(pat);
-            ADD_TIME(msa);
-
             START(vsa);
-            auto c3 = vsa.count_matches(pat);
+            auto c2 = vsa.count_matches(pat);
             ADD_TIME(vsa);
 
-            assert(c0 == c1 && c0 == c2 && c0 == c3);
+            assert(c0 == c1 && c0 == c2);
         }
 
         table[{"gsa", 1 << scale}] = FORMAT_EACH(gsa, runs);
         table[{"ssa", 1 << scale}] = FORMAT_EACH(ssa, runs);
-        table[{"msa", 1 << scale}] = FORMAT_EACH(msa, runs);
         table[{"vsa", 1 << scale}] = FORMAT_EACH(vsa, runs);
     }
 
@@ -91,7 +79,7 @@ template <typename SA = suffix_automaton<>>
 void stress_test_suffix_automaton() {
     int errors = 0;
     for (int i = 0; i < 1000; i++) {
-        string s = generate_any_string(10000, 'a', 'z');
+        string s = rand_string(10000, 'a', 'z');
         SA sa(s);
         for (int j = 0; j < 200; j++) {
             errors += !sa.contains(s.substr(intd(0, 2000)(mt), intd(100, 500)(mt)));
@@ -159,7 +147,6 @@ int main() {
     RUN_SHORT(unit_test_suffix_automaton());
     RUN_SHORT(stress_test_suffix_automaton<suffix_automaton<>>());
     RUN_SHORT(stress_test_suffix_automaton<sparse_suffix_automaton<>>());
-    RUN_SHORT(stress_test_suffix_automaton<map_suffix_automaton<>>());
     RUN_SHORT(stress_test_suffix_automaton<vector_suffix_automaton<>>());
     RUN_BLOCK(speed_test_build());
     RUN_BLOCK(speed_test_contains());

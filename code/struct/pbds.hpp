@@ -42,12 +42,7 @@ namespace __gnu_pbds {
 
 template <typename T>
 string to_string(const ordered_set<T>& os) {
-    string s = "";
-    for (const auto& elem : os) {
-        using std::to_string;
-        s += to_string(elem) + " ";
-    }
-    return "(" + (s.empty() ? s : (s.pop_back(), s)) + ")";
+    return seq_to_string(os);
 }
 
 template <typename T>

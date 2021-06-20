@@ -1,7 +1,7 @@
 #pragma once
 
 #include "test_progress.hpp"
-#include "../../numeric/chrono.hpp"
+#include "../numeric/chrono.hpp"
 
 string format_duration(double duration) {
     constexpr int64_t THRESHOLD = 1000;
@@ -63,14 +63,6 @@ void print_each_duration(double duration, const string& label) {
 #define CUR_TIME(var)  (chrono::steady_clock::now() - now_##var)
 #define TIME(var)      chrono::nanoseconds time_##var = CUR_TIME(var)
 
-#define TIME_BLOCK(var)                                                             \
-    for (auto [_track##var, now_##var] = make_pair(1, chrono::steady_clock::now()); \
-         _track##var--; print_duration(CUR_TIME(var), #var))
-
-#define ADD_TIME_BLOCK(var)                                                         \
-    for (auto [_track##var, now_##var] = make_pair(1, chrono::steady_clock::now()); \
-         _track##var--; ADD_TIME(var))
-
 #define TIME_MS(var) chrono::duration_cast<chrono::milliseconds>(time_##var).count()
 #define TIME_US(var) chrono::duration_cast<chrono::microseconds>(time_##var).count()
 #define TIME_NS(var) chrono::duration_cast<chrono::nanoseconds>(time_##var).count()
@@ -80,6 +72,14 @@ void print_each_duration(double duration, const string& label) {
 #define EACH_NS(var, runs) (1.0 * TIME_NS(var) / (runs))
 
 #define RATIO(var1, var2) (TIME_NS(var2) > 0 ? 1.0 * TIME_NS(var1) / TIME_NS(var2) : 0.0)
+
+#define TIME_BLOCK(var)                                                             \
+    for (auto [_track##var, now_##var] = make_pair(1, chrono::steady_clock::now()); \
+         _track##var--; print_duration(CUR_TIME(var), #var))
+
+#define ADD_TIME_BLOCK(var)                                                         \
+    for (auto [_track##var, now_##var] = make_pair(1, chrono::steady_clock::now()); \
+         _track##var--; ADD_TIME(var))
 
 #define PRINT_TIME(var)  print_duration(time_##var, #var)
 #define FORMAT_TIME(var) (TIME_NS(var) > 0 ? format_duration(TIME_NS(var)) : ""s)
@@ -91,18 +91,17 @@ void print_each_duration(double duration, const string& label) {
 #define PRINT_RATIO(var1, var2)                 \
     if (TIME_NS(var1) > 0 && TIME_NS(var2) > 0) \
     printcl(" {:.2f} speedup -- {} / {}", RATIO(var1, var2), #var1, #var2)
+
 #define FORMAT_RATIO(var1, var2) \
     (TIME_NS(var1) > 0 && TIME_NS(var2) > 0 ? format("{:.2f}", RATIO(var1, var2)) : ""s)
 
 #define START_ACC2(var1, var2) \
     START_ACC(var1);           \
     START_ACC(var2)
-
 #define START_ACC3(var1, var2, var3) \
     START_ACC(var1);                 \
     START_ACC(var2);                 \
     START_ACC(var3)
-
 #define START_ACC4(var1, var2, var3, var4) \
     START_ACC(var1);                       \
     START_ACC(var2);                       \

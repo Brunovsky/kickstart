@@ -30,7 +30,7 @@ struct edmonds_karp {
 
     bool bfs(int s, int t) {
         pred.assign(V, -1);
-        Q[0] = s;
+        Q[0] = s, pred[s] = E;
         int j = 0, S = 1;
         while (j < S && pred[t] == -1) {
             int u = Q[j++];
@@ -49,10 +49,10 @@ struct edmonds_karp {
 
     Flow augment(int t) {
         Flow aug_flow = flow_inf;
-        for (int e = pred[t]; e != -1; e = pred[edge[e].node[0]]) {
+        for (int e = pred[t]; e != E; e = pred[edge[e].node[0]]) {
             aug_flow = min(aug_flow, edge[e].cap - edge[e].flow);
         }
-        for (int e = pred[t]; e != -1; e = pred[edge[e].node[0]]) {
+        for (int e = pred[t]; e != E; e = pred[edge[e].node[0]]) {
             edge[e].flow += aug_flow;
             edge[e ^ 1].flow -= aug_flow;
         }

@@ -30,7 +30,7 @@ void speed_test_radix_sort_idx() {
     LOOP_FOR_DURATION_TRACKED (3s, now) {
         print_time(now, 3s, "speed test radix sort idx");
 
-        auto dist = int_gen<int>(500'000, 100'000, 100'000'000);
+        auto dist = rands_unif<int>(500'000, 100'000, 100'000'000);
         vector<int> idx[3];
 
         START(lsb);
@@ -59,7 +59,7 @@ void speed_test_radix_sort() {
     LOOP_FOR_DURATION_TRACKED (3s, now) {
         print_time(now, 3s, "speed test radix sort");
 
-        auto v0 = int_gen<int>(500'000, 100'000, 100'000'000);
+        auto v0 = rands_unif<int>(500'000, 100'000, 100'000'000);
         auto v1 = v0, v2 = v0;
 
         START(lsb);

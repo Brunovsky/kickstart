@@ -3,8 +3,8 @@
 #include "../flow/edmonds_karp.hpp"
 #include "../flow/push_relabel.hpp"
 #include "../flow/tidal_flow.hpp"
-#include "../lib/flow.hpp"
 #include "../lib/graph_formats.hpp"
+#include "../lib/graph_generator.hpp"
 
 inline namespace detail {
 
@@ -19,54 +19,64 @@ void add_edges(MF& mf, const edges_t& g, const Caps& caps) {
 } // namespace detail
 
 void speed_test_max_flow() {
-    static const vector<int> sizes = {500, 1800, 6000, 12000, 20000};
-    const auto duration = 20000ms / (sizes.size() * FN_END);
-    map<tuple<string, int, string>, string> table;
+    static vector<int> Vs = {10, 20, 35, 50, 100, 200, 500, 1000, 2000, 3500};
+    static vector<double> pVs = {2.0, 4.0, 7.0, 15.0, 30.0};
+    static vector<double> as = {-.35,  -.15, -.05, -.01, -.001, 0,
+                                +.001, +.01, +.05, +.15, +.35};
+    const auto duration = 40000ms / (Vs.size() * pVs.size() * as.size());
+    map<tuple<pair<int, double>, double, string>, stringable> table;
 
-    for (int n = 0; n < int(sizes.size()); n++) {
-        for (int i = 0; i < int(FN_END); i++) {
-            int S = sizes[n];
-            string name = flow_kind_name[i];
+    auto run = [&](int V, double pV, double alpha) {
+        START_ACC4(gen, dinitz, push_relabel, tidal);
+        double p = min(1.0, pV / V);
+        if (pV > V)
+            return;
 
-            START_ACC4(generation, dinitz, push_relabel, tidal);
+        LOOP_FOR_DURATION_TRACKED_RUNS (duration, now, runs) {
+            print_time(now, duration, "speed test maxflow V,p,a={},{},{}", V, p, alpha);
 
-            LOOP_FOR_DURATION_TRACKED_RUNS (duration, now, runs) {
-                print_time(now, duration, "{} S={}", name, S);
+            START(gen);
+            auto [g, s, t] = random_geometric_flow_connected(V, p, p / 2, alpha);
+            auto cap = rands_wide<int>(g.size(), 1, 100'000'000, -5);
+            ADD_TIME(gen);
 
-                START(generation);
-                auto network = generate_flow_network(flow_network_kind(i), S);
-                add_cap_flow_network(network, 1, 10'000'000);
-                ADD_TIME(generation);
+            vector<long> mf(3);
 
-                vector<long> mf(3);
+            START(dinitz);
+            dinitz_flow<int, long> g0(V);
+            add_edges(g0, g, cap);
+            mf[0] = g0.maxflow(s, t);
+            ADD_TIME(dinitz);
 
-                START(dinitz);
-                dinitz_flow<int, long> g0(network.V);
-                add_edges(g0, network.g, network.cap);
-                mf[0] = g0.maxflow(network.s, network.t);
-                ADD_TIME(dinitz);
+            START(push_relabel);
+            push_relabel<int, long> g1(V);
+            add_edges(g1, g, cap);
+            mf[1] = g1.maxflow(s, t, true);
+            ADD_TIME(push_relabel);
 
-                START(push_relabel);
-                push_relabel<int, long> g1(network.V);
-                add_edges(g1, network.g, network.cap);
-                mf[1] = g1.maxflow(network.s, network.t, true);
-                ADD_TIME(push_relabel);
+            START(tidal);
+            tidal_flow<int, long> g2(V);
+            add_edges(g2, g, cap);
+            mf[2] = g2.maxflow(s, t);
+            ADD_TIME(tidal);
 
-                START(tidal);
-                tidal_flow<int, long> g2(network.V);
-                add_edges(g2, network.g, network.cap);
-                mf[2] = g2.maxflow(network.s, network.t);
-                ADD_TIME(tidal);
-
-                if (!all_eq(mf)) {
-                    fail("Random test failed: {}", fmt::join(mf, " "));
-                }
+            if (!all_eq(mf)) {
+                ofstream file("debug.txt");
+                print(file, "{}", simple_dot(g, true));
+                fail("Random test failed: {}", fmt::join(mf, " "));
             }
+        }
 
-            table[{name, sizes[n], "gen"}] = FORMAT_EACH(generation, runs);
-            table[{name, sizes[n], "dinitz"}] = FORMAT_EACH(dinitz, runs);
-            table[{name, sizes[n], "push"}] = FORMAT_EACH(push_relabel, runs);
-            table[{name, sizes[n], "tidal"}] = FORMAT_EACH(tidal, runs);
+        table[{{V, alpha}, pV, "dinitz"}] = FORMAT_EACH(dinitz, runs);
+        table[{{V, alpha}, pV, "push"}] = FORMAT_EACH(push_relabel, runs);
+        table[{{V, alpha}, pV, "tidal"}] = FORMAT_EACH(tidal, runs);
+    };
+
+    for (int V : Vs) {
+        for (double pV : pVs) {
+            for (double alpha : as) {
+                run(V, pV, alpha);
+            }
         }
     }
 
@@ -74,24 +84,22 @@ void speed_test_max_flow() {
 }
 
 void stress_test_max_flow() {
-    intd kindd(0, int(FN_END) - 1);
-
     LOOP_FOR_DURATION_TRACKED (3s, now) {
         print_time(now, 3s, "stress test max flow");
 
-        auto network = generate_flow_network(flow_network_kind(kindd(mt)), 50);
-        add_cap_flow_network(network, 1, 100'000);
-        int V = network.V;
+        int V = 50;
+        auto [g, s, t] = random_uniform_flow_connected(V, 0.1, 0.05);
+        auto cap = rands_unif<int>(g.size(), 1, 100'000);
 
         edmonds_karp g1(V);
         dinitz_flow g2(V);
         push_relabel g3(V);
         tidal_flow g4(V);
 
-        add_edges(g1, network.g, network.cap);
-        add_edges(g2, network.g, network.cap);
-        add_edges(g3, network.g, network.cap);
-        add_edges(g4, network.g, network.cap);
+        add_edges(g1, g, cap);
+        add_edges(g2, g, cap);
+        add_edges(g3, g, cap);
+        add_edges(g4, g, cap);
 
         vector<long> mf(4);
         mf[0] = g1.maxflow(0, V - 1);
@@ -102,7 +110,7 @@ void stress_test_max_flow() {
 
         if (!all_eq(mf)) {
             ofstream file("debug.txt");
-            print(file, "{}", simple_dot(network.g, true));
+            print(file, "{}", simple_dot(g, true));
             fail("Random test failed: {}", fmt::join(mf, " "));
         }
     }

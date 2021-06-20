@@ -3,35 +3,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-/**
- * Maintain sum and size of subtrees
- */
-struct dft_node_sum {
-    int opens = 0;
-    long self = 0;
-    long subt = 0;
-    long lazy = 0;
-
-    int subtree_size() const { return opens; }
-    long subtree() const { return subt; }
-
-    void pushdown(bool is_open, dft_node_sum& lhs, dft_node_sum& rhs) {
-        if (lazy) {
-            lhs.lazy += lazy;
-            rhs.lazy += lazy;
-            if (is_open)
-                self += lazy;
-            subt += lazy * opens;
-            lazy = 0;
-        }
-    }
-
-    void pushup(bool is_open, const dft_node_sum& lhs, const dft_node_sum& rhs) {
-        opens = is_open + lhs.opens + rhs.opens;
-        subt = self + lhs.subt + rhs.subt;
-    }
-};
-
 struct dft_node_empty {
     void pushdown(bool, dft_node_empty&, dft_node_empty&) {}
     void pushup(bool, const dft_node_empty&, const dft_node_empty&) {}
@@ -212,5 +183,34 @@ struct depth_first_tree {
     auto splice(int u) {
         int r = splay_split<1>(last(u)), l = splay_split<0>(first(u));
         return make_pair(l, r); // first(u) is the root
+    }
+};
+
+/**
+ * Maintain sum and size of subtrees
+ */
+struct dft_node_sum {
+    int opens = 0;
+    long self = 0;
+    long subt = 0;
+    long lazy = 0;
+
+    int subtree_size() const { return opens; }
+    long subtree() const { return subt; }
+
+    void pushdown(bool is_open, dft_node_sum& lhs, dft_node_sum& rhs) {
+        if (lazy) {
+            lhs.lazy += lazy;
+            rhs.lazy += lazy;
+            if (is_open)
+                self += lazy;
+            subt += lazy * opens;
+            lazy = 0;
+        }
+    }
+
+    void pushup(bool is_open, const dft_node_sum& lhs, const dft_node_sum& rhs) {
+        opens = is_open + lhs.opens + rhs.opens;
+        subt = self + lhs.subt + rhs.subt;
     }
 };

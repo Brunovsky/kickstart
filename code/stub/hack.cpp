@@ -12,12 +12,12 @@ int main(int argc, char** argv) {
     putln(T);
     for (int t = 1; t <= T; t++) {
         // putln("::hack", t);
-        int N = randint(1, 5);
+        int N = rand_int(1, 5);
         putln(N);
         for (int i = 0; i < N; i++) {
-            int a = randint(1, 100'000);
-            int b = randint(1, 100'000);
-            int c = randint(1, 100'000);
+            int a = rand_int(1, 100'000);
+            int b = rand_int(1, 100'000);
+            int c = rand_int(1, 100'000);
             putln(a, b, c);
         }
     }

@@ -1,5 +1,5 @@
 #include "test_utils.hpp"
-#include "../lib/bipartite.hpp"
+#include "../lib/bipartite_matching.hpp"
 #include "../matching/mincost_hungarian.hpp"
 
 inline namespace detail {
@@ -42,51 +42,46 @@ void unit_test_mincost_hungarian() {
 }
 
 void speed_test_mincost_matching() {
-    static const vector<int> sizes = {100, 250, 800, 1500, 3000};
-    const auto runtime = 40000ms / (sizes.size() * int(BG_END));
-    map<tuple<string, int, string>, string> table;
+    static vector<int> sizes = {100, 250, 800, 1500, 3000, 5000};
+    static vector<double> ps = {0.02, 0.05, 0.1, 0.2, 0.4};
+    const auto runtime = 40000ms / (sizes.size() * ps.size());
+    map<tuple<double, int, string>, string> table;
 
-    auto run = [&](bipartite_graph_kind i, int S) {
-        string name = bipartite_kind_name[i];
-        int cnt_imperfect = 0;
+    auto run = [&](int V, double p) {
         double avg_mc = 0;
 
         START_ACC(hungarian);
 
-        LOOP_FOR_DURATION_TRACKED_RUNS (1s, now, runs) {
-            print_time(now, 1s, "speed test hungarian S={} {}", S, name);
+        LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
+            print_time(now, runtime, "speed test hungarian V={} p={}", V, p);
 
-            auto graph = generate_bipartite_graph(i, S);
-            add_cost_bipartite_graph(graph, 10'000'000, 300'000'000);
+            auto G = random_bipartite_matching(V, V, V, p);
+            auto cost = rands_unif<int>(G.size(), 1, 500'000'000);
+            bipartite_matching_hide_topology(V, V, G);
 
             START(hungarian);
-            mincost_hungarian<int, long> g0(graph.U, graph.V);
-            add_edges(g0, graph.g, graph.cost);
-            g0.pad_reverse();
+            mincost_hungarian<int, long> g0(V, V);
+            add_edges(g0, G, cost);
             auto ans0 = g0.mincost_max_matching();
             ADD_TIME(hungarian);
 
             auto ans1 = g0.mincost_max_matching(); // again
 
-            mincost_hungarian<long, long> g1(graph.U, graph.V);
-            add_edges(g1, graph.g, graph.cost);
-            g1.pad_reverse();
+            mincost_hungarian<long, long> g1(V, V);
+            add_edges(g1, G, cost);
             auto ans2 = g1.mincost_max_matching();
 
-            assert(ans0 == ans1 && ans0 == ans2);
-
-            cnt_imperfect += ans0 == -1;
-            avg_mc += ans0 == -1 ? 0 : ans0 / (graph.U + graph.V);
+            assert(ans0 >= 0 && ans0 == ans1 && ans0 == ans2);
+            avg_mc += ans0 == -1 ? 0 : ans0 / V;
         }
 
-        table[{name, S, "hungarian"}] = FORMAT_EACH(hungarian, runs);
-        table[{name, S, "avg size"}] = format("{:10.1f}", avg_mc / runs);
-        table[{name, S, "imperf"}] = format("{:5.1f}%", 100.0 * cnt_imperfect / runs);
+        table[{p, V, "hungarian"}] = FORMAT_EACH(hungarian, runs);
+        table[{p, V, "avg size"}] = format("{:10.1f}", avg_mc / runs);
     };
 
-    for (int S : sizes) {
-        for (int i = 0; i < int(BG_END); i++) {
-            run(bipartite_graph_kind(i), S);
+    for (int V : sizes) {
+        for (double p : ps) {
+            run(V, p);
         }
     }
 

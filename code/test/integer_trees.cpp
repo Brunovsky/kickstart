@@ -131,8 +131,47 @@ void stress_test_merging_interval_tree(int N, int k) {
     }
 }
 
+void unit_test_rollback_setmap() {
+    map_rollback<int, string> rmap;
+    multiset_rollback<string> rset;
+
+    vector<map<int, string>> map_saves;
+    vector<multiset<string>> set_saves;
+    vector<int> map_times;
+    vector<int> set_times;
+
+    for (int i = 0; i < 100; i++) {
+        for (int j = 0; j < 10; j++) {
+            int k = rand_unif<int>(0, 1000);
+            if (boold(0.55)(mt)) {
+                rmap[k] = rand_string(4, 'a', 'm');
+            } else {
+                rmap.erase(k);
+            }
+            string s = rand_string(5, 'a', 'd');
+            if (boold(0.55)(mt)) {
+                rset.insert(s);
+            } else {
+                rset.erase(s);
+            }
+        }
+        map_saves.push_back(rmap);
+        set_saves.push_back(rset);
+        map_times.push_back(rmap.time());
+        set_times.push_back(rset.time());
+    }
+
+    for (int i = 99; i >= 0; i--) {
+        rmap.rollback(map_times[i]);
+        assert(rmap == map_saves[i]);
+        rset.rollback(set_times[i]);
+        assert(rset == set_saves[i]);
+    }
+}
+
 int main() {
     RUN_SHORT(unit_test_merging_interval_tree());
+    RUN_SHORT(unit_test_rollback_setmap());
     RUN_BLOCK(stress_test_merging_interval_tree(3000, 50));
     RUN_BLOCK(stress_test_merging_interval_tree(100'000, 500));
     return 0;

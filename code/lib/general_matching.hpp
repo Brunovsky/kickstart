@@ -43,8 +43,8 @@ auto general_matching_group_sizes(int V, int M, int E) {
 
 auto general_matching_hide_topology(int V, edges_t& g) {
     shuffle(begin(g), end(g), mt);
-    relabel_inplace(V, g);
-    random_flip_inplace(g);
+    random_relabel_graph_inplace(V, g);
+    random_flip_graph_inplace(g);
 }
 
 auto random_general_matching(int V, int M, int E) {
@@ -59,7 +59,6 @@ auto random_general_matching(int V, int M, int E) {
     for (auto [u, v] : pair_sample(b, 0, M, 2 * M, V))
         g.push_back({2 * u, v});
 
-    assert(verify_edges_undirected(g, V, E));
     return g;
 }
 

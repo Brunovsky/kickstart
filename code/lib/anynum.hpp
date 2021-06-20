@@ -24,10 +24,10 @@ O uniform_gen(long minv, long maxv, long maxd = 2) {
 }
 
 template <typename T, typename O = T>
-auto uniform_gen_many(int N, long minv, long maxv, long maxd = 2) {
-    vector<O> nums(N);
-    for (int i = 0; i < N; i++) {
-        nums[i] = uniform_gen<T>(minv, maxv, maxd);
+auto uniform_gen_many(int n, long minv, long maxv, long maxd = 2) {
+    vector<O> nums(n);
+    for (int i = 0; i < n; i++) {
+        nums[i] = uniform_gen<T, O>(minv, maxv, maxd);
     }
     return nums;
 }

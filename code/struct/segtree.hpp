@@ -143,7 +143,7 @@ struct add_segupdate {
     void apply(sum_segnode& node, array<int, 2> range) const {
         node.value += value * (range[1] - range[0]);
     }
-    void apply(min_segnode& node, array<int, 2> /*range*/) const { node.value += value; }
+    void apply(sum_segnode& node) const { node.value += value; }
 };
 
 struct set_segupdate {
@@ -155,7 +155,30 @@ struct set_segupdate {
     void apply(sum_segnode& node, array<int, 2> range) const {
         node.value = value * (range[1] - range[0]);
     }
-    void apply(min_segnode& node, array<int, 2> /*range*/) const { node.value = value; }
+    void apply(sum_segnode& node) const { node.value = value; }
+};
+
+template <typename T>
+struct affine_segnode {
+    T value = 0;
+    explicit affine_segnode(T value = 0) : value(value) {}
+    void merge(const affine_segnode& lhs, const affine_segnode& rhs) {
+        value = lhs.value + rhs.value;
+    }
+};
+
+template <typename T>
+struct affine_add_segupdate {
+    T b = 1, c = 0;
+    affine_add_segupdate() : b(1), c(0) {}
+    affine_add_segupdate(T b, T c) : b(b), c(c) {}
+    void merge(const affine_add_segupdate& parent, array<int, 2> /*range*/) {
+        c = c * parent.b + parent.c;
+        b = b * parent.b;
+    }
+    void apply(affine_segnode<T>& node, array<int, 2> range) const {
+        node.value = b * node.value + c * (range[1] - range[0]);
+    }
 };
 
 } // namespace samples_segtree

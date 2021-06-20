@@ -13,8 +13,8 @@ void stress_test_fft_split_multiply() {
         print_time(now, 4s, "stress test fft split multiply");
 
         int A = distn(mt), B = distn(mt);
-        auto a = int_gen<long>(A, -V, V);
-        auto b = int_gen<long>(B, -V, V);
+        auto a = rands_unif<long>(A, -V, V);
+        auto b = rands_unif<long>(B, -V, V);
         auto c = fft::fft_split_multiply(a, b);
         auto d = fft::naive_multiply(a, b);
 

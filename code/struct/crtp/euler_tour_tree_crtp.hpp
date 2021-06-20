@@ -6,55 +6,9 @@
  * Euler tour tree implementation based on splay tree
  * Node should inherit from splay_order<itself> (CRTP)
  */
-
-inline namespace ett_examples {
-
-struct ett_node_sum : splay_order<ett_node_sum> {
-    bool is_first = false;
-    int firsts = 0;
-    long self = 0;
-    long subt = 0;
-    long lazy = 0;
-
-    ett_node_sum(bool is_first = false) : is_first(is_first) {}
-
-    int subtree_size() const { return firsts; }
-    long subtree() const { return subt; }
-
-    void pushdown() {
-        splay_order<ett_node_sum>::pushdown();
-        if (lazy) {
-            if (child[0])
-                child[0]->lazy += lazy;
-            if (child[1])
-                child[1]->lazy += lazy;
-            if (is_first)
-                self += lazy;
-            subt += lazy * firsts;
-            lazy = 0;
-        }
-    }
-
-    void pushup() {
-        splay_order<ett_node_sum>::pushup();
-        if (child[0])
-            child[0]->pushdown();
-        if (child[1])
-            child[1]->pushdown();
-        firsts = is_first + get_firsts(child[0]) + get_firsts(child[1]);
-        subt = self + get_subt(child[0]) + get_subt(child[1]);
-    }
-
-  private:
-    static int get_firsts(const ett_node_sum* n) { return n ? n->firsts : 0; }
-    static long get_subt(const ett_node_sum* n) { return n ? n->subt : 0; }
-};
-
 struct ett_node_empty : splay_order<ett_node_empty> {
     ett_node_empty(bool = false) {}
 };
-
-} // namespace ett_examples
 
 template <typename ETTNode>
 struct euler_tour_tree {
@@ -167,4 +121,45 @@ struct simple_euler_tour_tree {
         int fu = first[u].order_of_node();
         return first[a].order_of_node() < fu && fu < last[a].order_of_node();
     }
+};
+
+struct ett_node_sum : splay_order<ett_node_sum> {
+    bool is_first = false;
+    int firsts = 0;
+    long self = 0;
+    long subt = 0;
+    long lazy = 0;
+
+    ett_node_sum(bool is_first = false) : is_first(is_first) {}
+
+    int subtree_size() const { return firsts; }
+    long subtree() const { return subt; }
+
+    void pushdown() {
+        splay_order<ett_node_sum>::pushdown();
+        if (lazy) {
+            if (child[0])
+                child[0]->lazy += lazy;
+            if (child[1])
+                child[1]->lazy += lazy;
+            if (is_first)
+                self += lazy;
+            subt += lazy * firsts;
+            lazy = 0;
+        }
+    }
+
+    void pushup() {
+        splay_order<ett_node_sum>::pushup();
+        if (child[0])
+            child[0]->pushdown();
+        if (child[1])
+            child[1]->pushdown();
+        firsts = is_first + get_firsts(child[0]) + get_firsts(child[1]);
+        subt = self + get_subt(child[0]) + get_subt(child[1]);
+    }
+
+  private:
+    static int get_firsts(const ett_node_sum* n) { return n ? n->firsts : 0; }
+    static long get_subt(const ett_node_sum* n) { return n ? n->subt : 0; }
 };

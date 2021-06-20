@@ -90,7 +90,7 @@ void stress_test_subset_sum() {
         auto label = format("stress test {} {} {}", n, min, max);
         LOOP_FOR_DURATION_TRACKED (1s, now) {
             print_time(now, 1s, "stress test subset sum n={} [{},{}]", n, min, max);
-            auto nums = int_gen<int>(n, min, max);
+            auto nums = rands_unif<int>(n, min, max);
             run(nums);
         }
     }

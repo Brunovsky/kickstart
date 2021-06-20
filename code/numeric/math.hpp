@@ -236,3 +236,23 @@ template <typename D = double>
 D binom_success(int n, int k, D p, const vector<D>& logfac) {
     return exp(logfac[n] - logfac[k] - logfac[n - k] + k * log(p) + (n - k) * log1p(-p));
 }
+
+template <typename Vec, typename D = typename Vec::value_type>
+D kahan_sum(const Vec& doubles) {
+    D sum = 0, c = 0;
+    for (D num : doubles) {
+        D y = num - c;
+        D t = sum + y;
+        c = (t - sum) - y;
+        sum = t;
+    }
+    return sum;
+}
+
+template <typename D, typename Add = D>
+void kahan_add(D& sum, D& compensation, Add num) {
+    D y = num - compensation;
+    D t = sum + y;
+    compensation = (t - sum) - y;
+    sum = t;
+}

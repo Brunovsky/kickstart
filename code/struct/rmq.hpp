@@ -21,7 +21,7 @@ struct min_rmq {
             for (int j = 0; j < J; j++) {
                 const auto& l = jmp[k - 1][j];
                 const auto& r = jmp[k - 1][j + len];
-                jmp[k][j] = min(l, r);
+                jmp[k][j] = l < r ? l : r; // prefers last
             }
         }
     }
@@ -32,7 +32,7 @@ struct min_rmq {
         int bits = BITS - __builtin_clz(b - a);
         const auto& l = jmp[bits][a];
         const auto& r = jmp[bits][b - (1 << bits)];
-        return min(l, r);
+        return l < r ? l : r;
     }
 };
 
@@ -50,7 +50,7 @@ struct min_rmq_index {
             for (int j = 0; j < J; j++) {
                 int l = jmp[k - 1][j];
                 int r = jmp[k - 1][j + len];
-                jmp[k][j] = v[l] < v[r] ? l : r;
+                jmp[k][j] = v[l] < v[r] ? l : r; // prefers last
             }
         }
     }

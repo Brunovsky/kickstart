@@ -2,7 +2,7 @@
 
 #include <unistd.h>
 #include "test_chrono.hpp"
-#include "../../formatting.hpp"
+#include "../formatting.hpp"
 
 bool cout_is_terminal() {
     static int is = -1;

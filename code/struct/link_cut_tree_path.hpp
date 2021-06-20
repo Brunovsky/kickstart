@@ -3,51 +3,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-/**
- * Maintain sum of paths, with support for path range updates
- */
-struct lct_node_path_sum {
-    int path_size = 0;
-    long self = 0;
-    long path = 0;
-    long lazy = 0;
-
-    void path_flip() {}
-
-    void pushdown(lct_node_path_sum& lhs, lct_node_path_sum& rhs) {
-        if (lazy) {
-            lhs.lazy += lazy;
-            rhs.lazy += lazy;
-            self += lazy;
-            path += lazy * path_size;
-            lazy = 0;
-        }
-    }
-
-    void pushup(const lct_node_path_sum& lhs, const lct_node_path_sum& rhs) {
-        path_size = 1 + lhs.path_size + rhs.path_size;
-        path = self + lhs.path + rhs.path;
-    }
-};
-
-/**
- * Maintain maximum in paths without support for path range updates
- */
-struct lct_node_path_max {
-    int path_size = 0;
-    int self = 0;
-    int path = 0;
-
-    void path_flip() {}
-
-    void pushdown(lct_node_path_max&, lct_node_path_max&) {}
-
-    void pushup(const lct_node_path_max& lhs, const lct_node_path_max& rhs) {
-        path_size = 1 + lhs.path_size + rhs.path_size;
-        path = max(self, max(lhs.path, rhs.path));
-    }
-};
-
 struct lct_node_path_empty {
     void path_flip() {}
     void pushdown(lct_node_path_empty&, lct_node_path_empty&) {}
@@ -185,5 +140,50 @@ struct link_cut_tree_path {
         splay(u);
         assert(!t[u].child[1] && !t[u].flip);
         return last;
+    }
+};
+
+/**
+ * Maintain sum of paths, with support for path range updates
+ */
+struct lct_node_path_sum {
+    int path_size = 0;
+    long self = 0;
+    long path = 0;
+    long lazy = 0;
+
+    void path_flip() {}
+
+    void pushdown(lct_node_path_sum& lhs, lct_node_path_sum& rhs) {
+        if (lazy) {
+            lhs.lazy += lazy;
+            rhs.lazy += lazy;
+            self += lazy;
+            path += lazy * path_size;
+            lazy = 0;
+        }
+    }
+
+    void pushup(const lct_node_path_sum& lhs, const lct_node_path_sum& rhs) {
+        path_size = 1 + lhs.path_size + rhs.path_size;
+        path = self + lhs.path + rhs.path;
+    }
+};
+
+/**
+ * Maintain maximum in paths without support for path range updates
+ */
+struct lct_node_path_max {
+    int path_size = 0;
+    int self = 0;
+    int path = 0;
+
+    void path_flip() {}
+
+    void pushdown(lct_node_path_max&, lct_node_path_max&) {}
+
+    void pushup(const lct_node_path_max& lhs, const lct_node_path_max& rhs) {
+        path_size = 1 + lhs.path_size + rhs.path_size;
+        path = max(self, max(lhs.path, rhs.path));
     }
 };
