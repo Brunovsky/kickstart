@@ -43,45 +43,48 @@ void unit_test_mincost_hungarian() {
 
 void speed_test_mincost_matching() {
     static vector<int> sizes = {100, 250, 800, 1500, 3000, 5000};
-    static vector<double> ps = {0.02, 0.05, 0.1, 0.2, 0.4};
-    const auto runtime = 40000ms / (sizes.size() * ps.size());
-    map<tuple<double, int, string>, string> table;
+    static vector<double> pVs = {2.0, 4.0, 7.0, 15.0, 35.0, 80.0};
+    const auto runtime = 40000ms / (sizes.size() * pVs.size());
+    map<tuple<int, double, string>, string> table;
 
-    auto run = [&](int V, double p) {
+    auto run = [&](int V, double pV) {
         double avg_mc = 0;
+        double p = pV / V;
+        if (p > 1.0)
+            return;
 
         START_ACC(hungarian);
 
         LOOP_FOR_DURATION_TRACKED_RUNS (runtime, now, runs) {
-            print_time(now, runtime, "speed test hungarian V={} p={}", V, p);
+            print_time(now, runtime, "speed test hungarian V,p={},{}", V, p);
 
-            auto G = random_bipartite_matching(V, V, V, p);
-            auto cost = rands_unif<int>(G.size(), 1, 500'000'000);
-            bipartite_matching_hide_topology(V, V, G);
+            auto g = random_bipartite_matching(V, V, V, p);
+            auto cost = rands_unif<int>(g.size(), 1, 500'000'000);
+            bipartite_matching_hide_topology(V, V, g);
 
             START(hungarian);
             mincost_hungarian<int, long> g0(V, V);
-            add_edges(g0, G, cost);
+            add_edges(g0, g, cost);
             auto ans0 = g0.mincost_max_matching();
             ADD_TIME(hungarian);
 
             auto ans1 = g0.mincost_max_matching(); // again
 
             mincost_hungarian<long, long> g1(V, V);
-            add_edges(g1, G, cost);
+            add_edges(g1, g, cost);
             auto ans2 = g1.mincost_max_matching();
 
             assert(ans0 >= 0 && ans0 == ans1 && ans0 == ans2);
             avg_mc += ans0 == -1 ? 0 : ans0 / V;
         }
 
-        table[{p, V, "hungarian"}] = FORMAT_EACH(hungarian, runs);
-        table[{p, V, "avg size"}] = format("{:10.1f}", avg_mc / runs);
+        table[{V, pV, "hungarian"}] = FORMAT_EACH(hungarian, runs);
+        table[{V, pV, "avg size"}] = format("{:10.1f}", avg_mc / runs);
     };
 
     for (int V : sizes) {
-        for (double p : ps) {
-            run(V, p);
+        for (double pV : pVs) {
+            run(V, pV);
         }
     }
 

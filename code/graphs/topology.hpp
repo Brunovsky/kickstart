@@ -135,7 +135,7 @@ auto visit_bridges(const vector<vector<int>>& adj, Fn&& visitor) {
     vector<int> lowlink(V, 0);
     int timer = 1;
 
-    auto dfs = y_combinator([&](auto self, int u, int p) {
+    auto dfs = y_combinator([&](auto self, int u, int p) -> void {
         index[u] = lowlink[u] = timer++;
         for (int v : adj[u]) {
             if (v != p) {
@@ -167,7 +167,7 @@ auto visit_cut_points(const vector<vector<int>>& adj, Fn&& visitor) {
     vector<int> lowlink(V, 0);
     int timer = 1;
 
-    auto dfs = y_combinator([&](auto self, int u, int p) {
+    auto dfs = y_combinator([&](auto self, int u, int p) -> void {
         index[u] = lowlink[u] = timer++;
         int children = 0;
         for (int v : adj[u]) {
