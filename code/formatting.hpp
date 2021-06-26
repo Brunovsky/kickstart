@@ -16,7 +16,28 @@ string seq_to_string(const Seq& v) {
     return s.empty() ? s : (s.pop_back(), s);
 }
 
-string align_string_matrix(const vector<vector<string>>& mat) {
+void pad_strings_in_matrix(vector<vector<string>>& mat, bool pad_left = true) {
+    vector<size_t> width;
+    for (int i = 0, N = mat.size(); i < N; i++) {
+        width.resize(max(width.size(), mat[i].size()));
+        for (int j = 0, M = mat[i].size(); j < M; j++) {
+            width[j] = max(width[j], mat[i][j].size());
+        }
+    }
+    for (int i = 0, N = mat.size(); i < N; i++) {
+        for (int j = 0, M = mat[i].size(); j < M; j++) {
+            string pad(width[j] - mat[i][j].size(), ' ');
+            if (pad_left) {
+                mat[i][j] = pad + mat[i][j];
+
+            } else {
+                mat[i][j] = mat[i][j] + pad;
+            }
+        }
+    }
+}
+
+string build_aligned_string(const vector<vector<string>>& mat) {
     vector<size_t> width;
     for (int i = 0, N = mat.size(); i < N; i++) {
         width.resize(max(width.size(), mat[i].size()));
@@ -48,7 +69,7 @@ string mat_to_string(const Mat& v) {
             }
         }
     }
-    return align_string_matrix(string_matrix);
+    return build_aligned_string(string_matrix);
 }
 
 template <typename Mat>
@@ -71,7 +92,7 @@ string mat_to_string_indices(const Mat& v) {
     for (int i = 1; i < M; i++) {
         string_matrix[0].push_back(std::to_string(i - 1));
     }
-    return align_string_matrix(string_matrix);
+    return build_aligned_string(string_matrix);
 }
 
 template <typename U, typename V, typename String>
@@ -116,7 +137,7 @@ string format_pair_map(const map<pair<U, V>, String>& times) {
             string_matrix[0][c + 1] = to_string(cols[c]);
         }
     }
-    return align_string_matrix(string_matrix);
+    return build_aligned_string(string_matrix);
 }
 
 template <typename U, typename V, typename W, typename String>
@@ -200,7 +221,49 @@ string format_tuple_map(const map<tuple<U, V, W>, String>& times, bool label_row
             string_matrix[0][c + 1] = to_string(cols[c]);
         }
     }
-    return align_string_matrix(string_matrix);
+    return build_aligned_string(string_matrix);
+}
+
+template <typename U>
+string format_histogram(const map<U, int>& hist) {
+    long sum = 0;
+    int max_frequency = 0;
+    for (const auto& [key, frequency] : hist) {
+        sum += frequency;
+        max_frequency = max(max_frequency, frequency);
+    }
+    assert(max_frequency > 0);
+    constexpr int BARS = 60;
+    vector<vector<string>> table;
+    for (const auto& [key, frequency] : hist) {
+        int length = llround(1.0 * frequency / max_frequency * BARS);
+        string bars = string(length, '#') + string(BARS - length, ' ');
+        table.push_back({to_string(key), to_string(frequency), bars});
+    }
+    return build_aligned_string(table);
+}
+
+template <typename T>
+map<T, int> make_histogram(const vector<T>& occurrences) {
+    map<T, int> hist;
+    for (T n : occurrences) {
+        hist[n]++;
+    }
+    return hist;
+}
+
+template <typename T>
+map<T, int> make_amortized_histogram(const vector<T>& occurrences, int rows) {
+    T tmin = *min_element(begin(occurrences), end(occurrences));
+    T tmax = *max_element(begin(occurrences), end(occurrences));
+    T block = (tmax - tmin + rows - 1) / rows;
+    block = block > 0 ? block : 1;
+    map<T, int> hist;
+    for (long n : occurrences) {
+        T b = (n - tmin) / block;
+        hist[tmin + block * b]++;
+    }
+    return hist;
 }
 
 template <typename... Ts>
@@ -352,10 +415,13 @@ struct gen_indices : gen_indices<(N - 1), (N - 1), I...> {};
 template <std::size_t... I>
 struct gen_indices<0, I...> : integer_sequence<std::size_t, I...> {};
 
+string to_string(char n) { return string(1, n); }
+
 template <typename H>
 std::string& to_string_impl(std::string& s, H&& h) {
     using std::to_string;
     s += to_string(std::forward<H>(h));
+    s += ' ';
     return s;
 }
 
@@ -363,6 +429,7 @@ template <typename H, typename... T>
 std::string& to_string_impl(std::string& s, H&& h, T&&... t) {
     using std::to_string;
     s += to_string(std::forward<H>(h));
+    s += ' ';
     return to_string_impl(s, std::forward<T>(t)...);
 }
 
@@ -371,7 +438,7 @@ std::string to_string(const std::tuple<T...>& tup, integer_sequence<std::size_t,
     std::string result;
     int ctx[] = {(to_string_impl(result, std::get<I>(tup)...), 0), 0};
     (void)ctx;
-    return result;
+    return result.empty() ? "()" : "(" + (result.pop_back(), result) + ")";
 }
 
 template <typename... T>

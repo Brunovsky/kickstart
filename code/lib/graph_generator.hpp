@@ -712,9 +712,6 @@ auto k_connected_complete2_graph(int n, int k, int links = INT_MAX) {
     return g;
 }
 
-/** Randomized known shape graphs
- */
-
 // edge between u,v with u<v exists as u->v with probability forward_bias
 auto random_tournament(int V, double forward_bias = 0.5) {
     assert(V > 0 && V <= 5000);
@@ -859,7 +856,7 @@ auto get_geometric_parameters(int V, double p, double alpha) {
     for (int n = 0; n < V - 1; n++) {
         double one = 1.0 * n * (2 * V - n - 1) / 2;
         double geo = (pow(1 - alpha, V - n) + alpha * (V - n) - 1) / (alpha * alpha);
-        assert(one < E + epsilon);
+        assert(one < E + epsilon && geo > 0);
         if (one + geo >= E) {
             // reduce geo to p*geo so that one + p*geo = E <==> p = (E - one) / geo
             if (geo <= epsilon || one >= E) {
@@ -1202,7 +1199,7 @@ auto random_full_level(int V, int ranks, int m = 1, bool loop = false) {
     return g;
 }
 
-auto random_full_level_dag(int V, int ranks, int m = 1, bool loop = false) {
+auto random_full_level2(int V, int ranks, int m = 1, bool loop = false) {
     edges_t g;
     auto R = partition_sample_balanced(V, ranks, m);
     link_levels_full(g, R, loop);
@@ -1228,7 +1225,7 @@ auto random_uniform_level(int V, double p, int ranks, int m = 1, bool loop = fal
     return g;
 }
 
-auto random_uniform_level_dag(int V, double p, int ranks, int m = 1, bool loop = false) {
+auto random_uniform_level2(int V, double p, int ranks, int m = 1, bool loop = false) {
     edges_t g;
     auto R = partition_sample_balanced(V, ranks, m);
     link_levels_uniform(g, p, R, loop, true, true);

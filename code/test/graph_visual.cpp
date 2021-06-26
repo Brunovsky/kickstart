@@ -10,25 +10,25 @@ static int si = 1;
     do {                               \
         auto g = fn;                   \
         showu(#fn, move(g), get_V(g)); \
-    } while (0);
+    } while (0)
 
 #define SHOW_D(fn)                     \
     do {                               \
         auto g = fn;                   \
         showd(#fn, move(g), get_V(g)); \
-    } while (0);
+    } while (0)
 
 #define SHOW_B(fn)                               \
     do {                                         \
         auto g = fn;                             \
         showb(#fn, move(g), get_U(g), get_W(g)); \
-    } while (0);
+    } while (0)
 
 #define SHOW_F(fn)                           \
     do {                                     \
         auto [g, s, t] = fn;                 \
         showf(#fn, move(g), get_V(g), s, t); \
-    } while (0);
+    } while (0)
 
 string pad(const string& lines) {
     stringstream ss(lines);
@@ -258,10 +258,10 @@ void visual_test_generators() {
     SHOW_F(random_geometric_flow_connected(25, 0.12, 0.06, -.8));
 
     SHOW_D(random_full_level(20, 5, 2));
-    SHOW_D(random_full_level_dag(20, 5, 2));
+    SHOW_D(random_full_level2(20, 5, 2));
     SHOW_D(random_full_level_flow(20, 7, 2));
     SHOW_D(random_uniform_level(30, 0.4, 5, 2));
-    SHOW_D(random_uniform_level_dag(30, 0.4, 5, 2));
+    SHOW_D(random_uniform_level2(30, 0.4, 5, 2));
     SHOW_D(random_uniform_level_flow(30, 0.4, 7, 2));
 }
 

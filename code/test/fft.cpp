@@ -40,8 +40,8 @@ void speed_test_fft_multiply(int V = 1000) {
             bool run_naive = 1LL * A * B <= naive_threshold;
             START_ACC2(fft, naive);
 
-            LOOP_FOR_DURATION_OR_RUNS_TRACKED (200ms, now, 10000, runs) {
-                print_time(now, 200ms, "speed test fft multiply A,B={},{}", A, B);
+            LOOP_FOR_DURATION_OR_RUNS_TRACKED (duration, now, 10000, runs) {
+                print_time(now, duration, "speed test fft multiply A,B={},{}", A, B);
 
                 auto a = uniform_gen_many<Num>(A, -V, V);
                 auto b = uniform_gen_many<Num>(B, -V, V);

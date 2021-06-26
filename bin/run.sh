@@ -31,12 +31,13 @@ function run_make_solver {
 function run_tests {
 	for input in *.in; do
 		output=${input%in}out
+		answer=${input%in}ans
 		if test -f "$output"; then
-			grep -svP "$TRACE" "$input" | ./solver > output.txt
-			if cmp "$output" "output.txt"; then
+			grep -svP "$TRACE" "$input" | ./solver > "$answer"
+			if cmp "$output" "$answer"; then
 				echo "$input OK"
 			else
-				diff -y --minimal "$output" "output.txt" || true
+				diff -y --minimal "$output" "$answer" || true
 			fi
 		fi
 	done

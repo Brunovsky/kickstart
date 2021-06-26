@@ -46,6 +46,7 @@ output.txt
 answer.txt
 program.txt
 debug.txt
+*.ans
 
 # Instrumentation
 gmon.out

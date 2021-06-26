@@ -39,3 +39,23 @@ auto putln(ostream& out, Ts&&... args) {
     return print(out, make_format_string(sizeof...(Ts)) + "\n",
                  std::forward<Ts>(args)...);
 }
+
+template <typename... Ts>
+auto println(string fmt, Ts&&... args) {
+    return print(fmt + "\n", std::forward<Ts>(args)...);
+}
+
+template <typename... Ts>
+auto println(ostream& out, string fmt, Ts&&... args) {
+    return print(out, fmt + "\n", std::forward<Ts>(args)...);
+}
+
+template <typename... Ts>
+auto eprint(Ts&&... args) {
+    return print(cerr, std::forward<Ts>(args)...);
+}
+
+template <typename... Ts>
+auto eprintln(Ts&&... args) {
+    return println(cerr, std::forward<Ts>(args)...);
+}

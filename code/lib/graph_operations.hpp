@@ -11,21 +11,21 @@
 auto make_adjacency_lists_undirected(int V, const edges_t& g) {
     vector<vector<int>> adj(V);
     for (auto [u, v] : g)
-        adj[u].push_back(v), adj[v].push_back(u);
+        assert(u < V && v < V), adj[u].push_back(v), adj[v].push_back(u);
     return adj;
 }
 
 auto make_adjacency_lists_directed(int V, const edges_t& g) {
     vector<vector<int>> adj(V);
     for (auto [u, v] : g)
-        adj[u].push_back(v);
+        assert(u < V && v < V), adj[u].push_back(v);
     return adj;
 }
 
 auto make_adjacency_lists_reverse(int V, const edges_t& g) {
     vector<vector<int>> adj(V);
     for (auto [u, v] : g)
-        adj[v].push_back(u);
+        assert(u < V && v < V), adj[v].push_back(u);
     return adj;
 }
 

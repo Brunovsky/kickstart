@@ -47,6 +47,8 @@ O rand_unif(common_type_t<T> a, common_type_t<T> b) {
         return uniform_int_distribution<T>(T(a), T(b))(mt);
     } else if constexpr (is_floating_point_v<T>) {
         return uniform_real_distribution<T>(T(a), T(b))(mt);
+    } else {
+        assert(false);
     }
     static_assert(is_integral_v<T> || is_floating_point_v<T>, "Invalid type T");
 }
@@ -139,12 +141,12 @@ auto rand_strings(int n, int minlen, int maxlen, char a, char b) {
  * Complexity: O(min(n, k log k))
  */
 template <typename T = int, typename I = int>
-vector<T> int_sample(int k, I a, I b) {
+auto int_sample(int k, I a, I b) {
+    using sample_t = vector<T>;
     assert(k <= 100'000'000); // don't try anything crazy
     if (k == 0 || a >= b)
-        return {};
+        return sample_t();
 
-    using sample_t = vector<T>;
     long univ = b - a;
     assert(univ >= 0 && 0 <= k && k <= univ);
 
@@ -228,7 +230,7 @@ vector<T> int_sample(int k, I a, I b) {
 template <typename T = int, typename I = int>
 auto int_sample_p(double p, I a, I b) {
     long ab = b - a;
-    if (ab <= 100) {
+    if (ab <= 100 || p > 0.20) {
         boold coind(p);
         vector<T> choice;
         for (auto n = a; n < b; n++)
@@ -236,7 +238,7 @@ auto int_sample_p(double p, I a, I b) {
                 choice.push_back(n);
         return choice;
     }
-    return int_sample<T>(binomd(ab, min(p, 1.0))(mt), a, b);
+    return int_sample<T>(binomd(ab, p)(mt), a, b);
 }
 
 /**
@@ -246,12 +248,12 @@ auto int_sample_p(double p, I a, I b) {
  * Complexity: O(min(n choose 2, k log k))
  */
 template <typename T = int, typename I>
-vector<array<T, 2>> choose_sample(int k, I a, I b) {
+auto choose_sample(int k, I a, I b) {
+    using sample_t = vector<array<T, 2>>;
     assert(k <= 50'000'000); // don't try anything crazy
     if (k == 0 || a >= b - 1)
-        return {};
+        return sample_t();
 
-    using sample_t = vector<array<T, 2>>;
     long univ = 1L * (b - a) * (b - a - 1) / 2;
     assert(univ >= 0 && 0 <= k && k <= univ);
 
@@ -352,7 +354,7 @@ vector<array<T, 2>> choose_sample(int k, I a, I b) {
 template <typename T = int, typename I>
 auto choose_sample_p(double p, I a, I b) {
     long ab = 1L * (b - a) * (b - a - 1) / 2;
-    if (ab <= 100) {
+    if (ab <= 100 || p > 0.20) {
         boold coind(p);
         vector<array<T, 2>> choice;
         for (auto x = a; x < b; x++)
@@ -361,7 +363,7 @@ auto choose_sample_p(double p, I a, I b) {
                     choice.push_back({x, y});
         return choice;
     }
-    return choose_sample<T>(binomd(ab, min(p, 1.0))(mt), a, b);
+    return choose_sample<T>(binomd(ab, p)(mt), a, b);
 }
 
 /**
@@ -371,12 +373,12 @@ auto choose_sample_p(double p, I a, I b) {
  * Complexity: O(min(nm, k log k))
  */
 template <typename T = int, typename I>
-vector<array<T, 2>> pair_sample(int k, I a, I b, I c, I d) {
+auto pair_sample(int k, I a, I b, I c, I d) {
+    using sample_t = vector<array<T, 2>>;
     assert(k <= 50'000'000); // don't try anything crazy
     if (k == 0 || a >= b || c >= d)
-        return {};
+        return sample_t();
 
-    using sample_t = vector<array<T, 2>>;
     long univ = 1L * (b - a) * (d - c);
     assert(univ >= 0 && 0 <= k && k <= univ);
 
@@ -472,7 +474,7 @@ vector<array<T, 2>> pair_sample(int k, I a, I b, I c, I d) {
 template <typename T = int, typename I>
 auto pair_sample_p(double p, I a, I b, I c, I d) {
     long ab = b - a, cd = d - c;
-    if (ab * cd <= 100) {
+    if (ab * cd <= 100 || p > 0.20) {
         boold coind(p);
         vector<array<T, 2>> choice;
         for (auto x = a; x < b; x++)
@@ -481,7 +483,7 @@ auto pair_sample_p(double p, I a, I b, I c, I d) {
                     choice.push_back({x, y});
         return choice;
     }
-    return pair_sample<T>(binomd(ab * cd, min(p, 1.0))(mt), a, b, c, d);
+    return pair_sample<T>(binomd(ab * cd, p)(mt), a, b, c, d);
 }
 
 /**
@@ -501,7 +503,7 @@ auto distinct_pair_sample(int k, I a, I b) {
 template <typename T = int, typename I>
 auto distinct_pair_sample_p(double p, I a, I b) {
     long ab = 1L * (b - a) * (b - a - 1);
-    if (ab <= 100) {
+    if (ab <= 100 || p > 0.20) {
         boold coind(p);
         vector<array<T, 2>> choice;
         for (auto x = a; x < b; x++)
@@ -510,7 +512,7 @@ auto distinct_pair_sample_p(double p, I a, I b) {
                     choice.push_back({x, y});
         return choice;
     }
-    return distinct_pair_sample(binomd(ab, min(p, 1.0))(mt), a, b);
+    return distinct_pair_sample(binomd(ab, p)(mt), a, b);
 }
 
 /**
@@ -614,11 +616,11 @@ template <typename I = int>
 auto partition_sample(I n, int k, const vector<I>& m, const vector<I>& M) {
     assert(k > 0 && k <= int(m.size()) && k <= int(M.size()));
 
-    vector<I> parts = m;
+    vector<I> parts(k);
     vector<int> id(k);
-    parts.resize(k--);
+    copy(begin(m), begin(m) + k--, begin(parts));
     iota(begin(id), end(id), 0);
-    n -= accumulate(begin(m), end(m), I(0));
+    n -= accumulate(begin(parts), end(parts), I(0));
     while (n > 0) {
         I add = (n + k) / (k + 1);
         int i = intd(0, k)(mt), j = id[i];
@@ -638,11 +640,11 @@ auto partition_sample(I n, int k, const vector<I>& m, const vector<I>& M) {
 auto partition_sample_balanced(int n, int k, const vector<int>& m, const vector<int>& M) {
     assert(k > 0 && k <= int(m.size()) && k <= int(M.size()));
 
-    vector<int> parts = m;
+    vector<int> parts(k);
     vector<int> id(k);
-    parts.resize(k--);
+    copy(begin(m), begin(m) + k--, begin(parts));
     iota(begin(id), end(id), 0);
-    n -= accumulate(begin(m), end(m), 0);
+    n -= accumulate(begin(parts), end(parts), 0);
     while (n > 0) {
         const int add = 1;
         int i = intd(0, k)(mt), j = id[i];
