@@ -478,3 +478,33 @@ Consider NTT multiplication. We want:
 
 We do not handle *two inputs* of different types or input and output of different types.
 This helps simplify the implementation a bit, as it is already template-heavy.
+
+## Network simplex
+
+Update tree structure:
+
+```
+                     join
+                     / \
+                    /   \
+                   /     \
+                  +       +
+                   \       \
+                    \       \
+                     \       \
+                      +       +   v_in
+                     /       ~
+                    /       ~
+                   /       ~
+          v_out   +       ~
+                 / .     ~
+                /   .   ~
+               /     . ~
+              /       +   u_in = u_out
+             +
+              \
+               \
+                \
+                 +   old_rev_thread
+
+```

@@ -25,7 +25,7 @@ struct push_relabel {
         res[v].push_back(E++), edge.push_back({{v, u}, 0, 0});
     }
 
-    vector<int> height, arc;
+    vector<int> height, arc, bfs;
     vector<FlowSum> excess;
     linked_lists active, labeled;
     int relabel_count, b; // current bucket (height)
@@ -35,26 +35,28 @@ struct push_relabel {
         return 1 + 5 * int(ceil(log2(E + 1) / log2(V + 1) * V));
     }
 
-    auto reverse_bfs(vector<int>& bfs, vector<int>& new_height) {
+    auto reverse_bfs(vector<int>& height_map) {
         int j = 0, S = 1;
         while (j < S) {
             int v = bfs[j++];
             for (int e : res[v]) {
                 int u = edge[e].node[1], r = e ^ 1;
-                if (edge[r].flow < edge[r].cap && new_height[u] == 2 * V) {
-                    new_height[u] = new_height[v] + 1;
-                    bfs.push_back(u), S++;
+                if (edge[r].flow < edge[r].cap && height_map[u] == 2 * V) {
+                    height_map[u] = height_map[v] + 1;
+                    bfs[S++] = u;
                 }
             }
         }
+        return S;
     }
 
     void init_bfs(int s, int t) {
-        vector<int> bfs{t};
         height.assign(V, 2 * V);
         height[s] = V, height[t] = 0;
-        reverse_bfs(bfs, height);
-        for (int u : bfs) {
+        bfs[0] = t;
+        int S = reverse_bfs(height);
+        for (int i = 0; i < S; i++) {
+            int u = bfs[i];
             if (u != t && height[u] < V) {
                 labeled.push_back(height[u], u);
             }
@@ -63,10 +65,12 @@ struct push_relabel {
 
     template <bool sink> // 1=push phase (heights<V), 0=recover phase (heights>V)
     void global_relabel(int s, int t) {
-        vector<int> new_height(V, 2 * V), bfs{sink ? t : s};
+        vector<int> new_height(V, 2 * V);
         new_height[s] = V, new_height[t] = 0;
-        reverse_bfs(bfs, new_height);
-        for (int u : bfs) {
+        bfs[0] = sink ? t : s;
+        int S = reverse_bfs(new_height);
+        for (int i = 0; i < S; i++) {
+            int u = bfs[i];
             height[u] = new_height[u];
             if (excess[u] > 0) {
                 active.erase(u), active.push_back(height[u], u);
@@ -134,7 +138,6 @@ struct push_relabel {
             if (i == vsize) {
                 relabel<sink>(u);
                 if (sink && height[u] >= V) {
-                    active.push_back(height[u], u);
                     return;
                 }
             }
@@ -147,6 +150,7 @@ struct push_relabel {
     }
 
     FlowSum maxflow(int s, int t, bool value_only = true) {
+        bfs.assign(V, -1);
         excess.assign(V, 0);
         arc.assign(V, 0);
         active.assign(2 * V + 1, V);

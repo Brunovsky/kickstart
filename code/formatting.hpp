@@ -447,3 +447,31 @@ std::string to_string(const std::tuple<T...>& tup) {
 }
 
 } // namespace std
+
+template <typename T>
+string to_string(const T uv[2]) {
+    return '(' + to_string(uv[0]) + ',' + to_string(uv[1]) + ')';
+}
+template <typename T, size_t N>
+ostream& operator<<(ostream& out, const T v[2]) {
+    return out << to_string(v);
+}
+
+struct stringable {
+    string txt;
+
+    stringable() = default;
+    template <typename T>
+    stringable(T&& arg) : txt(to_string(arg)) {}
+    stringable(const char* arg) : txt(arg) {}
+    stringable(string&& arg) : txt(move(arg)) {}
+    stringable(const string& arg) : txt(arg) {}
+    stringable(string& arg) : txt(arg) {}
+    stringable(char c) : txt(1, c) {}
+
+    friend const string& to_string(const stringable& s) { return s.txt; }
+    operator string const &() const { return txt; }
+
+    bool operator<(const stringable& b) const { return txt < b.txt; }
+    bool operator==(const stringable& b) const { return txt == b.txt; }
+};

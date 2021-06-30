@@ -16,14 +16,28 @@ void add_edges(MF& mf, const edges_t& g, const Caps& caps) {
     }
 }
 
+template <typename T, typename O = T>
+auto mid_cap(int V, const edges_t& g, T low, T high, int repulsion) {
+    int E = g.size();
+    vector<O> cap(E);
+    for (int e = 0; e < E; e++) {
+        auto [u, v] = g[e];
+        int spread = min(abs(u - V / 2) + abs(v - V / 2), V);
+        double factor = (1L * spread * spread) / (V * V);
+        T actual_high = low + llround(factor * high);
+        cap[e] = rand_wide<T, O>(low, actual_high, repulsion);
+    }
+    return cap;
+}
+
 } // namespace detail
 
 void speed_test_max_flow() {
-    static vector<int> Vs = {10, 20, 35, 50, 100, 200, 500, 1000, 2000, 3500};
-    static vector<double> pVs = {2.0, 4.0, 7.0, 15.0, 30.0};
+    static vector<int> Vs = {300, 1000, 2500, 7500};
+    static vector<double> pVs = {2.0, 5.0, 12.0, 30.0, 70.0};
     static vector<double> as = {-.35,  -.15, -.05, -.01, -.001, 0,
                                 +.001, +.01, +.05, +.15, +.35};
-    const auto duration = 60000ms / (Vs.size() * pVs.size() * as.size());
+    const auto duration = 120000ms / (Vs.size() * pVs.size() * as.size());
     map<tuple<pair<int, double>, double, string>, stringable> table;
 
     auto run = [&](int V, double pV, double alpha) {
@@ -31,46 +45,51 @@ void speed_test_max_flow() {
         if (p >= 1.0)
             return;
 
-        START_ACC4(gen, dinitz, push_relabel, tidal);
+        START_ACC4(dinitz, push, push_full, tidal);
 
         LOOP_FOR_DURATION_TRACKED_RUNS (duration, now, runs) {
             print_time(now, duration, "speed test maxflow V,p,a={},{:.3f},{:.3f}", V, p,
                        alpha);
 
-            START(gen);
             auto [g, s, t] = random_geometric_flow_connected(V, p, p / 2, alpha);
-            auto cap = rands_wide<int>(g.size(), 1, 100'000'000, -5);
-            ADD_TIME(gen);
+            auto cap = mid_cap(V, g, 1, 100'000'000, -10);
 
-            vector<long> mf(3);
+            vector<long> ans(4);
 
             ADD_TIME_BLOCK(dinitz) {
-                dinitz_flow<int, long> g0(V);
-                add_edges(g0, g, cap);
-                mf[0] = g0.maxflow(s, t);
+                dinitz_flow<int, long> mf(V);
+                add_edges(mf, g, cap);
+                ans[0] = mf.maxflow(s, t);
             }
 
-            ADD_TIME_BLOCK(push_relabel) {
-                push_relabel<int, long> g1(V);
-                add_edges(g1, g, cap);
-                mf[1] = g1.maxflow(s, t, true);
+            ADD_TIME_BLOCK(push) {
+                push_relabel<int, long> mf(V);
+                add_edges(mf, g, cap);
+                ans[1] = mf.maxflow(s, t, true);
+            }
+
+            ADD_TIME_BLOCK(push_full) {
+                push_relabel<int, long> mf(V);
+                add_edges(mf, g, cap);
+                ans[2] = mf.maxflow(s, t, false);
             }
 
             ADD_TIME_BLOCK(tidal) {
-                tidal_flow<int, long> g2(V);
-                add_edges(g2, g, cap);
-                mf[2] = g2.maxflow(s, t);
+                tidal_flow<int, long> mf(V);
+                add_edges(mf, g, cap);
+                ans[3] = mf.maxflow(s, t);
             }
 
-            if (!all_eq(mf)) {
+            if (!all_eq(ans)) {
                 ofstream file("debug.txt");
                 print(file, "{}", simple_dot(g, true));
-                fail("Random test failed: {}", fmt::join(mf, " "));
+                fail("Random test failed: {}", fmt::join(ans, " "));
             }
         }
 
         table[{{V, alpha}, pV, "dinitz"}] = FORMAT_EACH(dinitz, runs);
-        table[{{V, alpha}, pV, "push"}] = FORMAT_EACH(push_relabel, runs);
+        table[{{V, alpha}, pV, "push"}] = FORMAT_EACH(push, runs);
+        table[{{V, alpha}, pV, "full"}] = FORMAT_EACH(push_full, runs);
         table[{{V, alpha}, pV, "tidal"}] = FORMAT_EACH(tidal, runs);
     };
 
@@ -119,7 +138,7 @@ void stress_test_max_flow() {
             V = n * k, t = V - 1;
         }
 
-        auto cap = rands_wide<int>(g.size(), 1, 1000, -3);
+        auto cap = mid_cap(V, g, 1, 1000, -3);
         return make_tuple(V, g, s, t, cap);
     };
 
@@ -128,27 +147,30 @@ void stress_test_max_flow() {
 
         auto [V, g, s, t, cap] = make_graph();
 
-        int C = 3;
+        int C = 4;
         dinitz_flow<int, int> g1(V);
         push_relabel<int, int> g2(V);
-        tidal_flow<int, int> g3(V);
-        // edmonds_karp<int, int> g4(V);
+        push_relabel<int, int> g3(V);
+        tidal_flow<int, int> g4(V);
+        // edmonds_karp<int, int> g5(V);
 
         add_edges(g1, g, cap);
         add_edges(g2, g, cap);
         add_edges(g3, g, cap);
-        // add_edges(g4, g, cap);
+        add_edges(g4, g, cap);
+        // add_edges(g5, g, cap);
 
-        vector<long> mf(C);
-        mf[0] = g1.maxflow(s, t);
-        mf[1] = g2.maxflow(s, t);
-        mf[2] = g3.maxflow(s, t);
-        // mf[3] = g4.maxflow(s, t);
+        vector<int> ans(C);
+        ans[0] = g1.maxflow(s, t);
+        ans[1] = g2.maxflow(s, t);
+        ans[2] = g3.maxflow(s, t, false);
+        ans[3] = g4.maxflow(s, t);
+        // ans[4] = g5.maxflow(s, t);
 
-        if (!all_eq(mf)) {
+        if (!all_eq(ans)) {
             ofstream file("debug.txt");
             print(file, "{}", simple_dot(g, true));
-            fail("Random test failed: {}", fmt::join(mf, " "));
+            fail("Random test failed: {}", fmt::join(ans, " "));
         }
     }
 }

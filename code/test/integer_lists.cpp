@@ -29,69 +29,6 @@ void unit_test_forward_lists() {
     assert(seen[5] == vector<int>({}));
 }
 
-void unit_test_linked_lists() {
-    linked_lists ll(5, 20);
-    ll.push_back(0, 1);
-    ll.push_back(0, 2);
-    ll.push_front(0, 3); // 0: (3->1->2)
-
-    ll.push_front(1, 4);
-    ll.push_back(3, 5);
-    ll.splice_back(1, 3);
-    ll.push_back(3, 6);
-    ll.splice_after(5, 3);
-    ll.push_front(1, 7); // 1: (7->4->5->6)
-
-    ll.splice_after(1, 1); // 0: (3->1->7->4->5->6->2),  1: ()
-
-    ll.push_front(2, 8);
-    ll.push_front(2, 9);
-    ll.push_back(2, 10);     // 2: (9->8->10)
-    ll.insert_before(8, 11); // 2: (9->11->8->10)
-    ll.insert_after(8, 12);  // 2: (9->11->8->12->10)
-
-    ll.push_back(3, 13);
-    ll.push_back(3, 14);
-    ll.push_back(3, 15); // 3: (13->14->15)
-
-    // 4 is empty here
-    ll.splice_before(14, 4);
-    ll.splice_after(14, 4);
-    ll.splice_before(13, 4);
-    ll.splice_after(15, 4);
-    ll.splice_front(3, 4);
-    ll.splice_back(3, 4); // 3: (13->14->15)
-
-    ll.splice_before(9, 3); // 2: (13->14->15->9->11->8->12->10)
-    ll.push_front(3, 16);
-    ll.push_front(3, 17);
-    ll.splice_back(4, 3); // move 4 to 3
-    ll.push_front(4, 18); // 4: (18->17->16)
-    ll.splice_back(2, 4); // 2: (13->14->15->9->11->8->12->10->18->17->16)
-    ll.push_back(4, 19);
-    ll.splice_before(10, 4); // 2: (13->14->15->9->11->8->12->19->10->18->17->16)
-
-    vector<vector<int>> fw(5), bw(5);
-    for (int l = 0; l < 5; l++) {
-        FOR_EACH_IN_LINKED_LIST (i, l, ll)
-            fw[l].push_back(i);
-        FOR_EACH_IN_LINKED_LIST_REVERSE (i, l, ll)
-            bw[l].push_back(i);
-    }
-
-    // print("linked_lists\n"), debugh(fw), debugh(bw);
-    assert(fw[0] == vector<int>({3, 1, 7, 4, 5, 6, 2}));
-    assert(fw[1] == vector<int>({}));
-    assert(fw[2] == vector<int>({13, 14, 15, 9, 11, 8, 12, 19, 10, 18, 17, 16}));
-    assert(fw[3] == vector<int>({}));
-    assert(fw[4] == vector<int>({}));
-    assert(bw[0] == vector<int>({2, 6, 5, 4, 7, 1, 3}));
-    assert(bw[1] == vector<int>({}));
-    assert(bw[2] == vector<int>({16, 17, 18, 10, 19, 12, 8, 11, 9, 15, 14, 13}));
-    assert(bw[3] == vector<int>({}));
-    assert(bw[4] == vector<int>({}));
-}
-
 void battle_test_linked_lists() {
     constexpr int L = 30, N = 5000;
     intd distL(0, L - 1);
@@ -122,8 +59,8 @@ void battle_test_linked_lists() {
         return true;
     };
 
-    LOOP_FOR_DURATION_OR_RUNS_TRACKED (5s, now, 300'000, runs) {
-        print_time(now, 5s, "battle test linked list");
+    LOOP_FOR_DURATION_TRACKED (4s, now) {
+        print_time(now, 4s, "battle test linked list");
 
         int a = actiond(mt);
         if (a < 40) {
@@ -146,41 +83,6 @@ void battle_test_linked_lists() {
                 }
 
                 all[n] = l, lists[l].insert(n);
-            }
-        } else if (a < 70) {
-            int l = distL(mt), g = distL(mt), b = actiond(mt);
-            if (l != g) {
-                if (b < 50 && !lists[l].empty()) {
-                    int n = *lists[l].begin();
-                    if (b < 25) {
-                        ll.splice_after(n, g);
-                    } else {
-                        ll.splice_before(n, g);
-                    }
-                } else if (b < 30) {
-                    ll.splice_front(l, g);
-                } else if (b < 60) {
-                    ll.splice_back(l, g);
-                } else if (b < 80) {
-                    ll.splice_after(ll.head(l), g);
-                } else {
-                    ll.splice_before(ll.tail(l), g);
-                }
-
-                for (int n : lists[g])
-                    all.at(n) = l, lists[l].insert(n);
-                lists[g].clear();
-            }
-        } else if (a < 85) {
-            int l = distL(mt), g = distL(mt);
-            if (!lists[l].empty() && !lists[g].empty()) {
-                ll.exchange(l, g);
-                for (int n : lists[l])
-                    all[n] = g;
-                for (int n : lists[g])
-                    all[n] = l;
-
-                swap(lists[l], lists[g]);
             }
         } else if (a < 95) {
             int l = distL(mt), b = actiond(mt), n;
@@ -214,7 +116,6 @@ void battle_test_linked_lists() {
 
 int main() {
     RUN_SHORT(unit_test_forward_lists());
-    RUN_SHORT(unit_test_linked_lists());
     RUN_BLOCK(battle_test_linked_lists());
     return 0;
 }

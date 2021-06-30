@@ -107,6 +107,12 @@ void print_each_duration(double duration, const string& label) {
     START_ACC(var2);                       \
     START_ACC(var3);                       \
     START_ACC(var4)
+#define START_ACC5(var1, var2, var3, var4, var5) \
+    START_ACC(var1);                             \
+    START_ACC(var2);                             \
+    START_ACC(var3);                             \
+    START_ACC(var4);                             \
+    START_ACC(var5)
 
 #define PRINT_TIME2(var1, var2) \
     PRINT_TIME(var1);           \
@@ -120,6 +126,12 @@ void print_each_duration(double duration, const string& label) {
     PRINT_TIME(var2);                       \
     PRINT_TIME(var3);                       \
     PRINT_TIME(var4)
+#define PRINT_TIME5(var1, var2, var3, var4, var5) \
+    PRINT_TIME(var1);                             \
+    PRINT_TIME(var2);                             \
+    PRINT_TIME(var3);                             \
+    PRINT_TIME(var4);                             \
+    PRINT_TIME(var5)
 
 #define PRINT_EACH2(var1, var2, runs) \
     PRINT_EACH(var1, runs);           \
@@ -133,3 +145,9 @@ void print_each_duration(double duration, const string& label) {
     PRINT_EACH(var2, runs);                       \
     PRINT_EACH(var3, runs);                       \
     PRINT_EACH(var4, runs)
+#define PRINT_EACH5(var1, var2, var3, var4, var5, runs) \
+    PRINT_EACH(var1, runs);                             \
+    PRINT_EACH(var2, runs);                             \
+    PRINT_EACH(var3, runs);                             \
+    PRINT_EACH(var4, runs);                             \
+    PRINT_EACH(var5, runs)

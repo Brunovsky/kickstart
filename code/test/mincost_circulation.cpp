@@ -1,78 +1,98 @@
 #include "test_utils.hpp"
 #include "../flow/mincost_push_relabel.hpp"
+#include "../flow/network_simplex.hpp"
 
-const string DATASET_FILE = "datasets/mincost_circulation.txt";
-
-inline namespace detail {
-
-template <typename MCF, typename Caps, typename Costs>
-void add_edges(MCF& mcc, const edges_t& g, const Caps& caps, const Costs& costs) {
-    int E = g.size();
-    for (int i = 0; i < E; i++) {
-        mcc.add(g[i][0], g[i][1], caps[i], costs[i]);
-    }
-}
-
-} // namespace detail
+namespace fs = std::filesystem;
+const string DATASET_FOLDER = "datasets/mincost_circulation";
 
 struct mincost_circulation_dataset_test_t {
-    string name, comment;
-    int V, E;
-    edges_t g;
-    vector<long> cap, supply;
-    vector<long> cost;
-    long ans;
+    using Flow = long;
+    using Cost = long;
+    struct Edge {
+        int node[2];
+        Flow lower, upper;
+        Cost cost;
+    };
+    string comment;
+    int V = -1, E = 0;
+    vector<Edge> g;
+    vector<Flow> supply;
+    Cost ans = LONG_MIN;
 
-    void read(istream& in) {
-        while (in.peek() == '#') {
-            string line;
-            getline(in, line);
-            comment += line + "\n";
+    auto& read_netgen(istream& in) {
+        int e = 0;
+        string line;
+        while (getline(in, line)) {
+            stringstream ss(line);
+            string type;
+            ss >> type;
+            if (type == "c" || type == "#") {
+                comment += "== " + line.substr(1) + "\n";
+            } else if (type == "p") {
+                string want;
+                ss >> want >> V >> E;
+                assert(want == "min");
+                g.resize(E);
+                supply.resize(V);
+            } else if (type == "n") {
+                int u;
+                ss >> u, u--;
+                assert(0 <= u && u < V);
+                ss >> supply[u];
+            } else if (type == "a") {
+                int u, v;
+                Flow lower, upper;
+                Cost cost;
+                ss >> u >> v >> lower >> upper >> cost, u--, v--;
+                assert(0 <= u && u < V);
+                assert(0 <= v && v < V);
+                g[e++] = {{u, v}, lower, upper, cost};
+                assert(lower == 0);
+            } else if (type == "ans") {
+                ss >> ans;
+            } else {
+                throw runtime_error("Unknown netgen row class " + type);
+            }
         }
-        in >> ws, getline(in, name);
-        in >> V >> E >> ans >> ws;
-        assert(V > 0 && E > 0);
+        assert(e == E);
+        return *this;
+    }
 
-        g.resize(E), cap.resize(E), cost.resize(E), supply.resize(V);
-
-        for (int e = 0; e < E; e++) {
-            in >> g[e][0] >> g[e][1] >> cap[e] >> cost[e] >> ws;
-        }
-        for (int u = 0; u < V; u++) {
-            in >> supply[u];
-        }
-        assert(!in.bad());
+    auto& read_netgen(const string& filename) {
+        ifstream file(filename);
+        return read_netgen(file);
     }
 
     void run() const {
-        mincost_push_relabel mcc(V, supply);
-        add_edges(mcc, g, cap, cost);
-        bool ok = mcc.feasible();
-        if (ok) {
-            auto mincost = mcc.mincost_circulation();
-            print_line("expected", ans), print_line("actual", mincost);
-        } else {
-            auto mincost = mcc.mincost_circulation();
-            print_line("expected", ans), print_line("actual", mincost);
-        }
-    }
+        mincost_push_relabel<long, long> mpr(V, supply);
+        network_simplex<long, long> smp(V);
 
-    static void print_line(string label, long mincost) {
-        mincost < 0 ? print("  {:>8}: infeasible\n", label)
-                    : print("  {:>8}:   feasible -- {:>5} cost\n", label, mincost);
+        for (int e = 0; e < E; e++) {
+            mpr.add(g[e].node[0], g[e].node[1], g[e].upper, g[e].cost);
+            smp.add(g[e].node[0], g[e].node[1], g[e].lower, g[e].upper, g[e].cost);
+        }
+        for (int u = 0; u < V; u++) {
+            smp.add_supply(u, supply[u]);
+        }
+
+        print("===== V={}, E={}\n{}", V, E, comment);
+
+        auto c1 = mpr.mincost_circulation();
+        auto feasible = smp.mincost_circulation();
+        auto c2 = smp.get_circulation_cost();
+
+        printcl("mincost push relabel: {}\n", c1);
+        printcl("     network simplex: {} {}\n", c2, feasible);
+        if (ans != LONG_MIN) {
+            printcl("expected: {}\n", ans);
+        }
     }
 };
 
 void dataset_test_mincost_circulation() {
-    ifstream file(DATASET_FILE);
-    if (!file.is_open())
-        return print("dataset file {} not found, skipping dataset test\n", DATASET_FILE);
-    file >> ws;
-    while (!file.eof()) {
+    for (auto entry : fs::directory_iterator(DATASET_FOLDER)) {
         mincost_circulation_dataset_test_t test;
-        test.read(file);
-        test.run();
-        file >> ws;
+        test.read_netgen(entry.path()).run();
     }
 }
 

@@ -4,20 +4,6 @@
 #include "../lib/test_chrono.hpp"
 #include "../lib/test_progress.hpp"
 
-struct stringable {
-    string txt;
-
-    template <typename T>
-    stringable(T&& arg) : txt(to_string(arg)) {}
-    stringable(const char* arg = "") : txt(arg) {}
-    stringable(string&& arg) : txt(move(arg)) {}
-    stringable(const string& arg) : txt(arg) {}
-    stringable(string& arg) : txt(arg) {}
-
-    friend const string& to_string(const stringable& s) { return s.txt; }
-    operator string const &() const { return txt; }
-};
-
 template <typename Container>
 bool all_eq(const Container& v) {
     return v.empty() || equal(next(begin(v)), end(v), begin(v));
