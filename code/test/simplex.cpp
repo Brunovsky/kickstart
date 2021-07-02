@@ -61,9 +61,10 @@ auto generate_lp(int n, int le, int eq, int ge, LPState state = LP_OPTIMAL) {
     vector<F> x(n);
     fill(x, 0, 9, 2);
 
-    mat<F> A(m, n);
+    mat<F> A({m, n});
     for (int i = 0; i < m; i++)
-        fill(A.arr[i], -5, 5, 1);
+        for (int j = 0; j < n; j++)
+            A[i][j] = uniform_gen<F>(-5, 5, 1);
 
     vector<F> b = A * x;
     vector<F> d(le + ge);
@@ -73,7 +74,9 @@ auto generate_lp(int n, int le, int eq, int ge, LPState state = LP_OPTIMAL) {
     vector<lp_constraint<F>> constraints(m);
 
     for (int i = 0; i < m; i++) {
-        constraints[i].v = move(A.arr[i]);
+        constraints[i].v.resize(n);
+        for (int j = 0; j < n; j++)
+            constraints[i].v[j] = A[i][j];
         if (le > 0) {
             le--, constraints[i].b = b[i] + d[i], constraints[i].ineq = LP_LESS;
         } else if (ge > 0) {

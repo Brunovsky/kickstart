@@ -76,7 +76,7 @@ void print_time(T1 now, T2 duration, Ts&&... args) {
     static const chrono::milliseconds step = 50ms;
     static chrono::nanoseconds next_now = 0ns;
     if (cout_is_terminal() && (now == 0ns || now >= next_now)) {
-        next_now = now == 0ns ? step : next_now + step;
+        next_now = now == 0ns ? step : now + step;
         print_time_view(now, duration, forward<Ts>(args)...);
     }
 }

@@ -2,22 +2,34 @@
 using namespace std;
 static_assert(sizeof(int) == 4 && sizeof(long) == 8);
 
-template <int mod>
+template <uint32_t mod>
 struct modnum {
-    static_assert(mod > 0 && 2LL * mod < INT_MAX);
-    int n;
+    using u32 = uint32_t;
+    using u64 = uint64_t;
+    static_assert(mod > 0 && mod < UINT_MAX / 2);
+    uint32_t n;
 
-    modnum() : n(0) {}
-    modnum(int v) : n(fit(v % mod)) {}
-    explicit operator int() const { return n; }
-    explicit operator bool() const { return n != 0; }
+    constexpr modnum() : n(0) {}
+    constexpr modnum(u64 v) : n(v >= mod ? v % mod : v) {}
+    constexpr modnum(u32 v) : n(v >= mod ? v % mod : v) {}
+    constexpr modnum(int64_t v) : modnum(v >= 0 ? u64(v) : u64(mod + v % int(mod))) {}
+    constexpr modnum(int32_t v) : modnum(v >= 0 ? u32(v) : u32(mod + v % int(mod))) {}
+    explicit constexpr operator int() const { return n; }
+    explicit constexpr operator bool() const { return n != 0; }
 
-    static int fit(int v) { return v >= mod ? v - mod : (v < 0 ? v + mod : v); }
-    static int modinv(int v, int m = mod) {
-        v %= m, assert(v);
-        return v == 1 ? 1 : (m - 1LL * modinv(m, v) * m / v);
+    static constexpr u32 fit(u32 x) { return x >= mod ? x - mod : x; }
+    static constexpr int modinv(u32 x) {
+        int nx = 1, ny = 0;
+        u32 y = mod;
+        while (x) {
+            auto k = y / x;
+            y = y % x;
+            ny = ny - k * nx;
+            swap(x, y), swap(nx, ny);
+        }
+        return ny < 0 ? mod + ny : ny;
     }
-    friend modnum modpow(modnum b, long e) {
+    static constexpr modnum modpow(modnum b, long e) {
         modnum p = 1;
         while (e > 0) {
             if (e & 1)
@@ -28,37 +40,114 @@ struct modnum {
         return p;
     }
 
-    modnum inv() const { return {modinv(n)}; }
-    modnum operator-() const { return {fit(-n)}; }
-    modnum operator+() const { return {n}; }
-    modnum operator++(int) { return n = fit(n + 1), *this - 1; }
-    modnum operator--(int) { return n = fit(n - 1), *this + 1; }
-    modnum& operator++() { return n = fit(n + 1), *this; }
-    modnum& operator--() { return n = fit(n - 1), *this; }
-    modnum& operator+=(modnum v) { return n = fit(n + v.n), *this; }
-    modnum& operator-=(modnum v) { return n = fit(n - v.n), *this; }
-    modnum& operator*=(modnum v) { return n = (1LL * n * v.n) % mod, *this; }
-    modnum& operator/=(modnum v) { return n = (1LL * n * modinv(v.n)) % mod, *this; }
+    constexpr modnum inv() const { return modpow(*this, mod - 2); }
+    constexpr modnum operator-() const { return n == 0 ? n : mod - n; }
+    constexpr modnum operator+() const { return *this; }
+    constexpr modnum operator++(int) { return n = fit(n + 1), *this - 1; }
+    constexpr modnum operator--(int) { return n = fit(mod + n - 1), *this + 1; }
+    constexpr modnum& operator++() { return n = fit(n + 1), *this; }
+    constexpr modnum& operator--() { return n = fit(mod + n - 1), *this; }
+    constexpr modnum& operator+=(modnum v) { return n = fit(n + v.n), *this; }
+    constexpr modnum& operator-=(modnum v) { return n = fit(mod + n - v.n), *this; }
+    constexpr modnum& operator*=(modnum v) { return n = (u64(n) * v.n) % mod, *this; }
+    constexpr modnum& operator/=(modnum v) {
+        return n = (u64(n) * modinv(v.n)) % mod, *this;
+    }
 
-    friend modnum operator+(modnum lhs, modnum rhs) { return lhs += rhs; }
-    friend modnum operator-(modnum lhs, modnum rhs) { return lhs -= rhs; }
-    friend modnum operator*(modnum lhs, modnum rhs) { return lhs *= rhs; }
-    friend modnum operator/(modnum lhs, modnum rhs) { return lhs /= rhs; }
+    friend constexpr modnum operator+(modnum lhs, modnum rhs) { return lhs += rhs; }
+    friend constexpr modnum operator-(modnum lhs, modnum rhs) { return lhs -= rhs; }
+    friend constexpr modnum operator*(modnum lhs, modnum rhs) { return lhs *= rhs; }
+    friend constexpr modnum operator/(modnum lhs, modnum rhs) { return lhs /= rhs; }
 
     friend string to_string(modnum v) { return to_string(v.n); }
-    friend bool operator==(modnum lhs, modnum rhs) { return lhs.n == rhs.n; }
-    friend bool operator!=(modnum lhs, modnum rhs) { return lhs.n != rhs.n; }
+    friend constexpr bool operator==(modnum lhs, modnum rhs) { return lhs.n == rhs.n; }
+    friend constexpr bool operator!=(modnum lhs, modnum rhs) { return lhs.n != rhs.n; }
     friend ostream& operator<<(ostream& out, modnum v) { return out << v.n; }
     friend istream& operator>>(istream& in, modnum& v) {
-        return in >> v.n, v.n = fit(v.n % mod), in;
+        int64_t n;
+        return in >> n, v = modnum(n), in;
     }
 };
 
 /**
- * Variations of FFT.
- * For modnums: include modnum + 1st and 2nd namespaces
+ * Source: Nyann on yosupo
  */
-// Base include
+template <uint32_t mod>
+struct montg {
+    using u32 = uint32_t;
+    using u64 = uint64_t;
+    static_assert(mod > 0 && 2LL * mod < INT_MAX);
+    static constexpr u32 get_r() {
+        u32 ret = mod;
+        for (int i = 0; i < 4; ++i)
+            ret *= 2 - mod * ret;
+        return ret;
+    }
+    static constexpr u32 r = get_r();
+    static constexpr u32 n2 = -u64(mod) % mod;
+
+    u32 a;
+
+    constexpr montg() : a(0) {}
+    constexpr montg(const int64_t& b) : a(reduce(u64(b % mod + mod) * n2)) {}
+    explicit operator int() const { return a; }
+    explicit operator bool() const { return a != 0; }
+
+    static constexpr u32 reduce(const u64& b) {
+        return (b + u64(u32(b) * u32(-r)) * mod) >> 32;
+    }
+    static constexpr montg modpow(montg v, u64 n) {
+        montg ret(1);
+        while (n > 0) {
+            if (n & 1)
+                ret *= v;
+            if (n >>= 1)
+                v *= v;
+        }
+        return ret;
+    }
+
+    constexpr montg inv() const { return modpow(*this, mod - 2); }
+    constexpr montg& operator+=(const montg& b) {
+        if (int(a += b.a - 2 * mod) < 0)
+            a += 2 * mod;
+        return *this;
+    }
+    constexpr montg& operator-=(const montg& b) {
+        if (int(a -= b.a) < 0)
+            a += 2 * mod;
+        return *this;
+    }
+    constexpr montg& operator*=(const montg& b) {
+        return a = reduce(u64(a) * b.a), *this;
+    }
+    constexpr montg& operator/=(const montg& b) { return *this *= b.inv(); }
+    constexpr montg operator+(const montg& b) const { return montg(*this) += b; }
+    constexpr montg operator-(const montg& b) const { return montg(*this) -= b; }
+    constexpr montg operator*(const montg& b) const { return montg(*this) *= b; }
+    constexpr montg operator/(const montg& b) const { return montg(*this) /= b; }
+    constexpr bool operator==(const montg& b) const {
+        return (a >= mod ? a - mod : a) == (b.a >= mod ? b.a - mod : b.a);
+    }
+    constexpr bool operator!=(const montg& b) const {
+        return (a >= mod ? a - mod : a) != (b.a >= mod ? b.a - mod : b.a);
+    }
+    constexpr montg operator-() const { return montg() - montg(*this); }
+
+    friend ostream& operator<<(ostream& out, const montg& b) { return out << b.get(); }
+    friend istream& operator>>(istream& in, montg& b) {
+        int64_t t;
+        in >> t;
+        b = montg(t);
+        return in;
+    }
+
+    constexpr u32 get() const {
+        u32 ret = reduce(a);
+        return ret >= mod ? ret - mod : ret;
+    }
+};
+
 namespace fft {
 
 template <typename T>
@@ -110,8 +199,6 @@ struct my_complex {
 using default_complex = my_complex<double>;
 constexpr double TAU = 6.283185307179586476925286766559;
 
-constexpr auto operator""_i(long double x) { return default_complex(0, x); }
-
 int next_two(int32_t N) { return N > 1 ? 8 * sizeof(N) - __builtin_clz(N - 1) : 0; }
 
 template <typename T, typename D>
@@ -150,7 +237,7 @@ struct fft_reverse_cache {
             int R = 1 << n;
             rev[n].assign(R, 0);
             for (int i = 0; i < N; i++) {
-                rev[n][i] = (rev[n][i >> 1] | ((i & 1) * R)) >> 1;
+                rev[n][i] = (rev[n][i >> 1] | ((i & 1) << n)) >> 1;
             }
         }
         return rev[n].data();
@@ -199,7 +286,7 @@ struct fft_roots_cache {
     }
 };
 
-template <bool inverse, bool reverse, typename T>
+template <bool inverse, bool reverse = true, typename T>
 void fft_transform(vector<T>& a, int N) {
     if constexpr (reverse) {
         auto rev = fft_reverse_cache::get(N);
@@ -230,7 +317,6 @@ void fft_transform(vector<T>& a, int N) {
 
 } // namespace fft
 
-// NTT with modnums
 namespace fft {
 
 constexpr int MODNUM_BREAKEVEN = 150;
@@ -243,17 +329,27 @@ int ntt_primitive_root(int p) {
     assert(false && "Sorry, unimplemented");
 }
 
-template <int mod>
-struct root_of_unity<modnum<mod>> {
-    using type = modnum<mod>;
+template <uint32_t MOD>
+struct root_of_unity<modnum<MOD>> {
+    using type = modnum<MOD>;
     static type get(int n) {
-        modnum<mod> g = ntt_primitive_root(mod);
-        assert(n > 0 && (mod - 1) % n == 0 && "Modulus cannot handle NTT this large");
-        return modpow(g, (mod - 1) / n);
+        modnum<MOD> g = ntt_primitive_root(MOD);
+        assert(n > 0 && (MOD - 1) % n == 0 && "Modulus cannot handle NTT this large");
+        return modnum<MOD>::modpow(g, (MOD - 1) / n);
     }
 };
 
-template <int MOD>
+template <uint32_t MOD>
+struct root_of_unity<montg<MOD>> {
+    using type = montg<MOD>;
+    static type get(int n) {
+        montg<MOD> g = ntt_primitive_root(MOD);
+        assert(n > 0 && (MOD - 1) % n == 0 && "Modulus cannot handle NTT this large");
+        return montg<MOD>::modpow(g, (MOD - 1) / n);
+    }
+};
+
+template <uint32_t MOD>
 auto ntt_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
     using T = modnum<MOD>;
     if (a.empty() || b.empty()) {
@@ -268,35 +364,37 @@ auto ntt_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
     vector<T> c = a, d = b;
     c.resize(N, T(0));
     d.resize(N, T(0));
-    fft_transform<0, 1>(c, N);
-    fft_transform<0, 1>(d, N);
+    fft_transform<0>(c, N);
+    fft_transform<0>(d, N);
     for (int i = 0; i < N; i++) {
         c[i] = c[i] * d[i];
     }
-    fft_transform<1, 1>(c, N);
+    fft_transform<1>(c, N);
     trim_vector(c);
     return c;
 }
 
-template <int MOD>
-auto ntt_square(const vector<modnum<MOD>>& a) {
-    using T = modnum<MOD>;
-    if (a.empty()) {
+template <uint32_t MOD>
+auto ntt_multiply(const vector<montg<MOD>>& a, const vector<montg<MOD>>& b) {
+    using T = montg<MOD>;
+    if (a.empty() || b.empty()) {
         return vector<T>();
     }
-    int A = a.size();
-    if (A <= MODNUM_BREAKEVEN) {
-        return naive_multiply(a, a);
+    int A = a.size(), B = b.size();
+    if (A <= MODNUM_BREAKEVEN || B <= MODNUM_BREAKEVEN) {
+        return naive_multiply(a, b);
     }
 
-    int C = 2 * A - 1, N = 1 << next_two(C);
-    vector<T> c = a;
+    int C = A + B - 1, N = 1 << next_two(C);
+    vector<T> c = a, d = b;
     c.resize(N, T(0));
-    fft_transform<0, 1>(c, N);
+    d.resize(N, T(0));
+    fft_transform<0>(c, N);
+    fft_transform<0>(d, N);
     for (int i = 0; i < N; i++) {
-        c[i] = c[i] * c[i];
+        c[i] = c[i] * d[i];
     }
-    fft_transform<1, 1>(c, N);
+    fft_transform<1>(c, N);
     trim_vector(c);
     return c;
 }

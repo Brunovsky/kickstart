@@ -25,6 +25,27 @@ struct tensor {
     tensor() : shape{0}, strides{0}, len(0), data(nullptr) {}
 
     explicit tensor(std::array<int, NDIMS> shape_, const T& t = T()) {
+        assign(shape_, t);
+    }
+
+    tensor(const tensor& o)
+        : shape(o.shape), strides(o.strides), len(o.len), data(new T[len]) {
+        copy(o.data, o.data + len, data);
+    }
+    tensor(tensor&& o) : tensor() { *this = std::move(o); }
+
+    tensor& operator=(const tensor& o) { return *this = tensor(o); }
+    tensor& operator=(tensor&& o) noexcept {
+        using std::swap;
+        swap(shape, o.shape);
+        swap(strides, o.strides);
+        swap(len, o.len);
+        swap(data, o.data);
+        return *this;
+    }
+    ~tensor() { delete[] data; }
+
+    void assign(std::array<int, NDIMS> shape_, const T& t = T()) {
         shape = shape_;
         strides[NDIMS - 1] = 1;
         for (int i = NDIMS - 1; i > 0; i--) {
@@ -35,28 +56,20 @@ struct tensor {
         std::fill(data, data + len, t);
     }
 
-    tensor(const tensor& o)
-        : shape(o.shape), strides(o.strides), len(o.len), data(new T[len]) {
-        for (int i = 0; i < len; i++) {
-            data[i] = o.data[i];
+    const auto& size() const { return shape; }
+
+    friend istream& operator>>(istream& in, tensor& t) {
+        for (int i = 0; i < t.len; i++) {
+            in >> t.data[i];
         }
+        return in;
     }
-
-    tensor& operator=(tensor&& o) noexcept {
-        using std::swap;
-        swap(shape, o.shape);
-        swap(strides, o.strides);
-        swap(len, o.len);
-        swap(data, o.data);
-        return *this;
+    bool operator==(const tensor& o) const {
+        return shape == o.shape && equal(data, data + len, o.data);
     }
-    tensor(tensor&& o) : tensor() { *this = std::move(o); }
-    tensor& operator=(const tensor& o) { return *this = tensor(o); }
-    ~tensor() { delete[] data; }
+    bool operator!=(const tensor& o) const { return !(*this == o); }
 
-    auto size() const { return shape; }
-
-  protected:
+  private:
     int flatten_index(std::array<int, NDIMS> idx) const {
         int res = 0;
         for (int i = 0; i < NDIMS; i++) {

@@ -52,6 +52,7 @@ void speed_test_max_flow() {
                        alpha);
 
             auto [g, s, t] = random_geometric_flow_connected(V, p, p / 2, alpha);
+            add_uniform_self_loops(V, g, 0.2);
             auto cap = mid_cap(V, g, 1, 100'000'000, -10);
 
             vector<long> ans(4);
@@ -138,6 +139,7 @@ void stress_test_max_flow() {
             V = n * k, t = V - 1;
         }
 
+        add_uniform_self_loops(V, g, 0.2);
         auto cap = mid_cap(V, g, 1, 1000, -3);
         return make_tuple(V, g, s, t, cap);
     };

@@ -13,15 +13,16 @@ using edges_t = vector<array<int, 2>>;
  */
 auto hash_graph_vertices(int V, const edges_t& g) {
     static hash<vector<size_t>> hasher;
-    mat<size_t> m(V, V);
+    mat<size_t> m({V, V});
     for (auto [u, v] : g)
         m[u][v] = m[v][u] = 1;
     m = m ^ V;
 
     vector<size_t> hashtable(V);
     for (int n = 0; n < V; n++) {
-        sort(begin(m[n]), end(m[n]));
-        hashtable[n] = hasher(m[n]);
+        vector<size_t> hashes(m[n], m[n + 1]);
+        sort(begin(hashes), end(hashes));
+        hashtable[n] = hasher(hashes);
     }
     return hashtable;
 }

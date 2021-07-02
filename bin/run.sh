@@ -96,6 +96,10 @@ function main {
 			"${VALGRIND[@]}" "$@" ./solver
 		;;
 		# Make and run commands
+		*test*)
+			run_make_solver
+			run_tests "$@"
+		;;
 		in*|fastin*|infast*)
 			run_make_solver
 			grep -svP "$TRACE" input.txt | ./solver | tee output.txt
@@ -103,10 +107,6 @@ function main {
 		run*|fast*)
 			run_make_solver
 			./solver
-		;;
-		test*)
-			run_make_solver
-			run_tests "$@"
 		;;
 		# Run interactive with judge
 		judgepy*)

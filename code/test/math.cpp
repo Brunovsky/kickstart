@@ -68,9 +68,111 @@ void unit_test_modsqrt() {
     print("modsqrt: hit: {} | miss: {}  (should be equal)\n", hit, miss);
 }
 
+#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
+
+void stress_test_modnum() {
+    constexpr int mod = 998244353;
+    using num = modnum<mod>;
+    using mont = montg<mod>;
+
+    constexpr int N = 30'000, M = 30'000;
+    vector<uint> a(N), b(M);
+    for (uint i = 0; i < N; i++) {
+        a[i] = rand_unif<uint>(1, mod - 1);
+    }
+    for (uint i = 0; i < M; i++) {
+        b[i] = rand_unif<uint>(1, mod - 1);
+    }
+
+    num ans = 0;
+    TIME_BLOCK(modnum) {
+        vector<num> am(N), bm(M);
+        for (int i = 0; i < N; i++)
+            am[i] = num(a[i]);
+        for (int j = 0; j < M; j++)
+            bm[j] = num(b[j]);
+
+        for (int i = 0; i < N; i++)
+            for (int j = 0; j < M; j++)
+                ans += am[i] * bm[j];
+        for (int i = 0; i < N; i++)
+            ans *= am[i];
+        for (int j = 0; j < M; j++)
+            ans *= bm[j];
+    }
+
+    TIME_BLOCK(1LL) {
+        uint d = 0;
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                d += (1ULL * a[i] * b[j]) % mod;
+                if (d >= mod)
+                    d -= mod;
+            }
+        }
+        for (int i = 0; i < N; i++) {
+            d = 1LL * d * a[i] % mod;
+        }
+        for (int j = 0; j < M; j++) {
+            d = 1LL * d * b[j] % mod;
+        }
+        assert(ans == d);
+    }
+
+    TIME_BLOCK(smul) {
+        constexpr double s = (1.0) / mod;
+        uint d = 0;
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                auto n = 1LL * a[i] * b[j];
+                int v = n - long(n * s) * mod;
+                d += v >= mod ? v - mod : v < 0 ? v + mod : v;
+                if (d >= mod)
+                    d -= mod;
+            }
+        }
+        for (int i = 0; i < N; i++) {
+            auto n = 1LL * d * a[i];
+            int v = n - long(n * s) * mod;
+            d = v >= mod ? v - mod : v < 0 ? v + mod : v;
+        }
+        for (int j = 0; j < M; j++) {
+            auto n = 1LL * d * b[j];
+            int v = n - long(n * s) * mod;
+            d = v >= mod ? v - mod : v < 0 ? v + mod : v;
+        }
+        assert(ans == d);
+    }
+
+    TIME_BLOCK(montg) {
+        print("montg r={} n2={}\n", mont::r, mont::n2);
+        mont d(0);
+        vector<mont> am(N), bm(M);
+        for (int i = 0; i < N; i++) {
+            am[i] = mont(a[i]);
+        }
+        for (int j = 0; j < M; j++) {
+            bm[j] = mont(b[j]);
+        }
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < M; j++) {
+                d += am[i] * bm[j];
+            }
+        }
+        for (int i = 0; i < N; i++) {
+            d = d * am[i];
+        }
+        for (int j = 0; j < M; j++) {
+            d = d * bm[j];
+        }
+        assert(ans == d.get());
+    }
+}
+
 int main() {
     RUN_SHORT(unit_test_others());
     RUN_SHORT(unit_test_modsqrt());
     RUN_SHORT(unit_test_modlog());
+    RUN_SHORT(stress_test_modnum());
     return 0;
 }

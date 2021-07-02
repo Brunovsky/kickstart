@@ -22,7 +22,7 @@ struct tidal_flow {
     explicit tidal_flow(int V) : V(V), res(V) {}
 
     void add(int u, int v, Flow capacity) {
-        assert(0 <= u && u < V && 0 <= v && v < V && u != v && capacity > 0);
+        assert(0 <= u && u < V && 0 <= v && v < V && capacity >= 0);
         res[u].push_back(E++), edge.push_back({{u, v}, capacity, 0});
         res[v].push_back(E++), edge.push_back({{v, u}, 0, 0});
     }

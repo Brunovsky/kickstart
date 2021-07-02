@@ -13,7 +13,7 @@ using mat_t = mat<unsigned>;
 template <typename RNG>
 mat_t makemat(int n, RNG& rnd) {
     uniform_int_distribution<unsigned> distv(0, 1'000'000);
-    mat_t mat(n, n);
+    mat_t mat({n, n});
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             mat[i][j] = distv(rnd);

@@ -1,9 +1,11 @@
 #include "test_utils.hpp"
 #include "../struct/tensor.hpp"
-#include "../linear/matrix.hpp"
 #include "../lib/anynum.hpp"
 
 inline namespace detail {
+
+template <typename T>
+using mat = vector<vector<T>>;
 
 template <typename T>
 auto multiply_tensors(const tensor<T, 2>& a, const tensor<T, 2>& b) {
@@ -22,8 +24,22 @@ auto multiply_tensors(const tensor<T, 2>& a, const tensor<T, 2>& b) {
 }
 
 template <typename T>
+auto multiply_mats(const mat<T>& a, const mat<T>& b) {
+    int N = a.size(), M = a[0].size(), K = b[0].size();
+    mat<T> c(N, vector<T>(K));
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < M; j++) {
+            for (int k = 0; k < K; k++) {
+                c[i][k] += a[i][j] * b[j][k];
+            }
+        }
+    }
+    return c;
+}
+
+template <typename T>
 auto generate_mat(int N, int M, int v = 30) {
-    mat<T> arr(N, M);
+    mat<T> arr(N, vector<T>(M));
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < M; j++) {
             arr[i][j] = uniform_gen<int>(-v, v);
@@ -33,8 +49,8 @@ auto generate_mat(int N, int M, int v = 30) {
 }
 
 template <typename T>
-auto convert_to_tensor(const mat<T>& arr) {
-    auto [N, M] = arr.size();
+auto convert_to_tensor(const vector<vector<T>>& arr) {
+    int N = arr.size(), M = arr[0].size();
     tensor<T, 2> t({N, M});
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < M; j++) {
@@ -61,7 +77,7 @@ void speed_test_tensor_multiply() {
         tensor<unsigned, 2> bten = convert_to_tensor(bmat);
 
         START(mat);
-        auto cmat = amat * bmat;
+        auto cmat = multiply_mats(amat, bmat);
         ADD_TIME(mat);
 
         START(tensor);

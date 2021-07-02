@@ -1,18 +1,19 @@
 #pragma once
 
-#include "matrix.hpp"
+#include <bits/stdc++.h>
+using namespace std;
 
 struct transportation {
     int N, M;
     array<vector<int>, 2> flow;
-    mat<int> cost, tp;
+    vector<vector<int>> cost, tp;
     vector<int> upi, vpi, uQ, vQ, uvis, vvis;
     vector<vector<int>> ubasis, vbasis;
     int iteration;
 
     static inline const int nil = INT_MIN, inf = INT_MAX;
 
-    transportation(array<vector<int>, 2> flow, mat<int> cost)
+    transportation(array<vector<int>, 2> flow, vector<vector<int>> cost)
         : N(flow[0].size()), M(flow[1].size()), flow(move(flow)), cost(move(cost)) {
         assert(N > 0 && M > 0);
     }
@@ -119,17 +120,24 @@ struct transportation {
         int flow0 = accumulate(begin(flow[0]), end(flow[0]), 0);
         int flow1 = accumulate(begin(flow[1]), end(flow[1]), 0);
 
+        auto resize_mat = [&](auto& mat, int n, int m) {
+            mat.resize(n);
+            for (int i = 0; i < n; i++) {
+                mat[i].resize(m, 0);
+            }
+        };
+
         if (flow0 < flow1) {
-            flow[0].push_back(flow1 - flow0), N++, cost.resize(N, M, 0);
+            flow[0].push_back(flow1 - flow0), N++, resize_mat(cost, N, M);
         } else if (flow0 > flow1) {
-            flow[1].push_back(flow0 - flow1), M++, cost.resize(N, M, 0);
+            flow[1].push_back(flow0 - flow1), M++, resize_mat(cost, N, M);
         }
 
         upi.resize(N), vpi.resize(M);
         uQ.resize(N), vQ.resize(M);
         uvis.assign(N, 0), vvis.assign(M, 0);
         ubasis.assign(N, {}), vbasis.assign(M, {});
-        tp.assign(N, M, 0);
+        tp.assign(N, vector<int>(M, 0));
         iteration = 0;
 
         init_feasible();
@@ -143,9 +151,9 @@ struct transportation {
         } while (true);
 
         if (flow0 < flow1) {
-            N--, tp.resize(N, M);
+            N--, resize_mat(tp, N, M);
         } else if (flow0 > flow1) {
-            M--, tp.resize(N, M);
+            M--, resize_mat(tp, N, M);
         }
 
         long ans = 0;
@@ -155,8 +163,8 @@ struct transportation {
         return ans;
     }
 
-    static long solve(const array<vector<int>, 2>& flow, const mat<int>& cost,
-                      mat<int>* out_tp = nullptr) {
+    static long solve(const array<vector<int>, 2>& flow, const vector<vector<int>>& cost,
+                      vector<vector<int>>* out_tp = nullptr) {
         transportation solver(flow, cost);
         long ans = solver.compute();
         !out_tp || (*out_tp = move(solver.tp), 0);

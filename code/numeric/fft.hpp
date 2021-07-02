@@ -181,14 +181,14 @@ namespace fft {
 
 int SPLITMODNUM_BREAKEVEN = 80;
 
-template <typename C, int MOD, typename T = int>
+template <typename C, uint32_t MOD, typename T = int>
 auto fft_split_lower_upper_mod(T H, const vector<modnum<MOD>>& a, vector<C>& comp) {
     for (int i = 0, A = a.size(); i < A; i++) {
         comp[i] = C(T(a[i]) % H, T(a[i]) / H);
     }
 }
 
-template <typename C = default_complex, int MOD>
+template <typename C = default_complex, uint32_t MOD>
 auto fft_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
     using T = modnum<MOD>;
     if (a.empty() || b.empty()) {
@@ -282,17 +282,16 @@ namespace fft {
 
 constexpr int MODNUM_BREAKEVEN = 150;
 
-int ntt_primitive_root(int p) {
-    static unordered_map<int, int> cache = {{998244353, 3}};
-    if (cache.count(p)) {
-        return cache.at(p);
-    }
-    assert(false && "Sorry, unimplemented");
-}
-
-template <int MOD>
+template <uint32_t MOD>
 struct root_of_unity<modnum<MOD>> {
     using type = modnum<MOD>;
+    static int ntt_primitive_root(int p) {
+        static unordered_map<int, int> cache = {{998244353, 3}};
+        if (cache.count(p)) {
+            return cache.at(p);
+        }
+        assert(false && "Sorry, unimplemented");
+    }
     static type get(int n) {
         modnum<MOD> g = ntt_primitive_root(MOD);
         assert(n > 0 && (MOD - 1) % n == 0 && "Modulus cannot handle NTT this large");
@@ -300,7 +299,7 @@ struct root_of_unity<modnum<MOD>> {
     }
 };
 
-template <int MOD>
+template <uint32_t MOD>
 auto ntt_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
     using T = modnum<MOD>;
     if (a.empty() || b.empty()) {
@@ -308,6 +307,55 @@ auto ntt_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
     }
     int A = a.size(), B = b.size();
     if (A <= MODNUM_BREAKEVEN || B <= MODNUM_BREAKEVEN) {
+        return naive_multiply(a, b);
+    }
+
+    int C = A + B - 1, N = 1 << next_two(C);
+    vector<T> c = a, d = b;
+    c.resize(N, T(0));
+    d.resize(N, T(0));
+    fft_transform<0>(c, N);
+    fft_transform<0>(d, N);
+    for (int i = 0; i < N; i++) {
+        c[i] = c[i] * d[i];
+    }
+    fft_transform<1>(c, N);
+    trim_vector(c);
+    return c;
+}
+
+} // namespace fft
+
+// NTT with montgs
+namespace fft {
+
+constexpr int MONTG_BREAKEVEN = 150;
+
+template <uint32_t MOD>
+struct root_of_unity<montg<MOD>> {
+    using type = montg<MOD>;
+    static int ntt_primitive_root(int p) {
+        static unordered_map<int, int> cache = {{998244353, 3}};
+        if (cache.count(p)) {
+            return cache.at(p);
+        }
+        assert(false && "Sorry, unimplemented");
+    }
+    static type get(int n) {
+        montg<MOD> g = ntt_primitive_root(MOD);
+        assert(n > 0 && (MOD - 1) % n == 0 && "Modulus cannot handle NTT this large");
+        return modpow(g, (MOD - 1) / n);
+    }
+};
+
+template <uint32_t MOD>
+auto ntt_multiply(const vector<montg<MOD>>& a, const vector<montg<MOD>>& b) {
+    using T = montg<MOD>;
+    if (a.empty() || b.empty()) {
+        return vector<T>();
+    }
+    int A = a.size(), B = b.size();
+    if (A <= MONTG_BREAKEVEN || B <= MONTG_BREAKEVEN) {
         return naive_multiply(a, b);
     }
 

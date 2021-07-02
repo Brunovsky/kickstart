@@ -3,7 +3,7 @@
 
 // clang-format off
 void unit_test_transportation() {
-    mat<int> solution, tp;
+    vector<vector<int>> solution, tp;
     long ans;
 
     ans = transportation::solve({{{100, 50}, {80, 30, 40}}}, {{

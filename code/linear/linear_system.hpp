@@ -22,8 +22,10 @@ optional<matd> inverse(matd a, double epsilon = EPS) {
         }
         if (i == n || abs(a[i][j]) <= epsilon)
             return std::nullopt;
-        if (i != j)
+        if (i != j) {
             swap(a[i], a[j]);
+            swap(b[i], b[j]);
+        }
         for (int k = 0; k < n; k++)
             b[j][k] /= a[j][j];
         for (int k = n - 1; k >= j; k--)
@@ -139,6 +141,7 @@ optional<matf> inverse(matf a) {
         for (i = j; i < n; i++) {
             if (a[i][j]) {
                 swap(a[i], a[j]);
+                swap(b[i], b[j]);
                 break;
             }
         }
@@ -257,6 +260,7 @@ optional<matbf> inverse(matbf a) {
         for (i = j; i < n; i++) {
             if (a[i][j]) {
                 swap(a[i], a[j]);
+                swap(b[i], b[j]);
                 break;
             }
         }

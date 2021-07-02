@@ -72,8 +72,11 @@ edges_t merge_graphs_disjoint(const vector<edges_t>& gs) {
     return g;
 }
 
-/** Basic auxiliary methods for adding edges to graphs
- */
+// Add self loops to g each with uniform probability p
+void add_uniform_self_loops(int V, edges_t& g, double p) {
+    for (int u : int_sample_p(p, 0, V))
+        g.push_back({u, u});
+}
 
 // merge the first S edges of undirected graph more that aren't in g into g
 void add_edges_missing(edges_t& g, const edges_t& more, int S) {
