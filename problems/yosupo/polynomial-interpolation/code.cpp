@@ -2,22 +2,35 @@
 using namespace std;
 static_assert(sizeof(int) == 4 && sizeof(long) == 8);
 
-template <int mod>
+template <uint32_t mod>
 struct modnum {
-    static_assert(mod > 0 && 2LL * mod < INT_MAX);
-    int n;
+    using u32 = uint32_t;
+    using u64 = uint64_t;
+    static_assert(mod > 0 && mod < UINT_MAX / 2);
 
-    modnum() : n(0) {}
-    modnum(int v) : n(fit(v % mod)) {}
-    explicit operator int() const { return n; }
-    explicit operator bool() const { return n != 0; }
+    uint32_t n;
 
-    static int fit(int v) { return v >= mod ? v - mod : (v < 0 ? v + mod : v); }
-    static int modinv(int v, int m = mod) {
-        v %= m, assert(v);
-        return v == 1 ? 1 : (m - 1LL * modinv(m, v) * m / v);
+    constexpr modnum() : n(0) {}
+    constexpr modnum(u64 v) : n(v >= mod ? v % mod : v) {}
+    constexpr modnum(u32 v) : n(v >= mod ? v % mod : v) {}
+    constexpr modnum(int64_t v) : modnum(v >= 0 ? u64(v) : u64(mod + v % int(mod))) {}
+    constexpr modnum(int32_t v) : modnum(v >= 0 ? u32(v) : u32(mod + v % int(mod))) {}
+    explicit constexpr operator int() const { return n; }
+    explicit constexpr operator bool() const { return n != 0; }
+
+    static constexpr u32 fit(u32 x) { return x >= mod ? x - mod : x; }
+    static constexpr int modinv(u32 x) {
+        int nx = 1, ny = 0;
+        u32 y = mod;
+        while (x) {
+            auto k = y / x;
+            y = y % x;
+            ny = ny - k * nx;
+            swap(x, y), swap(nx, ny);
+        }
+        return ny < 0 ? mod + ny : ny;
     }
-    friend modnum modpow(modnum b, long e) {
+    friend constexpr modnum modpow(modnum b, long e) {
         modnum p = 1;
         while (e > 0) {
             if (e & 1)
@@ -28,29 +41,30 @@ struct modnum {
         return p;
     }
 
-    modnum inv() const { return {modinv(n)}; }
-    modnum operator-() const { return {fit(-n)}; }
-    modnum operator+() const { return {n}; }
-    modnum operator++(int) { return n = fit(n + 1), *this - 1; }
-    modnum operator--(int) { return n = fit(n - 1), *this + 1; }
-    modnum& operator++() { return n = fit(n + 1), *this; }
-    modnum& operator--() { return n = fit(n - 1), *this; }
-    modnum& operator+=(modnum v) { return n = fit(n + v.n), *this; }
-    modnum& operator-=(modnum v) { return n = fit(n - v.n), *this; }
-    modnum& operator*=(modnum v) { return n = (1LL * n * v.n) % mod, *this; }
-    modnum& operator/=(modnum v) { return n = (1LL * n * modinv(v.n)) % mod, *this; }
+    constexpr modnum inv() const { return modinv(n); }
+    constexpr modnum operator-() const { return n == 0 ? n : mod - n; }
+    constexpr modnum operator+() const { return *this; }
+    constexpr modnum operator++(int) { return n = fit(n + 1), *this - 1; }
+    constexpr modnum operator--(int) { return n = fit(mod + n - 1), *this + 1; }
+    constexpr modnum& operator++() { return n = fit(n + 1), *this; }
+    constexpr modnum& operator--() { return n = fit(mod + n - 1), *this; }
+    constexpr modnum& operator+=(modnum v) { return n = fit(n + v.n), *this; }
+    constexpr modnum& operator-=(modnum v) { return n = fit(mod + n - v.n), *this; }
+    constexpr modnum& operator*=(modnum v) { return n = (u64(n) * v.n) % mod, *this; }
+    constexpr modnum& operator/=(modnum v) { return *this *= v.inv(); }
 
-    friend modnum operator+(modnum lhs, modnum rhs) { return lhs += rhs; }
-    friend modnum operator-(modnum lhs, modnum rhs) { return lhs -= rhs; }
-    friend modnum operator*(modnum lhs, modnum rhs) { return lhs *= rhs; }
-    friend modnum operator/(modnum lhs, modnum rhs) { return lhs /= rhs; }
+    friend constexpr modnum operator+(modnum lhs, modnum rhs) { return lhs += rhs; }
+    friend constexpr modnum operator-(modnum lhs, modnum rhs) { return lhs -= rhs; }
+    friend constexpr modnum operator*(modnum lhs, modnum rhs) { return lhs *= rhs; }
+    friend constexpr modnum operator/(modnum lhs, modnum rhs) { return lhs /= rhs; }
 
     friend string to_string(modnum v) { return to_string(v.n); }
-    friend bool operator==(modnum lhs, modnum rhs) { return lhs.n == rhs.n; }
-    friend bool operator!=(modnum lhs, modnum rhs) { return lhs.n != rhs.n; }
+    friend constexpr bool operator==(modnum lhs, modnum rhs) { return lhs.n == rhs.n; }
+    friend constexpr bool operator!=(modnum lhs, modnum rhs) { return lhs.n != rhs.n; }
     friend ostream& operator<<(ostream& out, modnum v) { return out << v.n; }
     friend istream& operator>>(istream& in, modnum& v) {
-        return in >> v.n, v.n = fit(v.n % mod), in;
+        int64_t n;
+        return in >> n, v = modnum(n), in;
     }
 };
 
@@ -106,8 +120,6 @@ struct my_complex {
 using default_complex = my_complex<double>;
 constexpr double TAU = 6.283185307179586476925286766559;
 
-constexpr auto operator""_i(long double x) { return default_complex(0, x); }
-
 int next_two(int32_t N) { return N > 1 ? 8 * sizeof(N) - __builtin_clz(N - 1) : 0; }
 
 template <typename T, typename D>
@@ -146,7 +158,7 @@ struct fft_reverse_cache {
             int R = 1 << n;
             rev[n].assign(R, 0);
             for (int i = 0; i < N; i++) {
-                rev[n][i] = (rev[n][i >> 1] | ((i & 1) * R)) >> 1;
+                rev[n][i] = (rev[n][i >> 1] | ((i & 1) << n)) >> 1;
             }
         }
         return rev[n].data();
@@ -195,7 +207,7 @@ struct fft_roots_cache {
     }
 };
 
-template <bool inverse, bool reverse, typename T>
+template <bool inverse, bool reverse = true, typename T>
 void fft_transform(vector<T>& a, int N) {
     if constexpr (reverse) {
         auto rev = fft_reverse_cache::get(N);
@@ -231,14 +243,14 @@ namespace fft {
 
 int SPLITMODNUM_BREAKEVEN = 80;
 
-template <typename C, int MOD, typename T = int>
+template <typename C, uint32_t MOD, typename T = int>
 auto fft_split_lower_upper_mod(T H, const vector<modnum<MOD>>& a, vector<C>& comp) {
     for (int i = 0, A = a.size(); i < A; i++) {
         comp[i] = C(T(a[i]) % H, T(a[i]) / H);
     }
 }
 
-template <typename C = default_complex, int MOD>
+template <typename C = default_complex, uint32_t MOD>
 auto fft_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
     using T = modnum<MOD>;
     if (a.empty() || b.empty()) {
@@ -254,56 +266,19 @@ auto fft_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
     vector<C> ac(N), bc(N);
     fft_split_lower_upper_mod(H, a, ac);
     fft_split_lower_upper_mod(H, b, bc);
-    fft_transform<0, 1>(ac, N);
-    fft_transform<0, 1>(bc, N);
+    fft_transform<0>(ac, N);
+    fft_transform<0>(bc, N);
     vector<C> h0(N), h1(N);
     for (int i = 0, j = 0; i < N; i++, j = N - i) {
         auto f_small = (ac[i] + conj(ac[j])) * 0.5;
-        auto f_large = (ac[i] - conj(ac[j])) * -0.5_i;
+        auto f_large = (ac[i] - conj(ac[j])) * C(0, -0.5);
         auto g_small = (bc[i] + conj(bc[j])) * 0.5;
-        auto g_large = (bc[i] - conj(bc[j])) * -0.5_i;
-        h0[i] = f_small * g_small + 1.0_i * f_large * g_large;
+        auto g_large = (bc[i] - conj(bc[j])) * C(0, -0.5);
+        h0[i] = f_small * g_small + C(0, 1) * f_large * g_large;
         h1[i] = f_small * g_large + f_large * g_small;
     }
-    fft_transform<1, 1>(h0, N);
-    fft_transform<1, 1>(h1, N);
-
-    vector<T> c(S);
-    for (int i = 0; i < S; i++) {
-        T c0 = fft_round<int64_t>(h0[i].real()) % MOD;
-        T c1 = fft_round<int64_t>(h1[i].real()) % MOD;
-        T c2 = fft_round<int64_t>(h0[i].imag()) % MOD;
-        c[i] = c0 + c1 * H + c2 * Q;
-    }
-    trim_vector(c);
-    return c;
-}
-
-template <typename C = default_complex, int MOD>
-auto fft_square(const vector<modnum<MOD>>& a) {
-    using T = modnum<MOD>;
-    if (a.empty()) {
-        return vector<T>();
-    }
-    int A = a.size();
-    if (A <= SPLITMODNUM_BREAKEVEN) {
-        return naive_multiply(a, a);
-    }
-
-    int S = 2 * A - 1, N = 1 << next_two(S);
-    int H = sqrt(MOD), Q = H * H;
-    vector<C> ac(N);
-    fft_split_lower_upper_mod(H, a, ac);
-    fft_transform<0, 1>(ac, N);
-    vector<C> h0(N), h1(N);
-    for (int i = 0, j = 0; i < N; i++, j = N - i) {
-        auto f_small = (ac[i] + conj(ac[j])) * 0.5;
-        auto f_large = (ac[i] - conj(ac[j])) * -0.5_i;
-        h0[i] = f_small * f_small + 1.0_i * f_large * f_large;
-        h1[i] = 2.0 * f_small * f_large;
-    }
-    fft_transform<1, 1>(h0, N);
-    fft_transform<1, 1>(h1, N);
+    fft_transform<1>(h0, N);
+    fft_transform<1>(h1, N);
 
     vector<T> c(S);
     for (int i = 0; i < S; i++) {
@@ -323,11 +298,6 @@ namespace polymath {
 template <typename T>
 auto multiply(const vector<T>& a, const vector<T>& b) {
     return fft::fft_multiply(a, b);
-}
-
-template <typename T>
-auto square(const vector<T>& a) {
-    return fft::fft_square(a);
 }
 
 template <typename T>
@@ -360,57 +330,6 @@ void truncate(vector<T>& v, int size) {
 template <typename T>
 auto truncated(vector<T> v, int size) {
     return truncate(v, size), v;
-}
-
-template <typename T>
-auto eval(const vector<T>& a, T x) {
-    T v = 0;
-    for (int A = a.size(), i = A - 1; i >= 0; i--)
-        v = a[i] + v * x;
-    return v;
-}
-
-template <typename T>
-auto deriv(vector<T> a) {
-    int N = a.size();
-    for (int i = 0; i + 1 < N; i++)
-        a[i] = T(i + 1) * a[i + 1];
-    if (N > 0)
-        a.pop_back();
-    return a;
-}
-
-template <typename T>
-auto integr(vector<T> a, T c = T()) {
-    int N = a.size();
-    a.resize(N + 1);
-    for (int i = N; i > 0; i--)
-        a[i] = a[i - 1] / T(i);
-    a[0] = c;
-    return a;
-}
-
-template <typename T>
-auto withroots(const vector<T>& roots) {
-    int R = roots.size();
-    vector<vector<T>> polys(R);
-
-    for (int i = 0; i < R; i++) {
-        polys[i] = {-roots[i], T(1)};
-    }
-
-    while (R > 1) {
-        for (int i = 0; i < R / 2; i++) {
-            polys[i] = polys[i << 1] * polys[i << 1 | 1];
-        }
-        if (R & 1) {
-            polys[R / 2] = move(polys[R - 1]);
-        }
-        R = (R + 1) / 2;
-        polys.resize(R);
-    }
-
-    return R ? polys[0] : vector<T>{T(1)};
 }
 
 template <typename T>
@@ -485,12 +404,63 @@ auto operator/(vector<T> a, T constant) {
 }
 
 template <typename T>
+auto eval(const vector<T>& a, T x) {
+    T v = 0;
+    for (int A = a.size(), i = A - 1; i >= 0; i--)
+        v = a[i] + v * x;
+    return v;
+}
+
+template <typename T>
+auto deriv(vector<T> a) {
+    int N = a.size();
+    for (int i = 0; i + 1 < N; i++)
+        a[i] = T(i + 1) * a[i + 1];
+    if (N > 0)
+        a.pop_back();
+    return a;
+}
+
+template <typename T>
+auto integr(vector<T> a, T c = T()) {
+    int N = a.size();
+    a.resize(N + 1);
+    for (int i = N; i > 0; i--)
+        a[i] = a[i - 1] / T(i);
+    a[0] = c;
+    return a;
+}
+
+template <typename T>
+auto withroots(const vector<T>& roots) {
+    int R = roots.size();
+    vector<vector<T>> polys(R);
+
+    for (int i = 0; i < R; i++) {
+        polys[i] = {-roots[i], T(1)};
+    }
+
+    while (R > 1) {
+        for (int i = 0; i < R / 2; i++) {
+            polys[i] = polys[i << 1] * polys[i << 1 | 1];
+        }
+        if (R & 1) {
+            polys[R / 2] = move(polys[R - 1]);
+        }
+        R = (R + 1) / 2;
+        polys.resize(R);
+    }
+
+    return R ? polys[0] : vector<T>{T(1)};
+}
+
+template <typename T>
 auto inverse_series(const vector<T>& a, int mod_degree) {
     assert(!a.empty() && a[0]);
     vector<T> b(1, T(1) / a[0]);
 
     for (int len = 1; len < mod_degree; len *= 2) {
-        b += b - truncated(a, 2 * len) * square(b);
+        b += b - truncated(a, 2 * len) * (b * b);
         truncate(b, min(2 * len, mod_degree)), trim(b);
     }
 
@@ -551,10 +521,6 @@ auto resultant(const vector<T>& a, const vector<T>& b) {
         return mul * resultant(b, c);
     }
 }
-
-} // namespace polymath
-
-namespace polymath {
 
 template <typename T>
 struct multieval_tree {

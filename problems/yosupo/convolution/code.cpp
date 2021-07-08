@@ -356,7 +356,7 @@ auto ntt_multiply(const vector<modnum<MOD>>& a, const vector<modnum<MOD>>& b) {
         return vector<T>();
     }
     int A = a.size(), B = b.size();
-    if (A <= MODNUM_BREAKEVEN || B <= MODNUM_BREAKEVEN) {
+    if (A <= MODNUM_BREAKEVEN && B <= MODNUM_BREAKEVEN) {
         return naive_multiply(a, b);
     }
 
@@ -381,7 +381,7 @@ auto ntt_multiply(const vector<montg<MOD>>& a, const vector<montg<MOD>>& b) {
         return vector<T>();
     }
     int A = a.size(), B = b.size();
-    if (A <= MODNUM_BREAKEVEN || B <= MODNUM_BREAKEVEN) {
+    if (A <= MODNUM_BREAKEVEN && B <= MODNUM_BREAKEVEN) {
         return naive_multiply(a, b);
     }
 
