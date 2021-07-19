@@ -88,3 +88,39 @@ Vec longest_common_subsequence(const Vec& a, const Vec& b) {
     reverse(begin(subsequence), end(subsequence));
     return subsequence;
 }
+
+/**
+ * Compute minimum number of intervals [ai,bi) to cover [a,b) (greedy)
+ * Complexity: O(N log N)
+ */
+template <typename T>
+optional<vector<int>> minimum_interval_cover(T a, T b, const vector<array<T, 2>>& intv) {
+    if (a >= b) {
+        return vector<int>();
+    }
+
+    int N = intv.size();
+    vector<int> index(N);
+    iota(begin(index), end(index), 0);
+    sort(begin(index), end(index), [&](int u, int v) { return intv[u] < intv[v]; });
+
+    T R = a;
+    int i = 0;
+    priority_queue<pair<T, int>> pq;
+    vector<int> solution;
+
+    while (R < b) {
+        while (i < N && intv[index[i]][0] <= R) {
+            pq.push({intv[index[i]][1], index[i]}), i++;
+        }
+        if (pq.empty() || pq.top().first <= R) {
+            return std::nullopt;
+        }
+        auto [r, best] = pq.top();
+        pq.pop();
+        R = r;
+        solution.push_back(best);
+    }
+
+    return solution;
+}

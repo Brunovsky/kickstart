@@ -53,7 +53,7 @@ void stress_test_collinear() {
                 P c1 = interpolate(a, b, rndp());
                 P c2 = interpolate(a, b, rndreal(30));
                 P c3 = interpolate(a, b, reald(1.2, 10)(mt));
-                P perp = P(c1.y * c1.z, c1.x * c1.z, -2 * c1.x * c1.y).unit();
+                P perp = unit(P(c1.y * c1.z, c1.x * c1.z, -2 * c1.x * c1.y));
                 P d = c1 + perp * R * 30 * P::deps;
 
                 bool inok, arok, outok;
@@ -101,8 +101,8 @@ void stress_test_coplanar() {
                 for (P c : random_points(N, R)) {
                     P d1 = c + rndp() * (a - c) + rndp() * (b - c);
                     P d2 = c + rndreal(20) * (a - c) + rndreal(20) * (b - c);
-                    P hi = a + a.cross(b, c).unit() * R * 30 * P::deps;
-                    P lo = a - a.cross(b, c).unit() * R * 30 * P::deps;
+                    P hi = a + unit(a.crossed(b, c)) * R * 30 * P::deps;
+                    P lo = a - unit(a.crossed(b, c)) * R * 30 * P::deps;
                     Plane plane(a, b, c);
 
                     bool inok, arok, outok, sideok, spok;
@@ -110,10 +110,10 @@ void stress_test_coplanar() {
                     arok = coplanar(a, b, c, d2) && coplanar(b, d2, a, c);
                     outok = !coplanar(a, b, c, hi) && !coplanar(b, hi, a, d1) &&
                             !coplanar(a, b, c, lo) && !coplanar(b, lo, a, d1);
-                    sideok = planeside(d1, a, a.cross(b, c)) == 0 &&
-                             planeside(d2, a, a.cross(b, c)) == 0 &&
-                             planeside(hi, a, a.cross(b, c)) == 1 &&
-                             planeside(lo, a, a.cross(b, c)) == -1;
+                    sideok = planeside(d1, a, a.crossed(b, c)) == 0 &&
+                             planeside(d2, a, a.crossed(b, c)) == 0 &&
+                             planeside(hi, a, a.crossed(b, c)) == 1 &&
+                             planeside(lo, a, a.crossed(b, c)) == -1;
                     spok = plane.planeside(d1) == 0 && plane.planeside(d2) == 0 &&
                            plane.planeside(hi) == 1 && plane.planeside(lo) == -1;
 

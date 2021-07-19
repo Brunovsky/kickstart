@@ -65,10 +65,13 @@ struct modnum {
     friend ostream &operator<<(ostream &out, modnum v) { return out << v.n; }
     friend istream &operator>>(istream &in, modnum &v) {
         int64_t n;
-        return in >> n, v = modnum(n);
+        return in >> n, v = modnum(n), in;
     }
 };
 
+/**
+ * Source: Nyaan on yosupo
+ */
 template <uint32_t mod>
 struct montg {
     using u32 = uint32_t;

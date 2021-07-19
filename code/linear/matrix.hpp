@@ -90,7 +90,7 @@ struct mat : tensor<T, 2> {
 
     friend mat operator^(mat a, long e) {
         assert(a.rows() == a.cols() && "Matrix exp operand is not square");
-        mat c = identity(a.rows());
+        mat c = mat::identity(a.rows());
         while (e > 0) {
             if (e & 1)
                 c = c * a;

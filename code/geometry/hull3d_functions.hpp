@@ -19,7 +19,7 @@ D area_hull(const vector<vector<int>>& hull, const vector<Point3d<T, D>>& points
     for (const auto& face : hull) {
         for (int i = 1, F = face.size(); i + 1 < F; i++) {
             const auto &a = points[face[0]], b = points[face[i]], c = points[face[i + 1]];
-            hull_area += a.crossed(b, c).norm();
+            hull_area += norm(a.crossed(b, c));
         }
     }
     return hull_area / 2.0;

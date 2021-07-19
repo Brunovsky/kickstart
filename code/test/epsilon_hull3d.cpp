@@ -26,7 +26,7 @@ auto random_points(int N, long R = 100, bool cube = false) {
         auto y = reald(-R, R)(mt);
         auto z = reald(-R, R)(mt);
         P p(x, y, z);
-        if (cube || p.norm() <= R) {
+        if (cube || norm(p) <= R) {
             points.push_back(move(p)), N--;
         }
     }
@@ -56,7 +56,7 @@ void add_collinear_points(int N, vector<P>& points, long R = 100, bool cube = fa
 
         P p = f * points[i] + (1 - f) * points[j];
 
-        if (cube ? p.boxed(P(-R, -R, -R), P(R, R, R)) : p.norm() <= R) {
+        if (cube ? p.boxed(P(-R, -R, -R), P(R, R, R)) : norm(p) <= R) {
             points.push_back(p), M++, S++;
         }
     }
@@ -77,7 +77,7 @@ void add_coplanar_points(int N, vector<P>& points, long R = 100, bool cube = fal
         double f2 = reald(-2, 3)(mt);
         P p = f1 * points[i] + f2 * points[j] + (1 - f1 - f2) * points[k];
 
-        if (cube ? p.boxed(P(-R, -R, -R), P(R, R, R)) : p.norm() <= R) {
+        if (cube ? p.boxed(P(-R, -R, -R), P(R, R, R)) : norm(p) <= R) {
             points.push_back(p), M++, S++;
         }
     }
@@ -195,8 +195,8 @@ void dataset_test_quickhull3d() {
 
 void stress_test_quickhull3d() {
     const auto run = [&](int N, int L, int C, int I, long R = 50) {
-        LOOP_FOR_DURATION_TRACKED (2s, now) {
-            print_time(now, 2s, "stress test quickhull3d {} {} {} {}", N, L, C, I);
+        LOOP_FOR_DURATION_TRACKED (20s, now) {
+            print_time(now, 20s, "stress test quickhull3d {} {} {} {}", N, L, C, I);
 
             auto points = random_points(N, R);
             add_coplanar_points(L, points, 2 * R);
@@ -217,12 +217,12 @@ void stress_test_quickhull3d() {
         }
     };
 
+    run(170, 0, 0, 30);
     run(30, 0, 0, 0);
     run(8, 20, 0, 0);
     run(10, 50, 0, 0);
     run(25, 0, 0, 0);
     run(200, 0, 0, 0);
-    run(170, 0, 0, 30);
     run(90, 100, 10, 0);
     run(50, 900, 10, 40);
     run(9900, 0, 0, 100);
@@ -276,6 +276,7 @@ void scaling_test_quickhull3d() {
 }
 
 int main() {
+    mt.seed(87);
     RUN_BLOCK(dataset_test_quickhull3d());
     RUN_BLOCK(stress_test_quickhull3d());
     RUN_BLOCK(scaling_test_quickhull3d());

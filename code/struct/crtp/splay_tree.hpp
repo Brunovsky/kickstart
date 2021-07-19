@@ -75,7 +75,7 @@ struct splay_tree_base {
     void insert_node(Splay* c, int side) {
         assert(c && !child[side]);
         adopt(self(), c, side);
-        c->pushup(), c->splay();
+        self()->pushup();
     }
 
     void insert_before(Splay* c) {
@@ -102,9 +102,8 @@ struct splay_tree_base {
             subtree->parent = nullptr;
             child[0] = nullptr;
             self()->pushup();
-            return subtree;
         }
-        return nullptr;
+        return subtree;
     }
 
     Splay* detach_right() {
@@ -115,16 +114,15 @@ struct splay_tree_base {
             subtree->parent = nullptr;
             child[1] = nullptr;
             self()->pushup();
-            return subtree;
         }
-        return nullptr;
+        return subtree;
     }
 
     Splay* split_before() { return splay(), detach_left(); }
     Splay* split_after() { return splay(), detach_right(); }
 
     // L and R must be roots or null
-    static Splay* join(Splay* L, Splay* R) {
+    friend Splay* join(Splay* L, Splay* R) {
         if (!L || !R) {
             return L ? L : R;
         }
@@ -136,7 +134,9 @@ struct splay_tree_base {
         return root;
     }
 
-    static Splay* lca(Splay* u, Splay* v) {
+    friend Splay* join(Splay* L, Splay* M, Splay* R) { return join(L, join(M, R)); }
+
+    friend Splay* lca(Splay* u, Splay* v) {
         assert(u && v);
         Splay *a = u, *b = v;
         while (a != b) {

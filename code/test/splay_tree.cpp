@@ -73,7 +73,7 @@ void unit_test_splay_tree() {
     Splay* L = G->detach_left();
     print_dfs(L);
     print_dfs(G);
-    print_dfs(Splay::join(G, L));
+    print_dfs(join(G, L));
     B->splay();
     C->splay();
     A->splay();

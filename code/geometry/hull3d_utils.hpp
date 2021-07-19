@@ -18,6 +18,10 @@ optional<tuple<int, int, int>> verify_hull(const vector<vector<int>>& hull,
     vector<unordered_set<int>> vfaces(N);
     for (int f = 0; f < H; f++) {
         const auto& face = hull[f];
+        assert(face.size() >= 3u);
+        for (int n : face) {
+            assert(0 <= n && n < N);
+        }
         const auto &u = points[face[0]], v = points[face[1]], w = points[face[2]];
         planes.emplace_back(u, v, w);
         for (int n : face) {

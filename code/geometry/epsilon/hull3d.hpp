@@ -243,7 +243,7 @@ struct quickhull3d {
         // Recompute normal
         Point3d normal;
         do {
-            normal += centroid.cross(points[edge->vertex], points[edge->next->vertex]);
+            normal += centroid.crossed(points[edge->vertex], points[edge->next->vertex]);
             edge = edge->next;
         } while (edge != face->edge);
 

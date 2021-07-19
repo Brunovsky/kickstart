@@ -11,7 +11,7 @@
  * (0, 1, 1, 1) --> AND            c := a[i] b[j] x^(i AND j)
  * (1, 1, 1, 0) --> OR             c := a[i] b[j] x^(i OR j)
  */
-template <int A, int B, int C, int D, bool reverse, typename T>
+template <int A, int B, int C, int D, bool inverse, typename T>
 void conv_transform(vector<T>& a) {
     int N = a.size();
     assert((N & (N - 1)) == 0);
@@ -20,7 +20,7 @@ void conv_transform(vector<T>& a) {
             for (int j = i; j < i + h; j++) {
                 auto x = a[j];
                 auto y = a[j + h];
-                if constexpr (reverse) {
+                if constexpr (inverse) {
                     a[j] = D * x - B * y;
                     a[j + h] = -C * x + A * y;
                 } else {
@@ -30,15 +30,21 @@ void conv_transform(vector<T>& a) {
             }
         }
     }
-    if constexpr (reverse) {
+    if constexpr (inverse && A * D - B * C != 1) {
         static_assert(A * D - B * C != 0);
         T div = 1;
         int n = N > 1 ? 8 * sizeof(N) - __builtin_clz(N - 1) : 0;
-        while (n--) {
-            div *= T(A * D - B * C);
+        if constexpr (A * D - B * C == -1) {
+            div = (n & 1) ? -1 : 1;
+        } else {
+            while (n--) {
+                div *= T(A * D - B * C);
+            }
         }
-        for (int i = 0; i < N; i++) {
-            a[i] /= div;
+        if (div != 1) {
+            for (int i = 0; i < N; i++) {
+                a[i] /= div;
+            }
         }
     }
 }

@@ -35,7 +35,7 @@ void stress_test_collinear() {
                 P c1 = interpolate(a, b, rndp());
                 P c2 = interpolate(a, b, rndreal(30));
                 P c3 = interpolate(a, b, reald(1.2, 10)(mt));
-                P d = c1 + (a - b).rperp().unit() * R * 10 * P::deps;
+                P d = c1 + unit(perp_ccw(a - b)) * R * 10 * P::deps;
 
                 bool inok, arok, outok;
                 inok = collinear(a, b, c1) && collinear(b, a, c1) &&

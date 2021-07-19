@@ -37,6 +37,22 @@ struct twosat_scc {
         adj[v ^ 1].push_back(u);
     }
 
+    void at_most_one(const vector<int>& vars) {
+        int V = vars.size();
+        if (V <= 1) {
+            return;
+        }
+        int cur = ~vars[0];
+        for (int i = 2; i < V; i++) {
+            int next = add_var();
+            either(cur, ~vars[i]);
+            either(cur, next);
+            either(~vars[i], next);
+            cur = ~next;
+        }
+        either(cur, ~vars[1]);
+    }
+
     void set(int u) { either(u, u); }
 
     vector<int> index, lowlink;
@@ -44,13 +60,13 @@ struct twosat_scc {
     stack<int> S;
     int depth;
 
-    void tarjan(int u) {
+    void dfs(int u) {
         index[u] = lowlink[u] = depth++;
         S.push(u), onstack[u] = true;
 
         for (int v : adj[u]) {
             if (!index[v]) {
-                tarjan(v);
+                dfs(v);
                 lowlink[u] = min(lowlink[u], lowlink[v]);
             } else if (onstack[v]) {
                 lowlink[u] = min(lowlink[u], index[v]);
@@ -79,7 +95,7 @@ struct twosat_scc {
 
         for (int u = 0; u < 2 * N; u++) {
             if (!index[u])
-                tarjan(u);
+                dfs(u);
         }
         for (int u = 0; u < N; u++) {
             assert(assignment[u] >= 0);

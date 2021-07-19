@@ -2,16 +2,6 @@
 
 #include "../hash.hpp"
 
-/**
- * Class to represent points exactly in 3d space.
- * Set T to long, frac, __int128_t, double, long double, ... (avoid int due to overflow)
- * Set D to double or long double.
- * Careful with exact comparisons like u==v if T is not exact.
- * The implementation in epsilon_point3d.hpp handles doubles properly with epsilons etc.
- *
- * Points: a,b,c,p   Points/vectors: u,v,w
- * Primary sources: kactl, cp-alg, ecnerwala
- */
 template <typename T, typename D = double>
 struct Point3d {
     T x, y, z;
@@ -19,17 +9,16 @@ struct Point3d {
 
     Point3d() : x(0), y(0), z(0) {}
     Point3d(T x, T y, T z) : x(x), y(y), z(z) {}
+    // Point3d(T x, T y, T z, int id) : x(x), y(y), z(z), id(id) {}
     template <typename K>
     explicit Point3d(Point3d<K, D> other) : x(other.x), y(other.y), z(other.z) {}
 
     using P = Point3d<T, D>;
-    using dP = Point3d<D, D>;
-    static P zero() { return P(0, 0, 0); }
     static T my_abs(T v) { return v >= 0 ? v : -v; /* __int128_t has no abs() */ }
 
     friend bool operator==(P a, P b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
     friend bool operator!=(P a, P b) { return !(a == b); }
-    explicit operator bool() const noexcept { return *this != zero(); }
+    explicit operator bool() const noexcept { return x || y || z; }
     bool boxed(P min, P max) const {
         return min.x <= x && x <= max.x && min.y <= y && y <= max.y && min.z <= z &&
                z <= max.z;
@@ -42,6 +31,7 @@ struct Point3d {
     T& operator[](int i) { return assert(i >= 0 && i <= 2), *(&x + i); }
     T operator[](int i) const { return assert(i >= 0 && i <= 2), *(&x + i); }
     P operator-() const { return P(-x, -y, -z); }
+    P operator+() const { return P(x, y, z); }
     friend P operator+(P u, P v) { return P(u.x + v.x, u.y + v.y, u.z + v.z); }
     friend P operator-(P u, P v) { return P(u.x - v.x, u.y - v.y, u.z - v.z); }
     friend P operator*(T k, P u) { return P(u.x * k, u.y * k, u.z * k); }
@@ -57,14 +47,12 @@ struct Point3d {
     // friend auto int_norm(P p) { return p.int_norm(); }
     // friend auto int_unit(P p) { return p.int_unit(); }
 
-    auto norm2() const { return x * x + y * y + z * z; }
-    auto norm() const { return std::sqrt(D(norm2())); }
-    auto unit() const { return dP(*this) / norm(); }
-    friend auto norm(P u) { return u.norm(); }
-    friend auto unit(P u) { return u.unit(); }
+    friend auto norm2(P u) { return u.x * u.x + u.y * u.y + u.z * u.z; }
+    friend auto norm(P u) { return std::sqrt(D(norm2(u))); }
+    friend auto unit(P u) { return Point3d<D, D>(u) / norm(u); }
 
-    auto manh() const { return my_abs(x) + my_abs(y) + my_abs(z); }
-    friend auto manh(P a, P b) { return (a - b).manh(); }
+    friend auto manh(P u) { return my_abs(u.x) + my_abs(u.y) + my_abs(u.z); }
+    friend auto manh(P a, P b) { return manh(a - b); }
     friend auto abs(P u) { return P(my_abs(u.x), my_abs(u.y), my_abs(u.z)); }
 
     friend auto dot(P u, P v) { return u.x * v.x + u.y * v.y + u.z * v.z; }
@@ -75,31 +63,31 @@ struct Point3d {
     }
     auto crossed(P a, P b) const { return cross(a - *this, b - *this); }
 
-    friend auto dist2(P a, P b) { return (a - b).norm2(); }
+    friend auto dist2(P a, P b) { return norm2(a - b); }
     friend auto dist(P a, P b) { return std::sqrt(D(dist2(a, b))); }
+
+    friend P interpolate(P a, P b, T k) { return a + (b - a) * k; }
 
   public: // Angles
     friend D angle(P u, P v) { return acos(cos(u, v)); }
     friend D cos(P u, P v) {
-        return clamp(D(dot(u, v)) / (u.norm() * v.norm()), D(-1), D(1));
+        return clamp(D(dot(u, v)) / (norm(u) * norm(v)), D(-1), D(1));
     }
     friend D sin(P u, P v) {
-        return clamp(D(cross(u, v)) / (u.norm() * v.norm()), D(-1), D(1));
+        return clamp(D(cross(u, v)) / (norm(u) * norm(v)), D(-1), D(1));
     }
 
   public: // Lines
-    friend P interpolate(P a, P b, T k) { return a + (b - a) * k; }
-
-    friend bool parallel(P u, P v) { return cross(u, v) == zero(); }
-    friend bool samedir(P u, P v) { return cross(u, v) == zero() && dot(u, v) > 0; }
-    friend bool collinear(P a, P b, P c) { return a.crossed(b, c) == zero(); }
+    friend bool parallel(P u, P v) { return cross(u, v) == P(); }
+    friend bool samedir(P u, P v) { return cross(u, v) == P() && dot(u, v) > 0; }
+    friend bool collinear(P a, P b, P c) { return a.crossed(b, c) == P(); }
     friend bool onsegment(P a, P b, P c) {
-        return a.crossed(b, c) == zero() && b.doted(a, c) < 0;
+        return a.crossed(b, c) == P() && b.doted(a, c) < 0;
     }
 
-    friend T linedist2(P a, P u, P v) { return a.crossed(u, v).norm2() / dist2(u, v); }
+    friend T linedist2(P a, P u, P v) { return norm2(a.crossed(u, v)) / dist2(u, v); }
     friend auto signed_linedist(P a, P u, P v) {
-        return a.crossed(u, v).norm() / dist(u, v);
+        return norm(a.crossed(u, v)) / dist(u, v);
     }
     friend auto linedist(P a, P u, P v) { return abs(signed_linedist(a, u, v)); }
 
@@ -115,13 +103,13 @@ struct Point3d {
 
     friend T planedist2(P p, P c, P n) {
         auto k = dot(n, p - c);
-        return k * k / n.norm2();
+        return k * k / norm2(n);
     }
-    friend auto signed_planedist(P p, P c, P n) { return D(dot(n, p - c)) / n.norm(); }
+    friend auto signed_planedist(P p, P c, P n) { return D(dot(n, p - c)) / norm(n); }
     friend auto planedist(P p, P c, P n) { return abs(signed_planedist(p, c, n)); }
 
   public: // Format
-    friend string to_string(const P& p) {
+    friend string to_string(P p) {
         return '(' + to_string(p.x) + ',' + to_string(p.y) + ',' + to_string(p.z) + ')';
     }
     friend ostream& operator<<(ostream& out, P p) { return out << to_string(p); }
@@ -152,9 +140,9 @@ struct Plane {
     }
     T planedist2(P p) {
         auto k = dot(normal(), p - c);
-        return k * k / normal().norm2();
+        return k * k / norm2(normal());
     }
-    auto signed_planedist(P p) { return D(dot(normal(), p - c)) / normal().norm(); }
+    auto signed_planedist(P p) { return D(dot(normal(), p - c)) / norm(normal()); }
     auto planedist(P p) { return abs(signed_planedist(p)); }
 };
 

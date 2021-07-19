@@ -31,7 +31,7 @@ auto random_points(int N, int R = 100, bool cube = true) {
         int z = intd(-R, R)(mt);
         P p(x, y, z);
         if (!pointset.count(p)) {
-            if (cube ? p.boxed(-box, box) : p.norm() <= R) {
+            if (cube ? p.boxed(-box, box) : norm(p) <= R) {
                 pointset.insert(p), N--;
             }
         }
@@ -66,7 +66,7 @@ void add_collinear_points(int N, vector<P>& points, int R = 100, bool cube = tru
         P p = interpolate(points[i], points[j], f);
 
         if (!pointset.count(p)) {
-            if (cube ? p.boxed(-box, box) : p.norm() <= R) {
+            if (cube ? p.boxed(-box, box) : norm(p) <= R) {
                 pointset.insert(p);
                 points.push_back(p), N--, S++;
             }
@@ -93,7 +93,7 @@ void add_coplanar_points(int N, vector<P>& points, int R = 100, bool cube = true
         P p = f1 * points[i] + f2 * points[j] + f3 * points[k];
 
         if (!pointset.count(p)) {
-            if (cube ? p.boxed(-box, box) : p.norm() <= R) {
+            if (cube ? p.boxed(-box, box) : norm(p) <= R) {
                 pointset.insert(p);
                 points.push_back(p), N--, S++;
             }

@@ -1,5 +1,6 @@
 #include "test_utils.hpp"
 #include "../algo/2sat.hpp"
+#include "../algo/hornsat.hpp"
 
 inline namespace detail {
 
@@ -85,7 +86,34 @@ void speed_test_twosat_positive() {
     print_time_table(table, "2SAT");
 }
 
+void unit_test_hornsat() {
+    auto run = [&](const vector<vector<int>>& clauses) {
+        vector<bool> assignment;
+        bool satisfiable = hornsat(clauses, &assignment);
+
+        if (satisfiable) {
+            printcl("satisfiable: {}\n", assignment);
+        } else {
+            printcl("unsatisfiable\n");
+        }
+        printcl("{}", clauses);
+    };
+
+    vector<vector<int>> clauses;
+
+    clauses = {
+        {1, 2, 4, 3}, {-1, 1, 3}, {0, 2, 4}, {2, 3, 4, 2}, {3},
+    };
+    run(clauses);
+
+    clauses = {
+        {0, 1, 2, 3, 4, 5}, {5, 2, 3}, {4}, {3}, {1, 2}, {2, 1},
+    };
+    run(clauses);
+}
+
 int main() {
+    RUN_SHORT(unit_test_hornsat());
     RUN_SHORT(unit_test_twosat());
     RUN_BLOCK(speed_test_twosat_positive());
     return 0;

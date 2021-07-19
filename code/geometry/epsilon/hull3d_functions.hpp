@@ -29,7 +29,7 @@ double volume_hull(const vector<vector<int>>& hull, const vector<Point3d>& point
     for (const auto& face : hull) {
         for (int i = 1, F = face.size(); i + 1 < F; i++) {
             const auto &a = points[face[0]], b = points[face[i]], c = points[face[i + 1]];
-            hull_volume += volume(a, b, c, Point3d::zero());
+            hull_volume += volume(a, b, c, Point3d());
         }
     }
     return hull_volume;

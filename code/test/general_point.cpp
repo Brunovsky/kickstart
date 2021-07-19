@@ -33,9 +33,7 @@ using F = frac;
 using P = Point2d<frac>;
 using P3 = Point3d<frac>;
 
-frac area(P a, P b, P c) { return a.crossed(b, c) / 2; }
-frac area2(P3 a, P3 b, P3 c) { return a.crossed(b, c).norm2() / 4; }
-double area(P3 a, P3 b, P3 c) { return a.crossed(b, c).norm() / 2; }
+frac area2(P3 a, P3 b, P3 c) { return norm2(a.crossed(b, c)) / 4; }
 
 void unit_test_point2d() {
     P A(1, 4), B(7, 0), C(6, 8);
@@ -83,9 +81,24 @@ void unit_test_point3d_3d() {
     assert(ha2 == F(2873, 81) && hb2 == F(2873, 42) && hc2 == F(2873, 77));
 }
 
+void unit_test_rot() {
+    vector<P> ps = {
+        P(0, 3),  P(4, 7),  P(-8, 4),    P(3, 9),   P(-2, 0),  P(0, -7),
+        P(11, 9), P(8, 0),  P(4, 0),     P(2, 8),   P(-3, -7), P(-14, 17),
+        P(6, -9), P(2, -1), P(-12, -15), P(11, -6), P(-4, 10), P(-10, -5),
+    };
+
+    sort(begin(ps), end(ps), [](auto a, auto b) { return angle_less(a, b); });
+
+    for (int i = 0; i < int(ps.size()); i++) {
+        cout << ps[i] << '\n';
+    }
+}
+
 int main() {
     RUN_BLOCK(unit_test_point2d());
     RUN_BLOCK(unit_test_point3d_2d());
     RUN_BLOCK(unit_test_point3d_3d());
+    RUN_BLOCK(unit_test_rot());
     return 0;
 }

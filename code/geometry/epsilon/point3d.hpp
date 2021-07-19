@@ -1,7 +1,6 @@
 #pragma once
 
 #include <bits/stdc++.h>
-
 using namespace std;
 
 /**
@@ -10,152 +9,141 @@ using namespace std;
  */
 struct Point3d {
     double x, y, z;
-    constexpr Point3d() : x(0), y(0), z(0) {}
-    constexpr Point3d(double x, double y, double z) : x(x), y(y), z(z) {}
-    constexpr Point3d(const array<double, 3>& a) : x(a[0]), y(a[1]), z(a[2]) {}
+    // int id = -1;
+
+    Point3d() : x(0), y(0), z(0) {}
+    Point3d(double x, double y, double z) : x(x), y(y), z(z) {}
+    // Point3d(double x, double y, double z, int id) : x(x), y(y), z(z), id(id) {}
 
     using P = Point3d;
     static constexpr double inf = numeric_limits<double>::infinity();
     static constexpr double deps = 30 * numeric_limits<double>::epsilon();
 
-    static constexpr P zero() { return P(0, 0, 0); }
-    static constexpr P one() { return P(1, 1, 1); }
-    static constexpr P pinf() { return P(inf, inf, inf); }
-
-    friend bool same(const P& a, const P& b, double eps = deps) {
-        return dist(a, b) <= max(a.manhattan(), b.manhattan()) * eps;
+    friend bool same(P a, P b, double eps = deps) {
+        return dist(a, b) <= max(manh(a), manh(b)) * eps;
     }
-    bool operator==(const P& b) const { return same(*this, b); }
-    bool operator!=(const P& b) const { return !same(*this, b); }
-    explicit operator bool() const noexcept { return *this != zero(); }
+    bool operator==(P b) const { return same(*this, b); }
+    bool operator!=(P b) const { return !same(*this, b); }
+    explicit operator bool() const noexcept { return *this != P(); }
+    bool boxed(P min, P max) const {
+        return min.x <= x && x <= max.x && min.y <= y && y <= max.y && min.z <= z &&
+               z <= max.z;
+    }
+    friend P clamp(P p, P min, P max) {
+        return P(clamp(p.x, min.x, max.x), clamp(p.y, min.y, max.y),
+                 clamp(p.z, min.z, max.z));
+    }
 
     double& operator[](int i) { return assert(0 <= i && i < 3), *(&x + i); }
     double operator[](int i) const { return assert(0 <= i && i < 3), *(&x + i); }
     P operator-() const { return P(-x, -y, -z); }
-    P operator+(const P& u) const { return P(x + u.x, y + u.y, z + u.z); }
-    P operator-(const P& u) const { return P(x - u.x, y - u.y, z - u.z); }
-    friend P operator*(double k, const P& u) { return P(k * u.x, k * u.y, k * u.z); }
-    P operator*(double k) const { return P(k * x, k * y, k * z); }
-    P operator/(double k) const { return P(x / k, y / k, z / k); }
-    friend P& operator+=(P& u, const P& v) { return u = u + v; }
-    friend P& operator-=(P& u, const P& v) { return u = u - v; }
+    P operator+() const { return P(x, y, z); }
+    friend P operator+(P u, P v) { return P(u.x + v.x, u.y + v.y, u.z + v.z); }
+    friend P operator-(P u, P v) { return P(u.x - v.x, u.y - v.y, u.z - v.z); }
+    friend P operator*(double k, P u) { return P(k * u.x, k * u.y, k * u.z); }
+    friend P operator*(P u, double k) { return P(k * u.x, k * u.y, k * u.z); }
+    friend P operator/(P u, double k) { return P(u.x / k, u.y / k, u.z / k); }
+    friend P& operator+=(P& u, P v) { return u = u + v; }
+    friend P& operator-=(P& u, P v) { return u = u - v; }
     friend P& operator*=(P& u, double k) { return u = u * k; }
     friend P& operator/=(P& u, double k) { return u = u / k; }
 
-    P& normalize() { return *this /= norm(); }
-    P unit() const { return *this / norm(); }
-    double norm() const { return dist(*this); }
-    double norm2() const { return dist2(*this); }
-    friend auto dot(const P& u, const P& v) { return u.x * v.x + u.y * v.y + u.z * v.z; }
-    friend auto dot2(const P& u, const P& v) { return dot(u, v) * dot(u, v); }
-    friend double dist(const P& u) { return std::sqrt(dist2(u)); }
-    friend double dist(const P& a, const P& b) { return std::sqrt(dist2(a, b)); }
-    friend double dist2(const P& u) { return dot(u, u); }
-    friend double dist2(const P& a, const P& b) { return dist2(a - b); }
-    double manhattan() const { return abs(x) + abs(y) + abs(z); }
-    friend double manhattan(const P& a, const P& b) { return (a - b).manhattan(); }
-    friend P abs(const P& u) { return P(abs(u.x), abs(u.y), abs(u.z)); }
+    friend auto norm2(P u) { return u.x * u.x + u.y * u.y + u.z * u.z; }
+    friend auto norm(P u) { return std::sqrt(norm2(u)); }
+    friend auto unit(P u) { return u / norm(u); }
+    auto& normalize() { return *this = unit(*this); }
 
-    P cross(const P& a, const P& b) const { return crossed(a - *this, b - *this); }
-    friend P crossed(const P& u, const P& v) {
+    friend double manh(P u) { return abs(u.x) + abs(u.y) + abs(u.z); }
+    friend double manh(P a, P b) { return manh(a - b); }
+    friend auto abs(P u) { return P(abs(u.x), abs(u.y), abs(u.z)); }
+
+    friend auto dot(P u, P v) { return u.x * v.x + u.y * v.y + u.z * v.z; }
+    auto doted(P a, P b) const { return dot(a - *this, b - *this); }
+
+    friend auto cross(P u, P v) {
         return P(u.y * v.z - u.z * v.y, u.z * v.x - u.x * v.z, u.x * v.y - u.y * v.x);
     }
-    P normal(const P& a, const P& b) const { return cross(a, b).unit(); }
-    friend P normal(const P& u, const P& v) { return crossed(u, v).unit(); }
+    auto crossed(P a, P b) const { return cross(a - *this, b - *this); }
 
-    // -- Lattice points
+    friend double dist2(P a, P b) { return norm2(a - b); }
+    friend double dist(P a, P b) { return std::sqrt(dist2(a, b)); }
 
-    array<long, 3> round_lattice_point() const {
-        return {long(round(x)), long(round(y)), long(round(z))};
+    friend P normal(P u, P v) { return unit(cross(u, v)); }
+
+    friend P interpolate(P a, P b, double k) { return a + (b - a) * k; }
+
+  public: // Lattice points
+    friend array<long, 3> round_lattice_point(P p) {
+        return {long(round(p.x)), long(round(p.y)), long(round(p.z))};
     }
-    array<long, 3> floor_lattice_point() const {
-        return {long(floor(x)), long(floor(y)), long(floor(z))};
+    friend array<long, 3> floor_lattice_point(P p) {
+        return {long(floor(p.x)), long(floor(p.y)), long(floor(p.z))};
     }
-    array<long, 3> ceil_lattice_point() const {
-        return {long(ceil(x)), long(ceil(y)), long(ceil(z))};
+    friend array<long, 3> ceil_lattice_point(P p) {
+        return {long(ceil(p.x)), long(ceil(p.y)), long(ceil(p.z))};
     }
 
-    // -- Angles
-
-    // Azimuthal angle (longitude) to x-axis in interval [-pi, pi], ignoring z
-    double phi() const { return atan2(y, x); }
-    // Zenith angle (latitude) to the z-axis in interval [0, pi]
-    double theta() const { return atan2(std::sqrt(x * x + y * y), z); }
-    // Azimuthal angle (longitude) to x-axis in interval [-pi, pi], ignoring z
-    friend double phi(const P& p) { return p.phi(); }
-    // Zenith angle (latitude) to the z-axis in interval [0, pi]
-    friend double theta(const P& p) { return p.theta(); }
-
-    P rotated(double rad, P axis) const {
+  public: // Angles
+    auto rotate(double rad, P axis) const {
         double s = sin(rad), c = cos(rad);
         axis.normalize();
-        return axis * dot(*this, axis) * (1 - c) + (*this) * c + crossed(*this, axis) * s;
-    }
-    P& rotate(double rad, P axis) { return *this = rotated(rad, axis); }
-
-    friend double cos(const P& u, const P& v) {
-        return clamp(dot(u, v) / std::sqrt(u.norm2() * v.norm2()), -1.0, 1.0);
-    }
-    friend double sin(const P& u, const P& v) {
-        return clamp(crossed(u, v).norm() / std::sqrt(u.norm2() * v.norm2()), -1.0, 1.0);
+        return axis * dot(*this, axis) * (1 - c) + (*this) * c + cross(*this, axis) * s;
     }
 
-    // -- Lines
+    friend double angle(P u, P v) { return acos(cos(u, v)); }
+    friend double cos(P u, P v) {
+        return clamp(dot(u, v) / (norm(u) * norm(v)), -1.0, 1.0);
+    }
+    friend double sin(P u, P v) {
+        return clamp(norm(cross(u, v)) / (norm(u) * norm(v)), -1.0, 1.0);
+    }
+    // Azimuthal angle (longitude) to x-axis in interval [-pi, pi], ignoring z
+    friend double phi(P p) { return atan2(p.y, p.x); }
+    // Zenith angle (latitude) to the z-axis in interval [0, pi]
+    friend double theta(P p) { return atan2(norm(p), p.z); }
 
-    friend bool collinear(const P& a, const P& b, const P& c, double eps = deps) {
+  public: // -- Lines
+    friend bool collinear(P a, P b, P c, double eps = deps) {
         double ab = dist(a, b), ac = dist(a, c), bc = dist(b, c);
         return ab >= max(ac, bc)   ? linedist(c, a, b) <= ab * eps
                : ac >= max(ab, bc) ? linedist(b, a, c) <= ac * eps
                                    : linedist(a, b, c) <= bc * eps;
     }
     // Are points a, b, c collinear in this order? (degenerate=yes)
-    friend bool onsegment(const P& a, const P& b, const P& c, double eps = deps) {
+    friend bool onsegment(P a, P b, P c, double eps = deps) {
         return collinear(a, b, c, eps) && dot(a - b, c - b) <= 0; // <=0, not eps
     }
-    friend bool parallel(const P& u, const P& v, double eps = deps) {
-        return collinear(zero(), u, v, eps);
+    friend bool parallel(P u, P v, double eps = deps) {
+        return collinear(P(), u, v, eps);
     }
-
-    friend P interpolate(const P& a, const P& b, double k) { return a + (b - a) * k; }
 
     // Distance of a to line uv
-    friend double linedist(const P& a, const P& u, const P& v) {
-        return a.cross(u, v).norm() / dist(u, v);
-    }
+    friend double linedist(P a, P u, P v) { return norm(a.crossed(u, v)) / dist(u, v); }
 
-    // -- Planes
-    friend bool coplanar(const P& a, const P& b, const P& c, const P& d,
-                         double eps = deps) {
-        P n = (a.cross(b, c) + b.cross(c, d) + c.cross(d, a) + d.cross(a, b));
+  public: // Planes
+    friend bool coplanar(P a, P b, P c, P d, double eps = deps) {
+        P n = (a.crossed(b, c) + b.crossed(c, d) + c.crossed(d, a) + d.crossed(a, b));
         return !planeside(a, b, n, eps) || !planeside(b, c, n, eps) ||
                !planeside(c, d, n, eps) || !planeside(d, a, n, eps);
     }
     // Is point P above (1), in (0) or below (-1) the plane by C with normal n?
-    friend int planeside(const P& p, const P& c, const P& n, double eps = deps) {
-        double s = dot(n, p - c), k = c.norm() * n.norm();
+    friend int planeside(P p, P c, P n, double eps = deps) {
+        double s = dot(n, p - c), k = norm(c) * norm(n);
         return (s >= k * 4 * eps) - (s <= -k * 4 * eps);
     }
 
-    // -- Area
-
-    friend double area(const P& a, const P& b, const P& c) {
-        return a.cross(b, c).norm() / 2;
-    }
-    friend double volume(const P& a, const P& b, const P& c, const P& d) {
-        return dot(a - d, crossed(b - d, c - d)) / 6;
+  public: // Area
+    friend double area(P a, P b, P c) { return norm(a.crossed(b, c)) / 2; }
+    friend double volume(P a, P b, P c, P d) {
+        return dot(a - d, cross(b - d, c - d)) / 6;
     }
 
-    bool boxed(const P& min, const P& max) const {
-        return min.x <= x && x <= max.x && //
-               min.y <= y && y <= max.y && //
-               min.z <= z && z <= max.z;
+  public: // Format
+    friend string to_string(P p) {
+        return '(' + to_string(p.x) + ',' + to_string(p.y) + ',' + to_string(p.z) + ')';
     }
-
-    friend string to_string(const P& a) {
-        return '(' + to_string(a.x) + ',' + to_string(a.y) + ',' + to_string(a.z) + ')';
-    }
-    friend ostream& operator<<(ostream& out, const P& a) { return out << to_string(a); }
-    friend istream& operator>>(istream& in, P& a) { return in >> a.x >> a.y >> a.z; }
+    friend ostream& operator<<(ostream& out, P p) { return out << to_string(p); }
+    friend istream& operator>>(istream& in, P& p) { return in >> p.x >> p.y >> p.z; }
 };
 
 struct Plane {
@@ -164,11 +152,11 @@ struct Plane {
     double d = 0; // distance to origin; plane equation: dot(n,x) + d = 0
 
     Plane() = default;
-    Plane(const P& N, double d) : n(N.unit()), d(d / N.norm()) {}
-    Plane(const P& N, const P& c) : n(N.unit()), d(-dot(n, c)) {}
-    Plane(const P& a, const P& b, const P& c) : n(a.cross(b, c).unit()), d(-dot(n, a)) {}
+    Plane(P N, double d) : n(unit(N)), d(d / norm(N)) {}
+    Plane(P N, P c) : n(unit(N)), d(-dot(n, c)) {}
+    Plane(P a, P b, P c) : n(unit(a.crossed(b, c))), d(-dot(n, a)) {}
 
-    bool is_degenerate(double eps = Point3d::deps) const { return n.norm() <= eps; }
+    bool is_degenerate(double eps = Point3d::deps) const { return norm(n) <= eps; }
 
     // True if same plane and same orientation
     friend bool same_oriented(const Plane& a, const Plane& b,
@@ -185,11 +173,11 @@ struct Plane {
     Plane operator-() const { return Plane(-n, -d); }
 
     // Is point P above (1), in (0) or below (-1) this plane?
-    int planeside(const P& p, double eps = Point3d::deps) const {
+    int planeside(P p, double eps = Point3d::deps) const {
         double s = dot(p, n) + d;
-        return (s >= p.norm() * eps) - (s <= -p.norm() * eps);
+        return (s >= norm(p) * eps) - (s <= -norm(p) * eps);
     }
 
-    double planedist(const P& p) const { return abs(dot(p, n) + d) / n.norm(); }
-    double signed_planedist(const P& p) const { return (dot(p, n) + d) / n.norm(); }
+    double planedist(P p) const { return abs(dot(p, n) + d) / norm(n); }
+    double signed_planedist(P p) const { return (dot(p, n) + d) / norm(n); }
 };

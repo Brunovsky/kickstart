@@ -1,6 +1,37 @@
 #include "test_utils.hpp"
 #include "../numeric/math.hpp"
 #include "../numeric/modnum.hpp"
+#include "../algo/floor_sum.hpp"
+
+void stress_test_floor_sum() {
+    vector<int> ns = {1, 2, 3, 4, 5, 37, 89, 913, 1024, 7302};
+    vector<long> ms = {2, 3, 4, 5, 7, 13, 40, 73, 431, 999, 1000, 50000, 150000, 3000000};
+    vector<long> as = {1, 2, 3, 4, 5, 17, 28, 41, 99, 713, 4123, 81423, 1024123, 7612312};
+    vector<long> bs = {1, 2, 3, 4, 5, 19, 31, 43, 73, 314, 6712, 54261, 3124421, 9617236};
+
+    auto run = [&](long m, long a, long b) {
+        int N = *max_element(begin(ns), end(ns));
+        vector<long> sum(N + 1);
+
+        for (int i = 0; i < N; i++) {
+            sum[i + 1] = sum[i] + (a * i + b) / m;
+        }
+
+        for (int n : ns) {
+            assert(sum[n] == floor_sum(n, m, a, b));
+        }
+
+        printcl("floor sum {} {} {} OK", m, a, b);
+    };
+
+    for (long m : ms) {
+        for (long a : as) {
+            for (long b : bs) {
+                run(m, a, b);
+            }
+        }
+    }
+}
 
 void unit_test_others() {
     assert(modpow(3, 17, 5) == 3);
@@ -145,7 +176,6 @@ void stress_test_modnum() {
     }
 
     TIME_BLOCK(montg) {
-        print("montg r={} n2={}\n", mont::r, mont::n2);
         mont d(0);
         vector<mont> am(N), bm(M);
         for (int i = 0; i < N; i++) {
@@ -170,6 +200,7 @@ void stress_test_modnum() {
 }
 
 int main() {
+    RUN_SHORT(stress_test_floor_sum());
     RUN_SHORT(unit_test_others());
     RUN_SHORT(unit_test_modsqrt());
     RUN_SHORT(unit_test_modlog());

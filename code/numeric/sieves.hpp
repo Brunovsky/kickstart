@@ -213,9 +213,9 @@ auto logfac_sieve(int N) {
  *    430ms      32'000'000
  *   1600ms      100'000'000
  */
-template <typename Num>
+template <typename num>
 auto pascal_sieve(int N) {
-    vector<Num> fac, ifac;
+    vector<num> fac, ifac;
     fac.resize(N + 1), ifac.resize(N + 1);
     fac[0] = fac[1] = ifac[1] = 1;
 
